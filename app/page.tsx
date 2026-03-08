@@ -1,65 +1,209 @@
-import Image from "next/image";
+import type { Metadata } from "next";
+import { Separator } from "@/components/ui/separator";
 
-export default function Home() {
+import { getLatestSnapshot, getPreviousSnapshotFull, type PositionRow } from "@/lib/portfolio-data";
+import { DashboardHero } from "@/components/dashboard/dashboard-hero";
+import { PerformersPanel } from "@/components/dashboard/performers-panel";
+import { HoldingsTable } from "@/components/dashboard/holdings-table";
+import { AllocationPanel } from "@/components/dashboard/allocation-panel";
+import { EmptyDashboard } from "@/components/dashboard/empty-dashboard";
+import { SiteHeader } from "@/components/layout/site-header";
+import { ImportButton } from "@/components/snapshots/snapshots-client";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+};
+
+function formatDate(date: Date): string {
+  return new Intl.DateTimeFormat("es-AR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
+
+function formatARS(value: number): string {
+  return new Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: "ARS",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function formatUSD(value: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+export default async function HomePage() {
+  const snapshot = await getLatestSnapshot();
+
+  let gainArs: number | null = null;
+  let gainPct: number | null = null;
+  let previousPositions: PositionRow[] = [];
+
+  if (snapshot) {
+    const previous = await getPreviousSnapshotFull(snapshot.snapshotDate);
+    if (previous) {
+      gainArs = snapshot.totalValueArs - previous.totalValueArs;
+      gainPct = (gainArs / previous.totalValueArs) * 100;
+      previousPositions = previous.positions;
+    }
+  }
+
+  const isPositive = gainPct !== null ? gainPct >= 0 : true;
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <div className="flex flex-col min-h-svh">
+      <SiteHeader title="Dashboard" description="CEDEARs · Cocos Capital" actions={<ImportButton />} />
+
+      {snapshot ? (
+        <main className="flex-1 px-6 py-10 flex flex-col gap-10 max-w-6xl w-full mx-auto">
+          {/* Hero value section */}
+          <section className="animate-fade-up flex flex-col gap-6">
+            <DashboardHero
+              totalValueArs={snapshot.totalValueArs}
+              totalValueUsd={snapshot.totalValueUsd}
+              snapshotDateFormatted={formatDate(snapshot.snapshotDate)}
+              gainArs={gainArs}
+              gainPct={gainPct}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+            {/* Secondary KPI strip — Material Dashboard widget card style */}
+            <div
+              className="grid grid-cols-2 gap-4 sm:grid-cols-4 animate-fade-up"
+              style={{ animationDelay: "80ms" }}
+            >
+              {[
+                {
+                  label: "Equivalente USD",
+                  sub: "Tipo de cambio CCL",
+                  value: snapshot.totalValueUsd
+                    ? formatUSD(snapshot.totalValueUsd)
+                    : "—",
+                  status: "calculado",
+                  accent: null as boolean | null,
+                },
+                {
+                  label: "Tipo de cambio",
+                  sub: "CCL implícito",
+                  value: snapshot.ccl
+                    ? `$ ${new Intl.NumberFormat("es-AR", {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      }).format(snapshot.ccl)}`
+                    : "—",
+                  status: "del snapshot",
+                  accent: null as boolean | null,
+                },
+                {
+                  label: "Posiciones",
+                  sub: "CEDEARs activos",
+                  value: `${snapshot.positions.length}`,
+                  status: "activos",
+                  accent: null as boolean | null,
+                },
+                {
+                  label: "Rendimiento",
+                  sub: "vs snapshot anterior",
+                  value:
+                    gainPct !== null
+                      ? `${isPositive ? "+" : ""}${gainPct.toFixed(2)}%`
+                      : "—",
+                  status: gainPct !== null ? "vs anterior" : "sin historial",
+                  accent: gainPct !== null ? isPositive : null,
+                },
+              ].map(({ label, sub, value, status, accent }) => (
+                <div
+                  key={label}
+                  className="rounded-xl border border-border bg-card shadow-sm px-5 py-4 flex flex-col gap-3"
+                >
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-sm font-semibold text-foreground">
+                      {label}
+                    </span>
+                    <span className="text-xs text-muted-foreground">{sub}</span>
+                  </div>
+                  <span
+                    className={`text-xl font-bold font-mono tabular-nums leading-none ${
+                      accent === true
+                        ? "text-emerald-500"
+                        : accent === false
+                          ? "text-destructive"
+                          : "text-foreground"
+                    }`}
+                  >
+                    {value}
+                  </span>
+                  {/* Status row with green dot */}
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className={`size-2 rounded-full shrink-0 ${
+                        accent === false ? "bg-destructive" : "bg-emerald-500"
+                      }`}
+                    />
+                    <span className="text-xs text-muted-foreground">
+                      {status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <Separator className="opacity-30" />
+
+          {/* Performers section — only visible when there's a previous snapshot to compare */}
+          {previousPositions.length > 0 && (
+            <>
+              <PerformersPanel
+                currentPositions={snapshot.positions}
+                previousPositions={previousPositions}
+              />
+              <Separator className="opacity-30" />
+            </>
+          )}
+
+          {/* Main content grid */}
+          <section className="grid gap-8 lg:grid-cols-5">
+            <div className="lg:col-span-2">
+              <AllocationPanel
+                positions={snapshot.positions}
+                totalArs={snapshot.totalValueArs}
+              />
+            </div>
+            <div className="lg:col-span-3">
+              <HoldingsTable positions={snapshot.positions} />
+            </div>
+          </section>
+
+          {/* Import hint */}
+          <section
+            className="animate-fade-up rounded-xl border border-dashed border-border bg-card/50 shadow-sm px-6 py-5 flex items-center justify-between gap-4"
+            style={{ animationDelay: "400ms" }}
           >
-            Documentation
-          </a>
-        </div>
-      </main>
+            <div className="flex flex-col gap-0.5">
+              <p className="text-sm font-medium text-foreground">
+                Actualizar portfolio
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Importá un nuevo CSV de Cocos Capital para registrar el estado
+                actual.
+              </p>
+            </div>
+            <ImportButton />
+          </section>
+        </main>
+      ) : (
+        <main className="flex-1 px-6 py-10 max-w-6xl w-full mx-auto">
+          <EmptyDashboard />
+        </main>
+      )}
     </div>
   );
 }
