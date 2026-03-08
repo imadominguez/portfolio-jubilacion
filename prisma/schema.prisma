@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Currency {
+  ARS
+  USD
+}
+
+// ---------------------------------------------------------------------------
+// PortfolioSnapshot
+//
+// Representa el estado del portfolio en un momento específico del tiempo.
+// Se crea importando un CSV exportado desde Cocos Capital.
+// Es inmutable: una vez creado no debe modificarse.
+// ---------------------------------------------------------------------------
+
+model PortfolioSnapshot {
+  id            String     @id @default(cuid())
+  snapshotDate  DateTime   @unique @db.Date
+  totalValueArs Decimal    @db.Decimal(18, 2)
+  totalValueUsd Decimal?   @db.Decimal(18, 2)
+  ccl           Decimal?   @db.Decimal(10, 4)
+  sourceFile    String?
+  positions     Position[]
+  createdAt     DateTime   @default(now())
+
+  @@index([snapshotDate])
+  @@map("portfolio_snapshots")
+}
+
+// ---------------------------------------------------------------------------
+// Position
+//
+// Representa la tenencia de un activo específico dentro de un snapshot.
+// Cada posición pertenece a un único snapshot.
+// allocationPct se almacena desnormalizado para reproducibilidad histórica.
+// ---------------------------------------------------------------------------
+
+model Position {
+  id             String            @id @default(cuid())
+  snapshotId     String
+  snapshot       PortfolioSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  ticker         String
+  instrumentName String?
+  quantity       Decimal           @db.Decimal(18, 8)
+  price          Decimal           @db.Decimal(18, 4)
+  currency       Currency          @default(ARS)
+  positionValue  Decimal           @db.Decimal(18, 2)
+  allocationPct  Decimal           @db.Decimal(8, 6)
+  createdAt      DateTime          @default(now())
+
+  @@unique([snapshotId, ticker])
+  @@index([snapshotId])
+  @@index([ticker])
+  @@map("positions")
+}
+
+// ---------------------------------------------------------------------------
+// Asset
+//
+// Tabla de referencia mutable para los CEDEARs.
+// Almacena el cedearRatio necesario para convertir entre precio en ARS y USD.
+// No tiene FK desde Position para evitar rigidez al importar nuevos tickers.
+// Los ratios rara vez cambian pero pueden actualizarse cuando sea necesario.
+// ---------------------------------------------------------------------------
+
+model Asset {
+  id             String   @id @default(cuid())
+  ticker         String   @unique
+  instrumentName String?
+  cedearRatio    Decimal  @db.Decimal(8, 4)
+  description    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([ticker])
+  @@map("assets")
+}
+
+// ---------------------------------------------------------------------------
+// ExchangeRate
+//
+// Almacena el historial de la tasa CCL (Contado con Liquidación) por fecha.
+// Desacoplado de los snapshots para registrar tasas independientemente.
+// Permite calcular el valor del portfolio en USD: valor_ars / ccl.
+// ---------------------------------------------------------------------------
+
+model ExchangeRate {
+  id        String   @id @default(cuid())
+  date      DateTime @unique @db.Date
+  ccl       Decimal  @db.Decimal(10, 4)
+  source    String?
+  createdAt DateTime @default(now())
+
+  @@index([date])
+  @@map("exchange_rates")
+}
