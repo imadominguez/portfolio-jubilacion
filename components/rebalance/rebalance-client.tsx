@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useMemo } from "react";
 import { toast } from "sonner";
-import { Plus, Trash2, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Plus, Trash2, TrendingUp, TrendingDown, Minus, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -24,6 +24,15 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import type { RebalanceRow, TargetAllocationRow } from "@/app/actions/rebalance";
+
+type SortCol = "ticker" | "currentPct" | "targetPct" | "deviation" | "currentValue" | "suggestedAction";
+type SortDir = "asc" | "desc";
+
+function SortIcon({ col, sortCol, sortDir }: { col: SortCol; sortCol: SortCol | null; sortDir: SortDir }) {
+  if (sortCol !== col) return <ChevronsUpDown className="size-3 shrink-0 opacity-40" />;
+  if (sortDir === "asc") return <ChevronUp className="size-3 shrink-0" />;
+  return <ChevronDown className="size-3 shrink-0" />;
+}
 import { upsertTargetAllocation, deleteTargetAllocation } from "@/app/actions/rebalance";
 
 interface RebalanceClientProps {
@@ -47,6 +56,35 @@ export function RebalanceClient({ rebalanceData, targets, totalPct }: RebalanceC
   const [ticker, setTicker] = useState("");
   const [targetPct, setTargetPct] = useState("");
   const [isPending, startTransition] = useTransition();
+  const [sortCol, setSortCol] = useState<SortCol | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  function handleSort(col: SortCol) {
+    if (sortCol === col) {
+      if (sortDir === "asc") setSortDir("desc");
+      else { setSortCol(null); setSortDir("asc"); }
+    } else {
+      setSortCol(col);
+      setSortDir("asc");
+    }
+  }
+
+  const sortedData = useMemo(() => {
+    if (!sortCol) return rebalanceData;
+    return [...rebalanceData].sort((a, b) => {
+      let cmp = 0;
+      if (sortCol === "ticker") cmp = a.ticker.localeCompare(b.ticker);
+      else if (sortCol === "currentPct") cmp = a.currentPct - b.currentPct;
+      else if (sortCol === "targetPct") cmp = a.targetPct - b.targetPct;
+      else if (sortCol === "deviation") cmp = a.deviation - b.deviation;
+      else if (sortCol === "currentValue") cmp = a.currentValue - b.currentValue;
+      else if (sortCol === "suggestedAction") {
+        const order: Record<string, number> = { BUY: 0, HOLD: 1, SELL: 2 };
+        cmp = (order[a.suggestedAction] ?? 3) - (order[b.suggestedAction] ?? 3);
+      }
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }, [rebalanceData, sortCol, sortDir]);
 
   function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -112,28 +150,46 @@ export function RebalanceClient({ rebalanceData, targets, totalPct }: RebalanceC
           <Table>
             <TableHeader>
               <TableRow className="border-border hover:bg-transparent bg-muted/40">
-                <TableHead className="pl-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
-                  Ticker
+                <TableHead
+                  className="pl-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9 cursor-pointer select-none hover:text-foreground transition-colors"
+                  onClick={() => handleSort("ticker")}
+                >
+                  <span className="flex items-center gap-1">Ticker <SortIcon col="ticker" sortCol={sortCol} sortDir={sortDir} /></span>
                 </TableHead>
-                <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
-                  Actual
+                <TableHead
+                  className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9 cursor-pointer select-none hover:text-foreground transition-colors"
+                  onClick={() => handleSort("currentPct")}
+                >
+                  <span className="flex items-center justify-end gap-1">Actual <SortIcon col="currentPct" sortCol={sortCol} sortDir={sortDir} /></span>
                 </TableHead>
-                <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
-                  Objetivo
+                <TableHead
+                  className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9 cursor-pointer select-none hover:text-foreground transition-colors"
+                  onClick={() => handleSort("targetPct")}
+                >
+                  <span className="flex items-center justify-end gap-1">Objetivo <SortIcon col="targetPct" sortCol={sortCol} sortDir={sortDir} /></span>
                 </TableHead>
-                <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
-                  Desviación
+                <TableHead
+                  className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9 cursor-pointer select-none hover:text-foreground transition-colors"
+                  onClick={() => handleSort("deviation")}
+                >
+                  <span className="flex items-center justify-end gap-1">Desviación <SortIcon col="deviation" sortCol={sortCol} sortDir={sortDir} /></span>
                 </TableHead>
-                <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
-                  Valor actual
+                <TableHead
+                  className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9 cursor-pointer select-none hover:text-foreground transition-colors"
+                  onClick={() => handleSort("currentValue")}
+                >
+                  <span className="flex items-center justify-end gap-1">Valor actual <SortIcon col="currentValue" sortCol={sortCol} sortDir={sortDir} /></span>
                 </TableHead>
-                <TableHead className="pr-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
-                  Acción
+                <TableHead
+                  className="pr-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9 cursor-pointer select-none hover:text-foreground transition-colors"
+                  onClick={() => handleSort("suggestedAction")}
+                >
+                  <span className="flex items-center gap-1">Acción <SortIcon col="suggestedAction" sortCol={sortCol} sortDir={sortDir} /></span>
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {rebalanceData.map((row) => (
+              {sortedData.map((row) => (
                 <TableRow key={row.ticker} className="border-border hover:bg-muted/30">
                   <TableCell className="pl-5 py-3.5">
                     <span className="text-sm font-mono font-medium text-foreground">
