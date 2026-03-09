@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { SiteHeader } from "@/components/layout/site-header";
 import { HoldingsTable } from "@/components/dashboard/holdings-table";
 import { AllocationPanel } from "@/components/dashboard/allocation-panel";
+import { ExportButtons } from "@/components/export/export-buttons";
 import { db } from "@/lib/db";
 
 export async function generateMetadata({
@@ -108,7 +109,11 @@ export default async function SnapshotDetailPage({
 
   return (
     <div className="flex flex-col min-h-svh">
-      <SiteHeader title="Snapshot" description={formattedDate} />
+      <SiteHeader
+        title="Snapshot"
+        description={formattedDate}
+        actions={<ExportButtons snapshotId={id} />}
+      />
 
       <main className="flex-1 px-6 py-10 flex flex-col gap-10 max-w-6xl w-full mx-auto">
         {/* Back + date header */}

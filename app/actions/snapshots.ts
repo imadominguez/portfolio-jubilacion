@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
+import { checkAndUpdateMilestones } from "@/app/actions/milestones";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -210,6 +211,10 @@ export async function importSnapshot(formData: FormData): Promise<ImportResult> 
     revalidatePath("/");
     revalidatePath("/snapshots");
     revalidatePath("/performance");
+
+    if (totalValueUsd && totalValueUsd > 0) {
+      await checkAndUpdateMilestones(totalValueUsd);
+    }
 
     return { success: true, snapshotId: snapshot.id, positionCount: parsed.length };
   } catch (err) {
