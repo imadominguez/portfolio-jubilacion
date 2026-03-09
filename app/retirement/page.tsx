@@ -21,14 +21,15 @@ export default async function RetirementPage() {
   const currentPortfolioUsd = latestSnapshot?.totalValueUsd ?? null;
 
   let historicalCagr = 0;
-  if (snapshots.length >= 2) {
-    const first = snapshots[0];
-    const last = snapshots[snapshots.length - 1];
+  const usdSnapshots = snapshots.filter((s) => s.totalValueUsd && s.totalValueUsd > 0);
+  if (usdSnapshots.length >= 2) {
+    const first = usdSnapshots[0];
+    const last = usdSnapshots[usdSnapshots.length - 1];
     const daysDiff =
       (new Date(last.snapshotDate).getTime() - new Date(first.snapshotDate).getTime()) /
       (1000 * 60 * 60 * 24);
     const yearsDiff = daysDiff / 365;
-    historicalCagr = calcCAGR(first.totalValueArs, last.totalValueArs, yearsDiff);
+    historicalCagr = calcCAGR(first.totalValueUsd!, last.totalValueUsd!, yearsDiff);
   }
 
   return (

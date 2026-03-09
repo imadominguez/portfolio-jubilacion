@@ -144,10 +144,15 @@ export function runMonteCarlo(
     const path: number[] = [balance];
 
     for (let m = 0; m < months; m++) {
-      const u1 = Math.random();
+      // Guard against u1=0 which makes log(0)=-Infinity and blows up z
+      const u1 = Math.max(Math.random(), Number.EPSILON);
       const u2 = Math.random();
       const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-      const monthlyReturn = meanMonthlyReturn + stdDevMonthly * z;
+      // Clamp monthly return to ±50% to prevent single-month explosions
+      const monthlyReturn = Math.min(
+        Math.max(meanMonthlyReturn + stdDevMonthly * z, -0.5),
+        0.5
+      );
 
       balance = balance * (1 + monthlyReturn) + monthlyContribution;
       if (balance < 0) balance = 0;
@@ -172,7 +177,13 @@ export function runMonteCarlo(
     });
   };
 
-  const goalAmount = inputs.monthlyExpensesUsd * 12 * 25;
+  const yearsToRetirement = inputs.retirementAge - inputs.currentAge;
+  const adjExpenses =
+    inputs.monthlyExpensesUsd * Math.pow(1 + inputs.inflationRate, yearsToRetirement);
+  const goalAmount =
+    inputs.withdrawalRate > 0
+      ? (adjExpenses * 12) / inputs.withdrawalRate
+      : adjExpenses * 12 * 25;
   const successes = finalValues.filter((v) => v >= goalAmount).length;
 
   return {

@@ -95,24 +95,24 @@
 /* ─── Dark theme ────────────────────────────────────────────────────────── */
 .dark {
   --background: oklch(0.083 0.004 240);
-  --foreground: oklch(0.950 0.005 240);
+  --foreground: oklch(0.960 0.005 240);
   --card: oklch(0.115 0.006 240);
-  --card-foreground: oklch(0.950 0.005 240);
+  --card-foreground: oklch(0.960 0.005 240);
   --popover: oklch(0.115 0.006 240);
-  --popover-foreground: oklch(0.950 0.005 240);
+  --popover-foreground: oklch(0.960 0.005 240);
 
-  --primary: oklch(0.900 0.008 75);
+  --primary: oklch(0.920 0.008 75);
   --primary-foreground: oklch(0.115 0.006 240);
-  --secondary: oklch(0.165 0.008 240);
-  --secondary-foreground: oklch(0.880 0.006 240);
+  --secondary: oklch(0.175 0.008 240);
+  --secondary-foreground: oklch(0.900 0.006 240);
   --muted: oklch(0.165 0.008 240);
-  --muted-foreground: oklch(0.520 0.014 240);
+  --muted-foreground: oklch(0.640 0.014 240);
   --accent: oklch(0.185 0.010 240);
-  --accent-foreground: oklch(0.880 0.006 240);
+  --accent-foreground: oklch(0.900 0.006 240);
   --destructive: oklch(0.68 0.20 22);
 
-  --border: oklch(1 0 0 / 7%);
-  --input: oklch(1 0 0 / 10%);
+  --border: oklch(1 0 0 / 11%);
+  --input: oklch(1 0 0 / 13%);
   --ring: oklch(0.697 0.195 149 / 40%);
 
   /* Charts */
@@ -124,12 +124,12 @@
 
   /* Sidebar — dark */
   --sidebar: oklch(0.065 0.006 240);
-  --sidebar-foreground: oklch(0.440 0.012 240);
+  --sidebar-foreground: oklch(0.620 0.012 240);
   --sidebar-primary: oklch(0.697 0.195 149);
   --sidebar-primary-foreground: oklch(0.083 0.004 240);
   --sidebar-accent: oklch(0.190 0.010 240);
-  --sidebar-accent-foreground: oklch(0.920 0.006 240);
-  --sidebar-border: oklch(1 0 0 / 5%);
+  --sidebar-accent-foreground: oklch(0.940 0.006 240);
+  --sidebar-border: oklch(1 0 0 / 8%);
   --sidebar-ring: oklch(0.697 0.195 149);
 }
 

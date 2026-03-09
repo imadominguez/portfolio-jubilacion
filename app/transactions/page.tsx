@@ -4,6 +4,7 @@ import { TransactionsClient } from "@/components/transactions/transactions-clien
 import { TransactionForm } from "@/components/transactions/transaction-form";
 import { DividendForm } from "@/components/transactions/dividend-form";
 import { CsvExportButton } from "@/components/export/csv-export-button";
+import { ImportMovimientosButton } from "@/components/transactions/import-movements-button";
 import {
   getAllTransactions,
   calculatePPM,
@@ -29,6 +30,7 @@ export default async function TransactionsPage() {
         actions={
           <div className="flex items-center gap-1.5">
             <CsvExportButton href="/api/export/transactions" label="Exportar CSV" />
+            <ImportMovimientosButton />
             <DividendForm />
             <TransactionForm />
           </div>

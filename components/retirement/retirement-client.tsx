@@ -77,7 +77,9 @@ export function RetirementClient({
   const inputs = {
     ...settings,
     currentPortfolioUsd: currentPortfolioUsd ?? 0,
-    annualReturnRate: historicalCagr > 0 ? historicalCagr / 100 : 0.07,
+    // Cap at 30% to avoid Monte Carlo explosion when historical CAGR is unrealistically high
+    // (e.g. short measurement window or lucky streak) — 7% default follows US long-run equity avg
+    annualReturnRate: historicalCagr > 0 ? Math.min(historicalCagr / 100, 0.30) : 0.07,
   };
 
   const goal = useMemo(() => calculateRetirementGoal(inputs), [JSON.stringify(inputs)]);
@@ -133,7 +135,12 @@ export function RetirementClient({
       {/* Config panel */}
       <div className="rounded-xl border border-border bg-card shadow-sm p-6">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="text-sm font-semibold text-foreground">Parámetros</h3>
+          <div className="flex flex-col gap-0.5">
+            <h3 className="text-sm font-semibold text-foreground">Parámetros</h3>
+            <p className="text-[11px] text-muted-foreground">
+              Todos los valores monetarios en USD · Inflación y tasa de retiro basadas en mercado EE.UU.
+            </p>
+          </div>
           {!isEditing && (
             <Button variant="outline" size="sm" className="text-xs" onClick={() => setIsEditing(true)}>
               Editar
@@ -174,11 +181,14 @@ export function RetirementClient({
                   name="monthlyExpensesUsd"
                   type="number"
                   min="1"
-                  step="100"
+                  step="1"
                   defaultValue={settings.monthlyExpensesUsd}
                   required
                   className="text-sm font-mono"
                 />
+                <FieldDescription className="text-[10px] text-muted-foreground">
+                  Cuánto necesitás gastar por mes al jubilarte en USD. Ref. EE.UU.: ~$3.000–$5.000/mes para 2 personas.
+                </FieldDescription>
               </Field>
               <Field>
                 <FieldLabel className="text-xs font-medium">Aporte mensual (USD)</FieldLabel>
@@ -186,11 +196,14 @@ export function RetirementClient({
                   name="monthlyContribution"
                   type="number"
                   min="0"
-                  step="50"
+                  step="1"
                   defaultValue={settings.monthlyContribution}
                   required
                   className="text-sm font-mono"
                 />
+                <FieldDescription className="text-[10px] text-muted-foreground">
+                  Lo que sumás al portfolio cada mes, en dólares.
+                </FieldDescription>
               </Field>
               <Field>
                 <FieldLabel className="text-xs font-medium">Inflación anual (%)</FieldLabel>
@@ -204,6 +217,9 @@ export function RetirementClient({
                   required
                   className="text-sm font-mono"
                 />
+                <FieldDescription className="text-[10px] text-muted-foreground">
+                  Inflación de EE.UU. Histórico de largo plazo: ~3% anual. Ajusta el poder adquisitivo futuro.
+                </FieldDescription>
               </Field>
               <Field>
                 <FieldLabel className="text-xs font-medium">Tasa de retiro (%)</FieldLabel>
@@ -218,7 +234,7 @@ export function RetirementClient({
                   className="text-sm font-mono"
                 />
                 <FieldDescription className="text-[10px] text-muted-foreground">
-                  4% = Regla del 4%
+                  Regla del 4% (estudio Trinity, EE.UU.): retirás 4% del capital por año. Conservador: 3,5%.
                 </FieldDescription>
               </Field>
             </div>
