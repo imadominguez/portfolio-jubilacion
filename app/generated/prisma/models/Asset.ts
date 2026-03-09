@@ -40,6 +40,10 @@ export type AssetMinAggregateOutputType = {
   instrumentName: string | null
   cedearRatio: runtime.Decimal | null
   description: string | null
+  sector: string | null
+  industry: string | null
+  country: string | null
+  underlyingTicker: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -50,6 +54,10 @@ export type AssetMaxAggregateOutputType = {
   instrumentName: string | null
   cedearRatio: runtime.Decimal | null
   description: string | null
+  sector: string | null
+  industry: string | null
+  country: string | null
+  underlyingTicker: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -60,6 +68,10 @@ export type AssetCountAggregateOutputType = {
   instrumentName: number
   cedearRatio: number
   description: number
+  sector: number
+  industry: number
+  country: number
+  underlyingTicker: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -80,6 +92,10 @@ export type AssetMinAggregateInputType = {
   instrumentName?: true
   cedearRatio?: true
   description?: true
+  sector?: true
+  industry?: true
+  country?: true
+  underlyingTicker?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -90,6 +106,10 @@ export type AssetMaxAggregateInputType = {
   instrumentName?: true
   cedearRatio?: true
   description?: true
+  sector?: true
+  industry?: true
+  country?: true
+  underlyingTicker?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -100,6 +120,10 @@ export type AssetCountAggregateInputType = {
   instrumentName?: true
   cedearRatio?: true
   description?: true
+  sector?: true
+  industry?: true
+  country?: true
+  underlyingTicker?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -197,6 +221,10 @@ export type AssetGroupByOutputType = {
   instrumentName: string | null
   cedearRatio: runtime.Decimal
   description: string | null
+  sector: string | null
+  industry: string | null
+  country: string | null
+  underlyingTicker: string | null
   createdAt: Date
   updatedAt: Date
   _count: AssetCountAggregateOutputType | null
@@ -230,6 +258,10 @@ export type AssetWhereInput = {
   instrumentName?: Prisma.StringNullableFilter<"Asset"> | string | null
   cedearRatio?: Prisma.DecimalFilter<"Asset"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   description?: Prisma.StringNullableFilter<"Asset"> | string | null
+  sector?: Prisma.StringNullableFilter<"Asset"> | string | null
+  industry?: Prisma.StringNullableFilter<"Asset"> | string | null
+  country?: Prisma.StringNullableFilter<"Asset"> | string | null
+  underlyingTicker?: Prisma.StringNullableFilter<"Asset"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Asset"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Asset"> | Date | string
 }
@@ -240,6 +272,10 @@ export type AssetOrderByWithRelationInput = {
   instrumentName?: Prisma.SortOrderInput | Prisma.SortOrder
   cedearRatio?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  sector?: Prisma.SortOrderInput | Prisma.SortOrder
+  industry?: Prisma.SortOrderInput | Prisma.SortOrder
+  country?: Prisma.SortOrderInput | Prisma.SortOrder
+  underlyingTicker?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -253,6 +289,10 @@ export type AssetWhereUniqueInput = Prisma.AtLeast<{
   instrumentName?: Prisma.StringNullableFilter<"Asset"> | string | null
   cedearRatio?: Prisma.DecimalFilter<"Asset"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   description?: Prisma.StringNullableFilter<"Asset"> | string | null
+  sector?: Prisma.StringNullableFilter<"Asset"> | string | null
+  industry?: Prisma.StringNullableFilter<"Asset"> | string | null
+  country?: Prisma.StringNullableFilter<"Asset"> | string | null
+  underlyingTicker?: Prisma.StringNullableFilter<"Asset"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Asset"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Asset"> | Date | string
 }, "id" | "ticker">
@@ -263,6 +303,10 @@ export type AssetOrderByWithAggregationInput = {
   instrumentName?: Prisma.SortOrderInput | Prisma.SortOrder
   cedearRatio?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  sector?: Prisma.SortOrderInput | Prisma.SortOrder
+  industry?: Prisma.SortOrderInput | Prisma.SortOrder
+  country?: Prisma.SortOrderInput | Prisma.SortOrder
+  underlyingTicker?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.AssetCountOrderByAggregateInput
@@ -281,6 +325,10 @@ export type AssetScalarWhereWithAggregatesInput = {
   instrumentName?: Prisma.StringNullableWithAggregatesFilter<"Asset"> | string | null
   cedearRatio?: Prisma.DecimalWithAggregatesFilter<"Asset"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   description?: Prisma.StringNullableWithAggregatesFilter<"Asset"> | string | null
+  sector?: Prisma.StringNullableWithAggregatesFilter<"Asset"> | string | null
+  industry?: Prisma.StringNullableWithAggregatesFilter<"Asset"> | string | null
+  country?: Prisma.StringNullableWithAggregatesFilter<"Asset"> | string | null
+  underlyingTicker?: Prisma.StringNullableWithAggregatesFilter<"Asset"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Asset"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Asset"> | Date | string
 }
@@ -291,6 +339,10 @@ export type AssetCreateInput = {
   instrumentName?: string | null
   cedearRatio: runtime.Decimal | runtime.DecimalJsLike | number | string
   description?: string | null
+  sector?: string | null
+  industry?: string | null
+  country?: string | null
+  underlyingTicker?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -301,6 +353,10 @@ export type AssetUncheckedCreateInput = {
   instrumentName?: string | null
   cedearRatio: runtime.Decimal | runtime.DecimalJsLike | number | string
   description?: string | null
+  sector?: string | null
+  industry?: string | null
+  country?: string | null
+  underlyingTicker?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -311,6 +367,10 @@ export type AssetUpdateInput = {
   instrumentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cedearRatio?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  underlyingTicker?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -321,6 +381,10 @@ export type AssetUncheckedUpdateInput = {
   instrumentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cedearRatio?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  underlyingTicker?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -331,6 +395,10 @@ export type AssetCreateManyInput = {
   instrumentName?: string | null
   cedearRatio: runtime.Decimal | runtime.DecimalJsLike | number | string
   description?: string | null
+  sector?: string | null
+  industry?: string | null
+  country?: string | null
+  underlyingTicker?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -341,6 +409,10 @@ export type AssetUpdateManyMutationInput = {
   instrumentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cedearRatio?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  underlyingTicker?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -351,6 +423,10 @@ export type AssetUncheckedUpdateManyInput = {
   instrumentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cedearRatio?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  underlyingTicker?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -361,6 +437,10 @@ export type AssetCountOrderByAggregateInput = {
   instrumentName?: Prisma.SortOrder
   cedearRatio?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  sector?: Prisma.SortOrder
+  industry?: Prisma.SortOrder
+  country?: Prisma.SortOrder
+  underlyingTicker?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -375,6 +455,10 @@ export type AssetMaxOrderByAggregateInput = {
   instrumentName?: Prisma.SortOrder
   cedearRatio?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  sector?: Prisma.SortOrder
+  industry?: Prisma.SortOrder
+  country?: Prisma.SortOrder
+  underlyingTicker?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -385,6 +469,10 @@ export type AssetMinOrderByAggregateInput = {
   instrumentName?: Prisma.SortOrder
   cedearRatio?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  sector?: Prisma.SortOrder
+  industry?: Prisma.SortOrder
+  country?: Prisma.SortOrder
+  underlyingTicker?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -401,6 +489,10 @@ export type AssetSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   instrumentName?: boolean
   cedearRatio?: boolean
   description?: boolean
+  sector?: boolean
+  industry?: boolean
+  country?: boolean
+  underlyingTicker?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["asset"]>
@@ -411,6 +503,10 @@ export type AssetSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   instrumentName?: boolean
   cedearRatio?: boolean
   description?: boolean
+  sector?: boolean
+  industry?: boolean
+  country?: boolean
+  underlyingTicker?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["asset"]>
@@ -421,6 +517,10 @@ export type AssetSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   instrumentName?: boolean
   cedearRatio?: boolean
   description?: boolean
+  sector?: boolean
+  industry?: boolean
+  country?: boolean
+  underlyingTicker?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["asset"]>
@@ -431,11 +531,15 @@ export type AssetSelectScalar = {
   instrumentName?: boolean
   cedearRatio?: boolean
   description?: boolean
+  sector?: boolean
+  industry?: boolean
+  country?: boolean
+  underlyingTicker?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type AssetOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ticker" | "instrumentName" | "cedearRatio" | "description" | "createdAt" | "updatedAt", ExtArgs["result"]["asset"]>
+export type AssetOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ticker" | "instrumentName" | "cedearRatio" | "description" | "sector" | "industry" | "country" | "underlyingTicker" | "createdAt" | "updatedAt", ExtArgs["result"]["asset"]>
 
 export type $AssetPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Asset"
@@ -446,6 +550,10 @@ export type $AssetPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     instrumentName: string | null
     cedearRatio: runtime.Decimal
     description: string | null
+    sector: string | null
+    industry: string | null
+    country: string | null
+    underlyingTicker: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["asset"]>
@@ -876,6 +984,10 @@ export interface AssetFieldRefs {
   readonly instrumentName: Prisma.FieldRef<"Asset", 'String'>
   readonly cedearRatio: Prisma.FieldRef<"Asset", 'Decimal'>
   readonly description: Prisma.FieldRef<"Asset", 'String'>
+  readonly sector: Prisma.FieldRef<"Asset", 'String'>
+  readonly industry: Prisma.FieldRef<"Asset", 'String'>
+  readonly country: Prisma.FieldRef<"Asset", 'String'>
+  readonly underlyingTicker: Prisma.FieldRef<"Asset", 'String'>
   readonly createdAt: Prisma.FieldRef<"Asset", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Asset", 'DateTime'>
 }

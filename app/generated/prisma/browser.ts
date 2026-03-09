@@ -37,3 +37,38 @@ export type Asset = Prisma.AssetModel
  * 
  */
 export type ExchangeRate = Prisma.ExchangeRateModel
+/**
+ * Model MarketPriceCache
+ * 
+ */
+export type MarketPriceCache = Prisma.MarketPriceCacheModel
+/**
+ * Model BenchmarkPoint
+ * 
+ */
+export type BenchmarkPoint = Prisma.BenchmarkPointModel
+/**
+ * Model TargetAllocation
+ * 
+ */
+export type TargetAllocation = Prisma.TargetAllocationModel
+/**
+ * Model Transaction
+ * 
+ */
+export type Transaction = Prisma.TransactionModel
+/**
+ * Model Dividend
+ * 
+ */
+export type Dividend = Prisma.DividendModel
+/**
+ * Model RetirementSettings
+ * 
+ */
+export type RetirementSettings = Prisma.RetirementSettingsModel
+/**
+ * Model MilestoneAlert
+ * 
+ */
+export type MilestoneAlert = Prisma.MilestoneAlertModel

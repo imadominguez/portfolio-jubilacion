@@ -54,7 +54,14 @@ export const ModelName = {
   PortfolioSnapshot: 'PortfolioSnapshot',
   Position: 'Position',
   Asset: 'Asset',
-  ExchangeRate: 'ExchangeRate'
+  ExchangeRate: 'ExchangeRate',
+  MarketPriceCache: 'MarketPriceCache',
+  BenchmarkPoint: 'BenchmarkPoint',
+  TargetAllocation: 'TargetAllocation',
+  Transaction: 'Transaction',
+  Dividend: 'Dividend',
+  RetirementSettings: 'RetirementSettings',
+  MilestoneAlert: 'MilestoneAlert'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -108,6 +115,10 @@ export const AssetScalarFieldEnum = {
   instrumentName: 'instrumentName',
   cedearRatio: 'cedearRatio',
   description: 'description',
+  sector: 'sector',
+  industry: 'industry',
+  country: 'country',
+  underlyingTicker: 'underlyingTicker',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -124,6 +135,95 @@ export const ExchangeRateScalarFieldEnum = {
 } as const
 
 export type ExchangeRateScalarFieldEnum = (typeof ExchangeRateScalarFieldEnum)[keyof typeof ExchangeRateScalarFieldEnum]
+
+
+export const MarketPriceCacheScalarFieldEnum = {
+  id: 'id',
+  ticker: 'ticker',
+  price: 'price',
+  currency: 'currency',
+  fetchedAt: 'fetchedAt'
+} as const
+
+export type MarketPriceCacheScalarFieldEnum = (typeof MarketPriceCacheScalarFieldEnum)[keyof typeof MarketPriceCacheScalarFieldEnum]
+
+
+export const BenchmarkPointScalarFieldEnum = {
+  id: 'id',
+  benchmarkId: 'benchmarkId',
+  date: 'date',
+  value: 'value'
+} as const
+
+export type BenchmarkPointScalarFieldEnum = (typeof BenchmarkPointScalarFieldEnum)[keyof typeof BenchmarkPointScalarFieldEnum]
+
+
+export const TargetAllocationScalarFieldEnum = {
+  id: 'id',
+  ticker: 'ticker',
+  targetPct: 'targetPct',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TargetAllocationScalarFieldEnum = (typeof TargetAllocationScalarFieldEnum)[keyof typeof TargetAllocationScalarFieldEnum]
+
+
+export const TransactionScalarFieldEnum = {
+  id: 'id',
+  ticker: 'ticker',
+  type: 'type',
+  quantity: 'quantity',
+  price: 'price',
+  currency: 'currency',
+  fee: 'fee',
+  date: 'date',
+  notes: 'notes',
+  createdAt: 'createdAt'
+} as const
+
+export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
+
+
+export const DividendScalarFieldEnum = {
+  id: 'id',
+  ticker: 'ticker',
+  amount: 'amount',
+  currency: 'currency',
+  date: 'date',
+  notes: 'notes',
+  createdAt: 'createdAt'
+} as const
+
+export type DividendScalarFieldEnum = (typeof DividendScalarFieldEnum)[keyof typeof DividendScalarFieldEnum]
+
+
+export const RetirementSettingsScalarFieldEnum = {
+  id: 'id',
+  currentAge: 'currentAge',
+  retirementAge: 'retirementAge',
+  monthlyExpensesUsd: 'monthlyExpensesUsd',
+  inflationRate: 'inflationRate',
+  withdrawalRate: 'withdrawalRate',
+  monthlyContribution: 'monthlyContribution',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RetirementSettingsScalarFieldEnum = (typeof RetirementSettingsScalarFieldEnum)[keyof typeof RetirementSettingsScalarFieldEnum]
+
+
+export const MilestoneAlertScalarFieldEnum = {
+  id: 'id',
+  label: 'label',
+  targetValueUsd: 'targetValueUsd',
+  reached: 'reached',
+  reachedAt: 'reachedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type MilestoneAlertScalarFieldEnum = (typeof MilestoneAlertScalarFieldEnum)[keyof typeof MilestoneAlertScalarFieldEnum]
 
 
 export const SortOrder = {

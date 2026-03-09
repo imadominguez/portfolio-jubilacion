@@ -16,6 +16,11 @@ enum Currency {
   USD
 }
 
+enum TransactionType {
+  BUY
+  SELL
+}
+
 // ---------------------------------------------------------------------------
 // PortfolioSnapshot
 //
@@ -75,13 +80,17 @@ model Position {
 // ---------------------------------------------------------------------------
 
 model Asset {
-  id             String   @id @default(cuid())
-  ticker         String   @unique
-  instrumentName String?
-  cedearRatio    Decimal  @db.Decimal(8, 4)
-  description    String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id               String   @id @default(cuid())
+  ticker           String   @unique
+  instrumentName   String?
+  cedearRatio      Decimal  @db.Decimal(8, 4)
+  description      String?
+  sector           String?
+  industry         String?
+  country          String?
+  underlyingTicker String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   @@index([ticker])
   @@map("assets")
@@ -104,4 +113,142 @@ model ExchangeRate {
 
   @@index([date])
   @@map("exchange_rates")
+}
+
+// ---------------------------------------------------------------------------
+// MarketPriceCache
+//
+// Cache de precios de mercado en tiempo real para cada ticker subyacente.
+// Se actualiza periódicamente via API externa (Yahoo Finance).
+// ---------------------------------------------------------------------------
+
+model MarketPriceCache {
+  id        String   @id @default(cuid())
+  ticker    String   @unique
+  price     Decimal  @db.Decimal(18, 4)
+  currency  Currency @default(USD)
+  fetchedAt DateTime @default(now())
+
+  @@index([ticker])
+  @@map("market_price_cache")
+}
+
+// ---------------------------------------------------------------------------
+// BenchmarkPoint
+//
+// Datos históricos de benchmarks externos (S&P 500, Merval, etc.)
+// para comparar contra la performance del portfolio.
+// ---------------------------------------------------------------------------
+
+model BenchmarkPoint {
+  id          String   @id @default(cuid())
+  benchmarkId String
+  date        DateTime @db.Date
+  value       Decimal  @db.Decimal(18, 6)
+
+  @@unique([benchmarkId, date])
+  @@index([benchmarkId, date])
+  @@map("benchmark_points")
+}
+
+// ---------------------------------------------------------------------------
+// TargetAllocation
+//
+// Asignación objetivo por ticker para la función de rebalanceo.
+// Se compara contra la asignación real del snapshot más reciente.
+// ---------------------------------------------------------------------------
+
+model TargetAllocation {
+  id        String   @id @default(cuid())
+  ticker    String   @unique
+  targetPct Decimal  @db.Decimal(8, 6)
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("target_allocations")
+}
+
+// ---------------------------------------------------------------------------
+// Transaction
+//
+// Registro de operaciones de compra/venta de CEDEARs.
+// Permite calcular el precio promedio de compra (PPM) y P&L realizadas.
+// ---------------------------------------------------------------------------
+
+model Transaction {
+  id        String          @id @default(cuid())
+  ticker    String
+  type      TransactionType
+  quantity  Decimal         @db.Decimal(18, 8)
+  price     Decimal         @db.Decimal(18, 4)
+  currency  Currency        @default(ARS)
+  fee       Decimal?        @db.Decimal(18, 2)
+  date      DateTime        @db.Date
+  notes     String?
+  createdAt DateTime        @default(now())
+
+  @@index([ticker])
+  @@index([date])
+  @@map("transactions")
+}
+
+// ---------------------------------------------------------------------------
+// Dividend
+//
+// Registro de dividendos cobrados por ticker.
+// Se puede incluir (toggle) al calcular el rendimiento total en /performance.
+// ---------------------------------------------------------------------------
+
+model Dividend {
+  id        String   @id @default(cuid())
+  ticker    String
+  amount    Decimal  @db.Decimal(18, 4)
+  currency  Currency @default(USD)
+  date      DateTime @db.Date
+  notes     String?
+  createdAt DateTime @default(now())
+
+  @@index([ticker])
+  @@index([date])
+  @@map("dividends")
+}
+
+// ---------------------------------------------------------------------------
+// RetirementSettings
+//
+// Configuración personal para la calculadora de jubilación.
+// Un único registro (upsert por id fijo "default").
+// ---------------------------------------------------------------------------
+
+model RetirementSettings {
+  id                  String   @id @default(cuid())
+  currentAge          Int
+  retirementAge       Int
+  monthlyExpensesUsd  Decimal  @db.Decimal(18, 2)
+  inflationRate       Decimal  @db.Decimal(6, 4)
+  withdrawalRate      Decimal  @db.Decimal(6, 4)
+  monthlyContribution Decimal  @db.Decimal(18, 2)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("retirement_settings")
+}
+
+// ---------------------------------------------------------------------------
+// MilestoneAlert
+//
+// Hitos de valor del portfolio (en USD) que el usuario quiere celebrar.
+// Se verifica automáticamente al importar un nuevo snapshot.
+// ---------------------------------------------------------------------------
+
+model MilestoneAlert {
+  id             String    @id @default(cuid())
+  label          String
+  targetValueUsd Decimal   @db.Decimal(18, 2)
+  reached        Boolean   @default(false)
+  reachedAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@map("milestone_alerts")
 }

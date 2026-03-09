@@ -15,3 +15,11 @@ export const Currency = {
 } as const
 
 export type Currency = (typeof Currency)[keyof typeof Currency]
+
+
+export const TransactionType = {
+  BUY: 'BUY',
+  SELL: 'SELL'
+} as const
+
+export type TransactionType = (typeof TransactionType)[keyof typeof TransactionType]
