@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import { Pencil, Trash2, Plus, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -91,8 +91,11 @@ export function AssetsTableClient({ assets }: AssetsTableClientProps) {
                 <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
                   Ratio
                 </TableHead>
-                <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 hidden md:table-cell h-9">
-                  Descripción
+                <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 hidden lg:table-cell h-9">
+                  Subyacente
+                </TableHead>
+                <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 hidden lg:table-cell h-9">
+                  Sector / País
                 </TableHead>
                 <TableHead className="pr-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
                   Acciones
@@ -120,10 +123,30 @@ export function AssetsTableClient({ assets }: AssetsTableClientProps) {
                       :1
                     </span>
                   </TableCell>
-                  <TableCell className="py-3.5 hidden md:table-cell">
-                    <span className="text-sm text-muted-foreground truncate max-w-[200px] block">
-                      {asset.description ?? "—"}
-                    </span>
+                  <TableCell className="py-3.5 hidden lg:table-cell">
+                    {asset.underlyingTicker ? (
+                      <span className="text-sm font-mono font-medium text-foreground">
+                        {asset.underlyingTicker}
+                      </span>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="py-3.5 hidden lg:table-cell">
+                    <div className="flex flex-col gap-0.5">
+                      {asset.sector && (
+                        <span className="text-xs text-foreground">{asset.sector}</span>
+                      )}
+                      {asset.country && (
+                        <div className="flex items-center gap-1">
+                          <Globe className="size-3 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">{asset.country}</span>
+                        </div>
+                      )}
+                      {!asset.sector && !asset.country && (
+                        <span className="text-sm text-muted-foreground">—</span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="pr-5 py-3.5 text-right">
                     <div className="flex items-center justify-end gap-1">

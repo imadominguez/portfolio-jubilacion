@@ -8,6 +8,10 @@ export type AssetFormData = {
   instrumentName?: string;
   cedearRatio: number;
   description?: string;
+  sector?: string;
+  industry?: string;
+  country?: string;
+  underlyingTicker?: string;
 };
 
 export type AssetResult =
@@ -29,6 +33,10 @@ export async function createAsset(data: AssetFormData): Promise<AssetResult> {
         instrumentName: data.instrumentName?.trim() || null,
         cedearRatio: data.cedearRatio,
         description: data.description?.trim() || null,
+        sector: data.sector?.trim() || null,
+        industry: data.industry?.trim() || null,
+        country: data.country?.trim() || null,
+        underlyingTicker: data.underlyingTicker?.trim().toUpperCase() || null,
       },
     });
 
@@ -59,6 +67,18 @@ export async function updateAsset(
         }),
         ...(data.description !== undefined && {
           description: data.description?.trim() || null,
+        }),
+        ...(data.sector !== undefined && {
+          sector: data.sector?.trim() || null,
+        }),
+        ...(data.industry !== undefined && {
+          industry: data.industry?.trim() || null,
+        }),
+        ...(data.country !== undefined && {
+          country: data.country?.trim() || null,
+        }),
+        ...(data.underlyingTicker !== undefined && {
+          underlyingTicker: data.underlyingTicker?.trim().toUpperCase() || null,
         }),
       },
     });

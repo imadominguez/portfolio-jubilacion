@@ -23,6 +23,10 @@ export type AssetRow = {
   instrumentName: string | null;
   cedearRatio: number;
   description: string | null;
+  sector: string | null;
+  industry: string | null;
+  country: string | null;
+  underlyingTicker: string | null;
 };
 
 interface AssetDialogProps {
@@ -50,6 +54,10 @@ export function AssetDialog({ open, onOpenChange, asset }: AssetDialogProps) {
       instrumentName: fd.get("instrumentName") as string,
       cedearRatio: parseFloat(fd.get("cedearRatio") as string),
       description: fd.get("description") as string,
+      sector: fd.get("sector") as string,
+      industry: fd.get("industry") as string,
+      country: fd.get("country") as string,
+      underlyingTicker: fd.get("underlyingTicker") as string,
     };
 
     startTransition(async () => {
@@ -127,6 +135,63 @@ export function AssetDialog({ open, onOpenChange, asset }: AssetDialogProps) {
               <FieldDescription className="text-xs text-muted-foreground">
                 Cantidad de CEDEARs por 1 acción subyacente (ej: AAPL → 10)
               </FieldDescription>
+            </Field>
+
+            <Field>
+              <FieldLabel className="text-xs font-medium">
+                Ticker subyacente{" "}
+                <span className="font-normal text-muted-foreground">opcional</span>
+              </FieldLabel>
+              <Input
+                name="underlyingTicker"
+                placeholder="AAPL"
+                defaultValue={asset?.underlyingTicker ?? ""}
+                className="text-sm font-mono uppercase"
+                style={{ textTransform: "uppercase" }}
+              />
+              <FieldDescription className="text-xs text-muted-foreground">
+                Ticker de la acción subyacente en Yahoo Finance (ej: AAPL para Apple)
+              </FieldDescription>
+            </Field>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Field>
+                <FieldLabel className="text-xs font-medium">
+                  Sector{" "}
+                  <span className="font-normal text-muted-foreground">opcional</span>
+                </FieldLabel>
+                <Input
+                  name="sector"
+                  placeholder="Technology"
+                  defaultValue={asset?.sector ?? ""}
+                  className="text-sm"
+                />
+              </Field>
+              <Field>
+                <FieldLabel className="text-xs font-medium">
+                  País{" "}
+                  <span className="font-normal text-muted-foreground">opcional</span>
+                </FieldLabel>
+                <Input
+                  name="country"
+                  placeholder="USA"
+                  defaultValue={asset?.country ?? ""}
+                  className="text-sm"
+                />
+              </Field>
+            </div>
+
+            <Field>
+              <FieldLabel className="text-xs font-medium">
+                Industria{" "}
+                <span className="font-normal text-muted-foreground">opcional</span>
+              </FieldLabel>
+              <Input
+                name="industry"
+                placeholder="Consumer Electronics"
+                defaultValue={asset?.industry ?? ""}
+                className="text-sm"
+              />
             </Field>
 
             <Field>
