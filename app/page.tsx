@@ -9,6 +9,7 @@ import { AllocationPanel } from "@/components/dashboard/allocation-panel";
 import { EmptyDashboard } from "@/components/dashboard/empty-dashboard";
 import { SiteHeader } from "@/components/layout/site-header";
 import { ImportButton } from "@/components/snapshots/snapshots-client";
+import { calculatePPM } from "@/app/actions/transactions";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -41,7 +42,10 @@ function formatUSD(value: number): string {
 }
 
 export default async function HomePage() {
-  const snapshot = await getLatestSnapshot();
+  const [snapshot, ppmData] = await Promise.all([
+    getLatestSnapshot(),
+    calculatePPM(),
+  ]);
 
   let gainArs: number | null = null;
   let gainPct: number | null = null;
@@ -178,7 +182,7 @@ export default async function HomePage() {
               />
             </div>
             <div className="lg:col-span-3">
-              <HoldingsTable positions={snapshot.positions} />
+              <HoldingsTable positions={snapshot.positions} ppmData={ppmData} />
             </div>
           </section>
 
