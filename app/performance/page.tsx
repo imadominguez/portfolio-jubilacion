@@ -71,10 +71,18 @@ export default async function PerformancePage() {
   const first = snapshots[0];
   const last = snapshots[snapshots.length - 1];
 
-  const totalGainArs = last.totalValueArs - first.totalValueArs;
-  const totalGainPct =
-    first.totalValueArs > 0
-      ? (totalGainArs / first.totalValueArs) * 100
+  const currentYear = new Date().getFullYear();
+
+  // Base del año: último snapshot del año anterior, o el primero disponible si todo es del año en curso
+  const yearBase =
+    [...snapshots].reverse().find((s) => s.snapshotDate.getFullYear() < currentYear) ??
+    snapshots.find((s) => s.snapshotDate.getFullYear() === currentYear) ??
+    first;
+
+  const yearGainArs = last.totalValueArs - yearBase.totalValueArs;
+  const yearGainPct =
+    yearBase.totalValueArs > 0
+      ? (yearGainArs / yearBase.totalValueArs) * 100
       : 0;
 
   const daysDiff =
@@ -85,14 +93,12 @@ export default async function PerformancePage() {
   const cagr = calcCAGR(first.totalValueArs, last.totalValueArs, yearsDiff);
   const maxDD = calcMaxDrawdown(snapshots.map((s) => s.totalValueArs));
 
-  const isPositive = totalGainPct >= 0;
-
   const kpis = [
     {
-      label: "Rendimiento total",
-      value: `${isPositive ? "+" : ""}${totalGainPct.toFixed(2)}%`,
-      sub: `${isPositive ? "+" : ""}${formatARS(totalGainArs)}`,
-      accent: isPositive,
+      label: `Rendimiento ${currentYear}`,
+      value: `${yearGainPct >= 0 ? "+" : ""}${yearGainPct.toFixed(2)}%`,
+      sub: `${yearGainPct >= 0 ? "+" : ""}${formatARS(yearGainArs)}`,
+      accent: yearGainPct >= 0,
     },
     {
       label: "CAGR",
