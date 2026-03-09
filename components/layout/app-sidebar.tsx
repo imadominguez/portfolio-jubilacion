@@ -2,13 +2,24 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, TrendingUp, CalendarDays, Layers } from "lucide-react";
+import {
+  LayoutDashboard,
+  TrendingUp,
+  CalendarDays,
+  Layers,
+  BarChart3,
+  Scale,
+  ArrowLeftRight,
+  Target,
+  Settings,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -18,11 +29,22 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
-const NAV_ITEMS = [
+const NAV_MAIN = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
   { label: "Performance", href: "/performance", icon: TrendingUp },
   { label: "Snapshots", href: "/snapshots", icon: CalendarDays },
+];
+
+const NAV_ANALYSIS = [
+  { label: "Análisis", href: "/analysis", icon: BarChart3 },
+  { label: "Rebalanceo", href: "/rebalance", icon: Scale },
+  { label: "Transacciones", href: "/transactions", icon: ArrowLeftRight },
+  { label: "Jubilación", href: "/retirement", icon: Target },
+];
+
+const NAV_CONFIG = [
   { label: "Assets", href: "/assets", icon: Layers },
+  { label: "Configuración", href: "/settings", icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -50,51 +72,62 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="px-3">
-        <SidebarGroup className="p-0">
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-1">
-              {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
-                const isActive =
-                  href === "/" ? pathname === "/" : pathname.startsWith(href);
+        {[
+          { items: NAV_MAIN, groupLabel: null },
+          { items: NAV_ANALYSIS, groupLabel: "Análisis" },
+          { items: NAV_CONFIG, groupLabel: "Configuración" },
+        ].map(({ items, groupLabel }, groupIdx) => (
+          <SidebarGroup key={groupIdx} className="p-0">
+            {groupLabel && (
+              <SidebarGroupLabel className="px-2 text-[10px] font-semibold tracking-widest uppercase text-sidebar-foreground/30 mt-2">
+                {groupLabel}
+              </SidebarGroupLabel>
+            )}
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-0.5">
+                {items.map(({ label, href, icon: Icon }) => {
+                  const isActive =
+                    href === "/" ? pathname === "/" : pathname.startsWith(href);
 
-                return (
-                  <SidebarMenuItem key={href}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive}
-                      tooltip={label}
-                      className={cn(
-                        "rounded-lg border border-transparent",
-                        isActive && "sidebar-active-item"
-                      )}
-                    >
-                      <Link href={href}>
-                        <Icon
-                          className={cn(
-                            "size-4 shrink-0",
-                            isActive
-                              ? "text-sidebar-accent-foreground"
-                              : "text-sidebar-foreground/60"
-                          )}
-                        />
-                        <span
-                          className={cn(
-                            "text-sm",
-                            isActive
-                              ? "text-sidebar-accent-foreground font-semibold"
-                              : "text-sidebar-foreground/70 font-medium"
-                          )}
-                        >
-                          {label}
-                        </span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+                  return (
+                    <SidebarMenuItem key={href}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        tooltip={label}
+                        className={cn(
+                          "rounded-lg border border-transparent",
+                          isActive && "sidebar-active-item"
+                        )}
+                      >
+                        <Link href={href}>
+                          <Icon
+                            className={cn(
+                              "size-4 shrink-0",
+                              isActive
+                                ? "text-sidebar-accent-foreground"
+                                : "text-sidebar-foreground/60"
+                            )}
+                          />
+                          <span
+                            className={cn(
+                              "text-sm",
+                              isActive
+                                ? "text-sidebar-accent-foreground font-semibold"
+                                : "text-sidebar-foreground/70 font-medium"
+                            )}
+                          >
+                            {label}
+                          </span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
 
       <SidebarSeparator />

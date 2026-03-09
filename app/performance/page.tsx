@@ -4,7 +4,10 @@ import { Separator } from "@/components/ui/separator";
 import { getAllSnapshotPoints } from "@/lib/portfolio-data";
 import { SiteHeader } from "@/components/layout/site-header";
 import { PerformanceChart } from "@/components/performance/performance-chart";
+import { BenchmarkOverlayChart } from "@/components/performance/benchmark-overlay-chart";
 import { ImportButton } from "@/components/snapshots/snapshots-client";
+import { getBenchmarkPoints } from "@/app/actions/benchmarks";
+import type { BenchmarkId } from "@/lib/benchmarks-config";
 
 export const metadata: Metadata = { title: "Performance" };
 
@@ -35,6 +38,16 @@ function calcMaxDrawdown(points: number[]): number {
 
 export default async function PerformancePage() {
   const snapshots = await getAllSnapshotPoints();
+
+  const benchmarkIds: BenchmarkId[] = ["sp500", "merval", "nasdaq"];
+  const fromDate = snapshots.length > 0 ? new Date(snapshots[0].snapshotDate) : undefined;
+
+  const benchmarkResults = await Promise.all(
+    benchmarkIds.map((id) => getBenchmarkPoints(id, fromDate))
+  );
+  const initialBenchmarks = Object.fromEntries(
+    benchmarkIds.map((id, i) => [id, benchmarkResults[i]])
+  );
 
   if (snapshots.length === 0) {
     return (
@@ -153,16 +166,30 @@ export default async function PerformancePage() {
 
         <Separator className="opacity-30" />
 
-        {/* Chart */}
+        {/* Charts */}
         <section
-          className="animate-fade-up flex flex-col gap-3"
+          className="animate-fade-up flex flex-col gap-6"
           style={{ animationDelay: "100ms" }}
         >
-          <p className="text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
-            Evolución del portfolio
-          </p>
-          <div className="rounded-xl border border-border bg-card shadow-sm p-5">
-            <PerformanceChart snapshots={snapshots} />
+          <div className="flex flex-col gap-3">
+            <p className="text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
+              Evolución del portfolio
+            </p>
+            <div className="rounded-xl border border-border bg-card shadow-sm p-5">
+              <PerformanceChart snapshots={snapshots} />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <p className="text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
+              Comparación vs benchmarks
+            </p>
+            <div className="rounded-xl border border-border bg-card shadow-sm p-5">
+              <BenchmarkOverlayChart
+                snapshots={snapshots}
+                initialBenchmarks={initialBenchmarks}
+              />
+            </div>
           </div>
         </section>
 
