@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import yahooFinance from "yahoo-finance2";
+import { getHistorical } from "@/lib/yahoo-finance-client";
 import { BENCHMARKS, type BenchmarkId } from "@/lib/benchmarks-config";
 
 export type BenchmarkFetchResult =
@@ -20,16 +20,7 @@ export async function fetchAndSaveBenchmark(
   }
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result: any[] = await yahooFinance.historical(
-      benchmark.ticker,
-      {
-        period1: fromDate,
-        period2: toDate,
-        interval: "1d",
-      },
-      { validateResult: false }
-    );
+    const result = await getHistorical(benchmark.ticker, fromDate, toDate);
 
     if (!result || result.length === 0) {
       return { success: false, error: "No se obtuvieron datos históricos.", benchmarkId };
@@ -37,13 +28,9 @@ export async function fetchAndSaveBenchmark(
 
     let saved = 0;
     for (const row of result) {
-      if (!row.close) continue;
-      const date = new Date(row.date);
-      date.setHours(0, 0, 0, 0);
-
       await db.benchmarkPoint.upsert({
-        where: { benchmarkId_date: { benchmarkId, date } },
-        create: { benchmarkId, date, value: row.close },
+        where: { benchmarkId_date: { benchmarkId, date: row.date } },
+        create: { benchmarkId, date: row.date, value: row.close },
         update: { value: row.close },
       });
       saved++;

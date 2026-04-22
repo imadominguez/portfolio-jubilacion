@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import yahooFinance from "yahoo-finance2";
+import { getQuotes } from "@/lib/yahoo-finance-client";
 
 export type MarketPriceResult =
   | { success: true; updated: number; failed: string[] }
@@ -12,6 +12,7 @@ export type MarketPriceRow = {
   ticker: string;
   underlyingTicker: string;
   priceUsd: number;
+  cedearRatio: number;
   fetchedAt: Date;
 };
 
@@ -26,38 +27,38 @@ export async function fetchAndSaveMarketPrices(): Promise<MarketPriceResult> {
       return { success: false, error: "No hay assets con ticker subyacente configurado." };
     }
 
+    const underlyingTickers = assets
+      .map((a) => a.underlyingTicker)
+      .filter(Boolean) as string[];
+
     const failed: string[] = [];
     let updated = 0;
 
+    const priceMap = await getQuotes(underlyingTickers);
+
     for (const asset of assets) {
       if (!asset.underlyingTicker) continue;
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const quote: any = await yahooFinance.quote(asset.underlyingTicker, {}, { validateResult: false });
-        const price: number | undefined = quote?.regularMarketPrice ?? quote?.ask ?? quote?.bid;
+      const price = priceMap.get(asset.underlyingTicker);
 
-        if (!price || price <= 0) {
-          failed.push(asset.underlyingTicker);
-          continue;
-        }
-
-        await db.marketPriceCache.upsert({
-          where: { ticker: asset.underlyingTicker },
-          create: {
-            ticker: asset.underlyingTicker,
-            price,
-            currency: "USD",
-            fetchedAt: new Date(),
-          },
-          update: {
-            price,
-            fetchedAt: new Date(),
-          },
-        });
-        updated++;
-      } catch {
+      if (!price || price <= 0) {
         failed.push(asset.underlyingTicker);
+        continue;
       }
+
+      await db.marketPriceCache.upsert({
+        where: { ticker: asset.underlyingTicker },
+        create: {
+          ticker: asset.underlyingTicker,
+          price,
+          currency: "USD",
+          fetchedAt: new Date(),
+        },
+        update: {
+          price,
+          fetchedAt: new Date(),
+        },
+      });
+      updated++;
     }
 
     revalidatePath("/");
@@ -73,7 +74,7 @@ export async function fetchAndSaveMarketPrices(): Promise<MarketPriceResult> {
 export async function getMarketPrices(): Promise<MarketPriceRow[]> {
   const assets = await db.asset.findMany({
     where: { underlyingTicker: { not: null } },
-    select: { ticker: true, underlyingTicker: true },
+    select: { ticker: true, underlyingTicker: true, cedearRatio: true },
   });
 
   const underlyingTickers = assets
@@ -96,6 +97,7 @@ export async function getMarketPrices(): Promise<MarketPriceRow[]> {
         ticker: a.ticker,
         underlyingTicker: a.underlyingTicker!,
         priceUsd: Number(cached.price),
+        cedearRatio: Number(a.cedearRatio),
         fetchedAt: cached.fetchedAt,
       };
     });
