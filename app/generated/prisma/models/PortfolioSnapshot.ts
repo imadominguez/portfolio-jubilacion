@@ -214,7 +214,7 @@ export type PortfolioSnapshotGroupByOutputType = {
   _max: PortfolioSnapshotMaxAggregateOutputType | null
 }
 
-type GetPortfolioSnapshotGroupByPayload<T extends PortfolioSnapshotGroupByArgs> = Prisma.PrismaPromise<
+export type GetPortfolioSnapshotGroupByPayload<T extends PortfolioSnapshotGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<PortfolioSnapshotGroupByOutputType, T['by']> &
       {
@@ -1236,6 +1236,11 @@ export type PortfolioSnapshotFindManyArgs<ExtArgs extends runtime.Types.Extensio
    * Skip the first `n` PortfolioSnapshots.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of PortfolioSnapshots.
+   */
   distinct?: Prisma.PortfolioSnapshotScalarFieldEnum | Prisma.PortfolioSnapshotScalarFieldEnum[]
 }
 

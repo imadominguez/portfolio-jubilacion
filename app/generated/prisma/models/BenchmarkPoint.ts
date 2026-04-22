@@ -185,7 +185,7 @@ export type BenchmarkPointGroupByOutputType = {
   _max: BenchmarkPointMaxAggregateOutputType | null
 }
 
-type GetBenchmarkPointGroupByPayload<T extends BenchmarkPointGroupByArgs> = Prisma.PrismaPromise<
+export type GetBenchmarkPointGroupByPayload<T extends BenchmarkPointGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<BenchmarkPointGroupByOutputType, T['by']> &
       {
@@ -976,6 +976,11 @@ export type BenchmarkPointFindManyArgs<ExtArgs extends runtime.Types.Extensions.
    * Skip the first `n` BenchmarkPoints.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of BenchmarkPoints.
+   */
   distinct?: Prisma.BenchmarkPointScalarFieldEnum | Prisma.BenchmarkPointScalarFieldEnum[]
 }
 

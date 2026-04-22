@@ -199,7 +199,7 @@ export type MilestoneAlertGroupByOutputType = {
   _max: MilestoneAlertMaxAggregateOutputType | null
 }
 
-type GetMilestoneAlertGroupByPayload<T extends MilestoneAlertGroupByArgs> = Prisma.PrismaPromise<
+export type GetMilestoneAlertGroupByPayload<T extends MilestoneAlertGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<MilestoneAlertGroupByOutputType, T['by']> &
       {
@@ -1034,6 +1034,11 @@ export type MilestoneAlertFindManyArgs<ExtArgs extends runtime.Types.Extensions.
    * Skip the first `n` MilestoneAlerts.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of MilestoneAlerts.
+   */
   distinct?: Prisma.MilestoneAlertScalarFieldEnum | Prisma.MilestoneAlertScalarFieldEnum[]
 }
 

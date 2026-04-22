@@ -206,7 +206,7 @@ export type DividendGroupByOutputType = {
   _max: DividendMaxAggregateOutputType | null
 }
 
-type GetDividendGroupByPayload<T extends DividendGroupByArgs> = Prisma.PrismaPromise<
+export type GetDividendGroupByPayload<T extends DividendGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<DividendGroupByOutputType, T['by']> &
       {
@@ -1054,6 +1054,11 @@ export type DividendFindManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * Skip the first `n` Dividends.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of Dividends.
+   */
   distinct?: Prisma.DividendScalarFieldEnum | Prisma.DividendScalarFieldEnum[]
 }
 

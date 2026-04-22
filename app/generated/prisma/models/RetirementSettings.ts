@@ -240,7 +240,7 @@ export type RetirementSettingsGroupByOutputType = {
   _max: RetirementSettingsMaxAggregateOutputType | null
 }
 
-type GetRetirementSettingsGroupByPayload<T extends RetirementSettingsGroupByArgs> = Prisma.PrismaPromise<
+export type GetRetirementSettingsGroupByPayload<T extends RetirementSettingsGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<RetirementSettingsGroupByOutputType, T['by']> &
       {
@@ -1148,6 +1148,11 @@ export type RetirementSettingsFindManyArgs<ExtArgs extends runtime.Types.Extensi
    * Skip the first `n` RetirementSettings.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of RetirementSettings.
+   */
   distinct?: Prisma.RetirementSettingsScalarFieldEnum | Prisma.RetirementSettingsScalarFieldEnum[]
 }
 
