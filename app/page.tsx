@@ -1,15 +1,25 @@
 import type { Metadata } from "next";
 import { Separator } from "@/components/ui/separator";
 
-import { getLatestSnapshot, getPreviousSnapshotFull, type PositionRow } from "@/lib/portfolio-data";
+import {
+  getLatestSnapshot,
+  getPreviousSnapshotFull,
+  getAllSnapshotPoints,
+  type PositionRow,
+} from "@/lib/portfolio-data";
 import { DashboardHero } from "@/components/dashboard/dashboard-hero";
 import { PerformersPanel } from "@/components/dashboard/performers-panel";
 import { HoldingsTable } from "@/components/dashboard/holdings-table";
 import { AllocationPanel } from "@/components/dashboard/allocation-panel";
 import { EmptyDashboard } from "@/components/dashboard/empty-dashboard";
+import { PortfolioChartWidget } from "@/components/dashboard/portfolio-chart-widget";
+import { MilestoneWidget } from "@/components/dashboard/milestone-widget";
 import { SiteHeader } from "@/components/layout/site-header";
 import { ImportButton } from "@/components/snapshots/snapshots-client";
 import { calculatePPM } from "@/app/actions/transactions";
+import { getMarketPrices } from "@/app/actions/market-prices";
+import { getTotalDividendsUsd } from "@/app/actions/dividends";
+import { getMilestones } from "@/app/actions/milestones";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -42,10 +52,15 @@ function formatUSD(value: number): string {
 }
 
 export default async function HomePage() {
-  const [snapshot, ppmData] = await Promise.all([
-    getLatestSnapshot(),
-    calculatePPM(),
-  ]);
+  const [snapshot, ppmData, marketPrices, allSnapshots, totalDividendsUsd, milestones] =
+    await Promise.all([
+      getLatestSnapshot(),
+      calculatePPM(),
+      getMarketPrices(),
+      getAllSnapshotPoints(),
+      getTotalDividendsUsd(),
+      getMilestones(),
+    ]);
 
   let gainArs: number | null = null;
   let gainPct: number | null = null;
@@ -61,6 +76,25 @@ export default async function HomePage() {
   }
 
   const isPositive = gainPct !== null ? gainPct >= 0 : true;
+
+  // Compute total unrealized P&L from PPM data vs current prices
+  let totalUnrealizedPnlArs: number | null = null;
+  if (snapshot && ppmData.length > 0) {
+    const ppmMap = new Map(ppmData.map((p) => [p.ticker, p]));
+    let sum = 0;
+    let hasPpm = false;
+    for (const pos of snapshot.positions) {
+      const ppm = ppmMap.get(pos.ticker);
+      if (ppm && ppm.currency === "ARS" && ppm.avgPrice > 0) {
+        sum += (pos.price - ppm.avgPrice) * pos.quantity;
+        hasPpm = true;
+      }
+    }
+    if (hasPpm) totalUnrealizedPnlArs = sum;
+  }
+
+  const unrealizedIsPositive =
+    totalUnrealizedPnlArs !== null ? totalUnrealizedPnlArs >= 0 : true;
 
   return (
     <div className="flex flex-col min-h-svh">
@@ -78,9 +112,9 @@ export default async function HomePage() {
               gainPct={gainPct}
             />
 
-            {/* Secondary KPI strip — Material Dashboard widget card style */}
+            {/* Secondary KPI strip — 6 cards */}
             <div
-              className="grid grid-cols-2 gap-4 sm:grid-cols-4 animate-fade-up"
+              className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6 animate-fade-up"
               style={{ animationDelay: "80ms" }}
             >
               {[
@@ -122,6 +156,29 @@ export default async function HomePage() {
                   status: gainPct !== null ? "vs anterior" : "sin historial",
                   accent: gainPct !== null ? isPositive : null,
                 },
+                {
+                  label: "P&L no realizado",
+                  sub: "precio actual vs PPM",
+                  value:
+                    totalUnrealizedPnlArs !== null
+                      ? `${unrealizedIsPositive ? "+" : ""}${formatARS(totalUnrealizedPnlArs)}`
+                      : "—",
+                  status:
+                    totalUnrealizedPnlArs !== null
+                      ? unrealizedIsPositive
+                        ? "ganancia latente"
+                        : "pérdida latente"
+                      : "sin transacciones",
+                  accent:
+                    totalUnrealizedPnlArs !== null ? unrealizedIsPositive : null,
+                },
+                {
+                  label: "Dividendos",
+                  sub: "total cobrado",
+                  value: totalDividendsUsd > 0 ? formatUSD(totalDividendsUsd) : "—",
+                  status: totalDividendsUsd > 0 ? "acumulado USD" : "sin registros",
+                  accent: totalDividendsUsd > 0 ? (true as boolean | null) : null,
+                },
               ].map(({ label, sub, value, status, accent }) => (
                 <div
                   key={label}
@@ -144,7 +201,6 @@ export default async function HomePage() {
                   >
                     {value}
                   </span>
-                  {/* Status row with green dot */}
                   <div className="flex items-center gap-1.5">
                     <span
                       className={`size-2 rounded-full shrink-0 ${
@@ -162,16 +218,21 @@ export default async function HomePage() {
 
           <Separator className="opacity-30" />
 
+          {/* Portfolio evolution chart */}
+          <PortfolioChartWidget snapshots={allSnapshots} />
+
           {/* Performers section — only visible when there's a previous snapshot to compare */}
           {previousPositions.length > 0 && (
             <>
+              <Separator className="opacity-30" />
               <PerformersPanel
                 currentPositions={snapshot.positions}
                 previousPositions={previousPositions}
               />
-              <Separator className="opacity-30" />
             </>
           )}
+
+          <Separator className="opacity-30" />
 
           {/* Main content grid */}
           <section className="grid gap-8 lg:grid-cols-5">
@@ -182,9 +243,17 @@ export default async function HomePage() {
               />
             </div>
             <div className="lg:col-span-3">
-              <HoldingsTable positions={snapshot.positions} ppmData={ppmData} />
+              <HoldingsTable positions={snapshot.positions} ppmData={ppmData} marketPrices={marketPrices} />
             </div>
           </section>
+
+          {/* Milestone progress */}
+          {snapshot.totalValueUsd !== null && (
+            <MilestoneWidget
+              milestones={milestones}
+              currentValueUsd={snapshot.totalValueUsd}
+            />
+          )}
 
           {/* Import hint */}
           <section

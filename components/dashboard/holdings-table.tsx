@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/table";
 import type { PositionRow } from "@/lib/portfolio-data";
 import type { PpmRow } from "@/app/actions/transactions";
+import type { MarketPriceRow } from "@/app/actions/market-prices";
 
 function formatARS(value: number): string {
   return new Intl.NumberFormat("es-AR", {
@@ -18,15 +19,36 @@ function formatARS(value: number): string {
   }).format(value);
 }
 
+function formatUSD(value: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
 interface HoldingsTableProps {
   positions: PositionRow[];
   ppmData?: PpmRow[];
+  marketPrices?: MarketPriceRow[];
 }
 
-export function HoldingsTable({ positions, ppmData = [] }: HoldingsTableProps) {
+export function HoldingsTable({ positions, ppmData = [], marketPrices = [] }: HoldingsTableProps) {
   const max = Math.max(...positions.map((p) => p.positionValue));
   const ppmMap = new Map(ppmData.map((p) => [p.ticker, p]));
+  const marketMap = new Map(marketPrices.map((m) => [m.ticker, m]));
   const hasPpm = ppmData.length > 0;
+
+  const totalLiveUsd = marketPrices.length > 0
+    ? positions.reduce((sum, pos) => {
+        const market = marketMap.get(pos.ticker);
+        if (!market || market.cedearRatio <= 0) return sum;
+        return sum + (pos.quantity / market.cedearRatio) * market.priceUsd;
+      }, 0)
+    : null;
+
+  const liveUsdFetchedAt = marketPrices.length > 0 ? marketPrices[0].fetchedAt : null;
 
   return (
     <div className="animate-fade-up" style={{ animationDelay: "200ms" }}>
@@ -59,9 +81,14 @@ export function HoldingsTable({ positions, ppmData = [] }: HoldingsTableProps) {
           <TableBody>
             {positions.map((position, index) => {
               const ppm = ppmMap.get(position.ticker);
+              const market = marketMap.get(position.ticker);
               const unrealizedPnlPct =
                 ppm && ppm.currency === "ARS" && ppm.avgPrice > 0
                   ? ((position.price - ppm.avgPrice) / ppm.avgPrice) * 100
+                  : null;
+              const usdPositionValue =
+                market && market.cedearRatio > 0
+                  ? (position.quantity / market.cedearRatio) * market.priceUsd
                   : null;
 
               return (
@@ -89,8 +116,17 @@ export function HoldingsTable({ positions, ppmData = [] }: HoldingsTableProps) {
                       ? position.quantity.toFixed(0)
                       : position.quantity.toFixed(2)}
                   </TableCell>
-                  <TableCell className="py-3 text-right text-sm font-mono tabular-nums text-foreground/80">
-                    {formatARS(position.price)}
+                  <TableCell className="py-3 text-right">
+                    <div className="flex flex-col items-end gap-0.5">
+                      <span className="text-sm font-mono tabular-nums text-foreground/80">
+                        {formatARS(position.price)}
+                      </span>
+                      {market && (
+                        <span className="text-[11px] font-mono tabular-nums text-muted-foreground/60">
+                          {market.underlyingTicker} {formatUSD(market.priceUsd)}
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
                   {hasPpm && (
                     <TableCell className="hidden lg:table-cell py-3 text-right">
@@ -120,6 +156,11 @@ export function HoldingsTable({ positions, ppmData = [] }: HoldingsTableProps) {
                       <span className="text-sm font-mono font-semibold tabular-nums text-foreground">
                         {formatARS(position.positionValue)}
                       </span>
+                      {usdPositionValue !== null && (
+                        <span className="text-[11px] font-mono tabular-nums text-muted-foreground/70">
+                          {formatUSD(usdPositionValue)}
+                        </span>
+                      )}
                       <div className="h-1 w-16 rounded-full bg-muted overflow-hidden">
                         <div
                           className="h-full rounded-full bg-chart-1/70 transition-all duration-700"
@@ -134,6 +175,28 @@ export function HoldingsTable({ positions, ppmData = [] }: HoldingsTableProps) {
           </TableBody>
         </Table>
       </div>
+
+      {totalLiveUsd !== null && (
+        <div className="mt-3 flex items-center justify-between px-1">
+          <span className="text-[11px] text-muted-foreground/60">
+            Precios en tiempo real ·{" "}
+            {liveUsdFetchedAt
+              ? new Intl.DateTimeFormat("es-AR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  day: "2-digit",
+                  month: "short",
+                }).format(liveUsdFetchedAt)
+              : ""}
+          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] text-muted-foreground/60">Total live</span>
+            <span className="text-sm font-mono font-semibold tabular-nums text-foreground">
+              {formatUSD(totalLiveUsd)}
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
