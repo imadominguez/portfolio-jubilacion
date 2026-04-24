@@ -101,7 +101,7 @@ export default async function HomePage() {
       <SiteHeader title="Dashboard" description="CEDEARs · Cocos Capital" actions={<ImportButton />} />
 
       {snapshot ? (
-        <main className="flex-1 px-6 py-10 flex flex-col gap-10 max-w-6xl w-full mx-auto">
+        <main className="flex-1 px-4 sm:px-6 py-6 sm:py-10 flex flex-col gap-6 sm:gap-10 max-w-6xl w-full mx-auto">
           {/* Hero value section */}
           <section className="animate-fade-up flex flex-col gap-6">
             <DashboardHero
@@ -114,7 +114,7 @@ export default async function HomePage() {
 
             {/* Secondary KPI strip — 6 cards */}
             <div
-              className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6 animate-fade-up"
+              className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-6 animate-fade-up"
               style={{ animationDelay: "80ms" }}
             >
               {[
@@ -182,16 +182,16 @@ export default async function HomePage() {
               ].map(({ label, sub, value, status, accent }) => (
                 <div
                   key={label}
-                  className="rounded-xl border border-border bg-card shadow-sm px-5 py-4 flex flex-col gap-3"
+                  className="rounded-xl border border-border bg-card shadow-sm px-3 sm:px-5 py-3 sm:py-4 flex flex-col gap-2 sm:gap-3"
                 >
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-sm font-semibold text-foreground">
+                    <span className="text-xs sm:text-sm font-semibold text-foreground leading-tight">
                       {label}
                     </span>
-                    <span className="text-xs text-muted-foreground">{sub}</span>
+                    <span className="text-[10px] sm:text-xs text-muted-foreground leading-tight">{sub}</span>
                   </div>
                   <span
-                    className={`text-xl font-bold font-mono tabular-nums leading-none ${
+                    className={`text-base sm:text-xl font-bold font-mono tabular-nums leading-none ${
                       accent === true
                         ? "text-emerald-500"
                         : accent === false
@@ -203,11 +203,11 @@ export default async function HomePage() {
                   </span>
                   <div className="flex items-center gap-1.5">
                     <span
-                      className={`size-2 rounded-full shrink-0 ${
+                      className={`size-1.5 sm:size-2 rounded-full shrink-0 ${
                         accent === false ? "bg-destructive" : "bg-emerald-500"
                       }`}
                     />
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-[10px] sm:text-xs text-muted-foreground truncate">
                       {status}
                     </span>
                   </div>
@@ -235,14 +235,14 @@ export default async function HomePage() {
           <Separator className="opacity-30" />
 
           {/* Main content grid */}
-          <section className="grid gap-8 lg:grid-cols-5">
-            <div className="lg:col-span-2">
+          <section className="grid gap-6 sm:gap-8 lg:grid-cols-5">
+            <div className="lg:col-span-2 order-2 lg:order-1">
               <AllocationPanel
                 positions={snapshot.positions}
                 totalArs={snapshot.totalValueArs}
               />
             </div>
-            <div className="lg:col-span-3">
+            <div className="lg:col-span-3 order-1 lg:order-2">
               <HoldingsTable positions={snapshot.positions} ppmData={ppmData} marketPrices={marketPrices} />
             </div>
           </section>
@@ -257,7 +257,7 @@ export default async function HomePage() {
 
           {/* Import hint */}
           <section
-            className="animate-fade-up rounded-xl border border-dashed border-border bg-card/50 shadow-sm px-6 py-5 flex items-center justify-between gap-4"
+            className="animate-fade-up rounded-xl border border-dashed border-border bg-card/50 shadow-sm px-4 sm:px-6 py-4 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4"
             style={{ animationDelay: "400ms" }}
           >
             <div className="flex flex-col gap-0.5">
@@ -273,7 +273,7 @@ export default async function HomePage() {
           </section>
         </main>
       ) : (
-        <main className="flex-1 px-6 py-10 max-w-6xl w-full mx-auto">
+        <main className="flex-1 px-4 sm:px-6 py-6 sm:py-10 max-w-6xl w-full mx-auto">
           <EmptyDashboard />
         </main>
       )}

@@ -26,31 +26,31 @@ function PerformerCard({ item }: { item: TickerPerf }) {
   const isPositive = item.pricePct >= 0;
 
   return (
-    <div className="flex items-center justify-between rounded-xl border border-border bg-card shadow-sm px-4 py-3 gap-3 hover:bg-muted/50 transition-colors">
-      <div className="flex items-center gap-3 min-w-0">
+    <div className="flex items-center justify-between rounded-xl border border-border bg-card shadow-sm px-3 sm:px-4 py-2.5 sm:py-3 gap-2 sm:gap-3 hover:bg-muted/50 transition-colors">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         <div
-          className={`size-8 rounded-lg flex items-center justify-center shrink-0 ${
+          className={`size-7 sm:size-8 rounded-lg flex items-center justify-center shrink-0 ${
             isPositive ? "bg-emerald-500/10" : "bg-destructive/10"
           }`}
         >
           {isPositive ? (
-            <TrendingUp className="size-4 text-emerald-500" />
+            <TrendingUp className="size-3.5 sm:size-4 text-emerald-500" />
           ) : (
-            <TrendingDown className="size-4 text-destructive" />
+            <TrendingDown className="size-3.5 sm:size-4 text-destructive" />
           )}
         </div>
         <div className="flex flex-col min-w-0">
-          <span className="text-sm font-bold font-mono text-foreground">
+          <span className="text-xs sm:text-sm font-bold font-mono text-foreground">
             {item.ticker}
           </span>
-          <span className="text-[11px] font-mono text-muted-foreground tabular-nums">
+          <span className="text-[10px] sm:text-[11px] font-mono text-muted-foreground tabular-nums">
             {formatARS(item.currentPrice)}
           </span>
         </div>
       </div>
 
       <div
-        className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold tabular-nums shrink-0 ${
+        className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-xs font-mono font-bold tabular-nums shrink-0 ${
           isPositive
             ? "bg-emerald-500/10 text-emerald-500"
             : "bg-destructive/10 text-destructive"
@@ -95,11 +95,11 @@ export function PerformersPanel({
 
   return (
     <section
-      className="animate-fade-up grid gap-4 sm:grid-cols-2"
+      className="animate-fade-up grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2"
       style={{ animationDelay: "120ms" }}
     >
       <div>
-        <p className="mb-3 text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+        <p className="mb-2 sm:mb-3 text-[10px] sm:text-xs font-semibold tracking-widest text-muted-foreground uppercase">
           Mejor rendimiento
         </p>
         <div className="flex flex-col gap-2">
@@ -110,7 +110,7 @@ export function PerformersPanel({
       </div>
 
       <div>
-        <p className="mb-3 text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+        <p className="mb-2 sm:mb-3 text-[10px] sm:text-xs font-semibold tracking-widest text-muted-foreground uppercase">
           Peor rendimiento
         </p>
         <div className="flex flex-col gap-2">

@@ -115,9 +115,9 @@ export default async function SnapshotDetailPage({
         actions={<ExportButtons snapshotId={id} />}
       />
 
-      <main className="flex-1 px-6 py-10 flex flex-col gap-10 max-w-6xl w-full mx-auto">
+      <main className="flex-1 px-4 sm:px-6 py-6 sm:py-10 flex flex-col gap-6 sm:gap-10 max-w-6xl w-full mx-auto">
         {/* Back + date header */}
-        <section className="animate-fade-up flex flex-col gap-4">
+        <section className="animate-fade-up flex flex-col gap-3 sm:gap-4">
           <Button
             asChild
             variant="ghost"
@@ -131,14 +131,14 @@ export default async function SnapshotDetailPage({
           </Button>
 
           <div className="flex flex-col gap-1">
-            <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
+            <p className="text-[9px] sm:text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
               Snapshot del
             </p>
-            <p className="text-4xl sm:text-5xl font-mono font-light tabular-nums tracking-tight text-foreground">
+            <p className="text-2xl sm:text-4xl md:text-5xl font-mono font-light tabular-nums tracking-tight text-foreground">
               {formattedDate}
             </p>
             {snapshot.sourceFile && (
-              <p className="text-xs text-muted-foreground font-mono mt-1">
+              <p className="text-[10px] sm:text-xs text-muted-foreground font-mono mt-1 truncate">
                 Archivo: {snapshot.sourceFile}
               </p>
             )}
@@ -147,23 +147,23 @@ export default async function SnapshotDetailPage({
 
         {/* KPI strip */}
         <section
-          className="animate-fade-up grid grid-cols-2 gap-3 sm:grid-cols-4"
+          className="animate-fade-up grid grid-cols-2 gap-3 md:grid-cols-4"
           style={{ animationDelay: "60ms" }}
         >
           {kpis.map(({ label, value }) => (
             <div
               key={label}
-              className="rounded-xl border border-border bg-card shadow-sm px-5 py-4 flex flex-col gap-2"
+              className="rounded-xl border border-border bg-card shadow-sm px-3 sm:px-5 py-3 sm:py-4 flex flex-col gap-1.5 sm:gap-2"
             >
-              <span className="text-sm font-semibold text-foreground">
+              <span className="text-xs sm:text-sm font-semibold text-foreground">
                 {label}
               </span>
-              <span className="text-xl font-bold font-mono tabular-nums text-foreground leading-none">
+              <span className="text-base sm:text-xl font-bold font-mono tabular-nums text-foreground leading-none">
                 {value}
               </span>
               <div className="flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-emerald-500/50 shrink-0" />
-                <span className="text-xs text-muted-foreground">snapshot</span>
+                <span className="size-1.5 sm:size-2 rounded-full bg-emerald-500/50 shrink-0" />
+                <span className="text-[10px] sm:text-xs text-muted-foreground">snapshot</span>
               </div>
             </div>
           ))}
@@ -172,11 +172,11 @@ export default async function SnapshotDetailPage({
         <Separator className="opacity-30" />
 
         {/* Main content */}
-        <section className="grid gap-8 lg:grid-cols-5">
-          <div className="lg:col-span-2">
+        <section className="grid gap-6 sm:gap-8 lg:grid-cols-5">
+          <div className="lg:col-span-2 order-2 lg:order-1">
             <AllocationPanel positions={positions} totalArs={totalArs} />
           </div>
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 order-1 lg:order-2">
             <HoldingsTable positions={positions} />
           </div>
         </section>

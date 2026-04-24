@@ -117,21 +117,21 @@ export function RebalanceClient({ rebalanceData, targets, totalPct }: RebalanceC
 
   return (
     <>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <p className="text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
+          <p className="text-[9px] sm:text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
             Asignación objetivo
           </p>
           {targets.length > 0 && (
             <Badge
               variant={isOverAllocated ? "destructive" : isUnderAllocated ? "secondary" : "default"}
-              className="text-[10px] h-5"
+              className="text-[9px] sm:text-[10px] h-5"
             >
               Total: {totalPct.toFixed(1)}%
             </Badge>
           )}
         </div>
-        <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => setAddOpen(true)}>
+        <Button size="sm" variant="outline" className="gap-1.5 text-xs w-full sm:w-auto" onClick={() => setAddOpen(true)}>
           <Plus className="size-3" />
           Agregar objetivo
         </Button>
@@ -147,68 +147,69 @@ export function RebalanceClient({ rebalanceData, targets, totalPct }: RebalanceC
         </div>
       ) : (
         <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-border hover:bg-transparent bg-muted/40">
-                <TableHead
-                  className="pl-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9 cursor-pointer select-none hover:text-foreground transition-colors"
-                  onClick={() => handleSort("ticker")}
-                >
-                  <span className="flex items-center gap-1">Ticker <SortIcon col="ticker" sortCol={sortCol} sortDir={sortDir} /></span>
-                </TableHead>
-                <TableHead
-                  className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9 cursor-pointer select-none hover:text-foreground transition-colors"
-                  onClick={() => handleSort("currentPct")}
-                >
-                  <span className="flex items-center justify-end gap-1">Actual <SortIcon col="currentPct" sortCol={sortCol} sortDir={sortDir} /></span>
-                </TableHead>
-                <TableHead
-                  className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9 cursor-pointer select-none hover:text-foreground transition-colors"
-                  onClick={() => handleSort("targetPct")}
-                >
-                  <span className="flex items-center justify-end gap-1">Objetivo <SortIcon col="targetPct" sortCol={sortCol} sortDir={sortDir} /></span>
-                </TableHead>
-                <TableHead
-                  className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9 cursor-pointer select-none hover:text-foreground transition-colors"
-                  onClick={() => handleSort("deviation")}
-                >
-                  <span className="flex items-center justify-end gap-1">Desviación <SortIcon col="deviation" sortCol={sortCol} sortDir={sortDir} /></span>
-                </TableHead>
-                <TableHead
-                  className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9 cursor-pointer select-none hover:text-foreground transition-colors"
-                  onClick={() => handleSort("currentValue")}
-                >
-                  <span className="flex items-center justify-end gap-1">Valor actual <SortIcon col="currentValue" sortCol={sortCol} sortDir={sortDir} /></span>
-                </TableHead>
-                <TableHead
-                  className="pr-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9 cursor-pointer select-none hover:text-foreground transition-colors"
-                  onClick={() => handleSort("suggestedAction")}
-                >
-                  <span className="flex items-center gap-1">Acción <SortIcon col="suggestedAction" sortCol={sortCol} sortDir={sortDir} /></span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
+          <div className="overflow-x-auto">
+            <Table className="min-w-[600px]">
+              <TableHeader>
+                <TableRow className="border-border hover:bg-transparent bg-muted/40">
+                  <TableHead
+                    className="pl-3 sm:pl-5 text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9 cursor-pointer select-none hover:text-foreground transition-colors whitespace-nowrap"
+                    onClick={() => handleSort("ticker")}
+                  >
+                    <span className="flex items-center gap-1">Ticker <SortIcon col="ticker" sortCol={sortCol} sortDir={sortDir} /></span>
+                  </TableHead>
+                  <TableHead
+                    className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9 cursor-pointer select-none hover:text-foreground transition-colors whitespace-nowrap"
+                    onClick={() => handleSort("currentPct")}
+                  >
+                    <span className="flex items-center justify-end gap-1">Actual <SortIcon col="currentPct" sortCol={sortCol} sortDir={sortDir} /></span>
+                  </TableHead>
+                  <TableHead
+                    className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9 cursor-pointer select-none hover:text-foreground transition-colors whitespace-nowrap"
+                    onClick={() => handleSort("targetPct")}
+                  >
+                    <span className="flex items-center justify-end gap-1">Objetivo <SortIcon col="targetPct" sortCol={sortCol} sortDir={sortDir} /></span>
+                  </TableHead>
+                  <TableHead
+                    className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9 cursor-pointer select-none hover:text-foreground transition-colors whitespace-nowrap"
+                    onClick={() => handleSort("deviation")}
+                  >
+                    <span className="flex items-center justify-end gap-1">Desv. <SortIcon col="deviation" sortCol={sortCol} sortDir={sortDir} /></span>
+                  </TableHead>
+                  <TableHead
+                    className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9 cursor-pointer select-none hover:text-foreground transition-colors whitespace-nowrap"
+                    onClick={() => handleSort("currentValue")}
+                  >
+                    <span className="flex items-center justify-end gap-1">Valor <SortIcon col="currentValue" sortCol={sortCol} sortDir={sortDir} /></span>
+                  </TableHead>
+                  <TableHead
+                    className="pr-3 sm:pr-5 text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9 cursor-pointer select-none hover:text-foreground transition-colors whitespace-nowrap"
+                    onClick={() => handleSort("suggestedAction")}
+                  >
+                    <span className="flex items-center gap-1">Acción <SortIcon col="suggestedAction" sortCol={sortCol} sortDir={sortDir} /></span>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
             <TableBody>
               {sortedData.map((row) => (
                 <TableRow key={row.ticker} className="border-border hover:bg-muted/30">
-                  <TableCell className="pl-5 py-3.5">
-                    <span className="text-sm font-mono font-medium text-foreground">
+                  <TableCell className="pl-3 sm:pl-5 py-2.5 sm:py-3.5">
+                    <span className="text-xs sm:text-sm font-mono font-medium text-foreground">
                       {row.ticker}
                     </span>
                   </TableCell>
-                  <TableCell className="py-3.5 text-right">
-                    <span className="text-sm font-mono tabular-nums text-foreground">
+                  <TableCell className="py-2.5 sm:py-3.5 text-right">
+                    <span className="text-xs sm:text-sm font-mono tabular-nums text-foreground">
                       {row.currentPct.toFixed(1)}%
                     </span>
                   </TableCell>
-                  <TableCell className="py-3.5 text-right">
-                    <span className="text-sm font-mono tabular-nums text-muted-foreground">
+                  <TableCell className="py-2.5 sm:py-3.5 text-right">
+                    <span className="text-xs sm:text-sm font-mono tabular-nums text-muted-foreground">
                       {row.targetPct > 0 ? `${row.targetPct.toFixed(1)}%` : "—"}
                     </span>
                   </TableCell>
-                  <TableCell className="py-3.5 text-right">
+                  <TableCell className="py-2.5 sm:py-3.5 text-right">
                     <span
-                      className={`text-sm font-mono tabular-nums ${
+                      className={`text-xs sm:text-sm font-mono tabular-nums ${
                         Math.abs(row.deviation) <= 1
                           ? "text-muted-foreground"
                           : row.deviation > 0
@@ -220,35 +221,36 @@ export function RebalanceClient({ rebalanceData, targets, totalPct }: RebalanceC
                       {row.deviation.toFixed(1)}%
                     </span>
                   </TableCell>
-                  <TableCell className="py-3.5 text-right">
-                    <span className="text-sm font-mono tabular-nums text-muted-foreground">
+                  <TableCell className="py-2.5 sm:py-3.5 text-right">
+                    <span className="text-xs sm:text-sm font-mono tabular-nums text-muted-foreground">
                       {formatARS(row.currentValue)}
                     </span>
                   </TableCell>
-                  <TableCell className="pr-5 py-3.5">
+                  <TableCell className="pr-3 sm:pr-5 py-2.5 sm:py-3.5">
                     {row.suggestedAction === "BUY" && (
-                      <div className="flex items-center gap-1.5">
-                        <TrendingUp className="size-3.5 text-emerald-500" />
-                        <span className="text-xs text-emerald-500 font-medium">Comprar</span>
+                      <div className="flex items-center gap-1 sm:gap-1.5">
+                        <TrendingUp className="size-3 sm:size-3.5 text-emerald-500" />
+                        <span className="text-[10px] sm:text-xs text-emerald-500 font-medium">Comprar</span>
                       </div>
                     )}
                     {row.suggestedAction === "SELL" && (
-                      <div className="flex items-center gap-1.5">
-                        <TrendingDown className="size-3.5 text-amber-500" />
-                        <span className="text-xs text-amber-500 font-medium">Vender</span>
+                      <div className="flex items-center gap-1 sm:gap-1.5">
+                        <TrendingDown className="size-3 sm:size-3.5 text-amber-500" />
+                        <span className="text-[10px] sm:text-xs text-amber-500 font-medium">Vender</span>
                       </div>
                     )}
                     {row.suggestedAction === "HOLD" && (
-                      <div className="flex items-center gap-1.5">
-                        <Minus className="size-3.5 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">Mantener</span>
+                      <div className="flex items-center gap-1 sm:gap-1.5">
+                        <Minus className="size-3 sm:size-3.5 text-muted-foreground" />
+                        <span className="text-[10px] sm:text-xs text-muted-foreground">Mantener</span>
                       </div>
                     )}
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
+            </Table>
+          </div>
         </div>
       )}
 

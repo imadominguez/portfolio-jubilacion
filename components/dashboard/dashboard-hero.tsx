@@ -50,20 +50,20 @@ export function DashboardHero({
 
   return (
     /* Dark hero card — always dark like the Material Dashboard info card */
-    <div className="relative overflow-hidden rounded-xl bg-[oklch(0.185_0.008_75)] dark:bg-[oklch(0.085_0.006_240)] shadow-lg px-6 py-7 sm:px-8 sm:py-8">
+    <div className="relative overflow-hidden rounded-xl bg-[oklch(0.185_0.008_75)] dark:bg-[oklch(0.085_0.006_240)] shadow-lg px-4 py-5 sm:px-6 sm:py-7 md:px-8 md:py-8">
       {/* Subtle radial glow */}
       <div
-        className="pointer-events-none absolute -top-20 -right-20 size-72 rounded-full opacity-20"
+        className="pointer-events-none absolute -top-20 -right-20 size-48 sm:size-72 rounded-full opacity-20"
         style={{
           background:
             "radial-gradient(circle, oklch(0.697 0.195 149) 0%, transparent 70%)",
         }}
       />
 
-      <div className="relative flex flex-col gap-5">
+      <div className="relative flex flex-col gap-4 sm:gap-5">
         {/* Label + toggle row */}
-        <div className="flex items-center justify-between gap-3">
-          <span className="text-xs font-semibold tracking-widest text-white/50 uppercase">
+        <div className="flex items-center justify-between gap-2 sm:gap-3">
+          <span className="text-[10px] sm:text-xs font-semibold tracking-widest text-white/50 uppercase">
             Valor total del portfolio
           </span>
 
@@ -74,7 +74,7 @@ export function DashboardHero({
                 key={c}
                 onClick={() => setCurrency(c)}
                 disabled={c === "USD" && !hasUsd}
-                className={`px-3 py-1 text-[11px] font-semibold rounded-md transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed ${
+                className={`px-2 sm:px-3 py-1 text-[10px] sm:text-[11px] font-semibold rounded-md transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed ${
                   currency === c
                     ? "bg-white text-[oklch(0.185_0.008_75)] shadow-sm"
                     : "text-white/60 hover:text-white"
@@ -87,16 +87,16 @@ export function DashboardHero({
         </div>
 
         {/* Big number + meta */}
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <p className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white tabular-nums leading-none transition-all duration-150">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 sm:gap-4">
+          <p className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white tabular-nums leading-none transition-all duration-150">
             {displayValue}
           </p>
 
-          <div className="flex flex-col sm:items-end gap-2 pb-0.5">
+          <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2 sm:gap-2 pb-0.5">
             {/* Date indicator */}
             <div className="flex items-center gap-1.5">
               <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-xs font-mono text-white/50">
+              <span className="text-[10px] sm:text-xs font-mono text-white/50">
                 {snapshotDateFormatted}
               </span>
             </div>
@@ -104,22 +104,24 @@ export function DashboardHero({
             {/* Gain badge */}
             {gainPct !== null && gainArs !== null && (
               <div
-                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono font-semibold tabular-nums ${
+                className={`inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-xs font-mono font-semibold tabular-nums ${
                   isPositive
                     ? "bg-emerald-500/20 text-emerald-400"
                     : "bg-red-500/20 text-red-400"
                 }`}
               >
                 {isPositive ? (
-                  <ArrowUpRight className="size-3.5 shrink-0" />
+                  <ArrowUpRight className="size-3 sm:size-3.5 shrink-0" />
                 ) : (
-                  <ArrowDownRight className="size-3.5 shrink-0" />
+                  <ArrowDownRight className="size-3 sm:size-3.5 shrink-0" />
                 )}
                 {isPositive ? "+" : ""}
                 {gainPct.toFixed(2)}%
-                <span className="opacity-40 mx-0.5">·</span>
-                {isPositive ? "+" : ""}
-                {formatARS(gainArs)}
+                <span className="opacity-40 mx-0.5 hidden sm:inline">·</span>
+                <span className="hidden sm:inline">
+                  {isPositive ? "+" : ""}
+                  {formatARS(gainArs)}
+                </span>
               </div>
             )}
           </div>

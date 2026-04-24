@@ -79,20 +79,21 @@ export function TransactionsClient({
 
   return (
     <>
-      <div className="flex items-center gap-1 border-b border-border">
+      <div className="flex items-center gap-0.5 sm:gap-1 border-b border-border overflow-x-auto scrollbar-none">
         {tabs.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`px-4 py-2.5 text-xs font-medium transition-colors border-b-2 -mb-px flex items-center gap-1.5 ${
+            className={`px-2.5 sm:px-4 py-2 sm:py-2.5 text-[10px] sm:text-xs font-medium transition-colors border-b-2 -mb-px flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
               tab === t.id
                 ? "border-foreground text-foreground"
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
-            {t.label}
+            <span className="hidden sm:inline">{t.label}</span>
+            <span className="sm:hidden">{t.label.split(" ")[0]}</span>
             {t.count > 0 && (
-              <span className="text-[10px] bg-muted rounded px-1 py-0.5 font-mono">
+              <span className="text-[9px] sm:text-[10px] bg-muted rounded px-1 py-0.5 font-mono">
                 {t.count}
               </span>
             )}
@@ -107,83 +108,86 @@ export function TransactionsClient({
           </div>
         ) : (
           <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-border hover:bg-transparent bg-muted/40">
-                  <TableHead className="pl-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
-                    Fecha
-                  </TableHead>
-                  <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
-                    Tipo
-                  </TableHead>
-                  <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
-                    Ticker
-                  </TableHead>
-                  <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
-                    Cantidad
-                  </TableHead>
-                  <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
-                    Precio
-                  </TableHead>
-                  <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
-                    Total
-                  </TableHead>
-                  <TableHead className="pr-5 text-[11px] h-9" />
-                </TableRow>
-              </TableHeader>
+            <div className="overflow-x-auto">
+              <Table className="min-w-[600px]">
+                <TableHeader>
+                  <TableRow className="border-border hover:bg-transparent bg-muted/40">
+                    <TableHead className="pl-3 sm:pl-5 text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9 whitespace-nowrap">
+                      Fecha
+                    </TableHead>
+                    <TableHead className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9 whitespace-nowrap">
+                      Tipo
+                    </TableHead>
+                    <TableHead className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9 whitespace-nowrap">
+                      Ticker
+                    </TableHead>
+                    <TableHead className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9 whitespace-nowrap">
+                      Cantidad
+                    </TableHead>
+                    <TableHead className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9 whitespace-nowrap">
+                      Precio
+                    </TableHead>
+                    <TableHead className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9 whitespace-nowrap">
+                      Total
+                    </TableHead>
+                    <TableHead className="pr-3 sm:pr-5 text-[11px] h-9" />
+                  </TableRow>
+                </TableHeader>
               <TableBody>
                 {transactions.map((tx) => (
                   <TableRow key={tx.id} className="border-border hover:bg-muted/30">
-                    <TableCell className="pl-5 py-3 text-xs text-muted-foreground">
+                    <TableCell className="pl-3 sm:pl-5 py-2 sm:py-3 text-[10px] sm:text-xs text-muted-foreground whitespace-nowrap">
                       {formatDate(tx.date)}
                     </TableCell>
-                    <TableCell className="py-3">
+                    <TableCell className="py-2 sm:py-3">
                       <Badge
                         variant={tx.type === "BUY" ? "default" : "secondary"}
-                        className="text-[10px] gap-1"
+                        className="text-[9px] sm:text-[10px] gap-1"
                       >
                         {tx.type === "BUY" ? (
-                          <ArrowUpRight className="size-3" />
+                          <ArrowUpRight className="size-2.5 sm:size-3" />
                         ) : (
-                          <ArrowDownRight className="size-3" />
+                          <ArrowDownRight className="size-2.5 sm:size-3" />
                         )}
-                        {tx.type === "BUY" ? "Compra" : "Venta"}
+                        <span className="hidden sm:inline">{tx.type === "BUY" ? "Compra" : "Venta"}</span>
+                        <span className="sm:hidden">{tx.type === "BUY" ? "C" : "V"}</span>
                       </Badge>
                     </TableCell>
-                    <TableCell className="py-3">
-                      <span className="text-sm font-mono font-medium text-foreground">
+                    <TableCell className="py-2 sm:py-3">
+                      <span className="text-xs sm:text-sm font-mono font-medium text-foreground">
                         {tx.ticker}
                       </span>
                     </TableCell>
-                    <TableCell className="py-3 text-right">
-                      <span className="text-sm font-mono tabular-nums text-foreground">
+                    <TableCell className="py-2 sm:py-3 text-right">
+                      <span className="text-xs sm:text-sm font-mono tabular-nums text-foreground">
                         {tx.quantity.toLocaleString("es-AR")}
                       </span>
                     </TableCell>
-                    <TableCell className="py-3 text-right">
-                      <span className="text-sm font-mono tabular-nums text-muted-foreground">
+                    <TableCell className="py-2 sm:py-3 text-right">
+                      <span className="text-xs sm:text-sm font-mono tabular-nums text-muted-foreground">
                         {formatCurrency(tx.price, tx.currency)}
                       </span>
                     </TableCell>
-                    <TableCell className="py-3 text-right">
-                      <span className="text-sm font-mono tabular-nums text-foreground">
+                    <TableCell className="py-2 sm:py-3 text-right">
+                      <span className="text-xs sm:text-sm font-mono tabular-nums text-foreground">
                         {formatCurrency(tx.quantity * tx.price, tx.currency)}
                       </span>
                     </TableCell>
-                    <TableCell className="pr-5 py-3">
+                    <TableCell className="pr-3 sm:pr-5 py-2 sm:py-3">
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="size-7 p-0"
+                        className="size-6 sm:size-7 p-0"
                         onClick={() => setDeleteTarget(tx.id)}
                       >
-                        <Trash2 className="size-3.5 text-muted-foreground" />
+                        <Trash2 className="size-3 sm:size-3.5 text-muted-foreground" />
                       </Button>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+              </Table>
+            </div>
           </div>
         )
       )}

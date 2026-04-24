@@ -10,10 +10,10 @@ export function PortfolioChartWidget({ snapshots }: PortfolioChartWidgetProps) {
 
   return (
     <div className="animate-fade-up" style={{ animationDelay: "100ms" }}>
-      <p className="mb-3 text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+      <p className="mb-2 sm:mb-3 text-[10px] sm:text-xs font-semibold tracking-widest text-muted-foreground uppercase">
         Evolución del portfolio
       </p>
-      <div className="rounded-xl border border-border bg-card shadow-sm p-5">
+      <div className="rounded-xl border border-border bg-card shadow-sm p-3 sm:p-5">
         <PerformanceChart snapshots={snapshots} />
       </div>
     </div>

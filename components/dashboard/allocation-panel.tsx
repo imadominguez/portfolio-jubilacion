@@ -71,9 +71,9 @@ export function AllocationPanel({ positions, totalArs }: AllocationPanelProps) {
         Distribución
       </p>
 
-      <div className="rounded-xl border border-border bg-card shadow-sm p-4 flex flex-col gap-4">
+      <div className="rounded-xl border border-border bg-card shadow-sm p-3 sm:p-4 flex flex-col gap-3 sm:gap-4">
         {/* Donut chart */}
-        <div className="h-[200px] w-full">
+        <div className="h-[160px] sm:h-[200px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -100,29 +100,29 @@ export function AllocationPanel({ positions, totalArs }: AllocationPanelProps) {
         </div>
 
         {/* Legend rows */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2 sm:gap-3">
           {positions.map((position, index) => (
             <div
               key={position.ticker}
-              className="flex items-center justify-between gap-3 animate-fade-up"
+              className="flex items-center justify-between gap-2 sm:gap-3 animate-fade-up"
               style={{ animationDelay: `${180 + index * 35}ms` }}
             >
-              <div className="flex items-center gap-2.5 min-w-0">
+              <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
                 <div
                   className={`size-2 rounded-full shrink-0 ${LEGEND_BG_COLORS[index % LEGEND_BG_COLORS.length]}`}
                 />
-                <span className="text-sm font-mono font-semibold text-foreground truncate">
+                <span className="text-xs sm:text-sm font-mono font-semibold text-foreground truncate">
                   {position.ticker}
                 </span>
               </div>
-              <div className="flex items-center gap-3 shrink-0">
-                <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden">
+              <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                <div className="w-12 sm:w-16 h-1.5 rounded-full bg-muted overflow-hidden">
                   <div
                     className={`h-full rounded-full ${LEGEND_BG_COLORS[index % LEGEND_BG_COLORS.length]} opacity-70 transition-all duration-700`}
                     style={{ width: `${position.allocationPct}%` }}
                   />
                 </div>
-                <span className="text-xs font-mono font-semibold tabular-nums text-muted-foreground w-10 text-right">
+                <span className="text-[10px] sm:text-xs font-mono font-semibold tabular-nums text-muted-foreground w-9 sm:w-10 text-right">
                   {position.allocationPct.toFixed(1)}%
                 </span>
               </div>
@@ -132,10 +132,10 @@ export function AllocationPanel({ positions, totalArs }: AllocationPanelProps) {
 
         {/* Total */}
         <div className="pt-2 border-t border-border/60 flex items-center justify-between">
-          <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+          <span className="text-[10px] sm:text-xs font-semibold tracking-wider text-muted-foreground uppercase">
             Total
           </span>
-          <span className="text-sm font-mono font-bold tabular-nums text-foreground">
+          <span className="text-xs sm:text-sm font-mono font-bold tabular-nums text-foreground">
             {formatARS(totalArs)}
           </span>
         </div>

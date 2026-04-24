@@ -35,14 +35,14 @@ export default async function SnapshotsPage() {
     <div className="flex flex-col min-h-svh">
       <SiteHeader title="Snapshots" description="Historial de importaciones" actions={<ImportButton />} />
 
-      <main className="flex-1 px-6 py-10 flex flex-col gap-8 max-w-6xl w-full mx-auto">
+      <main className="flex-1 px-4 sm:px-6 py-6 sm:py-10 flex flex-col gap-6 sm:gap-8 max-w-6xl w-full mx-auto">
         {/* Top row */}
         <div className="animate-fade-up flex items-center justify-between gap-4">
           <div className="flex flex-col gap-0.5">
-            <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
+            <p className="text-[9px] sm:text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
               Total registrados
             </p>
-            <p className="text-3xl font-mono font-light tabular-nums text-foreground">
+            <p className="text-2xl sm:text-3xl font-mono font-light tabular-nums text-foreground">
               {snapshots.length}
             </p>
           </div>
@@ -86,32 +86,32 @@ export default async function SnapshotsPage() {
                     <Link
                       key={s.id}
                       href={`/snapshots/${s.id}`}
-                      className="px-5 py-4 flex items-center justify-between gap-4 hover:bg-muted/50 transition-colors group"
+                      className="px-3 sm:px-5 py-3 sm:py-4 flex items-center justify-between gap-2 sm:gap-4 hover:bg-muted/50 transition-colors group"
                     >
-                      <div className="flex items-center gap-4 min-w-0">
+                      <div className="flex items-center gap-2 sm:gap-4 min-w-0">
                         <div className="size-2 rounded-full bg-emerald-500/50 shrink-0" />
                         <div className="flex flex-col gap-0.5 min-w-0">
-                          <span className="text-sm font-mono text-foreground">
+                          <span className="text-xs sm:text-sm font-mono text-foreground">
                             {new Intl.DateTimeFormat("es-AR", {
                               day: "2-digit",
-                              month: "long",
+                              month: "short",
                               year: "numeric",
                             }).format(new Date(s.snapshotDate))}
                           </span>
-                          <span className="text-[11px] text-muted-foreground">
-                            {s.positionCount} posiciones
-                            {s.ccl ? ` · CCL $${s.ccl.toFixed(0)}` : ""}
+                          <span className="text-[10px] sm:text-[11px] text-muted-foreground">
+                            {s.positionCount} pos.
+                            {s.ccl ? ` · $${s.ccl.toFixed(0)}` : ""}
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-4 shrink-0">
-                        <div className="text-right hidden sm:flex flex-col gap-0.5">
-                          <span className="text-sm font-mono tabular-nums text-foreground">
+                      <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+                        <div className="text-right hidden xs:flex flex-col gap-0.5">
+                          <span className="text-xs sm:text-sm font-mono tabular-nums text-foreground">
                             {formatARS(s.totalValueArs)}
                           </span>
                           {s.totalValueUsd && (
-                            <span className="text-[11px] font-mono text-muted-foreground">
+                            <span className="text-[10px] sm:text-[11px] font-mono text-muted-foreground hidden sm:block">
                               {formatUSD(s.totalValueUsd)}
                             </span>
                           )}
@@ -120,7 +120,7 @@ export default async function SnapshotsPage() {
                         {change !== null && (
                           <Badge
                             variant="secondary"
-                            className={`font-mono text-[11px] tabular-nums ${
+                            className={`font-mono text-[10px] sm:text-[11px] tabular-nums ${
                               isPos ? "text-emerald-500" : "text-destructive"
                             }`}
                           >
@@ -129,7 +129,7 @@ export default async function SnapshotsPage() {
                           </Badge>
                         )}
 
-                        <ChevronRight className="size-3.5 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
+                        <ChevronRight className="size-3 sm:size-3.5 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
                       </div>
                     </Link>
                   );

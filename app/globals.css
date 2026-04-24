@@ -203,6 +203,14 @@
   .animate-fade-in {
     animation: fade-in 0.25s ease both;
   }
+  /* Hide scrollbar for horizontal scroll areas */
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
   /* Active sidebar item — dark gradient button with 3D inner highlight */
   .sidebar-active-item {
     background: linear-gradient(

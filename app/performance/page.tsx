@@ -124,29 +124,29 @@ export default async function PerformancePage() {
     <div className="flex flex-col min-h-svh">
       <SiteHeader title="Performance" description="Historial del portfolio" actions={<ImportButton />} />
 
-      <main className="flex-1 px-6 py-10 flex flex-col gap-10 max-w-6xl w-full mx-auto">
+      <main className="flex-1 px-4 sm:px-6 py-6 sm:py-10 flex flex-col gap-6 sm:gap-10 max-w-6xl w-full mx-auto">
         {/* KPI row */}
-        <section className="animate-fade-up grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <section className="animate-fade-up grid grid-cols-2 gap-3 md:grid-cols-4">
           {kpis.map(({ label, value, sub, accent }) => (
             <div
               key={label}
-              className="rounded-xl border border-border bg-card shadow-sm px-5 py-4 flex flex-col gap-3"
+              className="rounded-xl border border-border bg-card shadow-sm px-3 sm:px-5 py-3 sm:py-4 flex flex-col gap-2 sm:gap-3"
             >
               <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-semibold text-foreground">
+                <span className="text-xs sm:text-sm font-semibold text-foreground leading-tight">
                   {label}
                 </span>
-                <span className="text-xs text-muted-foreground">{sub}</span>
+                <span className="text-[10px] sm:text-xs text-muted-foreground leading-tight">{sub}</span>
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1 sm:gap-1.5">
                 {accent === true && (
-                  <ArrowUpRight className="size-4 text-emerald-500 shrink-0" />
+                  <ArrowUpRight className="size-3 sm:size-4 text-emerald-500 shrink-0" />
                 )}
                 {accent === false && maxDD > 0 && (
-                  <ArrowDownRight className="size-4 text-destructive shrink-0" />
+                  <ArrowDownRight className="size-3 sm:size-4 text-destructive shrink-0" />
                 )}
                 <span
-                  className={`text-xl font-bold font-mono tabular-nums leading-none ${
+                  className={`text-base sm:text-xl font-bold font-mono tabular-nums leading-none ${
                     accent === true
                       ? "text-emerald-500"
                       : accent === false &&
@@ -160,9 +160,9 @@ export default async function PerformancePage() {
               </div>
               <div className="flex items-center gap-1.5">
                 <span
-                  className={`size-2 rounded-full shrink-0 ${accent === false && maxDD > 0 ? "bg-destructive/50" : "bg-emerald-500/50"}`}
+                  className={`size-1.5 sm:size-2 rounded-full shrink-0 ${accent === false && maxDD > 0 ? "bg-destructive/50" : "bg-emerald-500/50"}`}
                 />
-                <span className="text-xs text-muted-foreground">
+                <span className="text-[10px] sm:text-xs text-muted-foreground">
                   {accent === null ? "registros" : "del período"}
                 </span>
               </div>
@@ -174,23 +174,23 @@ export default async function PerformancePage() {
 
         {/* Charts */}
         <section
-          className="animate-fade-up flex flex-col gap-6"
+          className="animate-fade-up flex flex-col gap-4 sm:gap-6"
           style={{ animationDelay: "100ms" }}
         >
-          <div className="flex flex-col gap-3">
-            <p className="text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
+          <div className="flex flex-col gap-2 sm:gap-3">
+            <p className="text-[9px] sm:text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
               Evolución del portfolio
             </p>
-            <div className="rounded-xl border border-border bg-card shadow-sm p-5">
+            <div className="rounded-xl border border-border bg-card shadow-sm p-3 sm:p-5">
               <PerformanceChart snapshots={snapshots} />
             </div>
           </div>
 
-          <div className="flex flex-col gap-3">
-            <p className="text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
+          <div className="flex flex-col gap-2 sm:gap-3">
+            <p className="text-[9px] sm:text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
               Comparación vs benchmarks
             </p>
-            <div className="rounded-xl border border-border bg-card shadow-sm p-5">
+            <div className="rounded-xl border border-border bg-card shadow-sm p-3 sm:p-5">
               <BenchmarkOverlayChart
                 snapshots={snapshots}
                 initialBenchmarks={initialBenchmarks}
@@ -201,10 +201,10 @@ export default async function PerformancePage() {
 
         {/* Snapshot timeline */}
         <section
-          className="animate-fade-up flex flex-col gap-3"
+          className="animate-fade-up flex flex-col gap-2 sm:gap-3"
           style={{ animationDelay: "200ms" }}
         >
-          <p className="text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
+          <p className="text-[9px] sm:text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
             Registros importados
           </p>
           <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
@@ -219,11 +219,11 @@ export default async function PerformancePage() {
                 return (
                   <div
                     key={s.id}
-                    className="px-5 py-3.5 flex items-center justify-between gap-4 hover:bg-muted/50 transition-colors"
+                    className="px-3 sm:px-5 py-2.5 sm:py-3.5 flex items-center justify-between gap-2 sm:gap-4 hover:bg-muted/50 transition-colors"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="size-2 rounded-full bg-emerald-500/50 shrink-0" />
-                      <span className="text-sm font-mono text-foreground">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <span className="size-1.5 sm:size-2 rounded-full bg-emerald-500/50 shrink-0" />
+                      <span className="text-xs sm:text-sm font-mono text-foreground">
                         {new Intl.DateTimeFormat("es-AR", {
                           day: "2-digit",
                           month: "short",
@@ -231,13 +231,13 @@ export default async function PerformancePage() {
                         }).format(new Date(s.snapshotDate))}
                       </span>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-sm font-mono tabular-nums text-foreground">
+                    <div className="flex items-center gap-2 sm:gap-4">
+                      <span className="text-xs sm:text-sm font-mono tabular-nums text-foreground">
                         {formatARS(s.totalValueArs)}
                       </span>
                       {change !== null && (
                         <span
-                          className={`text-xs font-mono tabular-nums ${
+                          className={`text-[10px] sm:text-xs font-mono tabular-nums ${
                             pos ? "text-emerald-500" : "text-destructive"
                           }`}
                         >

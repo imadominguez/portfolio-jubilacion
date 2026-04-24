@@ -39,7 +39,7 @@ export default async function RetirementPage() {
         description="Calculadora y proyección de retiro"
       />
 
-      <main className="flex-1 px-6 py-10 flex flex-col gap-8 max-w-6xl w-full mx-auto">
+      <main className="flex-1 px-4 sm:px-6 py-6 sm:py-10 flex flex-col gap-6 sm:gap-8 max-w-6xl w-full mx-auto">
         <div className="animate-fade-up flex flex-col gap-1">
           <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
             Planificación de retiro

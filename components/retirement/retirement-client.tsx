@@ -133,24 +133,24 @@ export function RetirementClient({
   return (
     <div className="flex flex-col gap-8">
       {/* Config panel */}
-      <div className="rounded-xl border border-border bg-card shadow-sm p-6">
-        <div className="flex items-center justify-between mb-5">
+      <div className="rounded-xl border border-border bg-card shadow-sm p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-5">
           <div className="flex flex-col gap-0.5">
-            <h3 className="text-sm font-semibold text-foreground">Parámetros</h3>
-            <p className="text-[11px] text-muted-foreground">
+            <h3 className="text-xs sm:text-sm font-semibold text-foreground">Parámetros</h3>
+            <p className="text-[10px] sm:text-[11px] text-muted-foreground">
               Todos los valores monetarios en USD · Inflación y tasa de retiro basadas en mercado EE.UU.
             </p>
           </div>
           {!isEditing && (
-            <Button variant="outline" size="sm" className="text-xs" onClick={() => setIsEditing(true)}>
+            <Button variant="outline" size="sm" className="text-xs w-full sm:w-auto" onClick={() => setIsEditing(true)}>
               Editar
             </Button>
           )}
         </div>
 
         {isEditing ? (
-          <form onSubmit={handleSave} className="flex flex-col gap-4">
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <form onSubmit={handleSave} className="flex flex-col gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:grid-cols-3">
               <Field>
                 <FieldLabel className="text-xs font-medium">Edad actual</FieldLabel>
                 <Input
@@ -251,7 +251,7 @@ export function RetirementClient({
             </div>
           </form>
         ) : (
-          <div className="grid grid-cols-3 gap-3 sm:grid-cols-6 text-center">
+          <div className="grid grid-cols-2 gap-3 xs:grid-cols-3 sm:grid-cols-6 text-center">
             {[
               { label: "Edad actual", value: settings.currentAge },
               { label: "Retiro a los", value: settings.retirementAge },
@@ -261,20 +261,20 @@ export function RetirementClient({
               { label: "Tasa retiro", value: `${(settings.withdrawalRate * 100).toFixed(1)}%` },
             ].map(({ label, value }) => (
               <div key={label} className="flex flex-col gap-0.5">
-                <span className="text-[10px] text-muted-foreground">{label}</span>
-                <span className="text-sm font-mono font-semibold text-foreground">{value}</span>
+                <span className="text-[9px] sm:text-[10px] text-muted-foreground">{label}</span>
+                <span className="text-xs sm:text-sm font-mono font-semibold text-foreground">{value}</span>
               </div>
             ))}
           </div>
         )}
 
-        <div className="mt-3 pt-3 border-t border-border flex items-center gap-2">
-          <span className="text-[10px] text-muted-foreground">
+        <div className="mt-3 pt-3 border-t border-border flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+          <span className="text-[9px] sm:text-[10px] text-muted-foreground">
             Retorno anual usado: {(inputs.annualReturnRate * 100).toFixed(2)}%
             {historicalCagr > 0 ? " (CAGR histórico del portfolio)" : " (estimado)"}
           </span>
           {currentPortfolioUsd && (
-            <span className="text-[10px] text-muted-foreground">
+            <span className="text-[9px] sm:text-[10px] text-muted-foreground">
               · Portfolio actual: {formatUSD(currentPortfolioUsd)}
             </span>
           )}
@@ -283,12 +283,12 @@ export function RetirementClient({
 
       {/* Tabs */}
       <div className="flex flex-col gap-6">
-        <div className="flex items-center gap-1 border-b border-border">
+        <div className="flex items-center gap-0.5 sm:gap-1 border-b border-border overflow-x-auto scrollbar-none">
           {tabs.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`px-4 py-2.5 text-xs font-medium transition-colors border-b-2 -mb-px ${
+              className={`px-3 sm:px-4 py-2 sm:py-2.5 text-[10px] sm:text-xs font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
                 tab === t.id
                   ? "border-foreground text-foreground"
                   : "border-transparent text-muted-foreground hover:text-foreground"
@@ -300,7 +300,7 @@ export function RetirementClient({
         </div>
 
         {tab === "calculator" && (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 xs:grid-cols-2 lg:grid-cols-4">
             {[
               {
                 label: "Capital necesario",
