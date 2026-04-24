@@ -92,6 +92,11 @@ export type Dividend = Prisma.DividendModel
  */
 export type RetirementSettings = Prisma.RetirementSettingsModel
 /**
+ * Model HistoricalPriceCache
+ * 
+ */
+export type HistoricalPriceCache = Prisma.HistoricalPriceCacheModel
+/**
  * Model MilestoneAlert
  * 
  */

@@ -236,6 +236,25 @@ model RetirementSettings {
 }
 
 // ---------------------------------------------------------------------------
+// HistoricalPriceCache
+//
+// Cache de precios históricos diarios en USD para cada ticker subyacente.
+// Usado para calcular la ganancia real en USD y el impacto del CCL.
+// Patrón idéntico a BenchmarkPoint.
+// ---------------------------------------------------------------------------
+
+model HistoricalPriceCache {
+  id       String   @id @default(cuid())
+  ticker   String
+  date     DateTime @db.Date
+  priceUsd Decimal  @db.Decimal(18, 4)
+
+  @@unique([ticker, date])
+  @@index([ticker])
+  @@map("historical_price_cache")
+}
+
+// ---------------------------------------------------------------------------
 // MilestoneAlert
 //
 // Hitos de valor del portfolio (en USD) que el usuario quiere celebrar.

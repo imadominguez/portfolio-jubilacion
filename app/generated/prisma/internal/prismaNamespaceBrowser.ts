@@ -61,6 +61,7 @@ export const ModelName = {
   Transaction: 'Transaction',
   Dividend: 'Dividend',
   RetirementSettings: 'RetirementSettings',
+  HistoricalPriceCache: 'HistoricalPriceCache',
   MilestoneAlert: 'MilestoneAlert'
 } as const
 
@@ -212,6 +213,16 @@ export const RetirementSettingsScalarFieldEnum = {
 } as const
 
 export type RetirementSettingsScalarFieldEnum = (typeof RetirementSettingsScalarFieldEnum)[keyof typeof RetirementSettingsScalarFieldEnum]
+
+
+export const HistoricalPriceCacheScalarFieldEnum = {
+  id: 'id',
+  ticker: 'ticker',
+  date: 'date',
+  priceUsd: 'priceUsd'
+} as const
+
+export type HistoricalPriceCacheScalarFieldEnum = (typeof HistoricalPriceCacheScalarFieldEnum)[keyof typeof HistoricalPriceCacheScalarFieldEnum]
 
 
 export const MilestoneAlertScalarFieldEnum = {

@@ -394,6 +394,7 @@ export const ModelName = {
   Transaction: 'Transaction',
   Dividend: 'Dividend',
   RetirementSettings: 'RetirementSettings',
+  HistoricalPriceCache: 'HistoricalPriceCache',
   MilestoneAlert: 'MilestoneAlert'
 } as const
 
@@ -410,7 +411,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "portfolioSnapshot" | "position" | "asset" | "exchangeRate" | "marketPriceCache" | "benchmarkPoint" | "targetAllocation" | "transaction" | "dividend" | "retirementSettings" | "milestoneAlert"
+    modelProps: "portfolioSnapshot" | "position" | "asset" | "exchangeRate" | "marketPriceCache" | "benchmarkPoint" | "targetAllocation" | "transaction" | "dividend" | "retirementSettings" | "historicalPriceCache" | "milestoneAlert"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1154,6 +1155,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    HistoricalPriceCache: {
+      payload: Prisma.$HistoricalPriceCachePayload<ExtArgs>
+      fields: Prisma.HistoricalPriceCacheFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.HistoricalPriceCacheFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HistoricalPriceCachePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.HistoricalPriceCacheFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HistoricalPriceCachePayload>
+        }
+        findFirst: {
+          args: Prisma.HistoricalPriceCacheFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HistoricalPriceCachePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.HistoricalPriceCacheFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HistoricalPriceCachePayload>
+        }
+        findMany: {
+          args: Prisma.HistoricalPriceCacheFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HistoricalPriceCachePayload>[]
+        }
+        create: {
+          args: Prisma.HistoricalPriceCacheCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HistoricalPriceCachePayload>
+        }
+        createMany: {
+          args: Prisma.HistoricalPriceCacheCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.HistoricalPriceCacheCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HistoricalPriceCachePayload>[]
+        }
+        delete: {
+          args: Prisma.HistoricalPriceCacheDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HistoricalPriceCachePayload>
+        }
+        update: {
+          args: Prisma.HistoricalPriceCacheUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HistoricalPriceCachePayload>
+        }
+        deleteMany: {
+          args: Prisma.HistoricalPriceCacheDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.HistoricalPriceCacheUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.HistoricalPriceCacheUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HistoricalPriceCachePayload>[]
+        }
+        upsert: {
+          args: Prisma.HistoricalPriceCacheUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HistoricalPriceCachePayload>
+        }
+        aggregate: {
+          args: Prisma.HistoricalPriceCacheAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateHistoricalPriceCache>
+        }
+        groupBy: {
+          args: Prisma.HistoricalPriceCacheGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.HistoricalPriceCacheGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.HistoricalPriceCacheCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.HistoricalPriceCacheCountAggregateOutputType> | number
+        }
+      }
+    }
     MilestoneAlert: {
       payload: Prisma.$MilestoneAlertPayload<ExtArgs>
       fields: Prisma.MilestoneAlertFieldRefs
@@ -1399,6 +1474,16 @@ export const RetirementSettingsScalarFieldEnum = {
 } as const
 
 export type RetirementSettingsScalarFieldEnum = (typeof RetirementSettingsScalarFieldEnum)[keyof typeof RetirementSettingsScalarFieldEnum]
+
+
+export const HistoricalPriceCacheScalarFieldEnum = {
+  id: 'id',
+  ticker: 'ticker',
+  date: 'date',
+  priceUsd: 'priceUsd'
+} as const
+
+export type HistoricalPriceCacheScalarFieldEnum = (typeof HistoricalPriceCacheScalarFieldEnum)[keyof typeof HistoricalPriceCacheScalarFieldEnum]
 
 
 export const MilestoneAlertScalarFieldEnum = {
@@ -1652,6 +1737,7 @@ export type GlobalOmitConfig = {
   transaction?: Prisma.TransactionOmit
   dividend?: Prisma.DividendOmit
   retirementSettings?: Prisma.RetirementSettingsOmit
+  historicalPriceCache?: Prisma.HistoricalPriceCacheOmit
   milestoneAlert?: Prisma.MilestoneAlertOmit
 }
 
