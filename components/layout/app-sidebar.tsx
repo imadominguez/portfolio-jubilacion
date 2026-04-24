@@ -12,6 +12,7 @@ import {
   ArrowLeftRight,
   Target,
   Settings,
+  DollarSign,
 } from "lucide-react";
 import {
   Sidebar,
@@ -40,6 +41,7 @@ const NAV_ANALYSIS = [
   { label: "Rebalanceo", href: "/rebalance", icon: Scale },
   { label: "Transacciones", href: "/transactions", icon: ArrowLeftRight },
   { label: "Jubilación", href: "/retirement", icon: Target },
+  { label: "Ganancia Real", href: "/real-gains", icon: DollarSign },
 ];
 
 const NAV_CONFIG = [
