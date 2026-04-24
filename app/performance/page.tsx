@@ -124,7 +124,7 @@ export default async function PerformancePage() {
     <div className="flex flex-col min-h-svh">
       <SiteHeader title="Performance" description="Historial del portfolio" actions={<ImportButton />} />
 
-      <main className="flex-1 px-6 py-10 flex flex-col gap-10 max-w-6xl w-full mx-auto">
+      <main className="flex-1 px-6 py-10 flex flex-col gap-6 max-w-6xl w-full mx-auto">
         {/* KPI row */}
         <section className="animate-fade-up grid grid-cols-2 gap-3 sm:grid-cols-4">
           {kpis.map(({ label, value, sub, accent }) => (
@@ -146,14 +146,13 @@ export default async function PerformancePage() {
                   <ArrowDownRight className="size-4 text-destructive shrink-0" />
                 )}
                 <span
-                  className={`text-xl font-bold font-mono tabular-nums leading-none ${
-                    accent === true
-                      ? "text-emerald-500"
-                      : accent === false &&
-                          (label === "Máx. Drawdown" ? maxDD > 0 : true)
-                        ? "text-destructive"
-                        : "text-foreground"
-                  }`}
+                  className={`text-xl font-bold font-mono tabular-nums leading-none ${accent === true
+                    ? "text-emerald-500"
+                    : accent === false &&
+                      (label === "Máx. Drawdown" ? maxDD > 0 : true)
+                      ? "text-destructive"
+                      : "text-foreground"
+                    }`}
                 >
                   {value}
                 </span>
@@ -237,9 +236,8 @@ export default async function PerformancePage() {
                       </span>
                       {change !== null && (
                         <span
-                          className={`text-xs font-mono tabular-nums ${
-                            pos ? "text-emerald-500" : "text-destructive"
-                          }`}
+                          className={`text-xs font-mono tabular-nums ${pos ? "text-emerald-500" : "text-destructive"
+                            }`}
                         >
                           {pos ? "+" : ""}
                           {change.toFixed(2)}%

@@ -16,7 +16,7 @@ export default async function AnalysisPage() {
         description="Concentración por sector, país e industria"
       />
 
-      <main className="flex-1 px-6 py-10 flex flex-col gap-8 max-w-6xl w-full mx-auto">
+      <main className="flex-1 px-6 py-10 flex flex-col gap-6  w-full mx-auto">
         {data ? (
           <>
             <div className="animate-fade-up flex flex-col gap-1">
