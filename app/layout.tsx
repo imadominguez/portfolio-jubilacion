@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { AppSidebar } from "@/components/layout/app-sidebar";
 import { ThemeProvider } from "@/components/theme-provider";
-import "./globals.css";
 import { Toaster } from "sonner";
+import "./globals.css";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-sans",
@@ -39,12 +36,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <TooltipProvider>
-            <SidebarProvider>
-              <AppSidebar />
-              <SidebarInset>{children}</SidebarInset>
-            </SidebarProvider>
-          </TooltipProvider>
+          {children}
         </ThemeProvider>
         <Toaster />
       </body>

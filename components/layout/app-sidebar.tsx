@@ -13,7 +13,10 @@ import {
   Target,
   Settings,
   DollarSign,
+  LogOut,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { signOut } from "@/lib/auth-client";
 import {
   Sidebar,
   SidebarContent,
@@ -51,6 +54,13 @@ const NAV_CONFIG = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  async function handleSignOut() {
+    await signOut();
+    router.push("/login");
+    router.refresh();
+  }
 
   return (
     <Sidebar collapsible="icon">
@@ -135,9 +145,18 @@ export function AppSidebar() {
       <SidebarSeparator />
 
       <SidebarFooter className="px-3 py-3">
-        <span className="text-[9px] font-semibold tracking-widest text-sidebar-foreground/30 uppercase truncate px-2">
-          Cocos Capital
-        </span>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={handleSignOut}
+              tooltip="Cerrar sesión"
+              className="rounded-lg border border-transparent text-sidebar-foreground/60 hover:text-destructive hover:bg-destructive/10"
+            >
+              <LogOut className="size-4 shrink-0" />
+              <span className="text-sm font-medium">Cerrar sesión</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
 
       <SidebarRail />
