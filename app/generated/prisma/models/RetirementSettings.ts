@@ -54,6 +54,7 @@ export type RetirementSettingsMinAggregateOutputType = {
   monthlyContribution: runtime.Decimal | null
   createdAt: Date | null
   updatedAt: Date | null
+  userId: string | null
 }
 
 export type RetirementSettingsMaxAggregateOutputType = {
@@ -66,6 +67,7 @@ export type RetirementSettingsMaxAggregateOutputType = {
   monthlyContribution: runtime.Decimal | null
   createdAt: Date | null
   updatedAt: Date | null
+  userId: string | null
 }
 
 export type RetirementSettingsCountAggregateOutputType = {
@@ -78,6 +80,7 @@ export type RetirementSettingsCountAggregateOutputType = {
   monthlyContribution: number
   createdAt: number
   updatedAt: number
+  userId: number
   _all: number
 }
 
@@ -110,6 +113,7 @@ export type RetirementSettingsMinAggregateInputType = {
   monthlyContribution?: true
   createdAt?: true
   updatedAt?: true
+  userId?: true
 }
 
 export type RetirementSettingsMaxAggregateInputType = {
@@ -122,6 +126,7 @@ export type RetirementSettingsMaxAggregateInputType = {
   monthlyContribution?: true
   createdAt?: true
   updatedAt?: true
+  userId?: true
 }
 
 export type RetirementSettingsCountAggregateInputType = {
@@ -134,6 +139,7 @@ export type RetirementSettingsCountAggregateInputType = {
   monthlyContribution?: true
   createdAt?: true
   updatedAt?: true
+  userId?: true
   _all?: true
 }
 
@@ -233,6 +239,7 @@ export type RetirementSettingsGroupByOutputType = {
   monthlyContribution: runtime.Decimal
   createdAt: Date
   updatedAt: Date
+  userId: string | null
   _count: RetirementSettingsCountAggregateOutputType | null
   _avg: RetirementSettingsAvgAggregateOutputType | null
   _sum: RetirementSettingsSumAggregateOutputType | null
@@ -240,7 +247,7 @@ export type RetirementSettingsGroupByOutputType = {
   _max: RetirementSettingsMaxAggregateOutputType | null
 }
 
-export type GetRetirementSettingsGroupByPayload<T extends RetirementSettingsGroupByArgs> = Prisma.PrismaPromise<
+type GetRetirementSettingsGroupByPayload<T extends RetirementSettingsGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<RetirementSettingsGroupByOutputType, T['by']> &
       {
@@ -268,6 +275,8 @@ export type RetirementSettingsWhereInput = {
   monthlyContribution?: Prisma.DecimalFilter<"RetirementSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"RetirementSettings"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RetirementSettings"> | Date | string
+  userId?: Prisma.StringNullableFilter<"RetirementSettings"> | string | null
+  user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
 
 export type RetirementSettingsOrderByWithRelationInput = {
@@ -280,6 +289,8 @@ export type RetirementSettingsOrderByWithRelationInput = {
   monthlyContribution?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  userId?: Prisma.SortOrderInput | Prisma.SortOrder
+  user?: Prisma.UserOrderByWithRelationInput
 }
 
 export type RetirementSettingsWhereUniqueInput = Prisma.AtLeast<{
@@ -295,6 +306,8 @@ export type RetirementSettingsWhereUniqueInput = Prisma.AtLeast<{
   monthlyContribution?: Prisma.DecimalFilter<"RetirementSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"RetirementSettings"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RetirementSettings"> | Date | string
+  userId?: Prisma.StringNullableFilter<"RetirementSettings"> | string | null
+  user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id">
 
 export type RetirementSettingsOrderByWithAggregationInput = {
@@ -307,6 +320,7 @@ export type RetirementSettingsOrderByWithAggregationInput = {
   monthlyContribution?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  userId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.RetirementSettingsCountOrderByAggregateInput
   _avg?: Prisma.RetirementSettingsAvgOrderByAggregateInput
   _max?: Prisma.RetirementSettingsMaxOrderByAggregateInput
@@ -327,6 +341,7 @@ export type RetirementSettingsScalarWhereWithAggregatesInput = {
   monthlyContribution?: Prisma.DecimalWithAggregatesFilter<"RetirementSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"RetirementSettings"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"RetirementSettings"> | Date | string
+  userId?: Prisma.StringNullableWithAggregatesFilter<"RetirementSettings"> | string | null
 }
 
 export type RetirementSettingsCreateInput = {
@@ -339,6 +354,7 @@ export type RetirementSettingsCreateInput = {
   monthlyContribution: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  user?: Prisma.UserCreateNestedOneWithoutRetirementSettingsInput
 }
 
 export type RetirementSettingsUncheckedCreateInput = {
@@ -351,6 +367,7 @@ export type RetirementSettingsUncheckedCreateInput = {
   monthlyContribution: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  userId?: string | null
 }
 
 export type RetirementSettingsUpdateInput = {
@@ -363,6 +380,7 @@ export type RetirementSettingsUpdateInput = {
   monthlyContribution?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneWithoutRetirementSettingsNestedInput
 }
 
 export type RetirementSettingsUncheckedUpdateInput = {
@@ -375,6 +393,7 @@ export type RetirementSettingsUncheckedUpdateInput = {
   monthlyContribution?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type RetirementSettingsCreateManyInput = {
@@ -387,6 +406,7 @@ export type RetirementSettingsCreateManyInput = {
   monthlyContribution: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  userId?: string | null
 }
 
 export type RetirementSettingsUpdateManyMutationInput = {
@@ -411,6 +431,17 @@ export type RetirementSettingsUncheckedUpdateManyInput = {
   monthlyContribution?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type RetirementSettingsListRelationFilter = {
+  every?: Prisma.RetirementSettingsWhereInput
+  some?: Prisma.RetirementSettingsWhereInput
+  none?: Prisma.RetirementSettingsWhereInput
+}
+
+export type RetirementSettingsOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type RetirementSettingsCountOrderByAggregateInput = {
@@ -423,6 +454,7 @@ export type RetirementSettingsCountOrderByAggregateInput = {
   monthlyContribution?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  userId?: Prisma.SortOrder
 }
 
 export type RetirementSettingsAvgOrderByAggregateInput = {
@@ -444,6 +476,7 @@ export type RetirementSettingsMaxOrderByAggregateInput = {
   monthlyContribution?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  userId?: Prisma.SortOrder
 }
 
 export type RetirementSettingsMinOrderByAggregateInput = {
@@ -456,6 +489,7 @@ export type RetirementSettingsMinOrderByAggregateInput = {
   monthlyContribution?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  userId?: Prisma.SortOrder
 }
 
 export type RetirementSettingsSumOrderByAggregateInput = {
@@ -467,12 +501,168 @@ export type RetirementSettingsSumOrderByAggregateInput = {
   monthlyContribution?: Prisma.SortOrder
 }
 
+export type RetirementSettingsCreateNestedManyWithoutUserInput = {
+  create?: Prisma.XOR<Prisma.RetirementSettingsCreateWithoutUserInput, Prisma.RetirementSettingsUncheckedCreateWithoutUserInput> | Prisma.RetirementSettingsCreateWithoutUserInput[] | Prisma.RetirementSettingsUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.RetirementSettingsCreateOrConnectWithoutUserInput | Prisma.RetirementSettingsCreateOrConnectWithoutUserInput[]
+  createMany?: Prisma.RetirementSettingsCreateManyUserInputEnvelope
+  connect?: Prisma.RetirementSettingsWhereUniqueInput | Prisma.RetirementSettingsWhereUniqueInput[]
+}
+
+export type RetirementSettingsUncheckedCreateNestedManyWithoutUserInput = {
+  create?: Prisma.XOR<Prisma.RetirementSettingsCreateWithoutUserInput, Prisma.RetirementSettingsUncheckedCreateWithoutUserInput> | Prisma.RetirementSettingsCreateWithoutUserInput[] | Prisma.RetirementSettingsUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.RetirementSettingsCreateOrConnectWithoutUserInput | Prisma.RetirementSettingsCreateOrConnectWithoutUserInput[]
+  createMany?: Prisma.RetirementSettingsCreateManyUserInputEnvelope
+  connect?: Prisma.RetirementSettingsWhereUniqueInput | Prisma.RetirementSettingsWhereUniqueInput[]
+}
+
+export type RetirementSettingsUpdateManyWithoutUserNestedInput = {
+  create?: Prisma.XOR<Prisma.RetirementSettingsCreateWithoutUserInput, Prisma.RetirementSettingsUncheckedCreateWithoutUserInput> | Prisma.RetirementSettingsCreateWithoutUserInput[] | Prisma.RetirementSettingsUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.RetirementSettingsCreateOrConnectWithoutUserInput | Prisma.RetirementSettingsCreateOrConnectWithoutUserInput[]
+  upsert?: Prisma.RetirementSettingsUpsertWithWhereUniqueWithoutUserInput | Prisma.RetirementSettingsUpsertWithWhereUniqueWithoutUserInput[]
+  createMany?: Prisma.RetirementSettingsCreateManyUserInputEnvelope
+  set?: Prisma.RetirementSettingsWhereUniqueInput | Prisma.RetirementSettingsWhereUniqueInput[]
+  disconnect?: Prisma.RetirementSettingsWhereUniqueInput | Prisma.RetirementSettingsWhereUniqueInput[]
+  delete?: Prisma.RetirementSettingsWhereUniqueInput | Prisma.RetirementSettingsWhereUniqueInput[]
+  connect?: Prisma.RetirementSettingsWhereUniqueInput | Prisma.RetirementSettingsWhereUniqueInput[]
+  update?: Prisma.RetirementSettingsUpdateWithWhereUniqueWithoutUserInput | Prisma.RetirementSettingsUpdateWithWhereUniqueWithoutUserInput[]
+  updateMany?: Prisma.RetirementSettingsUpdateManyWithWhereWithoutUserInput | Prisma.RetirementSettingsUpdateManyWithWhereWithoutUserInput[]
+  deleteMany?: Prisma.RetirementSettingsScalarWhereInput | Prisma.RetirementSettingsScalarWhereInput[]
+}
+
+export type RetirementSettingsUncheckedUpdateManyWithoutUserNestedInput = {
+  create?: Prisma.XOR<Prisma.RetirementSettingsCreateWithoutUserInput, Prisma.RetirementSettingsUncheckedCreateWithoutUserInput> | Prisma.RetirementSettingsCreateWithoutUserInput[] | Prisma.RetirementSettingsUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.RetirementSettingsCreateOrConnectWithoutUserInput | Prisma.RetirementSettingsCreateOrConnectWithoutUserInput[]
+  upsert?: Prisma.RetirementSettingsUpsertWithWhereUniqueWithoutUserInput | Prisma.RetirementSettingsUpsertWithWhereUniqueWithoutUserInput[]
+  createMany?: Prisma.RetirementSettingsCreateManyUserInputEnvelope
+  set?: Prisma.RetirementSettingsWhereUniqueInput | Prisma.RetirementSettingsWhereUniqueInput[]
+  disconnect?: Prisma.RetirementSettingsWhereUniqueInput | Prisma.RetirementSettingsWhereUniqueInput[]
+  delete?: Prisma.RetirementSettingsWhereUniqueInput | Prisma.RetirementSettingsWhereUniqueInput[]
+  connect?: Prisma.RetirementSettingsWhereUniqueInput | Prisma.RetirementSettingsWhereUniqueInput[]
+  update?: Prisma.RetirementSettingsUpdateWithWhereUniqueWithoutUserInput | Prisma.RetirementSettingsUpdateWithWhereUniqueWithoutUserInput[]
+  updateMany?: Prisma.RetirementSettingsUpdateManyWithWhereWithoutUserInput | Prisma.RetirementSettingsUpdateManyWithWhereWithoutUserInput[]
+  deleteMany?: Prisma.RetirementSettingsScalarWhereInput | Prisma.RetirementSettingsScalarWhereInput[]
+}
+
 export type IntFieldUpdateOperationsInput = {
   set?: number
   increment?: number
   decrement?: number
   multiply?: number
   divide?: number
+}
+
+export type RetirementSettingsCreateWithoutUserInput = {
+  id?: string
+  currentAge: number
+  retirementAge: number
+  monthlyExpensesUsd: runtime.Decimal | runtime.DecimalJsLike | number | string
+  inflationRate: runtime.Decimal | runtime.DecimalJsLike | number | string
+  withdrawalRate: runtime.Decimal | runtime.DecimalJsLike | number | string
+  monthlyContribution: runtime.Decimal | runtime.DecimalJsLike | number | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type RetirementSettingsUncheckedCreateWithoutUserInput = {
+  id?: string
+  currentAge: number
+  retirementAge: number
+  monthlyExpensesUsd: runtime.Decimal | runtime.DecimalJsLike | number | string
+  inflationRate: runtime.Decimal | runtime.DecimalJsLike | number | string
+  withdrawalRate: runtime.Decimal | runtime.DecimalJsLike | number | string
+  monthlyContribution: runtime.Decimal | runtime.DecimalJsLike | number | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type RetirementSettingsCreateOrConnectWithoutUserInput = {
+  where: Prisma.RetirementSettingsWhereUniqueInput
+  create: Prisma.XOR<Prisma.RetirementSettingsCreateWithoutUserInput, Prisma.RetirementSettingsUncheckedCreateWithoutUserInput>
+}
+
+export type RetirementSettingsCreateManyUserInputEnvelope = {
+  data: Prisma.RetirementSettingsCreateManyUserInput | Prisma.RetirementSettingsCreateManyUserInput[]
+  skipDuplicates?: boolean
+}
+
+export type RetirementSettingsUpsertWithWhereUniqueWithoutUserInput = {
+  where: Prisma.RetirementSettingsWhereUniqueInput
+  update: Prisma.XOR<Prisma.RetirementSettingsUpdateWithoutUserInput, Prisma.RetirementSettingsUncheckedUpdateWithoutUserInput>
+  create: Prisma.XOR<Prisma.RetirementSettingsCreateWithoutUserInput, Prisma.RetirementSettingsUncheckedCreateWithoutUserInput>
+}
+
+export type RetirementSettingsUpdateWithWhereUniqueWithoutUserInput = {
+  where: Prisma.RetirementSettingsWhereUniqueInput
+  data: Prisma.XOR<Prisma.RetirementSettingsUpdateWithoutUserInput, Prisma.RetirementSettingsUncheckedUpdateWithoutUserInput>
+}
+
+export type RetirementSettingsUpdateManyWithWhereWithoutUserInput = {
+  where: Prisma.RetirementSettingsScalarWhereInput
+  data: Prisma.XOR<Prisma.RetirementSettingsUpdateManyMutationInput, Prisma.RetirementSettingsUncheckedUpdateManyWithoutUserInput>
+}
+
+export type RetirementSettingsScalarWhereInput = {
+  AND?: Prisma.RetirementSettingsScalarWhereInput | Prisma.RetirementSettingsScalarWhereInput[]
+  OR?: Prisma.RetirementSettingsScalarWhereInput[]
+  NOT?: Prisma.RetirementSettingsScalarWhereInput | Prisma.RetirementSettingsScalarWhereInput[]
+  id?: Prisma.StringFilter<"RetirementSettings"> | string
+  currentAge?: Prisma.IntFilter<"RetirementSettings"> | number
+  retirementAge?: Prisma.IntFilter<"RetirementSettings"> | number
+  monthlyExpensesUsd?: Prisma.DecimalFilter<"RetirementSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  inflationRate?: Prisma.DecimalFilter<"RetirementSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  withdrawalRate?: Prisma.DecimalFilter<"RetirementSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  monthlyContribution?: Prisma.DecimalFilter<"RetirementSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  createdAt?: Prisma.DateTimeFilter<"RetirementSettings"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"RetirementSettings"> | Date | string
+  userId?: Prisma.StringNullableFilter<"RetirementSettings"> | string | null
+}
+
+export type RetirementSettingsCreateManyUserInput = {
+  id?: string
+  currentAge: number
+  retirementAge: number
+  monthlyExpensesUsd: runtime.Decimal | runtime.DecimalJsLike | number | string
+  inflationRate: runtime.Decimal | runtime.DecimalJsLike | number | string
+  withdrawalRate: runtime.Decimal | runtime.DecimalJsLike | number | string
+  monthlyContribution: runtime.Decimal | runtime.DecimalJsLike | number | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type RetirementSettingsUpdateWithoutUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  currentAge?: Prisma.IntFieldUpdateOperationsInput | number
+  retirementAge?: Prisma.IntFieldUpdateOperationsInput | number
+  monthlyExpensesUsd?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  inflationRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  withdrawalRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  monthlyContribution?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type RetirementSettingsUncheckedUpdateWithoutUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  currentAge?: Prisma.IntFieldUpdateOperationsInput | number
+  retirementAge?: Prisma.IntFieldUpdateOperationsInput | number
+  monthlyExpensesUsd?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  inflationRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  withdrawalRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  monthlyContribution?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type RetirementSettingsUncheckedUpdateManyWithoutUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  currentAge?: Prisma.IntFieldUpdateOperationsInput | number
+  retirementAge?: Prisma.IntFieldUpdateOperationsInput | number
+  monthlyExpensesUsd?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  inflationRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  withdrawalRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  monthlyContribution?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -487,6 +677,8 @@ export type RetirementSettingsSelect<ExtArgs extends runtime.Types.Extensions.In
   monthlyContribution?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  userId?: boolean
+  user?: boolean | Prisma.RetirementSettings$userArgs<ExtArgs>
 }, ExtArgs["result"]["retirementSettings"]>
 
 export type RetirementSettingsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -499,6 +691,8 @@ export type RetirementSettingsSelectCreateManyAndReturn<ExtArgs extends runtime.
   monthlyContribution?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  userId?: boolean
+  user?: boolean | Prisma.RetirementSettings$userArgs<ExtArgs>
 }, ExtArgs["result"]["retirementSettings"]>
 
 export type RetirementSettingsSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -511,6 +705,8 @@ export type RetirementSettingsSelectUpdateManyAndReturn<ExtArgs extends runtime.
   monthlyContribution?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  userId?: boolean
+  user?: boolean | Prisma.RetirementSettings$userArgs<ExtArgs>
 }, ExtArgs["result"]["retirementSettings"]>
 
 export type RetirementSettingsSelectScalar = {
@@ -523,13 +719,25 @@ export type RetirementSettingsSelectScalar = {
   monthlyContribution?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  userId?: boolean
 }
 
-export type RetirementSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "currentAge" | "retirementAge" | "monthlyExpensesUsd" | "inflationRate" | "withdrawalRate" | "monthlyContribution" | "createdAt" | "updatedAt", ExtArgs["result"]["retirementSettings"]>
+export type RetirementSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "currentAge" | "retirementAge" | "monthlyExpensesUsd" | "inflationRate" | "withdrawalRate" | "monthlyContribution" | "createdAt" | "updatedAt" | "userId", ExtArgs["result"]["retirementSettings"]>
+export type RetirementSettingsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  user?: boolean | Prisma.RetirementSettings$userArgs<ExtArgs>
+}
+export type RetirementSettingsIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  user?: boolean | Prisma.RetirementSettings$userArgs<ExtArgs>
+}
+export type RetirementSettingsIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  user?: boolean | Prisma.RetirementSettings$userArgs<ExtArgs>
+}
 
 export type $RetirementSettingsPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "RetirementSettings"
-  objects: {}
+  objects: {
+    user: Prisma.$UserPayload<ExtArgs> | null
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     currentAge: number
@@ -540,6 +748,7 @@ export type $RetirementSettingsPayload<ExtArgs extends runtime.Types.Extensions.
     monthlyContribution: runtime.Decimal
     createdAt: Date
     updatedAt: Date
+    userId: string | null
   }, ExtArgs["result"]["retirementSettings"]>
   composites: {}
 }
@@ -934,6 +1143,7 @@ readonly fields: RetirementSettingsFieldRefs;
  */
 export interface Prisma__RetirementSettingsClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  user<T extends Prisma.RetirementSettings$userArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RetirementSettings$userArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -972,6 +1182,7 @@ export interface RetirementSettingsFieldRefs {
   readonly monthlyContribution: Prisma.FieldRef<"RetirementSettings", 'Decimal'>
   readonly createdAt: Prisma.FieldRef<"RetirementSettings", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"RetirementSettings", 'DateTime'>
+  readonly userId: Prisma.FieldRef<"RetirementSettings", 'String'>
 }
     
 
@@ -988,6 +1199,10 @@ export type RetirementSettingsFindUniqueArgs<ExtArgs extends runtime.Types.Exten
    * Omit specific fields from the RetirementSettings
    */
   omit?: Prisma.RetirementSettingsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RetirementSettingsInclude<ExtArgs> | null
   /**
    * Filter, which RetirementSettings to fetch.
    */
@@ -1007,6 +1222,10 @@ export type RetirementSettingsFindUniqueOrThrowArgs<ExtArgs extends runtime.Type
    */
   omit?: Prisma.RetirementSettingsOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RetirementSettingsInclude<ExtArgs> | null
+  /**
    * Filter, which RetirementSettings to fetch.
    */
   where: Prisma.RetirementSettingsWhereUniqueInput
@@ -1024,6 +1243,10 @@ export type RetirementSettingsFindFirstArgs<ExtArgs extends runtime.Types.Extens
    * Omit specific fields from the RetirementSettings
    */
   omit?: Prisma.RetirementSettingsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RetirementSettingsInclude<ExtArgs> | null
   /**
    * Filter, which RetirementSettings to fetch.
    */
@@ -1073,6 +1296,10 @@ export type RetirementSettingsFindFirstOrThrowArgs<ExtArgs extends runtime.Types
    */
   omit?: Prisma.RetirementSettingsOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RetirementSettingsInclude<ExtArgs> | null
+  /**
    * Filter, which RetirementSettings to fetch.
    */
   where?: Prisma.RetirementSettingsWhereInput
@@ -1121,6 +1348,10 @@ export type RetirementSettingsFindManyArgs<ExtArgs extends runtime.Types.Extensi
    */
   omit?: Prisma.RetirementSettingsOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RetirementSettingsInclude<ExtArgs> | null
+  /**
    * Filter, which RetirementSettings to fetch.
    */
   where?: Prisma.RetirementSettingsWhereInput
@@ -1148,11 +1379,6 @@ export type RetirementSettingsFindManyArgs<ExtArgs extends runtime.Types.Extensi
    * Skip the first `n` RetirementSettings.
    */
   skip?: number
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-   * 
-   * Filter by unique combinations of RetirementSettings.
-   */
   distinct?: Prisma.RetirementSettingsScalarFieldEnum | Prisma.RetirementSettingsScalarFieldEnum[]
 }
 
@@ -1168,6 +1394,10 @@ export type RetirementSettingsCreateArgs<ExtArgs extends runtime.Types.Extension
    * Omit specific fields from the RetirementSettings
    */
   omit?: Prisma.RetirementSettingsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RetirementSettingsInclude<ExtArgs> | null
   /**
    * The data needed to create a RetirementSettings.
    */
@@ -1202,6 +1432,10 @@ export type RetirementSettingsCreateManyAndReturnArgs<ExtArgs extends runtime.Ty
    */
   data: Prisma.RetirementSettingsCreateManyInput | Prisma.RetirementSettingsCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RetirementSettingsIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1216,6 +1450,10 @@ export type RetirementSettingsUpdateArgs<ExtArgs extends runtime.Types.Extension
    * Omit specific fields from the RetirementSettings
    */
   omit?: Prisma.RetirementSettingsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RetirementSettingsInclude<ExtArgs> | null
   /**
    * The data needed to update a RetirementSettings.
    */
@@ -1268,6 +1506,10 @@ export type RetirementSettingsUpdateManyAndReturnArgs<ExtArgs extends runtime.Ty
    * Limit how many RetirementSettings to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RetirementSettingsIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1282,6 +1524,10 @@ export type RetirementSettingsUpsertArgs<ExtArgs extends runtime.Types.Extension
    * Omit specific fields from the RetirementSettings
    */
   omit?: Prisma.RetirementSettingsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RetirementSettingsInclude<ExtArgs> | null
   /**
    * The filter to search for the RetirementSettings to update in case it exists.
    */
@@ -1309,6 +1555,10 @@ export type RetirementSettingsDeleteArgs<ExtArgs extends runtime.Types.Extension
    */
   omit?: Prisma.RetirementSettingsOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RetirementSettingsInclude<ExtArgs> | null
+  /**
    * Filter which RetirementSettings to delete.
    */
   where: Prisma.RetirementSettingsWhereUniqueInput
@@ -1329,6 +1579,25 @@ export type RetirementSettingsDeleteManyArgs<ExtArgs extends runtime.Types.Exten
 }
 
 /**
+ * RetirementSettings.user
+ */
+export type RetirementSettings$userArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
+}
+
+/**
  * RetirementSettings without action
  */
 export type RetirementSettingsDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1340,4 +1609,8 @@ export type RetirementSettingsDefaultArgs<ExtArgs extends runtime.Types.Extensio
    * Omit specific fields from the RetirementSettings
    */
   omit?: Prisma.RetirementSettingsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RetirementSettingsInclude<ExtArgs> | null
 }

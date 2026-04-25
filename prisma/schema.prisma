@@ -22,6 +22,75 @@ enum TransactionType {
 }
 
 // ---------------------------------------------------------------------------
+// Auth models (Better Auth — tables already created via migration)
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean
+  image         String?
+  createdAt     DateTime
+  updatedAt     DateTime
+
+  sessions           Session[]
+  accounts           Account[]
+  portfolioSnapshots PortfolioSnapshot[]
+  transactions       Transaction[]
+  dividends          Dividend[]
+  retirementSettings RetirementSettings[]
+  targetAllocations  TargetAllocation[]
+  milestoneAlerts    MilestoneAlert[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+  @@map("verification")
+}
+
+// ---------------------------------------------------------------------------
 // PortfolioSnapshot
 //
 // Representa el estado del portfolio en un momento específico del tiempo.
@@ -38,6 +107,8 @@ model PortfolioSnapshot {
   sourceFile    String?
   positions     Position[]
   createdAt     DateTime   @default(now())
+  userId        String?
+  user          User?      @relation(fields: [userId], references: [id])
 
   @@index([snapshotDate])
   @@map("portfolio_snapshots")
@@ -165,6 +236,8 @@ model TargetAllocation {
   notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
 
   @@map("target_allocations")
 }
@@ -187,6 +260,8 @@ model Transaction {
   date      DateTime        @db.Date
   notes     String?
   createdAt DateTime        @default(now())
+  userId    String?
+  user      User?           @relation(fields: [userId], references: [id])
 
   @@index([ticker])
   @@index([date])
@@ -208,6 +283,8 @@ model Dividend {
   date      DateTime @db.Date
   notes     String?
   createdAt DateTime @default(now())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
 
   @@index([ticker])
   @@index([date])
@@ -231,6 +308,8 @@ model RetirementSettings {
   monthlyContribution Decimal  @db.Decimal(18, 2)
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
+  userId              String?
+  user                User?    @relation(fields: [userId], references: [id])
 
   @@map("retirement_settings")
 }
@@ -268,6 +347,8 @@ model MilestoneAlert {
   reached        Boolean   @default(false)
   reachedAt      DateTime?
   createdAt      DateTime  @default(now())
+  userId         String?
+  user           User?     @relation(fields: [userId], references: [id])
 
   @@map("milestone_alerts")
 }

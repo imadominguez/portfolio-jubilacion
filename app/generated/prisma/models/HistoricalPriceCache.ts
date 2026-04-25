@@ -185,7 +185,7 @@ export type HistoricalPriceCacheGroupByOutputType = {
   _max: HistoricalPriceCacheMaxAggregateOutputType | null
 }
 
-export type GetHistoricalPriceCacheGroupByPayload<T extends HistoricalPriceCacheGroupByArgs> = Prisma.PrismaPromise<
+type GetHistoricalPriceCacheGroupByPayload<T extends HistoricalPriceCacheGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<HistoricalPriceCacheGroupByOutputType, T['by']> &
       {
@@ -976,11 +976,6 @@ export type HistoricalPriceCacheFindManyArgs<ExtArgs extends runtime.Types.Exten
    * Skip the first `n` HistoricalPriceCaches.
    */
   skip?: number
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-   * 
-   * Filter by unique combinations of HistoricalPriceCaches.
-   */
   distinct?: Prisma.HistoricalPriceCacheScalarFieldEnum | Prisma.HistoricalPriceCacheScalarFieldEnum[]
 }
 

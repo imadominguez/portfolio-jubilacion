@@ -51,6 +51,10 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
+  User: 'User',
+  Session: 'Session',
+  Account: 'Account',
+  Verification: 'Verification',
   PortfolioSnapshot: 'PortfolioSnapshot',
   Position: 'Position',
   Asset: 'Asset',
@@ -81,6 +85,64 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
+export const UserScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  emailVerified: 'emailVerified',
+  image: 'image',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const SessionScalarFieldEnum = {
+  id: 'id',
+  expiresAt: 'expiresAt',
+  token: 'token',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent',
+  userId: 'userId'
+} as const
+
+export type SessionScalarFieldEnum = (typeof SessionScalarFieldEnum)[keyof typeof SessionScalarFieldEnum]
+
+
+export const AccountScalarFieldEnum = {
+  id: 'id',
+  accountId: 'accountId',
+  providerId: 'providerId',
+  userId: 'userId',
+  accessToken: 'accessToken',
+  refreshToken: 'refreshToken',
+  idToken: 'idToken',
+  accessTokenExpiresAt: 'accessTokenExpiresAt',
+  refreshTokenExpiresAt: 'refreshTokenExpiresAt',
+  scope: 'scope',
+  password: 'password',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AccountScalarFieldEnum = (typeof AccountScalarFieldEnum)[keyof typeof AccountScalarFieldEnum]
+
+
+export const VerificationScalarFieldEnum = {
+  id: 'id',
+  identifier: 'identifier',
+  value: 'value',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type VerificationScalarFieldEnum = (typeof VerificationScalarFieldEnum)[keyof typeof VerificationScalarFieldEnum]
+
+
 export const PortfolioSnapshotScalarFieldEnum = {
   id: 'id',
   snapshotDate: 'snapshotDate',
@@ -88,7 +150,8 @@ export const PortfolioSnapshotScalarFieldEnum = {
   totalValueUsd: 'totalValueUsd',
   ccl: 'ccl',
   sourceFile: 'sourceFile',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  userId: 'userId'
 } as const
 
 export type PortfolioSnapshotScalarFieldEnum = (typeof PortfolioSnapshotScalarFieldEnum)[keyof typeof PortfolioSnapshotScalarFieldEnum]
@@ -165,7 +228,8 @@ export const TargetAllocationScalarFieldEnum = {
   targetPct: 'targetPct',
   notes: 'notes',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  userId: 'userId'
 } as const
 
 export type TargetAllocationScalarFieldEnum = (typeof TargetAllocationScalarFieldEnum)[keyof typeof TargetAllocationScalarFieldEnum]
@@ -181,7 +245,8 @@ export const TransactionScalarFieldEnum = {
   fee: 'fee',
   date: 'date',
   notes: 'notes',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  userId: 'userId'
 } as const
 
 export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
@@ -194,7 +259,8 @@ export const DividendScalarFieldEnum = {
   currency: 'currency',
   date: 'date',
   notes: 'notes',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  userId: 'userId'
 } as const
 
 export type DividendScalarFieldEnum = (typeof DividendScalarFieldEnum)[keyof typeof DividendScalarFieldEnum]
@@ -209,7 +275,8 @@ export const RetirementSettingsScalarFieldEnum = {
   withdrawalRate: 'withdrawalRate',
   monthlyContribution: 'monthlyContribution',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  userId: 'userId'
 } as const
 
 export type RetirementSettingsScalarFieldEnum = (typeof RetirementSettingsScalarFieldEnum)[keyof typeof RetirementSettingsScalarFieldEnum]
@@ -231,7 +298,8 @@ export const MilestoneAlertScalarFieldEnum = {
   targetValueUsd: 'targetValueUsd',
   reached: 'reached',
   reachedAt: 'reachedAt',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  userId: 'userId'
 } as const
 
 export type MilestoneAlertScalarFieldEnum = (typeof MilestoneAlertScalarFieldEnum)[keyof typeof MilestoneAlertScalarFieldEnum]

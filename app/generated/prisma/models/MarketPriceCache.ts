@@ -192,7 +192,7 @@ export type MarketPriceCacheGroupByOutputType = {
   _max: MarketPriceCacheMaxAggregateOutputType | null
 }
 
-export type GetMarketPriceCacheGroupByPayload<T extends MarketPriceCacheGroupByArgs> = Prisma.PrismaPromise<
+type GetMarketPriceCacheGroupByPayload<T extends MarketPriceCacheGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<MarketPriceCacheGroupByOutputType, T['by']> &
       {
@@ -998,11 +998,6 @@ export type MarketPriceCacheFindManyArgs<ExtArgs extends runtime.Types.Extension
    * Skip the first `n` MarketPriceCaches.
    */
   skip?: number
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-   * 
-   * Filter by unique combinations of MarketPriceCaches.
-   */
   distinct?: Prisma.MarketPriceCacheScalarFieldEnum | Prisma.MarketPriceCacheScalarFieldEnum[]
 }
 

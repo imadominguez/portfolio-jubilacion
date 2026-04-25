@@ -41,6 +41,7 @@ export type TargetAllocationMinAggregateOutputType = {
   notes: string | null
   createdAt: Date | null
   updatedAt: Date | null
+  userId: string | null
 }
 
 export type TargetAllocationMaxAggregateOutputType = {
@@ -50,6 +51,7 @@ export type TargetAllocationMaxAggregateOutputType = {
   notes: string | null
   createdAt: Date | null
   updatedAt: Date | null
+  userId: string | null
 }
 
 export type TargetAllocationCountAggregateOutputType = {
@@ -59,6 +61,7 @@ export type TargetAllocationCountAggregateOutputType = {
   notes: number
   createdAt: number
   updatedAt: number
+  userId: number
   _all: number
 }
 
@@ -78,6 +81,7 @@ export type TargetAllocationMinAggregateInputType = {
   notes?: true
   createdAt?: true
   updatedAt?: true
+  userId?: true
 }
 
 export type TargetAllocationMaxAggregateInputType = {
@@ -87,6 +91,7 @@ export type TargetAllocationMaxAggregateInputType = {
   notes?: true
   createdAt?: true
   updatedAt?: true
+  userId?: true
 }
 
 export type TargetAllocationCountAggregateInputType = {
@@ -96,6 +101,7 @@ export type TargetAllocationCountAggregateInputType = {
   notes?: true
   createdAt?: true
   updatedAt?: true
+  userId?: true
   _all?: true
 }
 
@@ -192,6 +198,7 @@ export type TargetAllocationGroupByOutputType = {
   notes: string | null
   createdAt: Date
   updatedAt: Date
+  userId: string | null
   _count: TargetAllocationCountAggregateOutputType | null
   _avg: TargetAllocationAvgAggregateOutputType | null
   _sum: TargetAllocationSumAggregateOutputType | null
@@ -199,7 +206,7 @@ export type TargetAllocationGroupByOutputType = {
   _max: TargetAllocationMaxAggregateOutputType | null
 }
 
-export type GetTargetAllocationGroupByPayload<T extends TargetAllocationGroupByArgs> = Prisma.PrismaPromise<
+type GetTargetAllocationGroupByPayload<T extends TargetAllocationGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<TargetAllocationGroupByOutputType, T['by']> &
       {
@@ -224,6 +231,8 @@ export type TargetAllocationWhereInput = {
   notes?: Prisma.StringNullableFilter<"TargetAllocation"> | string | null
   createdAt?: Prisma.DateTimeFilter<"TargetAllocation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"TargetAllocation"> | Date | string
+  userId?: Prisma.StringNullableFilter<"TargetAllocation"> | string | null
+  user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
 
 export type TargetAllocationOrderByWithRelationInput = {
@@ -233,6 +242,8 @@ export type TargetAllocationOrderByWithRelationInput = {
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  userId?: Prisma.SortOrderInput | Prisma.SortOrder
+  user?: Prisma.UserOrderByWithRelationInput
 }
 
 export type TargetAllocationWhereUniqueInput = Prisma.AtLeast<{
@@ -245,6 +256,8 @@ export type TargetAllocationWhereUniqueInput = Prisma.AtLeast<{
   notes?: Prisma.StringNullableFilter<"TargetAllocation"> | string | null
   createdAt?: Prisma.DateTimeFilter<"TargetAllocation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"TargetAllocation"> | Date | string
+  userId?: Prisma.StringNullableFilter<"TargetAllocation"> | string | null
+  user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id" | "ticker">
 
 export type TargetAllocationOrderByWithAggregationInput = {
@@ -254,6 +267,7 @@ export type TargetAllocationOrderByWithAggregationInput = {
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  userId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.TargetAllocationCountOrderByAggregateInput
   _avg?: Prisma.TargetAllocationAvgOrderByAggregateInput
   _max?: Prisma.TargetAllocationMaxOrderByAggregateInput
@@ -271,6 +285,7 @@ export type TargetAllocationScalarWhereWithAggregatesInput = {
   notes?: Prisma.StringNullableWithAggregatesFilter<"TargetAllocation"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"TargetAllocation"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"TargetAllocation"> | Date | string
+  userId?: Prisma.StringNullableWithAggregatesFilter<"TargetAllocation"> | string | null
 }
 
 export type TargetAllocationCreateInput = {
@@ -280,6 +295,7 @@ export type TargetAllocationCreateInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  user?: Prisma.UserCreateNestedOneWithoutTargetAllocationsInput
 }
 
 export type TargetAllocationUncheckedCreateInput = {
@@ -289,6 +305,7 @@ export type TargetAllocationUncheckedCreateInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  userId?: string | null
 }
 
 export type TargetAllocationUpdateInput = {
@@ -298,6 +315,7 @@ export type TargetAllocationUpdateInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneWithoutTargetAllocationsNestedInput
 }
 
 export type TargetAllocationUncheckedUpdateInput = {
@@ -307,6 +325,7 @@ export type TargetAllocationUncheckedUpdateInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type TargetAllocationCreateManyInput = {
@@ -316,6 +335,7 @@ export type TargetAllocationCreateManyInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  userId?: string | null
 }
 
 export type TargetAllocationUpdateManyMutationInput = {
@@ -334,6 +354,17 @@ export type TargetAllocationUncheckedUpdateManyInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type TargetAllocationListRelationFilter = {
+  every?: Prisma.TargetAllocationWhereInput
+  some?: Prisma.TargetAllocationWhereInput
+  none?: Prisma.TargetAllocationWhereInput
+}
+
+export type TargetAllocationOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type TargetAllocationCountOrderByAggregateInput = {
@@ -343,6 +374,7 @@ export type TargetAllocationCountOrderByAggregateInput = {
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  userId?: Prisma.SortOrder
 }
 
 export type TargetAllocationAvgOrderByAggregateInput = {
@@ -356,6 +388,7 @@ export type TargetAllocationMaxOrderByAggregateInput = {
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  userId?: Prisma.SortOrder
 }
 
 export type TargetAllocationMinOrderByAggregateInput = {
@@ -365,10 +398,146 @@ export type TargetAllocationMinOrderByAggregateInput = {
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  userId?: Prisma.SortOrder
 }
 
 export type TargetAllocationSumOrderByAggregateInput = {
   targetPct?: Prisma.SortOrder
+}
+
+export type TargetAllocationCreateNestedManyWithoutUserInput = {
+  create?: Prisma.XOR<Prisma.TargetAllocationCreateWithoutUserInput, Prisma.TargetAllocationUncheckedCreateWithoutUserInput> | Prisma.TargetAllocationCreateWithoutUserInput[] | Prisma.TargetAllocationUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.TargetAllocationCreateOrConnectWithoutUserInput | Prisma.TargetAllocationCreateOrConnectWithoutUserInput[]
+  createMany?: Prisma.TargetAllocationCreateManyUserInputEnvelope
+  connect?: Prisma.TargetAllocationWhereUniqueInput | Prisma.TargetAllocationWhereUniqueInput[]
+}
+
+export type TargetAllocationUncheckedCreateNestedManyWithoutUserInput = {
+  create?: Prisma.XOR<Prisma.TargetAllocationCreateWithoutUserInput, Prisma.TargetAllocationUncheckedCreateWithoutUserInput> | Prisma.TargetAllocationCreateWithoutUserInput[] | Prisma.TargetAllocationUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.TargetAllocationCreateOrConnectWithoutUserInput | Prisma.TargetAllocationCreateOrConnectWithoutUserInput[]
+  createMany?: Prisma.TargetAllocationCreateManyUserInputEnvelope
+  connect?: Prisma.TargetAllocationWhereUniqueInput | Prisma.TargetAllocationWhereUniqueInput[]
+}
+
+export type TargetAllocationUpdateManyWithoutUserNestedInput = {
+  create?: Prisma.XOR<Prisma.TargetAllocationCreateWithoutUserInput, Prisma.TargetAllocationUncheckedCreateWithoutUserInput> | Prisma.TargetAllocationCreateWithoutUserInput[] | Prisma.TargetAllocationUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.TargetAllocationCreateOrConnectWithoutUserInput | Prisma.TargetAllocationCreateOrConnectWithoutUserInput[]
+  upsert?: Prisma.TargetAllocationUpsertWithWhereUniqueWithoutUserInput | Prisma.TargetAllocationUpsertWithWhereUniqueWithoutUserInput[]
+  createMany?: Prisma.TargetAllocationCreateManyUserInputEnvelope
+  set?: Prisma.TargetAllocationWhereUniqueInput | Prisma.TargetAllocationWhereUniqueInput[]
+  disconnect?: Prisma.TargetAllocationWhereUniqueInput | Prisma.TargetAllocationWhereUniqueInput[]
+  delete?: Prisma.TargetAllocationWhereUniqueInput | Prisma.TargetAllocationWhereUniqueInput[]
+  connect?: Prisma.TargetAllocationWhereUniqueInput | Prisma.TargetAllocationWhereUniqueInput[]
+  update?: Prisma.TargetAllocationUpdateWithWhereUniqueWithoutUserInput | Prisma.TargetAllocationUpdateWithWhereUniqueWithoutUserInput[]
+  updateMany?: Prisma.TargetAllocationUpdateManyWithWhereWithoutUserInput | Prisma.TargetAllocationUpdateManyWithWhereWithoutUserInput[]
+  deleteMany?: Prisma.TargetAllocationScalarWhereInput | Prisma.TargetAllocationScalarWhereInput[]
+}
+
+export type TargetAllocationUncheckedUpdateManyWithoutUserNestedInput = {
+  create?: Prisma.XOR<Prisma.TargetAllocationCreateWithoutUserInput, Prisma.TargetAllocationUncheckedCreateWithoutUserInput> | Prisma.TargetAllocationCreateWithoutUserInput[] | Prisma.TargetAllocationUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.TargetAllocationCreateOrConnectWithoutUserInput | Prisma.TargetAllocationCreateOrConnectWithoutUserInput[]
+  upsert?: Prisma.TargetAllocationUpsertWithWhereUniqueWithoutUserInput | Prisma.TargetAllocationUpsertWithWhereUniqueWithoutUserInput[]
+  createMany?: Prisma.TargetAllocationCreateManyUserInputEnvelope
+  set?: Prisma.TargetAllocationWhereUniqueInput | Prisma.TargetAllocationWhereUniqueInput[]
+  disconnect?: Prisma.TargetAllocationWhereUniqueInput | Prisma.TargetAllocationWhereUniqueInput[]
+  delete?: Prisma.TargetAllocationWhereUniqueInput | Prisma.TargetAllocationWhereUniqueInput[]
+  connect?: Prisma.TargetAllocationWhereUniqueInput | Prisma.TargetAllocationWhereUniqueInput[]
+  update?: Prisma.TargetAllocationUpdateWithWhereUniqueWithoutUserInput | Prisma.TargetAllocationUpdateWithWhereUniqueWithoutUserInput[]
+  updateMany?: Prisma.TargetAllocationUpdateManyWithWhereWithoutUserInput | Prisma.TargetAllocationUpdateManyWithWhereWithoutUserInput[]
+  deleteMany?: Prisma.TargetAllocationScalarWhereInput | Prisma.TargetAllocationScalarWhereInput[]
+}
+
+export type TargetAllocationCreateWithoutUserInput = {
+  id?: string
+  ticker: string
+  targetPct: runtime.Decimal | runtime.DecimalJsLike | number | string
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type TargetAllocationUncheckedCreateWithoutUserInput = {
+  id?: string
+  ticker: string
+  targetPct: runtime.Decimal | runtime.DecimalJsLike | number | string
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type TargetAllocationCreateOrConnectWithoutUserInput = {
+  where: Prisma.TargetAllocationWhereUniqueInput
+  create: Prisma.XOR<Prisma.TargetAllocationCreateWithoutUserInput, Prisma.TargetAllocationUncheckedCreateWithoutUserInput>
+}
+
+export type TargetAllocationCreateManyUserInputEnvelope = {
+  data: Prisma.TargetAllocationCreateManyUserInput | Prisma.TargetAllocationCreateManyUserInput[]
+  skipDuplicates?: boolean
+}
+
+export type TargetAllocationUpsertWithWhereUniqueWithoutUserInput = {
+  where: Prisma.TargetAllocationWhereUniqueInput
+  update: Prisma.XOR<Prisma.TargetAllocationUpdateWithoutUserInput, Prisma.TargetAllocationUncheckedUpdateWithoutUserInput>
+  create: Prisma.XOR<Prisma.TargetAllocationCreateWithoutUserInput, Prisma.TargetAllocationUncheckedCreateWithoutUserInput>
+}
+
+export type TargetAllocationUpdateWithWhereUniqueWithoutUserInput = {
+  where: Prisma.TargetAllocationWhereUniqueInput
+  data: Prisma.XOR<Prisma.TargetAllocationUpdateWithoutUserInput, Prisma.TargetAllocationUncheckedUpdateWithoutUserInput>
+}
+
+export type TargetAllocationUpdateManyWithWhereWithoutUserInput = {
+  where: Prisma.TargetAllocationScalarWhereInput
+  data: Prisma.XOR<Prisma.TargetAllocationUpdateManyMutationInput, Prisma.TargetAllocationUncheckedUpdateManyWithoutUserInput>
+}
+
+export type TargetAllocationScalarWhereInput = {
+  AND?: Prisma.TargetAllocationScalarWhereInput | Prisma.TargetAllocationScalarWhereInput[]
+  OR?: Prisma.TargetAllocationScalarWhereInput[]
+  NOT?: Prisma.TargetAllocationScalarWhereInput | Prisma.TargetAllocationScalarWhereInput[]
+  id?: Prisma.StringFilter<"TargetAllocation"> | string
+  ticker?: Prisma.StringFilter<"TargetAllocation"> | string
+  targetPct?: Prisma.DecimalFilter<"TargetAllocation"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  notes?: Prisma.StringNullableFilter<"TargetAllocation"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"TargetAllocation"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"TargetAllocation"> | Date | string
+  userId?: Prisma.StringNullableFilter<"TargetAllocation"> | string | null
+}
+
+export type TargetAllocationCreateManyUserInput = {
+  id?: string
+  ticker: string
+  targetPct: runtime.Decimal | runtime.DecimalJsLike | number | string
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type TargetAllocationUpdateWithoutUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  ticker?: Prisma.StringFieldUpdateOperationsInput | string
+  targetPct?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type TargetAllocationUncheckedUpdateWithoutUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  ticker?: Prisma.StringFieldUpdateOperationsInput | string
+  targetPct?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type TargetAllocationUncheckedUpdateManyWithoutUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  ticker?: Prisma.StringFieldUpdateOperationsInput | string
+  targetPct?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -380,6 +549,8 @@ export type TargetAllocationSelect<ExtArgs extends runtime.Types.Extensions.Inte
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  userId?: boolean
+  user?: boolean | Prisma.TargetAllocation$userArgs<ExtArgs>
 }, ExtArgs["result"]["targetAllocation"]>
 
 export type TargetAllocationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -389,6 +560,8 @@ export type TargetAllocationSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  userId?: boolean
+  user?: boolean | Prisma.TargetAllocation$userArgs<ExtArgs>
 }, ExtArgs["result"]["targetAllocation"]>
 
 export type TargetAllocationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -398,6 +571,8 @@ export type TargetAllocationSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  userId?: boolean
+  user?: boolean | Prisma.TargetAllocation$userArgs<ExtArgs>
 }, ExtArgs["result"]["targetAllocation"]>
 
 export type TargetAllocationSelectScalar = {
@@ -407,13 +582,25 @@ export type TargetAllocationSelectScalar = {
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  userId?: boolean
 }
 
-export type TargetAllocationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ticker" | "targetPct" | "notes" | "createdAt" | "updatedAt", ExtArgs["result"]["targetAllocation"]>
+export type TargetAllocationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ticker" | "targetPct" | "notes" | "createdAt" | "updatedAt" | "userId", ExtArgs["result"]["targetAllocation"]>
+export type TargetAllocationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  user?: boolean | Prisma.TargetAllocation$userArgs<ExtArgs>
+}
+export type TargetAllocationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  user?: boolean | Prisma.TargetAllocation$userArgs<ExtArgs>
+}
+export type TargetAllocationIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  user?: boolean | Prisma.TargetAllocation$userArgs<ExtArgs>
+}
 
 export type $TargetAllocationPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "TargetAllocation"
-  objects: {}
+  objects: {
+    user: Prisma.$UserPayload<ExtArgs> | null
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     ticker: string
@@ -421,6 +608,7 @@ export type $TargetAllocationPayload<ExtArgs extends runtime.Types.Extensions.In
     notes: string | null
     createdAt: Date
     updatedAt: Date
+    userId: string | null
   }, ExtArgs["result"]["targetAllocation"]>
   composites: {}
 }
@@ -815,6 +1003,7 @@ readonly fields: TargetAllocationFieldRefs;
  */
 export interface Prisma__TargetAllocationClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  user<T extends Prisma.TargetAllocation$userArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TargetAllocation$userArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -850,6 +1039,7 @@ export interface TargetAllocationFieldRefs {
   readonly notes: Prisma.FieldRef<"TargetAllocation", 'String'>
   readonly createdAt: Prisma.FieldRef<"TargetAllocation", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"TargetAllocation", 'DateTime'>
+  readonly userId: Prisma.FieldRef<"TargetAllocation", 'String'>
 }
     
 
@@ -866,6 +1056,10 @@ export type TargetAllocationFindUniqueArgs<ExtArgs extends runtime.Types.Extensi
    * Omit specific fields from the TargetAllocation
    */
   omit?: Prisma.TargetAllocationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TargetAllocationInclude<ExtArgs> | null
   /**
    * Filter, which TargetAllocation to fetch.
    */
@@ -885,6 +1079,10 @@ export type TargetAllocationFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.
    */
   omit?: Prisma.TargetAllocationOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TargetAllocationInclude<ExtArgs> | null
+  /**
    * Filter, which TargetAllocation to fetch.
    */
   where: Prisma.TargetAllocationWhereUniqueInput
@@ -902,6 +1100,10 @@ export type TargetAllocationFindFirstArgs<ExtArgs extends runtime.Types.Extensio
    * Omit specific fields from the TargetAllocation
    */
   omit?: Prisma.TargetAllocationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TargetAllocationInclude<ExtArgs> | null
   /**
    * Filter, which TargetAllocation to fetch.
    */
@@ -951,6 +1153,10 @@ export type TargetAllocationFindFirstOrThrowArgs<ExtArgs extends runtime.Types.E
    */
   omit?: Prisma.TargetAllocationOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TargetAllocationInclude<ExtArgs> | null
+  /**
    * Filter, which TargetAllocation to fetch.
    */
   where?: Prisma.TargetAllocationWhereInput
@@ -999,6 +1205,10 @@ export type TargetAllocationFindManyArgs<ExtArgs extends runtime.Types.Extension
    */
   omit?: Prisma.TargetAllocationOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TargetAllocationInclude<ExtArgs> | null
+  /**
    * Filter, which TargetAllocations to fetch.
    */
   where?: Prisma.TargetAllocationWhereInput
@@ -1026,11 +1236,6 @@ export type TargetAllocationFindManyArgs<ExtArgs extends runtime.Types.Extension
    * Skip the first `n` TargetAllocations.
    */
   skip?: number
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-   * 
-   * Filter by unique combinations of TargetAllocations.
-   */
   distinct?: Prisma.TargetAllocationScalarFieldEnum | Prisma.TargetAllocationScalarFieldEnum[]
 }
 
@@ -1046,6 +1251,10 @@ export type TargetAllocationCreateArgs<ExtArgs extends runtime.Types.Extensions.
    * Omit specific fields from the TargetAllocation
    */
   omit?: Prisma.TargetAllocationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TargetAllocationInclude<ExtArgs> | null
   /**
    * The data needed to create a TargetAllocation.
    */
@@ -1080,6 +1289,10 @@ export type TargetAllocationCreateManyAndReturnArgs<ExtArgs extends runtime.Type
    */
   data: Prisma.TargetAllocationCreateManyInput | Prisma.TargetAllocationCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TargetAllocationIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1094,6 +1307,10 @@ export type TargetAllocationUpdateArgs<ExtArgs extends runtime.Types.Extensions.
    * Omit specific fields from the TargetAllocation
    */
   omit?: Prisma.TargetAllocationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TargetAllocationInclude<ExtArgs> | null
   /**
    * The data needed to update a TargetAllocation.
    */
@@ -1146,6 +1363,10 @@ export type TargetAllocationUpdateManyAndReturnArgs<ExtArgs extends runtime.Type
    * Limit how many TargetAllocations to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TargetAllocationIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1160,6 +1381,10 @@ export type TargetAllocationUpsertArgs<ExtArgs extends runtime.Types.Extensions.
    * Omit specific fields from the TargetAllocation
    */
   omit?: Prisma.TargetAllocationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TargetAllocationInclude<ExtArgs> | null
   /**
    * The filter to search for the TargetAllocation to update in case it exists.
    */
@@ -1187,6 +1412,10 @@ export type TargetAllocationDeleteArgs<ExtArgs extends runtime.Types.Extensions.
    */
   omit?: Prisma.TargetAllocationOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TargetAllocationInclude<ExtArgs> | null
+  /**
    * Filter which TargetAllocation to delete.
    */
   where: Prisma.TargetAllocationWhereUniqueInput
@@ -1207,6 +1436,25 @@ export type TargetAllocationDeleteManyArgs<ExtArgs extends runtime.Types.Extensi
 }
 
 /**
+ * TargetAllocation.user
+ */
+export type TargetAllocation$userArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
+}
+
+/**
  * TargetAllocation without action
  */
 export type TargetAllocationDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1218,4 +1466,8 @@ export type TargetAllocationDefaultArgs<ExtArgs extends runtime.Types.Extensions
    * Omit specific fields from the TargetAllocation
    */
   omit?: Prisma.TargetAllocationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TargetAllocationInclude<ExtArgs> | null
 }

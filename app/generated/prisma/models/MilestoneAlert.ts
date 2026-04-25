@@ -41,6 +41,7 @@ export type MilestoneAlertMinAggregateOutputType = {
   reached: boolean | null
   reachedAt: Date | null
   createdAt: Date | null
+  userId: string | null
 }
 
 export type MilestoneAlertMaxAggregateOutputType = {
@@ -50,6 +51,7 @@ export type MilestoneAlertMaxAggregateOutputType = {
   reached: boolean | null
   reachedAt: Date | null
   createdAt: Date | null
+  userId: string | null
 }
 
 export type MilestoneAlertCountAggregateOutputType = {
@@ -59,6 +61,7 @@ export type MilestoneAlertCountAggregateOutputType = {
   reached: number
   reachedAt: number
   createdAt: number
+  userId: number
   _all: number
 }
 
@@ -78,6 +81,7 @@ export type MilestoneAlertMinAggregateInputType = {
   reached?: true
   reachedAt?: true
   createdAt?: true
+  userId?: true
 }
 
 export type MilestoneAlertMaxAggregateInputType = {
@@ -87,6 +91,7 @@ export type MilestoneAlertMaxAggregateInputType = {
   reached?: true
   reachedAt?: true
   createdAt?: true
+  userId?: true
 }
 
 export type MilestoneAlertCountAggregateInputType = {
@@ -96,6 +101,7 @@ export type MilestoneAlertCountAggregateInputType = {
   reached?: true
   reachedAt?: true
   createdAt?: true
+  userId?: true
   _all?: true
 }
 
@@ -192,6 +198,7 @@ export type MilestoneAlertGroupByOutputType = {
   reached: boolean
   reachedAt: Date | null
   createdAt: Date
+  userId: string | null
   _count: MilestoneAlertCountAggregateOutputType | null
   _avg: MilestoneAlertAvgAggregateOutputType | null
   _sum: MilestoneAlertSumAggregateOutputType | null
@@ -199,7 +206,7 @@ export type MilestoneAlertGroupByOutputType = {
   _max: MilestoneAlertMaxAggregateOutputType | null
 }
 
-export type GetMilestoneAlertGroupByPayload<T extends MilestoneAlertGroupByArgs> = Prisma.PrismaPromise<
+type GetMilestoneAlertGroupByPayload<T extends MilestoneAlertGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<MilestoneAlertGroupByOutputType, T['by']> &
       {
@@ -224,6 +231,8 @@ export type MilestoneAlertWhereInput = {
   reached?: Prisma.BoolFilter<"MilestoneAlert"> | boolean
   reachedAt?: Prisma.DateTimeNullableFilter<"MilestoneAlert"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"MilestoneAlert"> | Date | string
+  userId?: Prisma.StringNullableFilter<"MilestoneAlert"> | string | null
+  user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
 
 export type MilestoneAlertOrderByWithRelationInput = {
@@ -233,6 +242,8 @@ export type MilestoneAlertOrderByWithRelationInput = {
   reached?: Prisma.SortOrder
   reachedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  userId?: Prisma.SortOrderInput | Prisma.SortOrder
+  user?: Prisma.UserOrderByWithRelationInput
 }
 
 export type MilestoneAlertWhereUniqueInput = Prisma.AtLeast<{
@@ -245,6 +256,8 @@ export type MilestoneAlertWhereUniqueInput = Prisma.AtLeast<{
   reached?: Prisma.BoolFilter<"MilestoneAlert"> | boolean
   reachedAt?: Prisma.DateTimeNullableFilter<"MilestoneAlert"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"MilestoneAlert"> | Date | string
+  userId?: Prisma.StringNullableFilter<"MilestoneAlert"> | string | null
+  user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id">
 
 export type MilestoneAlertOrderByWithAggregationInput = {
@@ -254,6 +267,7 @@ export type MilestoneAlertOrderByWithAggregationInput = {
   reached?: Prisma.SortOrder
   reachedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  userId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.MilestoneAlertCountOrderByAggregateInput
   _avg?: Prisma.MilestoneAlertAvgOrderByAggregateInput
   _max?: Prisma.MilestoneAlertMaxOrderByAggregateInput
@@ -271,6 +285,7 @@ export type MilestoneAlertScalarWhereWithAggregatesInput = {
   reached?: Prisma.BoolWithAggregatesFilter<"MilestoneAlert"> | boolean
   reachedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"MilestoneAlert"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"MilestoneAlert"> | Date | string
+  userId?: Prisma.StringNullableWithAggregatesFilter<"MilestoneAlert"> | string | null
 }
 
 export type MilestoneAlertCreateInput = {
@@ -280,6 +295,7 @@ export type MilestoneAlertCreateInput = {
   reached?: boolean
   reachedAt?: Date | string | null
   createdAt?: Date | string
+  user?: Prisma.UserCreateNestedOneWithoutMilestoneAlertsInput
 }
 
 export type MilestoneAlertUncheckedCreateInput = {
@@ -289,6 +305,7 @@ export type MilestoneAlertUncheckedCreateInput = {
   reached?: boolean
   reachedAt?: Date | string | null
   createdAt?: Date | string
+  userId?: string | null
 }
 
 export type MilestoneAlertUpdateInput = {
@@ -298,6 +315,7 @@ export type MilestoneAlertUpdateInput = {
   reached?: Prisma.BoolFieldUpdateOperationsInput | boolean
   reachedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneWithoutMilestoneAlertsNestedInput
 }
 
 export type MilestoneAlertUncheckedUpdateInput = {
@@ -307,6 +325,7 @@ export type MilestoneAlertUncheckedUpdateInput = {
   reached?: Prisma.BoolFieldUpdateOperationsInput | boolean
   reachedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type MilestoneAlertCreateManyInput = {
@@ -316,6 +335,7 @@ export type MilestoneAlertCreateManyInput = {
   reached?: boolean
   reachedAt?: Date | string | null
   createdAt?: Date | string
+  userId?: string | null
 }
 
 export type MilestoneAlertUpdateManyMutationInput = {
@@ -334,6 +354,17 @@ export type MilestoneAlertUncheckedUpdateManyInput = {
   reached?: Prisma.BoolFieldUpdateOperationsInput | boolean
   reachedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type MilestoneAlertListRelationFilter = {
+  every?: Prisma.MilestoneAlertWhereInput
+  some?: Prisma.MilestoneAlertWhereInput
+  none?: Prisma.MilestoneAlertWhereInput
+}
+
+export type MilestoneAlertOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type MilestoneAlertCountOrderByAggregateInput = {
@@ -343,6 +374,7 @@ export type MilestoneAlertCountOrderByAggregateInput = {
   reached?: Prisma.SortOrder
   reachedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  userId?: Prisma.SortOrder
 }
 
 export type MilestoneAlertAvgOrderByAggregateInput = {
@@ -356,6 +388,7 @@ export type MilestoneAlertMaxOrderByAggregateInput = {
   reached?: Prisma.SortOrder
   reachedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  userId?: Prisma.SortOrder
 }
 
 export type MilestoneAlertMinOrderByAggregateInput = {
@@ -365,18 +398,146 @@ export type MilestoneAlertMinOrderByAggregateInput = {
   reached?: Prisma.SortOrder
   reachedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  userId?: Prisma.SortOrder
 }
 
 export type MilestoneAlertSumOrderByAggregateInput = {
   targetValueUsd?: Prisma.SortOrder
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
+export type MilestoneAlertCreateNestedManyWithoutUserInput = {
+  create?: Prisma.XOR<Prisma.MilestoneAlertCreateWithoutUserInput, Prisma.MilestoneAlertUncheckedCreateWithoutUserInput> | Prisma.MilestoneAlertCreateWithoutUserInput[] | Prisma.MilestoneAlertUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.MilestoneAlertCreateOrConnectWithoutUserInput | Prisma.MilestoneAlertCreateOrConnectWithoutUserInput[]
+  createMany?: Prisma.MilestoneAlertCreateManyUserInputEnvelope
+  connect?: Prisma.MilestoneAlertWhereUniqueInput | Prisma.MilestoneAlertWhereUniqueInput[]
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
+export type MilestoneAlertUncheckedCreateNestedManyWithoutUserInput = {
+  create?: Prisma.XOR<Prisma.MilestoneAlertCreateWithoutUserInput, Prisma.MilestoneAlertUncheckedCreateWithoutUserInput> | Prisma.MilestoneAlertCreateWithoutUserInput[] | Prisma.MilestoneAlertUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.MilestoneAlertCreateOrConnectWithoutUserInput | Prisma.MilestoneAlertCreateOrConnectWithoutUserInput[]
+  createMany?: Prisma.MilestoneAlertCreateManyUserInputEnvelope
+  connect?: Prisma.MilestoneAlertWhereUniqueInput | Prisma.MilestoneAlertWhereUniqueInput[]
+}
+
+export type MilestoneAlertUpdateManyWithoutUserNestedInput = {
+  create?: Prisma.XOR<Prisma.MilestoneAlertCreateWithoutUserInput, Prisma.MilestoneAlertUncheckedCreateWithoutUserInput> | Prisma.MilestoneAlertCreateWithoutUserInput[] | Prisma.MilestoneAlertUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.MilestoneAlertCreateOrConnectWithoutUserInput | Prisma.MilestoneAlertCreateOrConnectWithoutUserInput[]
+  upsert?: Prisma.MilestoneAlertUpsertWithWhereUniqueWithoutUserInput | Prisma.MilestoneAlertUpsertWithWhereUniqueWithoutUserInput[]
+  createMany?: Prisma.MilestoneAlertCreateManyUserInputEnvelope
+  set?: Prisma.MilestoneAlertWhereUniqueInput | Prisma.MilestoneAlertWhereUniqueInput[]
+  disconnect?: Prisma.MilestoneAlertWhereUniqueInput | Prisma.MilestoneAlertWhereUniqueInput[]
+  delete?: Prisma.MilestoneAlertWhereUniqueInput | Prisma.MilestoneAlertWhereUniqueInput[]
+  connect?: Prisma.MilestoneAlertWhereUniqueInput | Prisma.MilestoneAlertWhereUniqueInput[]
+  update?: Prisma.MilestoneAlertUpdateWithWhereUniqueWithoutUserInput | Prisma.MilestoneAlertUpdateWithWhereUniqueWithoutUserInput[]
+  updateMany?: Prisma.MilestoneAlertUpdateManyWithWhereWithoutUserInput | Prisma.MilestoneAlertUpdateManyWithWhereWithoutUserInput[]
+  deleteMany?: Prisma.MilestoneAlertScalarWhereInput | Prisma.MilestoneAlertScalarWhereInput[]
+}
+
+export type MilestoneAlertUncheckedUpdateManyWithoutUserNestedInput = {
+  create?: Prisma.XOR<Prisma.MilestoneAlertCreateWithoutUserInput, Prisma.MilestoneAlertUncheckedCreateWithoutUserInput> | Prisma.MilestoneAlertCreateWithoutUserInput[] | Prisma.MilestoneAlertUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.MilestoneAlertCreateOrConnectWithoutUserInput | Prisma.MilestoneAlertCreateOrConnectWithoutUserInput[]
+  upsert?: Prisma.MilestoneAlertUpsertWithWhereUniqueWithoutUserInput | Prisma.MilestoneAlertUpsertWithWhereUniqueWithoutUserInput[]
+  createMany?: Prisma.MilestoneAlertCreateManyUserInputEnvelope
+  set?: Prisma.MilestoneAlertWhereUniqueInput | Prisma.MilestoneAlertWhereUniqueInput[]
+  disconnect?: Prisma.MilestoneAlertWhereUniqueInput | Prisma.MilestoneAlertWhereUniqueInput[]
+  delete?: Prisma.MilestoneAlertWhereUniqueInput | Prisma.MilestoneAlertWhereUniqueInput[]
+  connect?: Prisma.MilestoneAlertWhereUniqueInput | Prisma.MilestoneAlertWhereUniqueInput[]
+  update?: Prisma.MilestoneAlertUpdateWithWhereUniqueWithoutUserInput | Prisma.MilestoneAlertUpdateWithWhereUniqueWithoutUserInput[]
+  updateMany?: Prisma.MilestoneAlertUpdateManyWithWhereWithoutUserInput | Prisma.MilestoneAlertUpdateManyWithWhereWithoutUserInput[]
+  deleteMany?: Prisma.MilestoneAlertScalarWhereInput | Prisma.MilestoneAlertScalarWhereInput[]
+}
+
+export type MilestoneAlertCreateWithoutUserInput = {
+  id?: string
+  label: string
+  targetValueUsd: runtime.Decimal | runtime.DecimalJsLike | number | string
+  reached?: boolean
+  reachedAt?: Date | string | null
+  createdAt?: Date | string
+}
+
+export type MilestoneAlertUncheckedCreateWithoutUserInput = {
+  id?: string
+  label: string
+  targetValueUsd: runtime.Decimal | runtime.DecimalJsLike | number | string
+  reached?: boolean
+  reachedAt?: Date | string | null
+  createdAt?: Date | string
+}
+
+export type MilestoneAlertCreateOrConnectWithoutUserInput = {
+  where: Prisma.MilestoneAlertWhereUniqueInput
+  create: Prisma.XOR<Prisma.MilestoneAlertCreateWithoutUserInput, Prisma.MilestoneAlertUncheckedCreateWithoutUserInput>
+}
+
+export type MilestoneAlertCreateManyUserInputEnvelope = {
+  data: Prisma.MilestoneAlertCreateManyUserInput | Prisma.MilestoneAlertCreateManyUserInput[]
+  skipDuplicates?: boolean
+}
+
+export type MilestoneAlertUpsertWithWhereUniqueWithoutUserInput = {
+  where: Prisma.MilestoneAlertWhereUniqueInput
+  update: Prisma.XOR<Prisma.MilestoneAlertUpdateWithoutUserInput, Prisma.MilestoneAlertUncheckedUpdateWithoutUserInput>
+  create: Prisma.XOR<Prisma.MilestoneAlertCreateWithoutUserInput, Prisma.MilestoneAlertUncheckedCreateWithoutUserInput>
+}
+
+export type MilestoneAlertUpdateWithWhereUniqueWithoutUserInput = {
+  where: Prisma.MilestoneAlertWhereUniqueInput
+  data: Prisma.XOR<Prisma.MilestoneAlertUpdateWithoutUserInput, Prisma.MilestoneAlertUncheckedUpdateWithoutUserInput>
+}
+
+export type MilestoneAlertUpdateManyWithWhereWithoutUserInput = {
+  where: Prisma.MilestoneAlertScalarWhereInput
+  data: Prisma.XOR<Prisma.MilestoneAlertUpdateManyMutationInput, Prisma.MilestoneAlertUncheckedUpdateManyWithoutUserInput>
+}
+
+export type MilestoneAlertScalarWhereInput = {
+  AND?: Prisma.MilestoneAlertScalarWhereInput | Prisma.MilestoneAlertScalarWhereInput[]
+  OR?: Prisma.MilestoneAlertScalarWhereInput[]
+  NOT?: Prisma.MilestoneAlertScalarWhereInput | Prisma.MilestoneAlertScalarWhereInput[]
+  id?: Prisma.StringFilter<"MilestoneAlert"> | string
+  label?: Prisma.StringFilter<"MilestoneAlert"> | string
+  targetValueUsd?: Prisma.DecimalFilter<"MilestoneAlert"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  reached?: Prisma.BoolFilter<"MilestoneAlert"> | boolean
+  reachedAt?: Prisma.DateTimeNullableFilter<"MilestoneAlert"> | Date | string | null
+  createdAt?: Prisma.DateTimeFilter<"MilestoneAlert"> | Date | string
+  userId?: Prisma.StringNullableFilter<"MilestoneAlert"> | string | null
+}
+
+export type MilestoneAlertCreateManyUserInput = {
+  id?: string
+  label: string
+  targetValueUsd: runtime.Decimal | runtime.DecimalJsLike | number | string
+  reached?: boolean
+  reachedAt?: Date | string | null
+  createdAt?: Date | string
+}
+
+export type MilestoneAlertUpdateWithoutUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  label?: Prisma.StringFieldUpdateOperationsInput | string
+  targetValueUsd?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  reached?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reachedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type MilestoneAlertUncheckedUpdateWithoutUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  label?: Prisma.StringFieldUpdateOperationsInput | string
+  targetValueUsd?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  reached?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reachedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type MilestoneAlertUncheckedUpdateManyWithoutUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  label?: Prisma.StringFieldUpdateOperationsInput | string
+  targetValueUsd?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  reached?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reachedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -388,6 +549,8 @@ export type MilestoneAlertSelect<ExtArgs extends runtime.Types.Extensions.Intern
   reached?: boolean
   reachedAt?: boolean
   createdAt?: boolean
+  userId?: boolean
+  user?: boolean | Prisma.MilestoneAlert$userArgs<ExtArgs>
 }, ExtArgs["result"]["milestoneAlert"]>
 
 export type MilestoneAlertSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -397,6 +560,8 @@ export type MilestoneAlertSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   reached?: boolean
   reachedAt?: boolean
   createdAt?: boolean
+  userId?: boolean
+  user?: boolean | Prisma.MilestoneAlert$userArgs<ExtArgs>
 }, ExtArgs["result"]["milestoneAlert"]>
 
 export type MilestoneAlertSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -406,6 +571,8 @@ export type MilestoneAlertSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   reached?: boolean
   reachedAt?: boolean
   createdAt?: boolean
+  userId?: boolean
+  user?: boolean | Prisma.MilestoneAlert$userArgs<ExtArgs>
 }, ExtArgs["result"]["milestoneAlert"]>
 
 export type MilestoneAlertSelectScalar = {
@@ -415,13 +582,25 @@ export type MilestoneAlertSelectScalar = {
   reached?: boolean
   reachedAt?: boolean
   createdAt?: boolean
+  userId?: boolean
 }
 
-export type MilestoneAlertOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "label" | "targetValueUsd" | "reached" | "reachedAt" | "createdAt", ExtArgs["result"]["milestoneAlert"]>
+export type MilestoneAlertOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "label" | "targetValueUsd" | "reached" | "reachedAt" | "createdAt" | "userId", ExtArgs["result"]["milestoneAlert"]>
+export type MilestoneAlertInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  user?: boolean | Prisma.MilestoneAlert$userArgs<ExtArgs>
+}
+export type MilestoneAlertIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  user?: boolean | Prisma.MilestoneAlert$userArgs<ExtArgs>
+}
+export type MilestoneAlertIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  user?: boolean | Prisma.MilestoneAlert$userArgs<ExtArgs>
+}
 
 export type $MilestoneAlertPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "MilestoneAlert"
-  objects: {}
+  objects: {
+    user: Prisma.$UserPayload<ExtArgs> | null
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     label: string
@@ -429,6 +608,7 @@ export type $MilestoneAlertPayload<ExtArgs extends runtime.Types.Extensions.Inte
     reached: boolean
     reachedAt: Date | null
     createdAt: Date
+    userId: string | null
   }, ExtArgs["result"]["milestoneAlert"]>
   composites: {}
 }
@@ -823,6 +1003,7 @@ readonly fields: MilestoneAlertFieldRefs;
  */
 export interface Prisma__MilestoneAlertClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  user<T extends Prisma.MilestoneAlert$userArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MilestoneAlert$userArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -858,6 +1039,7 @@ export interface MilestoneAlertFieldRefs {
   readonly reached: Prisma.FieldRef<"MilestoneAlert", 'Boolean'>
   readonly reachedAt: Prisma.FieldRef<"MilestoneAlert", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"MilestoneAlert", 'DateTime'>
+  readonly userId: Prisma.FieldRef<"MilestoneAlert", 'String'>
 }
     
 
@@ -874,6 +1056,10 @@ export type MilestoneAlertFindUniqueArgs<ExtArgs extends runtime.Types.Extension
    * Omit specific fields from the MilestoneAlert
    */
   omit?: Prisma.MilestoneAlertOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MilestoneAlertInclude<ExtArgs> | null
   /**
    * Filter, which MilestoneAlert to fetch.
    */
@@ -893,6 +1079,10 @@ export type MilestoneAlertFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Ex
    */
   omit?: Prisma.MilestoneAlertOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MilestoneAlertInclude<ExtArgs> | null
+  /**
    * Filter, which MilestoneAlert to fetch.
    */
   where: Prisma.MilestoneAlertWhereUniqueInput
@@ -910,6 +1100,10 @@ export type MilestoneAlertFindFirstArgs<ExtArgs extends runtime.Types.Extensions
    * Omit specific fields from the MilestoneAlert
    */
   omit?: Prisma.MilestoneAlertOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MilestoneAlertInclude<ExtArgs> | null
   /**
    * Filter, which MilestoneAlert to fetch.
    */
@@ -959,6 +1153,10 @@ export type MilestoneAlertFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Ext
    */
   omit?: Prisma.MilestoneAlertOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MilestoneAlertInclude<ExtArgs> | null
+  /**
    * Filter, which MilestoneAlert to fetch.
    */
   where?: Prisma.MilestoneAlertWhereInput
@@ -1007,6 +1205,10 @@ export type MilestoneAlertFindManyArgs<ExtArgs extends runtime.Types.Extensions.
    */
   omit?: Prisma.MilestoneAlertOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MilestoneAlertInclude<ExtArgs> | null
+  /**
    * Filter, which MilestoneAlerts to fetch.
    */
   where?: Prisma.MilestoneAlertWhereInput
@@ -1034,11 +1236,6 @@ export type MilestoneAlertFindManyArgs<ExtArgs extends runtime.Types.Extensions.
    * Skip the first `n` MilestoneAlerts.
    */
   skip?: number
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-   * 
-   * Filter by unique combinations of MilestoneAlerts.
-   */
   distinct?: Prisma.MilestoneAlertScalarFieldEnum | Prisma.MilestoneAlertScalarFieldEnum[]
 }
 
@@ -1054,6 +1251,10 @@ export type MilestoneAlertCreateArgs<ExtArgs extends runtime.Types.Extensions.In
    * Omit specific fields from the MilestoneAlert
    */
   omit?: Prisma.MilestoneAlertOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MilestoneAlertInclude<ExtArgs> | null
   /**
    * The data needed to create a MilestoneAlert.
    */
@@ -1088,6 +1289,10 @@ export type MilestoneAlertCreateManyAndReturnArgs<ExtArgs extends runtime.Types.
    */
   data: Prisma.MilestoneAlertCreateManyInput | Prisma.MilestoneAlertCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MilestoneAlertIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1102,6 +1307,10 @@ export type MilestoneAlertUpdateArgs<ExtArgs extends runtime.Types.Extensions.In
    * Omit specific fields from the MilestoneAlert
    */
   omit?: Prisma.MilestoneAlertOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MilestoneAlertInclude<ExtArgs> | null
   /**
    * The data needed to update a MilestoneAlert.
    */
@@ -1154,6 +1363,10 @@ export type MilestoneAlertUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.
    * Limit how many MilestoneAlerts to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MilestoneAlertIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1168,6 +1381,10 @@ export type MilestoneAlertUpsertArgs<ExtArgs extends runtime.Types.Extensions.In
    * Omit specific fields from the MilestoneAlert
    */
   omit?: Prisma.MilestoneAlertOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MilestoneAlertInclude<ExtArgs> | null
   /**
    * The filter to search for the MilestoneAlert to update in case it exists.
    */
@@ -1195,6 +1412,10 @@ export type MilestoneAlertDeleteArgs<ExtArgs extends runtime.Types.Extensions.In
    */
   omit?: Prisma.MilestoneAlertOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MilestoneAlertInclude<ExtArgs> | null
+  /**
    * Filter which MilestoneAlert to delete.
    */
   where: Prisma.MilestoneAlertWhereUniqueInput
@@ -1215,6 +1436,25 @@ export type MilestoneAlertDeleteManyArgs<ExtArgs extends runtime.Types.Extension
 }
 
 /**
+ * MilestoneAlert.user
+ */
+export type MilestoneAlert$userArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
+}
+
+/**
  * MilestoneAlert without action
  */
 export type MilestoneAlertDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1226,4 +1466,8 @@ export type MilestoneAlertDefaultArgs<ExtArgs extends runtime.Types.Extensions.I
    * Omit specific fields from the MilestoneAlert
    */
   omit?: Prisma.MilestoneAlertOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MilestoneAlertInclude<ExtArgs> | null
 }

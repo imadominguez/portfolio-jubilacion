@@ -42,6 +42,7 @@ export type DividendMinAggregateOutputType = {
   date: Date | null
   notes: string | null
   createdAt: Date | null
+  userId: string | null
 }
 
 export type DividendMaxAggregateOutputType = {
@@ -52,6 +53,7 @@ export type DividendMaxAggregateOutputType = {
   date: Date | null
   notes: string | null
   createdAt: Date | null
+  userId: string | null
 }
 
 export type DividendCountAggregateOutputType = {
@@ -62,6 +64,7 @@ export type DividendCountAggregateOutputType = {
   date: number
   notes: number
   createdAt: number
+  userId: number
   _all: number
 }
 
@@ -82,6 +85,7 @@ export type DividendMinAggregateInputType = {
   date?: true
   notes?: true
   createdAt?: true
+  userId?: true
 }
 
 export type DividendMaxAggregateInputType = {
@@ -92,6 +96,7 @@ export type DividendMaxAggregateInputType = {
   date?: true
   notes?: true
   createdAt?: true
+  userId?: true
 }
 
 export type DividendCountAggregateInputType = {
@@ -102,6 +107,7 @@ export type DividendCountAggregateInputType = {
   date?: true
   notes?: true
   createdAt?: true
+  userId?: true
   _all?: true
 }
 
@@ -199,6 +205,7 @@ export type DividendGroupByOutputType = {
   date: Date
   notes: string | null
   createdAt: Date
+  userId: string | null
   _count: DividendCountAggregateOutputType | null
   _avg: DividendAvgAggregateOutputType | null
   _sum: DividendSumAggregateOutputType | null
@@ -206,7 +213,7 @@ export type DividendGroupByOutputType = {
   _max: DividendMaxAggregateOutputType | null
 }
 
-export type GetDividendGroupByPayload<T extends DividendGroupByArgs> = Prisma.PrismaPromise<
+type GetDividendGroupByPayload<T extends DividendGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<DividendGroupByOutputType, T['by']> &
       {
@@ -232,6 +239,8 @@ export type DividendWhereInput = {
   date?: Prisma.DateTimeFilter<"Dividend"> | Date | string
   notes?: Prisma.StringNullableFilter<"Dividend"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Dividend"> | Date | string
+  userId?: Prisma.StringNullableFilter<"Dividend"> | string | null
+  user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
 
 export type DividendOrderByWithRelationInput = {
@@ -242,6 +251,8 @@ export type DividendOrderByWithRelationInput = {
   date?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  userId?: Prisma.SortOrderInput | Prisma.SortOrder
+  user?: Prisma.UserOrderByWithRelationInput
 }
 
 export type DividendWhereUniqueInput = Prisma.AtLeast<{
@@ -255,6 +266,8 @@ export type DividendWhereUniqueInput = Prisma.AtLeast<{
   date?: Prisma.DateTimeFilter<"Dividend"> | Date | string
   notes?: Prisma.StringNullableFilter<"Dividend"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Dividend"> | Date | string
+  userId?: Prisma.StringNullableFilter<"Dividend"> | string | null
+  user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id">
 
 export type DividendOrderByWithAggregationInput = {
@@ -265,6 +278,7 @@ export type DividendOrderByWithAggregationInput = {
   date?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  userId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.DividendCountOrderByAggregateInput
   _avg?: Prisma.DividendAvgOrderByAggregateInput
   _max?: Prisma.DividendMaxOrderByAggregateInput
@@ -283,6 +297,7 @@ export type DividendScalarWhereWithAggregatesInput = {
   date?: Prisma.DateTimeWithAggregatesFilter<"Dividend"> | Date | string
   notes?: Prisma.StringNullableWithAggregatesFilter<"Dividend"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Dividend"> | Date | string
+  userId?: Prisma.StringNullableWithAggregatesFilter<"Dividend"> | string | null
 }
 
 export type DividendCreateInput = {
@@ -293,6 +308,7 @@ export type DividendCreateInput = {
   date: Date | string
   notes?: string | null
   createdAt?: Date | string
+  user?: Prisma.UserCreateNestedOneWithoutDividendsInput
 }
 
 export type DividendUncheckedCreateInput = {
@@ -303,6 +319,7 @@ export type DividendUncheckedCreateInput = {
   date: Date | string
   notes?: string | null
   createdAt?: Date | string
+  userId?: string | null
 }
 
 export type DividendUpdateInput = {
@@ -313,6 +330,7 @@ export type DividendUpdateInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneWithoutDividendsNestedInput
 }
 
 export type DividendUncheckedUpdateInput = {
@@ -323,6 +341,7 @@ export type DividendUncheckedUpdateInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type DividendCreateManyInput = {
@@ -333,6 +352,7 @@ export type DividendCreateManyInput = {
   date: Date | string
   notes?: string | null
   createdAt?: Date | string
+  userId?: string | null
 }
 
 export type DividendUpdateManyMutationInput = {
@@ -353,6 +373,17 @@ export type DividendUncheckedUpdateManyInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type DividendListRelationFilter = {
+  every?: Prisma.DividendWhereInput
+  some?: Prisma.DividendWhereInput
+  none?: Prisma.DividendWhereInput
+}
+
+export type DividendOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type DividendCountOrderByAggregateInput = {
@@ -363,6 +394,7 @@ export type DividendCountOrderByAggregateInput = {
   date?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  userId?: Prisma.SortOrder
 }
 
 export type DividendAvgOrderByAggregateInput = {
@@ -377,6 +409,7 @@ export type DividendMaxOrderByAggregateInput = {
   date?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  userId?: Prisma.SortOrder
 }
 
 export type DividendMinOrderByAggregateInput = {
@@ -387,10 +420,153 @@ export type DividendMinOrderByAggregateInput = {
   date?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  userId?: Prisma.SortOrder
 }
 
 export type DividendSumOrderByAggregateInput = {
   amount?: Prisma.SortOrder
+}
+
+export type DividendCreateNestedManyWithoutUserInput = {
+  create?: Prisma.XOR<Prisma.DividendCreateWithoutUserInput, Prisma.DividendUncheckedCreateWithoutUserInput> | Prisma.DividendCreateWithoutUserInput[] | Prisma.DividendUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.DividendCreateOrConnectWithoutUserInput | Prisma.DividendCreateOrConnectWithoutUserInput[]
+  createMany?: Prisma.DividendCreateManyUserInputEnvelope
+  connect?: Prisma.DividendWhereUniqueInput | Prisma.DividendWhereUniqueInput[]
+}
+
+export type DividendUncheckedCreateNestedManyWithoutUserInput = {
+  create?: Prisma.XOR<Prisma.DividendCreateWithoutUserInput, Prisma.DividendUncheckedCreateWithoutUserInput> | Prisma.DividendCreateWithoutUserInput[] | Prisma.DividendUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.DividendCreateOrConnectWithoutUserInput | Prisma.DividendCreateOrConnectWithoutUserInput[]
+  createMany?: Prisma.DividendCreateManyUserInputEnvelope
+  connect?: Prisma.DividendWhereUniqueInput | Prisma.DividendWhereUniqueInput[]
+}
+
+export type DividendUpdateManyWithoutUserNestedInput = {
+  create?: Prisma.XOR<Prisma.DividendCreateWithoutUserInput, Prisma.DividendUncheckedCreateWithoutUserInput> | Prisma.DividendCreateWithoutUserInput[] | Prisma.DividendUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.DividendCreateOrConnectWithoutUserInput | Prisma.DividendCreateOrConnectWithoutUserInput[]
+  upsert?: Prisma.DividendUpsertWithWhereUniqueWithoutUserInput | Prisma.DividendUpsertWithWhereUniqueWithoutUserInput[]
+  createMany?: Prisma.DividendCreateManyUserInputEnvelope
+  set?: Prisma.DividendWhereUniqueInput | Prisma.DividendWhereUniqueInput[]
+  disconnect?: Prisma.DividendWhereUniqueInput | Prisma.DividendWhereUniqueInput[]
+  delete?: Prisma.DividendWhereUniqueInput | Prisma.DividendWhereUniqueInput[]
+  connect?: Prisma.DividendWhereUniqueInput | Prisma.DividendWhereUniqueInput[]
+  update?: Prisma.DividendUpdateWithWhereUniqueWithoutUserInput | Prisma.DividendUpdateWithWhereUniqueWithoutUserInput[]
+  updateMany?: Prisma.DividendUpdateManyWithWhereWithoutUserInput | Prisma.DividendUpdateManyWithWhereWithoutUserInput[]
+  deleteMany?: Prisma.DividendScalarWhereInput | Prisma.DividendScalarWhereInput[]
+}
+
+export type DividendUncheckedUpdateManyWithoutUserNestedInput = {
+  create?: Prisma.XOR<Prisma.DividendCreateWithoutUserInput, Prisma.DividendUncheckedCreateWithoutUserInput> | Prisma.DividendCreateWithoutUserInput[] | Prisma.DividendUncheckedCreateWithoutUserInput[]
+  connectOrCreate?: Prisma.DividendCreateOrConnectWithoutUserInput | Prisma.DividendCreateOrConnectWithoutUserInput[]
+  upsert?: Prisma.DividendUpsertWithWhereUniqueWithoutUserInput | Prisma.DividendUpsertWithWhereUniqueWithoutUserInput[]
+  createMany?: Prisma.DividendCreateManyUserInputEnvelope
+  set?: Prisma.DividendWhereUniqueInput | Prisma.DividendWhereUniqueInput[]
+  disconnect?: Prisma.DividendWhereUniqueInput | Prisma.DividendWhereUniqueInput[]
+  delete?: Prisma.DividendWhereUniqueInput | Prisma.DividendWhereUniqueInput[]
+  connect?: Prisma.DividendWhereUniqueInput | Prisma.DividendWhereUniqueInput[]
+  update?: Prisma.DividendUpdateWithWhereUniqueWithoutUserInput | Prisma.DividendUpdateWithWhereUniqueWithoutUserInput[]
+  updateMany?: Prisma.DividendUpdateManyWithWhereWithoutUserInput | Prisma.DividendUpdateManyWithWhereWithoutUserInput[]
+  deleteMany?: Prisma.DividendScalarWhereInput | Prisma.DividendScalarWhereInput[]
+}
+
+export type DividendCreateWithoutUserInput = {
+  id?: string
+  ticker: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: $Enums.Currency
+  date: Date | string
+  notes?: string | null
+  createdAt?: Date | string
+}
+
+export type DividendUncheckedCreateWithoutUserInput = {
+  id?: string
+  ticker: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: $Enums.Currency
+  date: Date | string
+  notes?: string | null
+  createdAt?: Date | string
+}
+
+export type DividendCreateOrConnectWithoutUserInput = {
+  where: Prisma.DividendWhereUniqueInput
+  create: Prisma.XOR<Prisma.DividendCreateWithoutUserInput, Prisma.DividendUncheckedCreateWithoutUserInput>
+}
+
+export type DividendCreateManyUserInputEnvelope = {
+  data: Prisma.DividendCreateManyUserInput | Prisma.DividendCreateManyUserInput[]
+  skipDuplicates?: boolean
+}
+
+export type DividendUpsertWithWhereUniqueWithoutUserInput = {
+  where: Prisma.DividendWhereUniqueInput
+  update: Prisma.XOR<Prisma.DividendUpdateWithoutUserInput, Prisma.DividendUncheckedUpdateWithoutUserInput>
+  create: Prisma.XOR<Prisma.DividendCreateWithoutUserInput, Prisma.DividendUncheckedCreateWithoutUserInput>
+}
+
+export type DividendUpdateWithWhereUniqueWithoutUserInput = {
+  where: Prisma.DividendWhereUniqueInput
+  data: Prisma.XOR<Prisma.DividendUpdateWithoutUserInput, Prisma.DividendUncheckedUpdateWithoutUserInput>
+}
+
+export type DividendUpdateManyWithWhereWithoutUserInput = {
+  where: Prisma.DividendScalarWhereInput
+  data: Prisma.XOR<Prisma.DividendUpdateManyMutationInput, Prisma.DividendUncheckedUpdateManyWithoutUserInput>
+}
+
+export type DividendScalarWhereInput = {
+  AND?: Prisma.DividendScalarWhereInput | Prisma.DividendScalarWhereInput[]
+  OR?: Prisma.DividendScalarWhereInput[]
+  NOT?: Prisma.DividendScalarWhereInput | Prisma.DividendScalarWhereInput[]
+  id?: Prisma.StringFilter<"Dividend"> | string
+  ticker?: Prisma.StringFilter<"Dividend"> | string
+  amount?: Prisma.DecimalFilter<"Dividend"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFilter<"Dividend"> | $Enums.Currency
+  date?: Prisma.DateTimeFilter<"Dividend"> | Date | string
+  notes?: Prisma.StringNullableFilter<"Dividend"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"Dividend"> | Date | string
+  userId?: Prisma.StringNullableFilter<"Dividend"> | string | null
+}
+
+export type DividendCreateManyUserInput = {
+  id?: string
+  ticker: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: $Enums.Currency
+  date: Date | string
+  notes?: string | null
+  createdAt?: Date | string
+}
+
+export type DividendUpdateWithoutUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  ticker?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type DividendUncheckedUpdateWithoutUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  ticker?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type DividendUncheckedUpdateManyWithoutUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  ticker?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -403,6 +579,8 @@ export type DividendSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   date?: boolean
   notes?: boolean
   createdAt?: boolean
+  userId?: boolean
+  user?: boolean | Prisma.Dividend$userArgs<ExtArgs>
 }, ExtArgs["result"]["dividend"]>
 
 export type DividendSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -413,6 +591,8 @@ export type DividendSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   date?: boolean
   notes?: boolean
   createdAt?: boolean
+  userId?: boolean
+  user?: boolean | Prisma.Dividend$userArgs<ExtArgs>
 }, ExtArgs["result"]["dividend"]>
 
 export type DividendSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -423,6 +603,8 @@ export type DividendSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   date?: boolean
   notes?: boolean
   createdAt?: boolean
+  userId?: boolean
+  user?: boolean | Prisma.Dividend$userArgs<ExtArgs>
 }, ExtArgs["result"]["dividend"]>
 
 export type DividendSelectScalar = {
@@ -433,13 +615,25 @@ export type DividendSelectScalar = {
   date?: boolean
   notes?: boolean
   createdAt?: boolean
+  userId?: boolean
 }
 
-export type DividendOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ticker" | "amount" | "currency" | "date" | "notes" | "createdAt", ExtArgs["result"]["dividend"]>
+export type DividendOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ticker" | "amount" | "currency" | "date" | "notes" | "createdAt" | "userId", ExtArgs["result"]["dividend"]>
+export type DividendInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  user?: boolean | Prisma.Dividend$userArgs<ExtArgs>
+}
+export type DividendIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  user?: boolean | Prisma.Dividend$userArgs<ExtArgs>
+}
+export type DividendIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  user?: boolean | Prisma.Dividend$userArgs<ExtArgs>
+}
 
 export type $DividendPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Dividend"
-  objects: {}
+  objects: {
+    user: Prisma.$UserPayload<ExtArgs> | null
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     ticker: string
@@ -448,6 +642,7 @@ export type $DividendPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     date: Date
     notes: string | null
     createdAt: Date
+    userId: string | null
   }, ExtArgs["result"]["dividend"]>
   composites: {}
 }
@@ -842,6 +1037,7 @@ readonly fields: DividendFieldRefs;
  */
 export interface Prisma__DividendClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  user<T extends Prisma.Dividend$userArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Dividend$userArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -878,6 +1074,7 @@ export interface DividendFieldRefs {
   readonly date: Prisma.FieldRef<"Dividend", 'DateTime'>
   readonly notes: Prisma.FieldRef<"Dividend", 'String'>
   readonly createdAt: Prisma.FieldRef<"Dividend", 'DateTime'>
+  readonly userId: Prisma.FieldRef<"Dividend", 'String'>
 }
     
 
@@ -894,6 +1091,10 @@ export type DividendFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Omit specific fields from the Dividend
    */
   omit?: Prisma.DividendOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DividendInclude<ExtArgs> | null
   /**
    * Filter, which Dividend to fetch.
    */
@@ -913,6 +1114,10 @@ export type DividendFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Extensio
    */
   omit?: Prisma.DividendOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DividendInclude<ExtArgs> | null
+  /**
    * Filter, which Dividend to fetch.
    */
   where: Prisma.DividendWhereUniqueInput
@@ -930,6 +1135,10 @@ export type DividendFindFirstArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Omit specific fields from the Dividend
    */
   omit?: Prisma.DividendOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DividendInclude<ExtArgs> | null
   /**
    * Filter, which Dividend to fetch.
    */
@@ -979,6 +1188,10 @@ export type DividendFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Extension
    */
   omit?: Prisma.DividendOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DividendInclude<ExtArgs> | null
+  /**
    * Filter, which Dividend to fetch.
    */
   where?: Prisma.DividendWhereInput
@@ -1027,6 +1240,10 @@ export type DividendFindManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
    */
   omit?: Prisma.DividendOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DividendInclude<ExtArgs> | null
+  /**
    * Filter, which Dividends to fetch.
    */
   where?: Prisma.DividendWhereInput
@@ -1054,11 +1271,6 @@ export type DividendFindManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * Skip the first `n` Dividends.
    */
   skip?: number
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-   * 
-   * Filter by unique combinations of Dividends.
-   */
   distinct?: Prisma.DividendScalarFieldEnum | Prisma.DividendScalarFieldEnum[]
 }
 
@@ -1074,6 +1286,10 @@ export type DividendCreateArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Omit specific fields from the Dividend
    */
   omit?: Prisma.DividendOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DividendInclude<ExtArgs> | null
   /**
    * The data needed to create a Dividend.
    */
@@ -1108,6 +1324,10 @@ export type DividendCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extens
    */
   data: Prisma.DividendCreateManyInput | Prisma.DividendCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DividendIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1122,6 +1342,10 @@ export type DividendUpdateArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Omit specific fields from the Dividend
    */
   omit?: Prisma.DividendOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DividendInclude<ExtArgs> | null
   /**
    * The data needed to update a Dividend.
    */
@@ -1174,6 +1398,10 @@ export type DividendUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extens
    * Limit how many Dividends to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DividendIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1188,6 +1416,10 @@ export type DividendUpsertArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Omit specific fields from the Dividend
    */
   omit?: Prisma.DividendOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DividendInclude<ExtArgs> | null
   /**
    * The filter to search for the Dividend to update in case it exists.
    */
@@ -1215,6 +1447,10 @@ export type DividendDeleteArgs<ExtArgs extends runtime.Types.Extensions.Internal
    */
   omit?: Prisma.DividendOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DividendInclude<ExtArgs> | null
+  /**
    * Filter which Dividend to delete.
    */
   where: Prisma.DividendWhereUniqueInput
@@ -1235,6 +1471,25 @@ export type DividendDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
 }
 
 /**
+ * Dividend.user
+ */
+export type Dividend$userArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
+}
+
+/**
  * Dividend without action
  */
 export type DividendDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1246,4 +1501,8 @@ export type DividendDefaultArgs<ExtArgs extends runtime.Types.Extensions.Interna
    * Omit specific fields from the Dividend
    */
   omit?: Prisma.DividendOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DividendInclude<ExtArgs> | null
 }
