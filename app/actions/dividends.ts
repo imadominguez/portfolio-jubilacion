@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
+import { requireAuth } from "@/lib/auth-session";
 import type { Currency } from "@/app/generated/prisma/client";
 
 export type DividendFormData = {
@@ -27,6 +28,9 @@ export type DividendRow = {
 
 export async function createDividend(data: DividendFormData): Promise<DividendResult> {
   try {
+    const session = await requireAuth();
+    const userId = session.user.id;
+
     if (!data.ticker.trim()) return { success: false, error: "El ticker es obligatorio." };
     if (data.amount <= 0) return { success: false, error: "El monto debe ser mayor a 0." };
 
@@ -40,6 +44,7 @@ export async function createDividend(data: DividendFormData): Promise<DividendRe
         currency: data.currency,
         date,
         notes: data.notes?.trim() || null,
+        userId,
       },
     });
 
@@ -64,7 +69,9 @@ export async function deleteDividend(id: string): Promise<{ success: boolean; er
 }
 
 export async function getAllDividends(): Promise<DividendRow[]> {
+  const session = await requireAuth();
   const divs = await db.dividend.findMany({
+    where: { userId: session.user.id },
     orderBy: { date: "desc" },
   });
 
@@ -79,8 +86,9 @@ export async function getAllDividends(): Promise<DividendRow[]> {
 }
 
 export async function getTotalDividendsUsd(): Promise<number> {
+  const session = await requireAuth();
   const divs = await db.dividend.findMany({
-    where: { currency: "USD" },
+    where: { currency: "USD", userId: session.user.id },
   });
   return divs.reduce((sum, d) => sum + Number(d.amount), 0);
 }

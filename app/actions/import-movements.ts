@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
+import { requireAuth } from "@/lib/auth-session";
 import type { TransactionType, Currency } from "@/app/generated/prisma/client";
 
 // ---------------------------------------------------------------------------
@@ -177,6 +178,9 @@ export async function parseCocosMovimientosCsv(csvText: string): Promise<ParsedM
 
 export async function importMovimientos(rows: MovimientoRow[]): Promise<ImportMovimientosResult> {
   try {
+    const session = await requireAuth();
+    const userId = session.user.id;
+
     if (rows.length === 0) {
       return { success: false, error: "No hay transacciones para importar." };
     }
@@ -184,6 +188,7 @@ export async function importMovimientos(rows: MovimientoRow[]): Promise<ImportMo
     // Fetch existing nroTickets from notes to detect duplicates
     const existingNotes = await db.transaction.findMany({
       where: {
+        userId,
         notes: { in: rows.map((r) => `Cocos #${r.nroTicket}`) },
       },
       select: { notes: true },
@@ -208,6 +213,7 @@ export async function importMovimientos(rows: MovimientoRow[]): Promise<ImportMo
         fee: r.fee > 0 ? r.fee : null,
         date: new Date(r.date),
         notes: `Cocos #${r.nroTicket}`,
+        userId,
       })),
     });
 

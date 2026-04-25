@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
+import { requireAuth } from "@/lib/auth-session";
 
 export type MilestoneRow = {
   id: string;
@@ -24,13 +25,16 @@ const DEFAULT_MILESTONES = [
 ];
 
 export async function getMilestones(): Promise<MilestoneRow[]> {
+  const session = await requireAuth();
+  const userId = session.user.id;
   const milestones = await db.milestoneAlert.findMany({
+    where: { userId },
     orderBy: { targetValueUsd: "asc" },
   });
 
   if (milestones.length === 0) {
     await db.milestoneAlert.createMany({
-      data: DEFAULT_MILESTONES,
+      data: DEFAULT_MILESTONES.map((m) => ({ ...m, userId })),
     });
     return DEFAULT_MILESTONES.map((m) => ({
       id: "",
@@ -55,11 +59,14 @@ export async function createMilestone(
   targetValueUsd: number
 ): Promise<MilestoneResult> {
   try {
+    const session = await requireAuth();
+    const userId = session.user.id;
+
     if (!label.trim()) return { success: false, error: "El nombre es obligatorio." };
     if (targetValueUsd <= 0) return { success: false, error: "El valor debe ser positivo." };
 
     await db.milestoneAlert.create({
-      data: { label: label.trim(), targetValueUsd },
+      data: { label: label.trim(), targetValueUsd, userId },
     });
 
     revalidatePath("/settings");
@@ -83,8 +90,9 @@ export async function deleteMilestone(id: string): Promise<MilestoneResult> {
 export async function checkAndUpdateMilestones(
   currentValueUsd: number
 ): Promise<{ newlyReached: MilestoneRow[] }> {
+  const session = await requireAuth();
   const unReached = await db.milestoneAlert.findMany({
-    where: { reached: false },
+    where: { reached: false, userId: session.user.id },
   });
 
   const newlyReached: MilestoneRow[] = [];

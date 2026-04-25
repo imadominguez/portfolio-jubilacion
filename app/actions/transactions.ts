@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
+import { requireAuth } from "@/lib/auth-session";
 import type { TransactionType, Currency } from "@/app/generated/prisma/client";
 
 export type TransactionFormData = {
@@ -35,6 +36,9 @@ export async function createTransaction(
   data: TransactionFormData
 ): Promise<TransactionResult> {
   try {
+    const session = await requireAuth();
+    const userId = session.user.id;
+
     if (!data.ticker.trim()) return { success: false, error: "El ticker es obligatorio." };
     if (data.quantity <= 0) return { success: false, error: "La cantidad debe ser mayor a 0." };
     if (data.price <= 0) return { success: false, error: "El precio debe ser mayor a 0." };
@@ -52,6 +56,7 @@ export async function createTransaction(
         fee: data.fee ?? null,
         date,
         notes: data.notes?.trim() || null,
+        userId,
       },
     });
 
@@ -76,7 +81,9 @@ export async function deleteTransaction(id: string): Promise<{ success: boolean;
 }
 
 export async function getAllTransactions(): Promise<TransactionRow[]> {
+  const session = await requireAuth();
   const txs = await db.transaction.findMany({
+    where: { userId: session.user.id },
     orderBy: { date: "desc" },
   });
 
@@ -102,8 +109,10 @@ export type PpmRow = {
 };
 
 export async function calculatePPM(): Promise<PpmRow[]> {
+  const session = await requireAuth();
+  const userId = session.user.id;
   const txs = await db.transaction.findMany({
-    where: { type: "BUY" },
+    where: { type: "BUY", userId },
     orderBy: { date: "asc" },
   });
 
@@ -125,7 +134,7 @@ export async function calculatePPM(): Promise<PpmRow[]> {
   }
 
   const sells = await db.transaction.findMany({
-    where: { type: "SELL" },
+    where: { type: "SELL", userId },
     orderBy: { date: "asc" },
   });
 
@@ -161,13 +170,15 @@ export type RealizedPnlRow = {
 };
 
 export async function getRealizedPnl(): Promise<RealizedPnlRow[]> {
+  const session = await requireAuth();
+  const userId = session.user.id;
   const sells = await db.transaction.findMany({
-    where: { type: "SELL" },
+    where: { type: "SELL", userId },
     orderBy: { date: "asc" },
   });
 
   const buys = await db.transaction.findMany({
-    where: { type: "BUY" },
+    where: { type: "BUY", userId },
     orderBy: { date: "asc" },
   });
 

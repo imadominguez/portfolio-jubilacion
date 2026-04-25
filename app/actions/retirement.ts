@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
+import { requireAuth } from "@/lib/auth-session";
 
 export type RetirementSettingsData = {
   currentAge: number;
@@ -19,7 +20,9 @@ export type RetirementSettingsResult =
 const SETTINGS_ID = "default";
 
 export async function getRetirementSettings(): Promise<RetirementSettingsData | null> {
+  const session = await requireAuth();
   const settings = await db.retirementSettings.findFirst({
+    where: { userId: session.user.id },
     orderBy: { createdAt: "asc" },
   });
 
@@ -39,6 +42,9 @@ export async function saveRetirementSettings(
   data: RetirementSettingsData
 ): Promise<RetirementSettingsResult> {
   try {
+    const session = await requireAuth();
+    const userId = session.user.id;
+
     if (data.currentAge < 1 || data.currentAge > 100) {
       return { success: false, error: "Edad actual inválida." };
     }
@@ -49,7 +55,7 @@ export async function saveRetirementSettings(
       return { success: false, error: "Los gastos mensuales deben ser positivos." };
     }
 
-    const existing = await db.retirementSettings.findFirst();
+    const existing = await db.retirementSettings.findFirst({ where: { userId } });
 
     if (existing) {
       await db.retirementSettings.update({
@@ -72,6 +78,7 @@ export async function saveRetirementSettings(
           inflationRate: data.inflationRate,
           withdrawalRate: data.withdrawalRate,
           monthlyContribution: data.monthlyContribution,
+          userId,
         },
       });
     }

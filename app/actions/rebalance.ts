@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
+import { requireAuth } from "@/lib/auth-session";
 
 export type TargetAllocationRow = {
   id: string;
@@ -24,7 +25,9 @@ export type TargetAllocationResult =
   | { success: false; error: string };
 
 export async function getTargetAllocations(): Promise<TargetAllocationRow[]> {
+  const session = await requireAuth();
   const rows = await db.targetAllocation.findMany({
+    where: { userId: session.user.id },
     orderBy: { ticker: "asc" },
   });
   return rows.map((r) => ({
@@ -41,6 +44,9 @@ export async function upsertTargetAllocation(
   notes?: string
 ): Promise<TargetAllocationResult> {
   try {
+    const session = await requireAuth();
+    const userId = session.user.id;
+
     if (!ticker.trim()) return { success: false, error: "El ticker es obligatorio." };
     if (targetPct < 0 || targetPct > 100) {
       return { success: false, error: "El porcentaje debe estar entre 0 y 100." };
@@ -52,6 +58,7 @@ export async function upsertTargetAllocation(
         ticker: ticker.trim().toUpperCase(),
         targetPct: targetPct / 100,
         notes: notes?.trim() || null,
+        userId,
       },
       update: {
         targetPct: targetPct / 100,
@@ -78,12 +85,15 @@ export async function deleteTargetAllocation(id: string): Promise<TargetAllocati
 }
 
 export async function getRebalanceData(): Promise<RebalanceRow[]> {
+  const session = await requireAuth();
+  const userId = session.user.id;
   const [snapshot, targets] = await Promise.all([
     db.portfolioSnapshot.findFirst({
+      where: { userId },
       orderBy: { snapshotDate: "desc" },
       include: { positions: true },
     }),
-    db.targetAllocation.findMany(),
+    db.targetAllocation.findMany({ where: { userId } }),
   ]);
 
   if (!snapshot) return [];

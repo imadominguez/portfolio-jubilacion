@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { getSession } from "@/lib/auth-session";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -108,12 +109,14 @@ function findNearest<T extends { date: Date }>(
 // ---------------------------------------------------------------------------
 
 export async function getDataReadiness(): Promise<DataReadiness> {
+  const session = await getSession();
+  const userId = session?.user.id;
   const [snapshot, transactionCount, firstBuy, cclCount, stockHistoryCount] =
     await Promise.all([
-      db.portfolioSnapshot.findFirst({ select: { id: true } }),
-      db.transaction.count({ where: { type: "BUY" } }),
+      db.portfolioSnapshot.findFirst({ where: userId ? { userId } : {}, select: { id: true } }),
+      db.transaction.count({ where: { type: "BUY", ...(userId ? { userId } : {}) } }),
       db.transaction.findFirst({
-        where: { type: "BUY" },
+        where: { type: "BUY", ...(userId ? { userId } : {}) },
         orderBy: { date: "asc" },
         select: { date: true },
       }),
@@ -141,8 +144,12 @@ export async function getDataReadiness(): Promise<DataReadiness> {
 // ---------------------------------------------------------------------------
 
 export async function calculateRealGains(): Promise<RealGainsSummary | null> {
+  const session = await getSession();
+  const userId = session?.user.id;
+
   // 1. Snapshot más reciente
   const snapshot = await db.portfolioSnapshot.findFirst({
+    where: userId ? { userId } : {},
     orderBy: { snapshotDate: "desc" },
     include: { positions: true },
   });
@@ -153,7 +160,7 @@ export async function calculateRealGains(): Promise<RealGainsSummary | null> {
 
   // 2. Transacciones BUY
   const buys = await db.transaction.findMany({
-    where: { type: "BUY" },
+    where: { type: "BUY", ...(userId ? { userId } : {}) },
     orderBy: { date: "asc" },
   });
 

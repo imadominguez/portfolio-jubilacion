@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
+import { requireAuth } from "@/lib/auth-session";
 import { checkAndUpdateMilestones } from "@/app/actions/milestones";
 
 // ---------------------------------------------------------------------------
@@ -153,6 +154,9 @@ export async function parseSnapshotPreview(
 
 export async function importSnapshot(formData: FormData): Promise<ImportResult> {
   try {
+    const session = await requireAuth();
+    const userId = session.user.id;
+
     const file = formData.get("file") as File | null;
     const dateStr = formData.get("date") as string | null;
     const cclStr = formData.get("ccl") as string | null;
@@ -195,6 +199,7 @@ export async function importSnapshot(formData: FormData): Promise<ImportResult> 
         totalValueUsd,
         ccl,
         sourceFile: file.name,
+        userId,
         positions: {
           create: parsed.map((p) => ({
             ticker: p.ticker,
