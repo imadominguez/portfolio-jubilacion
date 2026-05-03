@@ -14,6 +14,7 @@ import {
   Settings,
   DollarSign,
   LogOut,
+  Activity,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { signOut } from "@/lib/auth-client";
@@ -36,6 +37,7 @@ import { cn } from "@/lib/utils";
 const NAV_MAIN = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
   { label: "Performance", href: "/performance", icon: TrendingUp },
+  { label: "Historial CCL", href: "/ccl", icon: Activity },
   { label: "Snapshots", href: "/snapshots", icon: CalendarDays },
 ];
 
