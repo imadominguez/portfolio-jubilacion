@@ -2,12 +2,13 @@
 
 import { useTransition } from "react";
 import { toast } from "sonner";
-import { FileText, Download } from "lucide-react";
+import { FileText, Download, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -24,6 +25,14 @@ export function ExportButtons({ snapshotId }: ExportButtonsProps) {
     if (win) {
       win.onload = () => win.print();
     }
+  }
+
+  function handlePdfExport() {
+    startTransition(() => {
+      const url = `/api/export/pdf/${snapshotId}`;
+      window.open(url, "_blank");
+      toast.success("Generando PDF…");
+    });
   }
 
   function handleCsvExport() {
@@ -43,10 +52,15 @@ export function ExportButtons({ snapshotId }: ExportButtonsProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="text-xs">
+        <DropdownMenuItem onClick={handlePdfExport} className="gap-2 text-xs">
+          <FileDown className="size-3.5" />
+          Descargar PDF
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={handlePrint} className="gap-2 text-xs">
           <FileText className="size-3.5" />
-          Imprimir / Guardar PDF
+          Imprimir / Vista previa
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleCsvExport} className="gap-2 text-xs">
           <Download className="size-3.5" />
           Descargar CSV
