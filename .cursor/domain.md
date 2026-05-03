@@ -1,229 +1,274 @@
 # Domain Knowledge
 
-This document describes the financial domain concepts used in the portfolio dashboard.
+This document describes the financial domain concepts and data models used in the portfolio dashboard.
 
-The system is designed to manage a personal investment portfolio focused on **CEDEARs** purchased through **Cocos Capital**.
-
-Understanding these financial concepts is important for implementing correct calculations and data models.
+The system manages a personal investment portfolio focused on **CEDEARs** purchased through **Cocos Capital**.
 
 ---
 
-# CEDEARs
+## CEDEARs
 
-CEDEARs (Certificados de Depósito Argentinos) are instruments that allow investors in Argentina to invest in foreign companies through the local stock market.
+CEDEARs (Certificados de Depósito Argentinos) are instruments that let Argentine investors buy foreign stocks through the local market.
 
 Each CEDEAR represents a fraction of an underlying stock traded in the United States.
 
-Examples:
-
-- MELI (MercadoLibre)
-- AAPL (Apple)
-- NVDA (Nvidia)
-- META (Meta)
-
-The CEDEAR price in Argentina is influenced by three variables:
-
-1. underlying stock price in USD
-2. CEDEAR ratio
-3. Argentine financial exchange rate (CCL)
-
-Approximate formula:
-
-CEDEAR price ≈ (Stock price USD / CEDEAR ratio) × CCL
+**Pricing formula:**
+```
+CEDEAR price (ARS) ≈ (Stock price USD / CEDEAR ratio) × CCL
+```
 
 Example:
-
-Stock price = 200 USD
-CEDEAR ratio = 10:1
-CCL = 1200 ARS
-
-CEDEAR price ≈ (200 / 10) × 1200
+- Stock price = $180 USD (AAPL)
+- CEDEAR ratio = 10 (10 CEDEARs = 1 AAPL share)
+- CCL = 1200 ARS/USD
+- CEDEAR price ≈ (180 / 10) × 1200 = 2160 ARS
 
 ---
 
-# CEDEAR Ratio
+## CEDEAR Ratio
 
-The CEDEAR ratio defines how many CEDEARs represent one share of the underlying stock.
+The ratio defines how many CEDEARs represent one underlying share. It is fixed and stored in the `Asset` table.
 
 Examples:
+- AAPL: ratio 10
+- NVDA: ratio 24
+- MELI: ratio 2
 
-AAPL → 10 CEDEARs = 1 share
-NVDA → 24 CEDEARs = 1 share
-MELI → 2 CEDEARs = 1 share
-
-This ratio must be stored in the system because it is required to convert between:
-
-- CEDEAR price in ARS
-- underlying stock price in USD
+The ratio is required to convert between CEDEAR quantity → underlying share quantity → USD value.
 
 ---
 
-# Exchange Rate (CCL)
+## CCL (Contado con Liquidación)
 
-The **CCL (Contado con Liquidación)** exchange rate represents the implicit USD price used in the Argentine financial market.
+The CCL is the implicit USD/ARS exchange rate in the Argentine financial market. It is used to estimate the USD value of a CEDEAR portfolio.
 
-It is commonly used to estimate the USD value of CEDEARs.
+```
+Portfolio USD = Portfolio ARS / CCL
+```
 
-Example:
-
-If CCL = 1200 ARS
-then:
-
-1200 ARS ≈ 1 USD
-
-The system may store historical CCL values to calculate portfolio value in USD.
+The system stores daily CCL values in the `ExchangeRate` table, sourced from:
+- `dolarapi.com` — today's CCL
+- `argentinadatos.com` — historical CCL series
 
 ---
 
-# Portfolio Snapshot
+## Portfolio Snapshot
 
-A snapshot represents the **state of the portfolio at a specific moment in time**.
+A snapshot is an **immutable record** of the entire portfolio at a specific date.
 
-Snapshots are created by importing CSV files exported from Cocos Capital.
+Created by importing a CSV export from Cocos Capital. Each snapshot contains:
+- `snapshotDate` — the date of the snapshot
+- `totalValueArs` — total portfolio value in ARS
+- `totalValueUsd` — optional USD equivalent at snapshot CCL
+- `ccl` — the CCL used for USD conversion at that date
+- `positions[]` — all holdings at that moment
 
-Each snapshot contains:
-
-- date
-- list of positions
-- quantities
-- prices
-- total portfolio value
-
-Snapshots are immutable records and should **never be modified**.
-
-They are used to calculate historical portfolio performance.
+**Snapshots must never be modified.** They are the historical source of truth.
 
 ---
 
-# Position
+## Position
 
-A position represents the holdings of a specific asset in the portfolio.
+A position is one row within a snapshot — the holding of a specific CEDEAR.
 
-Example:
-
-Ticker: MELI
-Quantity: 4
-Price: 21950 ARS
-Value: 87800 ARS
-
-Each position contains:
-
-- ticker
-- quantity
-- price
-- position value
-- portfolio allocation percentage
+Fields:
+- `ticker` — CEDEAR ticker (e.g. AAPL, MELI)
+- `instrumentName` — human-readable name
+- `quantity` — number of CEDEARs held
+- `price` — ARS price per unit
+- `positionValue` — quantity × price
+- `allocationPct` — fraction of total portfolio (0–1)
+- `currency` — always ARS for Cocos CSV
 
 ---
 
-# Portfolio Value
+## Asset (CEDEAR Catalog)
 
-Portfolio value represents the total value of all positions.
+The `Asset` table stores reference metadata for each CEDEAR.
 
-Formula:
+Fields:
+- `ticker` — primary key
+- `cedearRatio` — how many CEDEARs per underlying share
+- `underlyingTicker` — the US stock ticker (e.g. "AAPL" for the AAPL CEDEAR)
+- `sector` — e.g. Technology, Financials, Consumer Discretionary
+- `industry` — e.g. Semiconductors, Banks
+- `country` — e.g. USA, Argentina
 
-Portfolio Value = Sum of all position values
-
-Example:
-
-MELI → 87800
-META → 119340
-NVDA → 95000
-
-Total Portfolio Value = 302140
+Used for concentration analysis and real gains calculation.
 
 ---
 
-# Asset Allocation
+## Transaction
 
-Asset allocation represents how the portfolio is distributed across assets.
+A `Transaction` represents a BUY or SELL operation entered manually.
 
-Formula:
+Fields:
+- `ticker`
+- `type` — `BUY` or `SELL`
+- `quantity`
+- `priceArs` — price paid/received per unit in ARS
+- `date`
+- `currency`
 
-Allocation % = Position Value / Total Portfolio Value
-
-Example:
-
-Portfolio Value = 1,000,000 ARS
-
-MELI = 200,000 → 20%
-META = 150,000 → 15%
-
-Allocation helps identify concentration risk.
+Used to calculate PPM and realized P&L.
 
 ---
 
-# Portfolio Performance
+## PPM (Precio Promedio de Compra / Average Cost)
 
-Performance measures how the portfolio grows over time.
+PPM is the weighted average purchase price per ticker, calculated from all BUY transactions.
 
-Using snapshots:
+```
+PPM = Σ(quantity × price) / Σ(quantity)
+```
 
-Performance % = (Current Value - Previous Value) / Previous Value
+Used to measure unrealized P&L against current snapshot prices.
 
-Example:
-
-January → 4,000,000
-February → 4,400,000
-
-Performance = 10%
-
----
-
-# Performance in USD
-
-Because the Argentine peso experiences high inflation and devaluation, portfolio performance should also be calculated in USD.
-
-USD Value = Portfolio Value / CCL
-
-Example:
-
-Portfolio Value = 4,800,000 ARS
-CCL = 1200
-
-USD Value = 4000 USD
-
-Tracking USD value allows the user to measure real investment growth.
+```
+Unrealized P&L (ARS) = (currentPrice - PPM) × quantityHeld
+```
 
 ---
 
-# Dividend Income
+## Realized P&L
 
-Some CEDEARs distribute dividends.
+Profit or loss from closed positions (SELL transactions).
 
-Dividend data may include:
-
-- ticker
-- payment date
-- gross dividend
-- tax withholding
-- net dividend received
-
-Dividend tracking allows the system to calculate:
-
-- annual dividend income
-- dividend yield
+```
+Realized P&L = (salePrice - PPM at time of sale) × quantitySold
+```
 
 ---
 
-# Long-Term Investing
+## Dividend
 
-This portfolio is intended for long-term investing with the goal of building retirement capital.
+Income received from a CEDEAR position.
 
-The system should prioritize:
-
-- historical accuracy
-- reliable calculations
-- clear portfolio insights
-- long-term performance tracking
-
-The system is not intended for day trading or short-term speculation.
+Fields:
+- `ticker`
+- `date`
+- `grossAmountUsd` — dividend before tax
+- `taxWithheld` — withholding tax amount
+- `netAmountUsd` — actual amount received
 
 ---
 
-# Key Principles for the Domain
+## Target Allocation
 
-1. Financial data should never be overwritten.
-2. Historical snapshots must remain immutable.
-3. Calculations should always be reproducible.
-4. Portfolio growth should be measurable over long time periods.
+`TargetAllocation` defines the desired portfolio weight for each ticker used in the Rebalance module.
+
+```
+Deviation = actualPct - targetPct
+Action = BUY if deviation < -tolerance, SELL if deviation > +tolerance
+```
+
+Tolerance is ±1% by default.
+
+---
+
+## Performance Metrics
+
+### CAGR (Compound Annual Growth Rate)
+
+```
+CAGR = (endValue / startValue)^(1 / years) - 1
+```
+
+Calculated over the full snapshot history.
+
+### Max Drawdown
+
+The largest peak-to-trough decline in portfolio value across all snapshots.
+
+```
+Drawdown = (peak - trough) / peak
+Max Drawdown = max(Drawdown) across all time
+```
+
+### Year-to-Date Return
+
+Percentage gain from the last snapshot of the previous year to the most recent snapshot.
+
+---
+
+## Benchmarks
+
+The system tracks three benchmark indices for comparison in the Performance page:
+
+| ID | Name |
+|----|------|
+| `sp500` | S&P 500 |
+| `merval` | Merval (BYMA) |
+| `nasdaq` | Nasdaq 100 |
+
+Stored as `BenchmarkPoint { benchmarkId, date, value }`. Used to normalize and overlay performance charts.
+
+---
+
+## Retirement Planning
+
+### Retirement Goal (Required Capital)
+
+```
+Required Capital = Annual Expenses / Withdrawal Rate
+```
+
+Example: $1200/month × 12 = $14400/year; at 4% withdrawal rate → $360,000 required.
+
+### Projection Curve
+
+Deterministic future value model:
+
+```
+FV(n) = (currentPortfolio + monthlyContribution/r) × (1+r)^n - monthlyContribution/r
+```
+
+Where `r` is the expected monthly real return.
+
+### Monte Carlo Simulation
+
+Runs N simulations (typically 1000+) sampling random annual returns from a normal distribution defined by expected return and standard deviation.
+
+Returns:
+- Percentile bands (P10, P25, P50, P75, P90)
+- Probability of reaching the retirement goal by the target date
+
+---
+
+## Real Gains (Ganancia Real USD)
+
+Decomposes ARS portfolio gains into:
+
+1. **Underlying appreciation** — USD gain of the stock itself:
+   ```
+   underlyingGainUsd = (currentPriceUsd - entryPriceUsd) × sharesEquivalent
+   ```
+
+2. **CCL impact** — how much of the ARS gain is just peso devaluation:
+   ```
+   cclImpact = value_ars_current / ccl_current - value_ars_cost / ccl_at_purchase
+   ```
+
+Uses `HistoricalPriceCache` (Yahoo Finance USD prices) and `ExchangeRate` records.
+
+---
+
+## Price Caches
+
+### MarketPriceCache
+
+Stores the most recent market price for each ticker (ARS or USD). Updated via the "Actualizar precios" button in Assets.
+
+### HistoricalPriceCache
+
+Stores daily historical USD prices per ticker for underlying stocks. Used in the Real Gains calculation. Populated via Yahoo Finance API.
+
+---
+
+## Key Principles
+
+1. **Historical data is immutable.** Snapshots, once imported, are never modified.
+2. **Reproducibility.** All calculations must produce the same result given the same snapshot data.
+3. **Separation of ARS and USD.** Always be explicit about the currency of any value.
+4. **CCL is the bridge.** Any ARS↔USD conversion uses the CCL recorded at the snapshot date, not today's rate.
+5. **CEDEAR ratio is required** for any calculation involving the underlying stock.

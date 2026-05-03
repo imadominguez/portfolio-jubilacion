@@ -2,214 +2,181 @@
 
 ## Overview
 
-This project is a **personal financial dashboard** used to manage and analyze a long-term investment portfolio.
+This is a **personal financial dashboard** for managing and analyzing a long-term investment portfolio.
 
-The dashboard is designed for **private use** and focuses on tracking investments in **CEDEARs (Certificados de Depósito Argentinos)** purchased through **Cocos Capital**.
-
-The main goal of the system is to provide visibility into:
-
-- current portfolio value
-- asset allocation
-- performance over time
-- historical growth
-- performance in ARS and USD
-- long-term retirement planning
-
-The application should prioritize **accuracy, simplicity, and long-term historical tracking**.
+- **Private use** — single user (authenticated via Better Auth)
+- **Focus** — CEDEARs (Certificados de Depósito Argentinos) purchased through Cocos Capital
+- **Goal** — track portfolio evolution, analyze performance, and plan for retirement
 
 ---
 
-# Data Source
+## Data Source
 
-The portfolio data comes from **CSV exports from Cocos Capital**.
+Portfolio data comes from **CSV exports from Cocos Capital**.
 
-These CSV files represent **snapshots of the portfolio at a specific point in time**, not individual trade operations.
+These CSVs represent a **snapshot of the portfolio at a specific point in time** — not individual trades.
 
-Example snapshot:
-
-- instrument name
-- ticker symbol
-- quantity
-- price
-- currency
+Each snapshot contains:
+- ticker symbol and instrument name
+- quantity held
+- price in ARS
 - total position value
+- (computed) allocation percentage
 
-The system must import these snapshots and store them historically.
+Snapshots must **never be modified or overwritten** — they are immutable historical records.
 
-Snapshots should **never be modified or overwritten**, because they represent the historical state of the portfolio.
-
----
-
-# Core Domain Concepts
-
-## Portfolio
-
-Represents the entire investment portfolio of the user.
-
-It is composed of multiple positions and historical snapshots.
+Transactions (BUY/SELL) and dividends are entered manually via forms.
 
 ---
 
-## Position
+## Application Sections
 
-A position represents a holding of a specific financial instrument.
+### Dashboard (`/`)
+Main overview of the portfolio:
+- KPIs: total value ARS, total value USD, CCL, position count, change vs previous snapshot
+- Unrealized P&L vs PPM (average cost)
+- Total dividends received (USD)
+- Portfolio evolution chart (ARS and USD toggle)
+- Top performers / worst performers vs previous snapshot
+- Holdings table with PPM, market price, and P&L columns
+- Allocation panel (percentage breakdown)
+- Milestone progress widgets
 
-Example:
+### Performance (`/performance`)
+Historical performance analysis:
+- CAGR (compound annual growth rate)
+- Maximum drawdown
+- Current-year return in ARS
+- Portfolio evolution chart with ARS/USD toggle
+- Benchmark comparison overlay (S&P 500, Merval, Nasdaq 100)
+- Snapshot timeline with % change between records
 
-- MELI
-- AAPL
-- NVDA
-- META
+### Historial CCL (`/ccl`)
+Exchange rate (Contado con Liquidación) history:
+- KPIs: current CCL, 1-month change, year-to-date change, 1-year change
+- Line chart with daily CCL values
+- Optional overlay: portfolio USD value on same chart to see correlation/decorrelation
+- Full chronological table of recorded CCL values
 
-Each position contains:
+### Snapshots (`/snapshots`)
+Chronological list of all imported snapshots:
+- Date, total value ARS, change % vs previous
+- Link to full detail of each snapshot
 
-- ticker
-- quantity
-- current value
-- portfolio allocation %
+### Snapshot Detail (`/snapshots/[id]`)
+Full breakdown of a single snapshot:
+- KPIs: ARS value, USD value, CCL, position count
+- AllocationPanel (donut chart + percentage list)
+- HoldingsTable (sorted by value)
+- Export options: PDF download, print/preview, CSV download
 
----
+### Análisis (`/analysis`)
+Portfolio concentration analysis using the latest snapshot + asset metadata:
+- By sector (Technology, Finance, Consumer Discretionary, etc.)
+- By country (USA, Argentina, etc.)
+- By industry
+- Pie charts and bar charts
 
-## Snapshot
+### Rebalanceo (`/rebalance`)
+Target vs actual allocation management:
+- Edit target % per ticker (TargetAllocation table)
+- Current % from latest snapshot
+- Deviation from target
+- Suggested action (buy/sell) to reach target
 
-A snapshot represents the **state of the portfolio at a specific moment in time**.
+### Transacciones (`/transactions`)
+Full transaction history:
+- BUY and SELL operations with price, quantity, currency
+- PPM (precio promedio de compra) per ticker
+- Realized P&L per position
+- Dividend income (ticker, date, gross/net amounts)
+- Import movements from CSV
+- Export all transactions as CSV
 
-Snapshots are created by importing CSV exports from Cocos Capital.
+### Jubilación (`/retirement`)
+Retirement planning calculator:
+- Inputs: current age, retirement age, monthly expenses, inflation, withdrawal rate, monthly contribution
+- Required capital (via withdrawal rate rule)
+- Gap between current portfolio and goal
+- On-track indicator
+- Deterministic projection curve
+- Monte Carlo simulation with percentile bands and success probability
 
-Example:
+### Ganancia Real (`/real-gains`)
+Real USD gain breakdown:
+- Two methodologies: gain in ARS terms vs gain in USD terms
+- Underlying stock appreciation (from HistoricalPriceCache + CEDEAR ratio)
+- CCL impact (how much of the ARS gain is just exchange rate)
+- Per-ticker table with coverage indicators
+- Data wizard to populate missing historical prices
 
-2026-01-01 → Portfolio value: $4,200,000
-2026-02-01 → Portfolio value: $4,450,000
-2026-03-01 → Portfolio value: $4,700,000
+### Assets (`/assets`)
+CEDEAR catalog (reference table):
+- Ticker, CEDEAR ratio, sector, industry, country, underlying ticker
+- Inline editing via dialog
+- Buttons: update CCL, update market prices, import snapshot
 
-Snapshots allow the system to calculate:
-
-- historical portfolio value
-- performance over time
-- growth trends
-
----
-
-# CEDEAR Financial Concepts
-
-CEDEARs represent foreign stocks traded in the Argentine market.
-
-Their price is influenced by:
-
-1. underlying stock price in USD
-2. CEDEAR ratio
-3. Argentine exchange rate (CCL)
-
-Approximate formula:
-
-CEDEAR Price ≈ (Stock Price USD / Ratio) \* CCL
-
-Example:
-
-AAPL price = 200 USD
-CEDEAR ratio = 10:1
-CCL = 1200 ARS
-
-CEDEAR price ≈ (200 / 10) \* 1200
-
-Understanding this relationship is important when calculating portfolio metrics.
-
----
-
-# Portfolio Metrics
-
-The dashboard should calculate the following metrics.
-
-## Portfolio Value
-
-Total value of all positions in the portfolio.
-
----
-
-## Asset Allocation
-
-Percentage of the portfolio allocated to each asset.
-
-Example:
-
-MELI → 22%
-META → 18%
-NVDA → 15%
-
----
-
-## Historical Growth
-
-Portfolio value across time using snapshots.
-
-Displayed using time series charts.
-
----
-
-## Performance
-
-Performance can be measured in:
-
-- ARS (Argentine Pesos)
-- USD (US Dollars)
-
-This allows the user to understand real performance relative to currency devaluation.
+### Configuración (`/settings`)
+Milestone management:
+- Define target portfolio values in USD
+- Track reached status and date
+- Shown as progress widgets on the Dashboard
 
 ---
 
-# Dashboard Sections
+## CEDEAR Financial Concepts
 
-The application should include the following main sections.
+CEDEARs are Argentine certificates that represent foreign stocks traded locally.
 
-## Overview
+**Pricing formula:**
+```
+CEDEAR price (ARS) ≈ (Stock price USD / CEDEAR ratio) × CCL
+```
 
-Displays key portfolio metrics:
+**Variables:**
+- `Stock price USD` — price of the underlying US stock (e.g. AAPL = $180)
+- `CEDEAR ratio` — how many CEDEARs represent one share (e.g. AAPL ratio = 10)
+- `CCL` — Contado con Liquidación rate (implicit USD/ARS rate in the financial market)
 
-- total portfolio value
-- total gain/loss
-- percentage performance
-- number of positions
+This means a CEDEAR's ARS price moves with three factors:
+1. The underlying stock price in USD
+2. The CEDEAR ratio (fixed)
+3. The CCL exchange rate
 
----
-
-## Holdings
-
-A table showing all current positions.
-
-Columns may include:
-
-- ticker
-- quantity
-- price
-- position value
-- allocation %
+**Real gains** separate how much of the portfolio's ARS growth came from:
+- Actual stock appreciation (measured in USD)
+- CCL devaluation of the peso
 
 ---
 
-## Portfolio Performance
+## Key Metrics Tracked
 
-Charts showing:
-
-- portfolio value over time
-- historical growth
+| Metric | Description |
+|--------|-------------|
+| Portfolio value ARS | Sum of all position values |
+| Portfolio value USD | ARS value ÷ CCL |
+| Allocation % | Position value ÷ total value |
+| PPM | Weighted average purchase price per ticker |
+| Unrealized P&L | Current value vs PPM-based cost |
+| Realized P&L | Gains/losses from closed positions |
+| CAGR | Compound annual growth rate across snapshot history |
+| Max Drawdown | Largest peak-to-trough decline in portfolio value |
+| Dividend income | Total net dividends received in USD |
+| CCL | Daily USD/ARS exchange rate from dolarapi.com |
+| Underlying appreciation | USD gain of the stock itself (via Yahoo Finance) |
+| Retirement target | Required capital = annual expenses ÷ withdrawal rate |
+| Monte Carlo success | % of simulated scenarios reaching retirement goal |
 
 ---
 
-## Asset Allocation
+## Long-Term Goal
 
-Visualizations showing how the portfolio is distributed across assets.
+The system helps answer:
 
----
-
-# Long-Term Goal
-
-The long-term goal of the project is to help the user manage a **retirement investment portfolio** and track progress toward financial independence.
-
-The system should help answer questions like:
-
-- How much is the portfolio worth today?
-- How fast is the portfolio growing?
-- Which assets represent the largest allocation?
-- How does performance look over time?
-
-The system should remain simple, reliable, and focused on long-term investing.
+- How much is the portfolio worth today? (ARS and USD)
+- How fast is it growing compared to benchmarks?
+- Is the portfolio on track for retirement?
+- How much of the growth is real (USD appreciation) vs peso devaluation?
+- How concentrated is the portfolio by sector/country?
+- What adjustments are needed to reach target allocations?
+- How has the CCL moved over time and how does it correlate with portfolio USD value?
