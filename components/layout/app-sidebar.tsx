@@ -15,6 +15,8 @@ import {
   DollarSign,
   LogOut,
   Activity,
+  FileText,
+  BookOpen,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { signOut } from "@/lib/auth-client";
@@ -47,10 +49,12 @@ const NAV_ANALYSIS = [
   { label: "Transacciones", href: "/transactions", icon: ArrowLeftRight },
   { label: "Jubilación", href: "/retirement", icon: Target },
   { label: "Ganancia Real", href: "/real-gains", icon: DollarSign },
+  { label: "Reporte mensual", href: "/portfolio", icon: FileText },
 ];
 
 const NAV_CONFIG = [
   { label: "Assets", href: "/assets", icon: Layers },
+  { label: "Estrategia", href: "/strategy", icon: BookOpen },
   { label: "Configuración", href: "/settings", icon: Settings },
 ];
 
