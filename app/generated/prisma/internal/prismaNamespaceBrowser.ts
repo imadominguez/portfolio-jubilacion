@@ -66,7 +66,9 @@ export const ModelName = {
   Dividend: 'Dividend',
   RetirementSettings: 'RetirementSettings',
   HistoricalPriceCache: 'HistoricalPriceCache',
-  MilestoneAlert: 'MilestoneAlert'
+  MilestoneAlert: 'MilestoneAlert',
+  InvestmentStrategy: 'InvestmentStrategy',
+  PortfolioReport: 'PortfolioReport'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -305,12 +307,44 @@ export const MilestoneAlertScalarFieldEnum = {
 export type MilestoneAlertScalarFieldEnum = (typeof MilestoneAlertScalarFieldEnum)[keyof typeof MilestoneAlertScalarFieldEnum]
 
 
+export const InvestmentStrategyScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  content: 'content',
+  isActive: 'isActive',
+  version: 'version',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type InvestmentStrategyScalarFieldEnum = (typeof InvestmentStrategyScalarFieldEnum)[keyof typeof InvestmentStrategyScalarFieldEnum]
+
+
+export const PortfolioReportScalarFieldEnum = {
+  id: 'id',
+  fechaReporte: 'fechaReporte',
+  rawText: 'rawText',
+  normalizedJson: 'normalizedJson',
+  createdAt: 'createdAt',
+  userId: 'userId'
+} as const
+
+export type PortfolioReportScalarFieldEnum = (typeof PortfolioReportScalarFieldEnum)[keyof typeof PortfolioReportScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
@@ -327,4 +361,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

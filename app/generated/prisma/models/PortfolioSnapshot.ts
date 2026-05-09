@@ -221,7 +221,7 @@ export type PortfolioSnapshotGroupByOutputType = {
   _max: PortfolioSnapshotMaxAggregateOutputType | null
 }
 
-type GetPortfolioSnapshotGroupByPayload<T extends PortfolioSnapshotGroupByArgs> = Prisma.PrismaPromise<
+export type GetPortfolioSnapshotGroupByPayload<T extends PortfolioSnapshotGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<PortfolioSnapshotGroupByOutputType, T['by']> &
       {
@@ -267,10 +267,11 @@ export type PortfolioSnapshotOrderByWithRelationInput = {
 
 export type PortfolioSnapshotWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  snapshotDate?: Date | string
+  userId_snapshotDate?: Prisma.PortfolioSnapshotUserIdSnapshotDateCompoundUniqueInput
   AND?: Prisma.PortfolioSnapshotWhereInput | Prisma.PortfolioSnapshotWhereInput[]
   OR?: Prisma.PortfolioSnapshotWhereInput[]
   NOT?: Prisma.PortfolioSnapshotWhereInput | Prisma.PortfolioSnapshotWhereInput[]
+  snapshotDate?: Prisma.DateTimeFilter<"PortfolioSnapshot"> | Date | string
   totalValueArs?: Prisma.DecimalFilter<"PortfolioSnapshot"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalValueUsd?: Prisma.DecimalNullableFilter<"PortfolioSnapshot"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   ccl?: Prisma.DecimalNullableFilter<"PortfolioSnapshot"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -279,7 +280,7 @@ export type PortfolioSnapshotWhereUniqueInput = Prisma.AtLeast<{
   userId?: Prisma.StringNullableFilter<"PortfolioSnapshot"> | string | null
   positions?: Prisma.PositionListRelationFilter
   user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
-}, "id" | "snapshotDate">
+}, "id" | "userId_snapshotDate">
 
 export type PortfolioSnapshotOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -399,6 +400,11 @@ export type PortfolioSnapshotListRelationFilter = {
 
 export type PortfolioSnapshotOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type PortfolioSnapshotUserIdSnapshotDateCompoundUniqueInput = {
+  userId: string
+  snapshotDate: Date | string
 }
 
 export type PortfolioSnapshotCountOrderByAggregateInput = {
@@ -1424,6 +1430,11 @@ export type PortfolioSnapshotFindManyArgs<ExtArgs extends runtime.Types.Extensio
    * Skip the first `n` PortfolioSnapshots.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of PortfolioSnapshots.
+   */
   distinct?: Prisma.PortfolioSnapshotScalarFieldEnum | Prisma.PortfolioSnapshotScalarFieldEnum[]
 }
 

@@ -80,12 +80,12 @@ export type PrismaVersion = {
 }
 
 /**
- * Prisma Client JS version: 7.4.2
- * Query Engine version: 94a226be1cf2967af2541cca5529f0f7ba866919
+ * Prisma Client JS version: 7.7.0
+ * Query Engine version: 75cbdc1eb7150937890ad5465d861175c6624711
  */
 export const prismaVersion: PrismaVersion = {
-  client: "7.4.2",
-  engine: "94a226be1cf2967af2541cca5529f0f7ba866919"
+  client: "7.7.0",
+  engine: "75cbdc1eb7150937890ad5465d861175c6624711"
 }
 
 /**
@@ -399,7 +399,9 @@ export const ModelName = {
   Dividend: 'Dividend',
   RetirementSettings: 'RetirementSettings',
   HistoricalPriceCache: 'HistoricalPriceCache',
-  MilestoneAlert: 'MilestoneAlert'
+  MilestoneAlert: 'MilestoneAlert',
+  InvestmentStrategy: 'InvestmentStrategy',
+  PortfolioReport: 'PortfolioReport'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -415,7 +417,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "portfolioSnapshot" | "position" | "asset" | "exchangeRate" | "marketPriceCache" | "benchmarkPoint" | "targetAllocation" | "transaction" | "dividend" | "retirementSettings" | "historicalPriceCache" | "milestoneAlert"
+    modelProps: "user" | "session" | "account" | "verification" | "portfolioSnapshot" | "position" | "asset" | "exchangeRate" | "marketPriceCache" | "benchmarkPoint" | "targetAllocation" | "transaction" | "dividend" | "retirementSettings" | "historicalPriceCache" | "milestoneAlert" | "investmentStrategy" | "portfolioReport"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1603,6 +1605,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    InvestmentStrategy: {
+      payload: Prisma.$InvestmentStrategyPayload<ExtArgs>
+      fields: Prisma.InvestmentStrategyFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.InvestmentStrategyFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InvestmentStrategyPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.InvestmentStrategyFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InvestmentStrategyPayload>
+        }
+        findFirst: {
+          args: Prisma.InvestmentStrategyFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InvestmentStrategyPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.InvestmentStrategyFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InvestmentStrategyPayload>
+        }
+        findMany: {
+          args: Prisma.InvestmentStrategyFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InvestmentStrategyPayload>[]
+        }
+        create: {
+          args: Prisma.InvestmentStrategyCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InvestmentStrategyPayload>
+        }
+        createMany: {
+          args: Prisma.InvestmentStrategyCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.InvestmentStrategyCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InvestmentStrategyPayload>[]
+        }
+        delete: {
+          args: Prisma.InvestmentStrategyDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InvestmentStrategyPayload>
+        }
+        update: {
+          args: Prisma.InvestmentStrategyUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InvestmentStrategyPayload>
+        }
+        deleteMany: {
+          args: Prisma.InvestmentStrategyDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.InvestmentStrategyUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.InvestmentStrategyUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InvestmentStrategyPayload>[]
+        }
+        upsert: {
+          args: Prisma.InvestmentStrategyUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InvestmentStrategyPayload>
+        }
+        aggregate: {
+          args: Prisma.InvestmentStrategyAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateInvestmentStrategy>
+        }
+        groupBy: {
+          args: Prisma.InvestmentStrategyGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.InvestmentStrategyGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.InvestmentStrategyCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.InvestmentStrategyCountAggregateOutputType> | number
+        }
+      }
+    }
+    PortfolioReport: {
+      payload: Prisma.$PortfolioReportPayload<ExtArgs>
+      fields: Prisma.PortfolioReportFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PortfolioReportFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PortfolioReportPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PortfolioReportFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PortfolioReportPayload>
+        }
+        findFirst: {
+          args: Prisma.PortfolioReportFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PortfolioReportPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PortfolioReportFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PortfolioReportPayload>
+        }
+        findMany: {
+          args: Prisma.PortfolioReportFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PortfolioReportPayload>[]
+        }
+        create: {
+          args: Prisma.PortfolioReportCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PortfolioReportPayload>
+        }
+        createMany: {
+          args: Prisma.PortfolioReportCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PortfolioReportCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PortfolioReportPayload>[]
+        }
+        delete: {
+          args: Prisma.PortfolioReportDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PortfolioReportPayload>
+        }
+        update: {
+          args: Prisma.PortfolioReportUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PortfolioReportPayload>
+        }
+        deleteMany: {
+          args: Prisma.PortfolioReportDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PortfolioReportUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PortfolioReportUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PortfolioReportPayload>[]
+        }
+        upsert: {
+          args: Prisma.PortfolioReportUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PortfolioReportPayload>
+        }
+        aggregate: {
+          args: Prisma.PortfolioReportAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePortfolioReport>
+        }
+        groupBy: {
+          args: Prisma.PortfolioReportGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PortfolioReportGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PortfolioReportCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PortfolioReportCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1862,12 +2012,44 @@ export const MilestoneAlertScalarFieldEnum = {
 export type MilestoneAlertScalarFieldEnum = (typeof MilestoneAlertScalarFieldEnum)[keyof typeof MilestoneAlertScalarFieldEnum]
 
 
+export const InvestmentStrategyScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  content: 'content',
+  isActive: 'isActive',
+  version: 'version',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type InvestmentStrategyScalarFieldEnum = (typeof InvestmentStrategyScalarFieldEnum)[keyof typeof InvestmentStrategyScalarFieldEnum]
+
+
+export const PortfolioReportScalarFieldEnum = {
+  id: 'id',
+  fechaReporte: 'fechaReporte',
+  rawText: 'rawText',
+  normalizedJson: 'normalizedJson',
+  createdAt: 'createdAt',
+  userId: 'userId'
+} as const
+
+export type PortfolioReportScalarFieldEnum = (typeof PortfolioReportScalarFieldEnum)[keyof typeof PortfolioReportScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
@@ -1884,6 +2066,15 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
 
@@ -1980,6 +2171,20 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'Int[]'
  */
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -2107,6 +2312,8 @@ export type GlobalOmitConfig = {
   retirementSettings?: Prisma.RetirementSettingsOmit
   historicalPriceCache?: Prisma.HistoricalPriceCacheOmit
   milestoneAlert?: Prisma.MilestoneAlertOmit
+  investmentStrategy?: Prisma.InvestmentStrategyOmit
+  portfolioReport?: Prisma.PortfolioReportOmit
 }
 
 /* Types for Logging */

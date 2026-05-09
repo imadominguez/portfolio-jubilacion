@@ -172,7 +172,7 @@ export type UserGroupByOutputType = {
   _max: UserMaxAggregateOutputType | null
 }
 
-type GetUserGroupByPayload<T extends UserGroupByArgs> = Prisma.PrismaPromise<
+export type GetUserGroupByPayload<T extends UserGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<UserGroupByOutputType, T['by']> &
       {
@@ -206,6 +206,7 @@ export type UserWhereInput = {
   retirementSettings?: Prisma.RetirementSettingsListRelationFilter
   targetAllocations?: Prisma.TargetAllocationListRelationFilter
   milestoneAlerts?: Prisma.MilestoneAlertListRelationFilter
+  portfolioReports?: Prisma.PortfolioReportListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -224,6 +225,7 @@ export type UserOrderByWithRelationInput = {
   retirementSettings?: Prisma.RetirementSettingsOrderByRelationAggregateInput
   targetAllocations?: Prisma.TargetAllocationOrderByRelationAggregateInput
   milestoneAlerts?: Prisma.MilestoneAlertOrderByRelationAggregateInput
+  portfolioReports?: Prisma.PortfolioReportOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -245,6 +247,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   retirementSettings?: Prisma.RetirementSettingsListRelationFilter
   targetAllocations?: Prisma.TargetAllocationListRelationFilter
   milestoneAlerts?: Prisma.MilestoneAlertListRelationFilter
+  portfolioReports?: Prisma.PortfolioReportListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -289,6 +292,7 @@ export type UserCreateInput = {
   retirementSettings?: Prisma.RetirementSettingsCreateNestedManyWithoutUserInput
   targetAllocations?: Prisma.TargetAllocationCreateNestedManyWithoutUserInput
   milestoneAlerts?: Prisma.MilestoneAlertCreateNestedManyWithoutUserInput
+  portfolioReports?: Prisma.PortfolioReportCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -307,6 +311,7 @@ export type UserUncheckedCreateInput = {
   retirementSettings?: Prisma.RetirementSettingsUncheckedCreateNestedManyWithoutUserInput
   targetAllocations?: Prisma.TargetAllocationUncheckedCreateNestedManyWithoutUserInput
   milestoneAlerts?: Prisma.MilestoneAlertUncheckedCreateNestedManyWithoutUserInput
+  portfolioReports?: Prisma.PortfolioReportUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -325,6 +330,7 @@ export type UserUpdateInput = {
   retirementSettings?: Prisma.RetirementSettingsUpdateManyWithoutUserNestedInput
   targetAllocations?: Prisma.TargetAllocationUpdateManyWithoutUserNestedInput
   milestoneAlerts?: Prisma.MilestoneAlertUpdateManyWithoutUserNestedInput
+  portfolioReports?: Prisma.PortfolioReportUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -343,6 +349,7 @@ export type UserUncheckedUpdateInput = {
   retirementSettings?: Prisma.RetirementSettingsUncheckedUpdateManyWithoutUserNestedInput
   targetAllocations?: Prisma.TargetAllocationUncheckedUpdateManyWithoutUserNestedInput
   milestoneAlerts?: Prisma.MilestoneAlertUncheckedUpdateManyWithoutUserNestedInput
+  portfolioReports?: Prisma.PortfolioReportUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -555,6 +562,22 @@ export type UserUpdateOneWithoutMilestoneAlertsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutMilestoneAlertsInput, Prisma.UserUpdateWithoutMilestoneAlertsInput>, Prisma.UserUncheckedUpdateWithoutMilestoneAlertsInput>
 }
 
+export type UserCreateNestedOneWithoutPortfolioReportsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPortfolioReportsInput, Prisma.UserUncheckedCreateWithoutPortfolioReportsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPortfolioReportsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutPortfolioReportsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPortfolioReportsInput, Prisma.UserUncheckedCreateWithoutPortfolioReportsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPortfolioReportsInput
+  upsert?: Prisma.UserUpsertWithoutPortfolioReportsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPortfolioReportsInput, Prisma.UserUpdateWithoutPortfolioReportsInput>, Prisma.UserUncheckedUpdateWithoutPortfolioReportsInput>
+}
+
 export type UserCreateWithoutSessionsInput = {
   id: string
   name: string
@@ -570,6 +593,7 @@ export type UserCreateWithoutSessionsInput = {
   retirementSettings?: Prisma.RetirementSettingsCreateNestedManyWithoutUserInput
   targetAllocations?: Prisma.TargetAllocationCreateNestedManyWithoutUserInput
   milestoneAlerts?: Prisma.MilestoneAlertCreateNestedManyWithoutUserInput
+  portfolioReports?: Prisma.PortfolioReportCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -587,6 +611,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   retirementSettings?: Prisma.RetirementSettingsUncheckedCreateNestedManyWithoutUserInput
   targetAllocations?: Prisma.TargetAllocationUncheckedCreateNestedManyWithoutUserInput
   milestoneAlerts?: Prisma.MilestoneAlertUncheckedCreateNestedManyWithoutUserInput
+  portfolioReports?: Prisma.PortfolioReportUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -620,6 +645,7 @@ export type UserUpdateWithoutSessionsInput = {
   retirementSettings?: Prisma.RetirementSettingsUpdateManyWithoutUserNestedInput
   targetAllocations?: Prisma.TargetAllocationUpdateManyWithoutUserNestedInput
   milestoneAlerts?: Prisma.MilestoneAlertUpdateManyWithoutUserNestedInput
+  portfolioReports?: Prisma.PortfolioReportUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -637,6 +663,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   retirementSettings?: Prisma.RetirementSettingsUncheckedUpdateManyWithoutUserNestedInput
   targetAllocations?: Prisma.TargetAllocationUncheckedUpdateManyWithoutUserNestedInput
   milestoneAlerts?: Prisma.MilestoneAlertUncheckedUpdateManyWithoutUserNestedInput
+  portfolioReports?: Prisma.PortfolioReportUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAccountsInput = {
@@ -654,6 +681,7 @@ export type UserCreateWithoutAccountsInput = {
   retirementSettings?: Prisma.RetirementSettingsCreateNestedManyWithoutUserInput
   targetAllocations?: Prisma.TargetAllocationCreateNestedManyWithoutUserInput
   milestoneAlerts?: Prisma.MilestoneAlertCreateNestedManyWithoutUserInput
+  portfolioReports?: Prisma.PortfolioReportCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -671,6 +699,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   retirementSettings?: Prisma.RetirementSettingsUncheckedCreateNestedManyWithoutUserInput
   targetAllocations?: Prisma.TargetAllocationUncheckedCreateNestedManyWithoutUserInput
   milestoneAlerts?: Prisma.MilestoneAlertUncheckedCreateNestedManyWithoutUserInput
+  portfolioReports?: Prisma.PortfolioReportUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -704,6 +733,7 @@ export type UserUpdateWithoutAccountsInput = {
   retirementSettings?: Prisma.RetirementSettingsUpdateManyWithoutUserNestedInput
   targetAllocations?: Prisma.TargetAllocationUpdateManyWithoutUserNestedInput
   milestoneAlerts?: Prisma.MilestoneAlertUpdateManyWithoutUserNestedInput
+  portfolioReports?: Prisma.PortfolioReportUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -721,6 +751,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   retirementSettings?: Prisma.RetirementSettingsUncheckedUpdateManyWithoutUserNestedInput
   targetAllocations?: Prisma.TargetAllocationUncheckedUpdateManyWithoutUserNestedInput
   milestoneAlerts?: Prisma.MilestoneAlertUncheckedUpdateManyWithoutUserNestedInput
+  portfolioReports?: Prisma.PortfolioReportUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPortfolioSnapshotsInput = {
@@ -738,6 +769,7 @@ export type UserCreateWithoutPortfolioSnapshotsInput = {
   retirementSettings?: Prisma.RetirementSettingsCreateNestedManyWithoutUserInput
   targetAllocations?: Prisma.TargetAllocationCreateNestedManyWithoutUserInput
   milestoneAlerts?: Prisma.MilestoneAlertCreateNestedManyWithoutUserInput
+  portfolioReports?: Prisma.PortfolioReportCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPortfolioSnapshotsInput = {
@@ -755,6 +787,7 @@ export type UserUncheckedCreateWithoutPortfolioSnapshotsInput = {
   retirementSettings?: Prisma.RetirementSettingsUncheckedCreateNestedManyWithoutUserInput
   targetAllocations?: Prisma.TargetAllocationUncheckedCreateNestedManyWithoutUserInput
   milestoneAlerts?: Prisma.MilestoneAlertUncheckedCreateNestedManyWithoutUserInput
+  portfolioReports?: Prisma.PortfolioReportUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPortfolioSnapshotsInput = {
@@ -788,6 +821,7 @@ export type UserUpdateWithoutPortfolioSnapshotsInput = {
   retirementSettings?: Prisma.RetirementSettingsUpdateManyWithoutUserNestedInput
   targetAllocations?: Prisma.TargetAllocationUpdateManyWithoutUserNestedInput
   milestoneAlerts?: Prisma.MilestoneAlertUpdateManyWithoutUserNestedInput
+  portfolioReports?: Prisma.PortfolioReportUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPortfolioSnapshotsInput = {
@@ -805,6 +839,7 @@ export type UserUncheckedUpdateWithoutPortfolioSnapshotsInput = {
   retirementSettings?: Prisma.RetirementSettingsUncheckedUpdateManyWithoutUserNestedInput
   targetAllocations?: Prisma.TargetAllocationUncheckedUpdateManyWithoutUserNestedInput
   milestoneAlerts?: Prisma.MilestoneAlertUncheckedUpdateManyWithoutUserNestedInput
+  portfolioReports?: Prisma.PortfolioReportUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTargetAllocationsInput = {
@@ -822,6 +857,7 @@ export type UserCreateWithoutTargetAllocationsInput = {
   dividends?: Prisma.DividendCreateNestedManyWithoutUserInput
   retirementSettings?: Prisma.RetirementSettingsCreateNestedManyWithoutUserInput
   milestoneAlerts?: Prisma.MilestoneAlertCreateNestedManyWithoutUserInput
+  portfolioReports?: Prisma.PortfolioReportCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTargetAllocationsInput = {
@@ -839,6 +875,7 @@ export type UserUncheckedCreateWithoutTargetAllocationsInput = {
   dividends?: Prisma.DividendUncheckedCreateNestedManyWithoutUserInput
   retirementSettings?: Prisma.RetirementSettingsUncheckedCreateNestedManyWithoutUserInput
   milestoneAlerts?: Prisma.MilestoneAlertUncheckedCreateNestedManyWithoutUserInput
+  portfolioReports?: Prisma.PortfolioReportUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTargetAllocationsInput = {
@@ -872,6 +909,7 @@ export type UserUpdateWithoutTargetAllocationsInput = {
   dividends?: Prisma.DividendUpdateManyWithoutUserNestedInput
   retirementSettings?: Prisma.RetirementSettingsUpdateManyWithoutUserNestedInput
   milestoneAlerts?: Prisma.MilestoneAlertUpdateManyWithoutUserNestedInput
+  portfolioReports?: Prisma.PortfolioReportUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTargetAllocationsInput = {
@@ -889,6 +927,7 @@ export type UserUncheckedUpdateWithoutTargetAllocationsInput = {
   dividends?: Prisma.DividendUncheckedUpdateManyWithoutUserNestedInput
   retirementSettings?: Prisma.RetirementSettingsUncheckedUpdateManyWithoutUserNestedInput
   milestoneAlerts?: Prisma.MilestoneAlertUncheckedUpdateManyWithoutUserNestedInput
+  portfolioReports?: Prisma.PortfolioReportUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTransactionsInput = {
@@ -906,6 +945,7 @@ export type UserCreateWithoutTransactionsInput = {
   retirementSettings?: Prisma.RetirementSettingsCreateNestedManyWithoutUserInput
   targetAllocations?: Prisma.TargetAllocationCreateNestedManyWithoutUserInput
   milestoneAlerts?: Prisma.MilestoneAlertCreateNestedManyWithoutUserInput
+  portfolioReports?: Prisma.PortfolioReportCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTransactionsInput = {
@@ -923,6 +963,7 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   retirementSettings?: Prisma.RetirementSettingsUncheckedCreateNestedManyWithoutUserInput
   targetAllocations?: Prisma.TargetAllocationUncheckedCreateNestedManyWithoutUserInput
   milestoneAlerts?: Prisma.MilestoneAlertUncheckedCreateNestedManyWithoutUserInput
+  portfolioReports?: Prisma.PortfolioReportUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTransactionsInput = {
@@ -956,6 +997,7 @@ export type UserUpdateWithoutTransactionsInput = {
   retirementSettings?: Prisma.RetirementSettingsUpdateManyWithoutUserNestedInput
   targetAllocations?: Prisma.TargetAllocationUpdateManyWithoutUserNestedInput
   milestoneAlerts?: Prisma.MilestoneAlertUpdateManyWithoutUserNestedInput
+  portfolioReports?: Prisma.PortfolioReportUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTransactionsInput = {
@@ -973,6 +1015,7 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   retirementSettings?: Prisma.RetirementSettingsUncheckedUpdateManyWithoutUserNestedInput
   targetAllocations?: Prisma.TargetAllocationUncheckedUpdateManyWithoutUserNestedInput
   milestoneAlerts?: Prisma.MilestoneAlertUncheckedUpdateManyWithoutUserNestedInput
+  portfolioReports?: Prisma.PortfolioReportUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutDividendsInput = {
@@ -990,6 +1033,7 @@ export type UserCreateWithoutDividendsInput = {
   retirementSettings?: Prisma.RetirementSettingsCreateNestedManyWithoutUserInput
   targetAllocations?: Prisma.TargetAllocationCreateNestedManyWithoutUserInput
   milestoneAlerts?: Prisma.MilestoneAlertCreateNestedManyWithoutUserInput
+  portfolioReports?: Prisma.PortfolioReportCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutDividendsInput = {
@@ -1007,6 +1051,7 @@ export type UserUncheckedCreateWithoutDividendsInput = {
   retirementSettings?: Prisma.RetirementSettingsUncheckedCreateNestedManyWithoutUserInput
   targetAllocations?: Prisma.TargetAllocationUncheckedCreateNestedManyWithoutUserInput
   milestoneAlerts?: Prisma.MilestoneAlertUncheckedCreateNestedManyWithoutUserInput
+  portfolioReports?: Prisma.PortfolioReportUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutDividendsInput = {
@@ -1040,6 +1085,7 @@ export type UserUpdateWithoutDividendsInput = {
   retirementSettings?: Prisma.RetirementSettingsUpdateManyWithoutUserNestedInput
   targetAllocations?: Prisma.TargetAllocationUpdateManyWithoutUserNestedInput
   milestoneAlerts?: Prisma.MilestoneAlertUpdateManyWithoutUserNestedInput
+  portfolioReports?: Prisma.PortfolioReportUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutDividendsInput = {
@@ -1057,6 +1103,7 @@ export type UserUncheckedUpdateWithoutDividendsInput = {
   retirementSettings?: Prisma.RetirementSettingsUncheckedUpdateManyWithoutUserNestedInput
   targetAllocations?: Prisma.TargetAllocationUncheckedUpdateManyWithoutUserNestedInput
   milestoneAlerts?: Prisma.MilestoneAlertUncheckedUpdateManyWithoutUserNestedInput
+  portfolioReports?: Prisma.PortfolioReportUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutRetirementSettingsInput = {
@@ -1074,6 +1121,7 @@ export type UserCreateWithoutRetirementSettingsInput = {
   dividends?: Prisma.DividendCreateNestedManyWithoutUserInput
   targetAllocations?: Prisma.TargetAllocationCreateNestedManyWithoutUserInput
   milestoneAlerts?: Prisma.MilestoneAlertCreateNestedManyWithoutUserInput
+  portfolioReports?: Prisma.PortfolioReportCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutRetirementSettingsInput = {
@@ -1091,6 +1139,7 @@ export type UserUncheckedCreateWithoutRetirementSettingsInput = {
   dividends?: Prisma.DividendUncheckedCreateNestedManyWithoutUserInput
   targetAllocations?: Prisma.TargetAllocationUncheckedCreateNestedManyWithoutUserInput
   milestoneAlerts?: Prisma.MilestoneAlertUncheckedCreateNestedManyWithoutUserInput
+  portfolioReports?: Prisma.PortfolioReportUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutRetirementSettingsInput = {
@@ -1124,6 +1173,7 @@ export type UserUpdateWithoutRetirementSettingsInput = {
   dividends?: Prisma.DividendUpdateManyWithoutUserNestedInput
   targetAllocations?: Prisma.TargetAllocationUpdateManyWithoutUserNestedInput
   milestoneAlerts?: Prisma.MilestoneAlertUpdateManyWithoutUserNestedInput
+  portfolioReports?: Prisma.PortfolioReportUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRetirementSettingsInput = {
@@ -1141,6 +1191,7 @@ export type UserUncheckedUpdateWithoutRetirementSettingsInput = {
   dividends?: Prisma.DividendUncheckedUpdateManyWithoutUserNestedInput
   targetAllocations?: Prisma.TargetAllocationUncheckedUpdateManyWithoutUserNestedInput
   milestoneAlerts?: Prisma.MilestoneAlertUncheckedUpdateManyWithoutUserNestedInput
+  portfolioReports?: Prisma.PortfolioReportUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutMilestoneAlertsInput = {
@@ -1158,6 +1209,7 @@ export type UserCreateWithoutMilestoneAlertsInput = {
   dividends?: Prisma.DividendCreateNestedManyWithoutUserInput
   retirementSettings?: Prisma.RetirementSettingsCreateNestedManyWithoutUserInput
   targetAllocations?: Prisma.TargetAllocationCreateNestedManyWithoutUserInput
+  portfolioReports?: Prisma.PortfolioReportCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutMilestoneAlertsInput = {
@@ -1175,6 +1227,7 @@ export type UserUncheckedCreateWithoutMilestoneAlertsInput = {
   dividends?: Prisma.DividendUncheckedCreateNestedManyWithoutUserInput
   retirementSettings?: Prisma.RetirementSettingsUncheckedCreateNestedManyWithoutUserInput
   targetAllocations?: Prisma.TargetAllocationUncheckedCreateNestedManyWithoutUserInput
+  portfolioReports?: Prisma.PortfolioReportUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutMilestoneAlertsInput = {
@@ -1208,6 +1261,7 @@ export type UserUpdateWithoutMilestoneAlertsInput = {
   dividends?: Prisma.DividendUpdateManyWithoutUserNestedInput
   retirementSettings?: Prisma.RetirementSettingsUpdateManyWithoutUserNestedInput
   targetAllocations?: Prisma.TargetAllocationUpdateManyWithoutUserNestedInput
+  portfolioReports?: Prisma.PortfolioReportUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMilestoneAlertsInput = {
@@ -1225,6 +1279,95 @@ export type UserUncheckedUpdateWithoutMilestoneAlertsInput = {
   dividends?: Prisma.DividendUncheckedUpdateManyWithoutUserNestedInput
   retirementSettings?: Prisma.RetirementSettingsUncheckedUpdateManyWithoutUserNestedInput
   targetAllocations?: Prisma.TargetAllocationUncheckedUpdateManyWithoutUserNestedInput
+  portfolioReports?: Prisma.PortfolioReportUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutPortfolioReportsInput = {
+  id: string
+  name: string
+  email: string
+  emailVerified: boolean
+  image?: string | null
+  createdAt: Date | string
+  updatedAt: Date | string
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  portfolioSnapshots?: Prisma.PortfolioSnapshotCreateNestedManyWithoutUserInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  dividends?: Prisma.DividendCreateNestedManyWithoutUserInput
+  retirementSettings?: Prisma.RetirementSettingsCreateNestedManyWithoutUserInput
+  targetAllocations?: Prisma.TargetAllocationCreateNestedManyWithoutUserInput
+  milestoneAlerts?: Prisma.MilestoneAlertCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutPortfolioReportsInput = {
+  id: string
+  name: string
+  email: string
+  emailVerified: boolean
+  image?: string | null
+  createdAt: Date | string
+  updatedAt: Date | string
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  portfolioSnapshots?: Prisma.PortfolioSnapshotUncheckedCreateNestedManyWithoutUserInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  dividends?: Prisma.DividendUncheckedCreateNestedManyWithoutUserInput
+  retirementSettings?: Prisma.RetirementSettingsUncheckedCreateNestedManyWithoutUserInput
+  targetAllocations?: Prisma.TargetAllocationUncheckedCreateNestedManyWithoutUserInput
+  milestoneAlerts?: Prisma.MilestoneAlertUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutPortfolioReportsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPortfolioReportsInput, Prisma.UserUncheckedCreateWithoutPortfolioReportsInput>
+}
+
+export type UserUpsertWithoutPortfolioReportsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPortfolioReportsInput, Prisma.UserUncheckedUpdateWithoutPortfolioReportsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPortfolioReportsInput, Prisma.UserUncheckedCreateWithoutPortfolioReportsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPortfolioReportsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPortfolioReportsInput, Prisma.UserUncheckedUpdateWithoutPortfolioReportsInput>
+}
+
+export type UserUpdateWithoutPortfolioReportsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  portfolioSnapshots?: Prisma.PortfolioSnapshotUpdateManyWithoutUserNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  dividends?: Prisma.DividendUpdateManyWithoutUserNestedInput
+  retirementSettings?: Prisma.RetirementSettingsUpdateManyWithoutUserNestedInput
+  targetAllocations?: Prisma.TargetAllocationUpdateManyWithoutUserNestedInput
+  milestoneAlerts?: Prisma.MilestoneAlertUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPortfolioReportsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  portfolioSnapshots?: Prisma.PortfolioSnapshotUncheckedUpdateManyWithoutUserNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  dividends?: Prisma.DividendUncheckedUpdateManyWithoutUserNestedInput
+  retirementSettings?: Prisma.RetirementSettingsUncheckedUpdateManyWithoutUserNestedInput
+  targetAllocations?: Prisma.TargetAllocationUncheckedUpdateManyWithoutUserNestedInput
+  milestoneAlerts?: Prisma.MilestoneAlertUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -1241,6 +1384,7 @@ export type UserCountOutputType = {
   retirementSettings: number
   targetAllocations: number
   milestoneAlerts: number
+  portfolioReports: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1252,6 +1396,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   retirementSettings?: boolean | UserCountOutputTypeCountRetirementSettingsArgs
   targetAllocations?: boolean | UserCountOutputTypeCountTargetAllocationsArgs
   milestoneAlerts?: boolean | UserCountOutputTypeCountMilestoneAlertsArgs
+  portfolioReports?: boolean | UserCountOutputTypeCountPortfolioReportsArgs
 }
 
 /**
@@ -1320,6 +1465,13 @@ export type UserCountOutputTypeCountMilestoneAlertsArgs<ExtArgs extends runtime.
   where?: Prisma.MilestoneAlertWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountPortfolioReportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PortfolioReportWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1337,6 +1489,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   retirementSettings?: boolean | Prisma.User$retirementSettingsArgs<ExtArgs>
   targetAllocations?: boolean | Prisma.User$targetAllocationsArgs<ExtArgs>
   milestoneAlerts?: boolean | Prisma.User$milestoneAlertsArgs<ExtArgs>
+  portfolioReports?: boolean | Prisma.User$portfolioReportsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1380,6 +1533,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   retirementSettings?: boolean | Prisma.User$retirementSettingsArgs<ExtArgs>
   targetAllocations?: boolean | Prisma.User$targetAllocationsArgs<ExtArgs>
   milestoneAlerts?: boolean | Prisma.User$milestoneAlertsArgs<ExtArgs>
+  portfolioReports?: boolean | Prisma.User$portfolioReportsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1396,6 +1550,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     retirementSettings: Prisma.$RetirementSettingsPayload<ExtArgs>[]
     targetAllocations: Prisma.$TargetAllocationPayload<ExtArgs>[]
     milestoneAlerts: Prisma.$MilestoneAlertPayload<ExtArgs>[]
+    portfolioReports: Prisma.$PortfolioReportPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1807,6 +1962,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   retirementSettings<T extends Prisma.User$retirementSettingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$retirementSettingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RetirementSettingsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   targetAllocations<T extends Prisma.User$targetAllocationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$targetAllocationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TargetAllocationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   milestoneAlerts<T extends Prisma.User$milestoneAlertsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$milestoneAlertsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MilestoneAlertPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  portfolioReports<T extends Prisma.User$portfolioReportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$portfolioReportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PortfolioReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2039,6 +2195,11 @@ export type UserFindManyArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
    * Skip the first `n` Users.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of Users.
+   */
   distinct?: Prisma.UserScalarFieldEnum | Prisma.UserScalarFieldEnum[]
 }
 
@@ -2420,6 +2581,30 @@ export type User$milestoneAlertsArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.MilestoneAlertScalarFieldEnum | Prisma.MilestoneAlertScalarFieldEnum[]
+}
+
+/**
+ * User.portfolioReports
+ */
+export type User$portfolioReportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PortfolioReport
+   */
+  select?: Prisma.PortfolioReportSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PortfolioReport
+   */
+  omit?: Prisma.PortfolioReportOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PortfolioReportInclude<ExtArgs> | null
+  where?: Prisma.PortfolioReportWhereInput
+  orderBy?: Prisma.PortfolioReportOrderByWithRelationInput | Prisma.PortfolioReportOrderByWithRelationInput[]
+  cursor?: Prisma.PortfolioReportWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PortfolioReportScalarFieldEnum | Prisma.PortfolioReportScalarFieldEnum[]
 }
 
 /**

@@ -42,6 +42,7 @@ model User {
   retirementSettings RetirementSettings[]
   targetAllocations  TargetAllocation[]
   milestoneAlerts    MilestoneAlert[]
+  portfolioReports   PortfolioReport[]
 
   @@map("user")
 }
@@ -100,7 +101,7 @@ model Verification {
 
 model PortfolioSnapshot {
   id            String     @id @default(cuid())
-  snapshotDate  DateTime   @unique @db.Date
+  snapshotDate  DateTime   @db.Date
   totalValueArs Decimal    @db.Decimal(18, 2)
   totalValueUsd Decimal?   @db.Decimal(18, 2)
   ccl           Decimal?   @db.Decimal(10, 4)
@@ -110,6 +111,7 @@ model PortfolioSnapshot {
   userId        String?
   user          User?      @relation(fields: [userId], references: [id])
 
+  @@unique([userId, snapshotDate])
   @@index([snapshotDate])
   @@map("portfolio_snapshots")
 }
@@ -351,5 +353,48 @@ model MilestoneAlert {
   user           User?     @relation(fields: [userId], references: [id])
 
   @@map("milestone_alerts")
+}
+
+// ---------------------------------------------------------------------------
+// InvestmentStrategy
+//
+// Almacena versiones inmutables de la estrategia de inversión en CEDEARs.
+// Solo una versión puede estar activa a la vez (isActive = true).
+// Nunca se modifica un registro existente — cada cambio crea uno nuevo.
+// Se usa como system prompt al llamar a Claude en analyze-portfolio.
+// ---------------------------------------------------------------------------
+
+model InvestmentStrategy {
+  id        String   @id @default(cuid())
+  title     String
+  content   String   @db.Text
+  isActive  Boolean  @default(false)
+  version   Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+  @@map("investment_strategies")
+}
+
+// ---------------------------------------------------------------------------
+// PortfolioReport
+//
+// Guarda cada análisis mensual generado por Claude a partir de un PDF de
+// Cocos Capital. Permite consultar el historial de reportes en producción
+// sin depender del sistema de archivos (que es efímero en Vercel).
+// ---------------------------------------------------------------------------
+
+model PortfolioReport {
+  id             String   @id @default(cuid())
+  fechaReporte   String
+  rawText        String
+  normalizedJson Json
+  createdAt      DateTime @default(now())
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id])
+
+  @@index([createdAt])
+  @@map("portfolio_reports")
 }
 

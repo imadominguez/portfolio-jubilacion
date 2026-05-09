@@ -206,7 +206,7 @@ export type TargetAllocationGroupByOutputType = {
   _max: TargetAllocationMaxAggregateOutputType | null
 }
 
-type GetTargetAllocationGroupByPayload<T extends TargetAllocationGroupByArgs> = Prisma.PrismaPromise<
+export type GetTargetAllocationGroupByPayload<T extends TargetAllocationGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<TargetAllocationGroupByOutputType, T['by']> &
       {
@@ -1236,6 +1236,11 @@ export type TargetAllocationFindManyArgs<ExtArgs extends runtime.Types.Extension
    * Skip the first `n` TargetAllocations.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of TargetAllocations.
+   */
   distinct?: Prisma.TargetAllocationScalarFieldEnum | Prisma.TargetAllocationScalarFieldEnum[]
 }
 
