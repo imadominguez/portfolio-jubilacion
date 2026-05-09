@@ -57,14 +57,27 @@ function extractTicker(instrumento: string): string | null {
   return match ? match[1] : null;
 }
 
-function classifyTipoOperacion(tipo: string): "BUY" | "SELL" | "SKIP_FCI" | "SKIP_PAGO" | "SKIP_DIVIDENDO" | "SKIP_MEP" | "SKIP_OTHER" {
+function classifyTipoOperacion(
+  tipo: string
+): "BUY" | "SELL" | "SKIP_FCI" | "SKIP_PAGO" | "SKIP_DIVIDENDO" | "SKIP_MEP" | "SKIP_OTHER" {
   const t = tipo.trim();
-  if (t === "Compra") return "BUY";
-  if (t === "Venta") return "SELL";
-  if (t.includes("Fci") || t.includes("FCI")) return "SKIP_FCI";
+  const lower = t.toLowerCase();
+
+  // "Compra/Venta Registracion ARS/USD" son asientos contables internos del canje (ej: bonos),
+  // no compras reales del activo. Se descartan antes que el match de "Compra"/"Venta".
+  if (/registracion/i.test(t)) return "SKIP_OTHER";
+
+  if (lower.includes("fci")) return "SKIP_FCI";
   if (t === "Orden De Pago" || t === "Recibo De Cobro") return "SKIP_PAGO";
-  if (t === "DIVIDENDOS EN ESPECIE" || t === "Dividendos") return "SKIP_DIVIDENDO";
-  if (t.includes("bono") || t.includes("MEP") || t.includes("Nota De Credito")) return "SKIP_MEP";
+  if (lower.includes("dividendo")) return "SKIP_DIVIDENDO";
+
+  // Compras/ventas reales: en pesos ("Compra"/"Venta") o vía dólar MEP.
+  // La moneda real viene en la columna `moneda` del CSV.
+  if (t === "Compra" || t === "Compra Dolar Mep") return "BUY";
+  if (t === "Venta" || t === "Venta Dolar Mep") return "SELL";
+
+  if (lower.includes("bono") || lower.includes("nota de credito")) return "SKIP_OTHER";
+
   return "SKIP_OTHER";
 }
 

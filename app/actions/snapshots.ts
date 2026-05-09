@@ -14,12 +14,20 @@ export type ParsedPosition = {
   instrumentName: string;
   quantity: number;
   price: number;
+  // positionValue está expresado en la moneda original de la posición (currency).
   positionValue: number;
+  currency: "ARS" | "USD";
   allocationPct: number;
 };
 
 export type PreviewResult =
-  | { success: true; positions: ParsedPosition[]; totalValueArs: number }
+  | {
+      success: true;
+      positions: ParsedPosition[];
+      totalValueArs: number;
+      hasUsdPositions: boolean;
+      missingCcl: boolean;
+    }
   | { success: false; error: string };
 
 export type ImportResult =
@@ -54,7 +62,9 @@ function detectDelimiter(headerLine: string): string {
   return semicolons >= commas ? ";" : ",";
 }
 
-function parseCocosCapitalCsv(csvText: string): ParsedPosition[] | string {
+type RawParsedPosition = Omit<ParsedPosition, "allocationPct">;
+
+function parseCocosCapitalCsv(csvText: string): RawParsedPosition[] | string {
   const lines = csvText
     .split("\n")
     .map((l) => l.trim())
@@ -64,11 +74,9 @@ function parseCocosCapitalCsv(csvText: string): ParsedPosition[] | string {
     return "El archivo está vacío o no tiene filas de datos.";
   }
 
-  // Strip BOM and auto-detect delimiter
   const firstLine = lines[0].replace(/^\uFEFF/, "");
   const delimiter = detectDelimiter(firstLine);
 
-  // Normalize headers to lowercase, strip quotes
   const rawHeaders = firstLine
     .split(delimiter)
     .map((h) => h.trim().toLowerCase().replace(/['"]/g, ""));
@@ -85,14 +93,14 @@ function parseCocosCapitalCsv(csvText: string): ParsedPosition[] | string {
     return `Columnas no reconocidas. Encontradas: ${rawHeaders.join(", ")}. Se esperan: instrumento, cantidad, precio, moneda, total.`;
   }
 
-  const positions: Omit<ParsedPosition, "allocationPct">[] = [];
+  const positions: RawParsedPosition[] = [];
 
   for (let i = 1; i < lines.length; i++) {
     const cols = lines[i].split(delimiter).map((c) => c.trim().replace(/^["']|["']$/g, ""));
 
     const instrumento = cols[idx.instrumento] ?? "";
     const ticker = extractTicker(instrumento);
-    if (!ticker) continue; // skip rows without a valid ticker in parentheses
+    if (!ticker) continue;
 
     const cantidad = parseNumber(cols[idx.cantidad] ?? "0");
     if (cantidad <= 0) continue;
@@ -101,12 +109,17 @@ function parseCocosCapitalCsv(csvText: string): ParsedPosition[] | string {
     const total = parseNumber(cols[idx.total] ?? "0");
     const positionValue = total > 0 ? total : cantidad * precio;
 
+    const monedaRaw =
+      idx.moneda !== -1 ? (cols[idx.moneda] ?? "").toUpperCase() : "ARS";
+    const currency: "ARS" | "USD" = monedaRaw === "USD" ? "USD" : "ARS";
+
     positions.push({
       ticker,
       instrumentName: instrumento,
       quantity: cantidad,
       price: precio,
       positionValue,
+      currency,
     });
   }
 
@@ -114,12 +127,38 @@ function parseCocosCapitalCsv(csvText: string): ParsedPosition[] | string {
     return "No se encontraron posiciones válidas. Verificá que el archivo sea un CSV exportado desde Cocos Capital.";
   }
 
-  const totalValueArs = positions.reduce((sum, p) => sum + p.positionValue, 0);
+  return positions;
+}
 
-  return positions.map((p) => ({
+// ---------------------------------------------------------------------------
+// computeTotalsAndAllocations
+//
+// Aplica el CCL para convertir las posiciones USD a ARS, calcula el total
+// del portfolio en ARS y asigna allocationPct sobre el equivalente ARS.
+// Si no hay CCL pero hay posiciones USD, esas se omiten del total ARS y
+// reciben allocationPct = 0 (el caller debe avisar al usuario).
+// ---------------------------------------------------------------------------
+
+function computeTotalsAndAllocations(
+  raw: RawParsedPosition[],
+  ccl: number | null
+): { positions: ParsedPosition[]; totalValueArs: number; hasUsdPositions: boolean } {
+  const hasUsdPositions = raw.some((p) => p.currency === "USD");
+
+  const arsEquivalent = (p: RawParsedPosition): number => {
+    if (p.currency === "ARS") return p.positionValue;
+    if (ccl && ccl > 0) return p.positionValue * ccl;
+    return 0;
+  };
+
+  const totalValueArs = raw.reduce((sum, p) => sum + arsEquivalent(p), 0);
+
+  const positions: ParsedPosition[] = raw.map((p) => ({
     ...p,
-    allocationPct: totalValueArs > 0 ? p.positionValue / totalValueArs : 0,
+    allocationPct: totalValueArs > 0 ? arsEquivalent(p) / totalValueArs : 0,
   }));
+
+  return { positions, totalValueArs, hasUsdPositions };
 }
 
 // ---------------------------------------------------------------------------
@@ -133,15 +172,27 @@ export async function parseSnapshotPreview(
     const file = formData.get("file") as File | null;
     if (!file) return { success: false, error: "No se adjuntó ningún archivo." };
 
-    const csvText = await file.text();
-    const result = parseCocosCapitalCsv(csvText);
+    const cclStr = formData.get("ccl") as string | null;
+    const ccl = cclStr ? parseFloat(cclStr.replace(",", ".")) : null;
+    const validCcl = ccl && ccl > 0 ? ccl : null;
 
-    if (typeof result === "string") {
-      return { success: false, error: result };
+    const csvText = await file.text();
+    const raw = parseCocosCapitalCsv(csvText);
+
+    if (typeof raw === "string") {
+      return { success: false, error: raw };
     }
 
-    const totalValueArs = result.reduce((sum, p) => sum + p.positionValue, 0);
-    return { success: true, positions: result, totalValueArs };
+    const { positions, totalValueArs, hasUsdPositions } =
+      computeTotalsAndAllocations(raw, validCcl);
+
+    return {
+      success: true,
+      positions,
+      totalValueArs,
+      hasUsdPositions,
+      missingCcl: hasUsdPositions && !validCcl,
+    };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error inesperado al leer el archivo.";
     return { success: false, error: message };
@@ -170,18 +221,29 @@ export async function importSnapshot(formData: FormData): Promise<ImportResult> 
     }
 
     const csvText = await file.text();
-    const parsed = parseCocosCapitalCsv(csvText);
+    const raw = parseCocosCapitalCsv(csvText);
 
-    if (typeof parsed === "string") {
-      return { success: false, error: parsed };
+    if (typeof raw === "string") {
+      return { success: false, error: raw };
     }
 
-    const totalValueArs = parsed.reduce((sum, p) => sum + p.positionValue, 0);
     const ccl = cclStr ? parseFloat(cclStr.replace(",", ".")) : null;
-    const totalValueUsd = ccl && ccl > 0 ? totalValueArs / ccl : null;
+    const validCcl = ccl && ccl > 0 ? ccl : null;
 
-    const existing = await db.portfolioSnapshot.findUnique({
-      where: { snapshotDate },
+    const hasUsdPositions = raw.some((p) => p.currency === "USD");
+    if (hasUsdPositions && !validCcl) {
+      return {
+        success: false,
+        error:
+          "El archivo contiene posiciones en USD pero no se proporcionó el CCL. Es obligatorio para calcular el valor total en ARS.",
+      };
+    }
+
+    const { positions, totalValueArs } = computeTotalsAndAllocations(raw, validCcl);
+    const totalValueUsd = validCcl ? totalValueArs / validCcl : null;
+
+    const existing = await db.portfolioSnapshot.findFirst({
+      where: { snapshotDate, userId },
       select: { id: true },
     });
 
@@ -197,15 +259,16 @@ export async function importSnapshot(formData: FormData): Promise<ImportResult> 
         snapshotDate,
         totalValueArs,
         totalValueUsd,
-        ccl,
+        ccl: validCcl,
         sourceFile: file.name,
         userId,
         positions: {
-          create: parsed.map((p) => ({
+          create: positions.map((p) => ({
             ticker: p.ticker,
             instrumentName: p.instrumentName || null,
             quantity: p.quantity,
             price: p.price,
+            currency: p.currency,
             positionValue: p.positionValue,
             allocationPct: p.allocationPct,
           })),
@@ -221,7 +284,7 @@ export async function importSnapshot(formData: FormData): Promise<ImportResult> 
       await checkAndUpdateMilestones(totalValueUsd);
     }
 
-    return { success: true, snapshotId: snapshot.id, positionCount: parsed.length };
+    return { success: true, snapshotId: snapshot.id, positionCount: positions.length };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error inesperado.";
     return { success: false, error: message };

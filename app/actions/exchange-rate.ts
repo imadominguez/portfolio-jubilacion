@@ -90,6 +90,30 @@ export async function getAllExchangeRates(): Promise<
 }
 
 // ---------------------------------------------------------------------------
+// getExchangeRateForDate
+//
+// Busca el CCL persistido para una fecha específica (formato "YYYY-MM-DD").
+// Devuelve null si no existe registro para esa fecha.
+// Usado por el flujo de import para auto-completar el CCL al subir un archivo
+// cuyo nombre contiene la fecha del snapshot.
+// ---------------------------------------------------------------------------
+
+export async function getExchangeRateForDate(
+  dateStr: string
+): Promise<{ ccl: number } | null> {
+  const date = new Date(`${dateStr}T00:00:00.000Z`);
+  if (isNaN(date.getTime())) return null;
+
+  const rate = await db.exchangeRate.findUnique({
+    where: { date },
+    select: { ccl: true },
+  });
+
+  if (!rate) return null;
+  return { ccl: Number(rate.ccl) };
+}
+
+// ---------------------------------------------------------------------------
 // fetchHistoricalCCL
 //
 // Obtiene el historial del dólar CCL desde dolarapi.com y lo persiste en la

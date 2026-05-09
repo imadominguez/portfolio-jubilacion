@@ -38,10 +38,14 @@ interface TransactionsClientProps {
 type Tab = "transactions" | "ppm" | "pnl" | "dividends";
 
 function formatDate(d: Date) {
+  // Las fechas vienen de columnas @db.Date, que Prisma materializa como UTC
+  // midnight. Sin timeZone explícito, en zonas con offset negativo (UTC-3) se
+  // mostraría el día anterior.
   return new Intl.DateTimeFormat("es-AR", {
     day: "2-digit",
     month: "short",
     year: "numeric",
+    timeZone: "UTC",
   }).format(new Date(d));
 }
 

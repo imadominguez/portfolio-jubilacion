@@ -28,10 +28,14 @@ import {
 import type { MovimientoRow, ParsedMovimientos } from "@/app/actions/import-movements";
 
 function formatDate(iso: string) {
+  // Las fechas vienen como "YYYY-MM-DD" puras (sin TZ). new Date(iso) las parsea
+  // como UTC midnight; sin timeZone explícito, el formatter las muestra en la
+  // hora local y termina mostrando el día anterior en zonas con offset negativo.
   return new Intl.DateTimeFormat("es-AR", {
     day: "2-digit",
     month: "short",
     year: "numeric",
+    timeZone: "UTC",
   }).format(new Date(iso));
 }
 
@@ -44,18 +48,46 @@ function formatNumber(n: number, currency: string) {
   }).format(n);
 }
 
+// Cocos exporta los movimientos como movements_report_YYYY-MM-DD_YYYY-MM-DD.csv
+const FILENAME_PATTERN = /^movements_report_(\d{4}-\d{2}-\d{2})_(\d{4}-\d{2}-\d{2})\.csv$/i;
+
+type DateRange = { from: string; to: string };
+
+function parseFilenameRange(name: string): DateRange | null {
+  const match = name.match(FILENAME_PATTERN);
+  if (!match) return null;
+  const [, from, to] = match;
+  const fromDate = new Date(`${from}T00:00:00.000Z`);
+  const toDate = new Date(`${to}T00:00:00.000Z`);
+  if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) return null;
+  if (fromDate.getTime() > toDate.getTime()) return null;
+  return { from, to };
+}
+
 export function ImportMovimientosButton() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [parsed, setParsed] = useState<ParsedMovimientos | null>(null);
   const [fileName, setFileName] = useState("");
+  const [dateRange, setDateRange] = useState<DateRange | null>(null);
   const [isParsing, startParsing] = useTransition();
   const [isImporting, startImporting] = useTransition();
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    const range = parseFilenameRange(file.name);
+    if (!range) {
+      toast.error(
+        "El archivo debe llamarse movements_report_AAAA-MM-DD_AAAA-MM-DD.csv (ej: movements_report_2026-05-01_2026-05-31.csv)."
+      );
+      e.target.value = "";
+      return;
+    }
+
     setFileName(file.name);
+    setDateRange(range);
 
     startParsing(async () => {
       const text = await file.text();
@@ -68,7 +100,6 @@ export function ImportMovimientosButton() {
       setOpen(true);
     });
 
-    // Reset input so the same file can be selected again
     e.target.value = "";
   }
 
@@ -90,6 +121,7 @@ export function ImportMovimientosButton() {
       setOpen(false);
       setParsed(null);
       setFileName("");
+      setDateRange(null);
     });
   }
 
@@ -98,6 +130,7 @@ export function ImportMovimientosButton() {
     setOpen(false);
     setParsed(null);
     setFileName("");
+    setDateRange(null);
   }
 
   const skipped = parsed?.skippedReasons;
@@ -142,6 +175,11 @@ export function ImportMovimientosButton() {
                 <DialogTitle className="text-sm font-medium">
                   Previsualización — {fileName}
                 </DialogTitle>
+                {dateRange && (
+                  <p className="text-[11px] font-mono text-muted-foreground">
+                    {formatDate(dateRange.from)} → {formatDate(dateRange.to)}
+                  </p>
+                )}
                 {parsed && (
                   <p className="text-xs text-muted-foreground">
                     {buyCount > 0 && `${buyCount} compra${buyCount !== 1 ? "s" : ""}`}
