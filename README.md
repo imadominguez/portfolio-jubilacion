@@ -1,36 +1,30 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Roles de usuario
+
+La app usa Better Auth más Prisma: cada fila en la tabla **`user`** tiene **`role`** de tipo **`UserRole`** (`USER` o **`ADMIN`**). Por defecto los registros nuevos son **`USER`**.
+
+- **Usuario `USER`:** acceso a todo el contenido habitual de portafolio; **no** ve la sección «Configuración» del sidebar y no puede entrar por URL directa a `/assets`, `/strategy`, `/settings` ni `/portfolio` (middleware redirecciona a `/`).
+- **Usuario `ADMIN`:** ve configuración — assets, estrategia, preferencias de app y reporte mensual.
+
+Para dar rol administrador en producción/desarrollo, actualizá el registro manualmente:
+
+- Prisma Studio: `npx prisma studio`, editar `role` → `ADMIN`, o
+- SQL: `UPDATE "user" SET role = 'ADMIN' WHERE email = 'tu-email@ejemplo.com';`
+
+No uses variables de entorno con listas de emails para admins: la política debe vivir en la base de datos.
+
 ## Getting Started
 
 First, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Prisma Migrate](https://www.prisma.io/docs/concepts/components/prisma-migrate)
