@@ -191,8 +191,14 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    scroll-behavior: smooth;
+  }
   body {
     @apply bg-background text-foreground;
+  }
+  [data-tour-highlight="true"] {
+    @apply relative z-20 ring-2 ring-primary/80 ring-offset-2 ring-offset-sidebar rounded-lg transition-shadow duration-300;
   }
 }
 
@@ -202,6 +208,12 @@
   }
   .animate-fade-in {
     animation: fade-in 0.25s ease both;
+  }
+  .animate-tour-card-in {
+    animation: tour-card-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .animate-guide-stagger {
+    animation: fade-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
   /* Active sidebar item — dark gradient button with 3D inner highlight */
   .sidebar-active-item {
@@ -247,5 +259,16 @@
   }
   to {
     opacity: 1;
+  }
+}
+
+@keyframes tour-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
