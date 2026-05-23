@@ -14,6 +14,18 @@ function extractJson(raw: string): string {
 const VALID_ESTADO = ["infrapon", "sobrepon", "ok", "ausente", "fuera_objetivo"];
 const VALID_ACCION = ["agregar", "no_agregar", "evaluar", "mantener"];
 const VALID_ALERTA_TIPO = ["critica", "advertencia", "oportunidad", "info"];
+const VALID_SESGO = ["sobreponderar", "subponderar", "neutral", "saltear"];
+
+function coerceNumber(value: unknown, fallback = 0): number {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string" && value.trim() !== "") {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+  }
+  return fallback;
+}
 
 const ESTADO_MAP: Record<string, string> = {
   neutro: "ok",
@@ -28,20 +40,53 @@ const ALERTA_TIPO_MAP: Record<string, string> = {
   ganancia: "oportunidad",
 };
 
-function normalizarReporte(r: Record<string, unknown>): Record<string, unknown> {
-  if (Array.isArray(r.posiciones)) {
-    r.posiciones = (r.posiciones as Record<string, unknown>[]).map((p) => ({
-      ...p,
-      estado: (() => {
-        const v = ESTADO_MAP[p.estado as string] ?? p.estado;
-        return VALID_ESTADO.includes(v as string) ? v : "ok";
-      })(),
-      accion: (() => {
-        const v = ACCION_MAP[p.accion as string] ?? p.accion;
-        return VALID_ACCION.includes(v as string) ? v : "mantener";
-      })(),
-    }));
+function normalizeSesgo(
+  value: unknown,
+  onlyIfProvided: boolean
+): (typeof VALID_SESGO)[number] | undefined {
+  if (value === undefined || value === null || String(value).trim() === "") {
+    return onlyIfProvided ? undefined : "neutral";
   }
+  const s = String(value).trim().toLowerCase();
+  if (VALID_SESGO.includes(s)) {
+    return s as (typeof VALID_SESGO)[number];
+  }
+  return "neutral";
+}
+
+function normalizarReporte(raw: Record<string, unknown>): Record<string, unknown> {
+  const r = { ...raw };
+
+  if (Array.isArray(r.posiciones)) {
+    r.posiciones = (r.posiciones as Record<string, unknown>[]).map((p) => {
+      const sesgo_mes = normalizeSesgo(p.sesgo_mes, true);
+      const base = {
+        ...p,
+        cantidad: coerceNumber(p.cantidad),
+        precio_cedear_ars: coerceNumber(p.precio_cedear_ars),
+        valor_ars: coerceNumber(p.valor_ars),
+        peso_actual: coerceNumber(p.peso_actual),
+        peso_objetivo: coerceNumber(p.peso_objetivo),
+        diferencia: coerceNumber(p.diferencia),
+        ganancia_pct: coerceNumber(p.ganancia_pct),
+        ppm_ars: coerceNumber(p.ppm_ars),
+        variacion_mensual_pct:
+          p.variacion_mensual_pct === undefined ? undefined : coerceNumber(p.variacion_mensual_pct),
+        estado: (() => {
+          const key = ESTADO_MAP[p.estado as string] ?? p.estado;
+          return VALID_ESTADO.includes(key as string) ? key : "ok";
+        })(),
+        accion: (() => {
+          const key = ACCION_MAP[p.accion as string] ?? p.accion;
+          return VALID_ACCION.includes(key as string) ? key : "mantener";
+        })(),
+      };
+      return sesgo_mes ? { ...base, sesgo_mes } : base;
+    });
+  } else {
+    r.posiciones = [];
+  }
+
   if (Array.isArray(r.alertas)) {
     r.alertas = (r.alertas as Record<string, unknown>[]).map((a) => ({
       ...a,
@@ -50,7 +95,69 @@ function normalizarReporte(r: Record<string, unknown>): Record<string, unknown> 
         return VALID_ALERTA_TIPO.includes(v as string) ? v : "info";
       })(),
     }));
+  } else {
+    r.alertas = [];
   }
+
+  let im = r.instruccion_mes as Record<string, unknown> | undefined;
+  if (!im || typeof im !== "object") {
+    im = { intro: "", asignaciones: [], no_invertir: [], total_ars: coerceNumber(r.aporte_mensual_ars) };
+    r.instruccion_mes = im;
+  }
+
+  const rootVerify = r.verificacion_suma;
+  if (
+    typeof im.verificacion_suma !== "boolean" &&
+    (rootVerify === true || rootVerify === false)
+  ) {
+    im.verificacion_suma = rootVerify;
+  }
+  delete r.verificacion_suma;
+
+  if (Array.isArray(im.asignaciones)) {
+    im.asignaciones = (im.asignaciones as Record<string, unknown>[]).map((a) => {
+      const sesgo = normalizeSesgo(a.sesgo, false);
+      return {
+        ...a,
+        monto_ars: coerceNumber(a.monto_ars),
+        monto_usd: coerceNumber(a.monto_usd),
+        peso_objetivo:
+          a.peso_objetivo === undefined ? undefined : coerceNumber(a.peso_objetivo),
+        peso_asignado_mes:
+          a.peso_asignado_mes === undefined ? undefined : coerceNumber(a.peso_asignado_mes),
+        sesgo,
+      };
+    });
+  } else {
+    im.asignaciones = [];
+  }
+
+  im.intro = typeof im.intro === "string" ? im.intro : "";
+  im.total_ars =
+    coerceNumber(im.total_ars) || coerceNumber(r.aporte_mensual_ars, 500_000);
+
+  im.no_invertir = Array.isArray(im.no_invertir)
+    ? (im.no_invertir as unknown[])
+        .map((x) => String(x ?? "").trim())
+        .filter(Boolean)
+    : [];
+
+  if (!Array.isArray(r.proximos_balances)) {
+    r.proximos_balances = [];
+  }
+
+  if (!Array.isArray(r.dividendos_esperados)) {
+    r.dividendos_esperados = [];
+  }
+
+  r.ccl_actual = coerceNumber(r.ccl_actual);
+  r.valor_total_ars = coerceNumber(r.valor_total_ars);
+  r.valor_total_usd = coerceNumber(r.valor_total_usd);
+  r.aporte_mensual_ars = coerceNumber(r.aporte_mensual_ars, 500_000);
+  r.aporte_mensual_usd = coerceNumber(r.aporte_mensual_usd);
+  r.resumen_ejecutivo =
+    typeof r.resumen_ejecutivo === "string" ? r.resumen_ejecutivo : "";
+
   return r;
 }
 
@@ -113,10 +220,12 @@ export async function POST(request: NextRequest) {
                 type: "text",
                 text: `Analizá este PDF de mi tenencia en Cocos Capital.
 El PDF contiene el estado actual del portafolio: posiciones reales, cantidades, precios en ARS y pesos actuales. Usá esos datos como fuente de verdad del estado presente — no uses el system prompt como reflejo del estado actual.
-La estrategia objetivo está definida en el system prompt — úsala como referencia para evaluar cada posición.
-Primero buscá en la web: (1) el CCL actual de hoy, (2) precio actual en USD de cada ticker relevante.
-Luego generá el reporte mensual completo en JSON según las instrucciones.
-Solo respondé con el JSON, sin texto adicional ni bloques de código.`,
+La estrategia objetivo y el formato exacto del JSON están en el system prompt — seguí ese esquema al pie de la letra.
+
+Buscá en la web antes de responder: (1) CCL actual de hoy, (2) precio en USD y variación mensual de cada ticker relevante del portafolio, (3) noticias o catalizadores recientes cuando afecten alguna posición.
+
+Generá únicamente el JSON del reporte mensual según las instrucciones del system.
+No agregues markdown, explicaciones ni bloques \`\`\` — solo el objeto JSON.`,
               },
             ],
           },
