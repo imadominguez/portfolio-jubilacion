@@ -21,6 +21,11 @@ enum TransactionType {
   SELL
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 // ---------------------------------------------------------------------------
 // Auth models (Better Auth — tables already created via migration)
 // ---------------------------------------------------------------------------
@@ -31,6 +36,7 @@ model User {
   email         String    @unique
   emailVerified Boolean
   image         String?
+  role          UserRole  @default(USER)
   createdAt     DateTime
   updatedAt     DateTime
 
