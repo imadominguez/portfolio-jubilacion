@@ -27,8 +27,14 @@ interface Posicion {
 }
 
 interface Asignacion {
-  ticker: string; nombre: string; monto_ars: number; monto_usd: number; razon: string;
+  ticker: string;
+  nombre: string;
+  monto_ars: number;
+  monto_usd: number;
+  razon: string;
+  peso_objetivo?: number;
   peso_asignado_mes?: number;
+  sesgo?: "sobreponderar" | "subponderar" | "neutral" | "saltear";
 }
 
 interface Alerta {
@@ -36,16 +42,35 @@ interface Alerta {
   ticker: string; titulo: string; detalle: string;
 }
 
-interface ProximoBalance { ticker: string; nombre: string; fecha: string; en_cartera: boolean; }
+interface ProximoBalance {
+  ticker: string;
+  nombre: string;
+  fecha: string;
+  en_cartera: boolean;
+  impacto_esperado?: string;
+}
 interface DividendoEsperado { ticker: string; nombre: string; monto_usd_por_accion: number; cantidad_cedears_por_accion: number; frecuencia: string; }
 
 export interface ReportePortafolio {
-  fecha_reporte: string; ccl_actual: number;
-  valor_total_ars: number; valor_total_usd: number;
-  aporte_mensual_ars: number; aporte_mensual_usd: number;
-  resumen_ejecutivo: string; posiciones: Posicion[];
-  instruccion_mes: { intro: string; asignaciones: Asignacion[]; no_invertir: string[]; total_ars: number; };
-  alertas: Alerta[]; proximos_balances: ProximoBalance[]; dividendos_esperados: DividendoEsperado[];
+  fecha_reporte: string;
+  ccl_actual: number;
+  valor_total_ars: number;
+  valor_total_usd: number;
+  aporte_mensual_ars: number;
+  aporte_mensual_usd: number;
+  resumen_ejecutivo: string;
+  posiciones: Posicion[];
+  instruccion_mes: {
+    intro: string;
+    asignaciones: Asignacion[];
+    no_invertir: string[];
+    total_ars: number;
+    verificacion_suma?: boolean;
+  };
+  alertas: Alerta[];
+  proximos_balances: ProximoBalance[];
+  dividendos_esperados: DividendoEsperado[];
+  /** Legacy: formato anterior con verificación fuera de `instruccion_mes`. */
   verificacion_suma?: boolean;
 }
 
@@ -178,7 +203,31 @@ function PosicionRow({ p }: { p: Posicion }) {
 // ─── ReporteDisplay ───────────────────────────────────────────────────────────
 
 export function ReporteDisplay({ reporte, footer }: { reporte: ReportePortafolio; footer?: React.ReactNode }) {
-  const posicionesOrden = reporte.posiciones.slice().sort((a, b) => {
+  const posicionesSafe = Array.isArray(reporte.posiciones) ? reporte.posiciones : [];
+  const alertasSafe = Array.isArray(reporte.alertas) ? reporte.alertas : [];
+  const proximosBalancesSafe = Array.isArray(reporte.proximos_balances)
+    ? reporte.proximos_balances
+    : [];
+  const dividendosSafe = Array.isArray(reporte.dividendos_esperados)
+    ? reporte.dividendos_esperados
+    : [];
+  const instr =
+    reporte.instruccion_mes && typeof reporte.instruccion_mes === "object"
+      ? reporte.instruccion_mes
+      : {
+          intro: "",
+          asignaciones: [] as Asignacion[],
+          no_invertir: [] as string[],
+          total_ars: 0,
+        };
+  const noInvertirSafe = Array.isArray(instr.no_invertir) ? instr.no_invertir : [];
+  const asignacionesSafe = Array.isArray(instr.asignaciones) ? instr.asignaciones : [];
+
+  const verificacion =
+    instr.verificacion_suma ??
+    ("verificacion_suma" in reporte ? reporte.verificacion_suma : undefined);
+
+  const posicionesOrden = posicionesSafe.slice().sort((a, b) => {
     const o: Record<string, number> = { sobrepon: 0, infrapon: 1, ausente: 2, fuera_objetivo: 3, ok: 4 };
     return (o[a.estado] ?? 5) - (o[b.estado] ?? 5);
   });
@@ -189,7 +238,7 @@ export function ReporteDisplay({ reporte, footer }: { reporte: ReportePortafolio
         <MetricCard label="Valor total" value={formatUSD(reporte.valor_total_usd)} sub={formatARS(reporte.valor_total_ars)} icon={DollarSign} />
         <MetricCard label="CCL del día" value={`$${reporte.ccl_actual.toLocaleString("es-AR")}`} sub="Tipo de cambio" icon={TrendingUp} />
         <MetricCard label="Aporte mensual" value={formatARS(reporte.aporte_mensual_ars)} sub={`≈ ${formatUSD(reporte.aporte_mensual_usd)}`} icon={ArrowRight} />
-        <MetricCard label="Posiciones activas" value={`${reporte.posiciones.filter(p => p.cantidad > 0).length}`} sub={`${reporte.posiciones.filter(p => p.estado === "ausente").length} ausentes del obj.`} icon={FileText} />
+        <MetricCard label="Posiciones activas" value={`${posicionesSafe.filter((p) => p.cantidad > 0).length}`} sub={`${posicionesSafe.filter((p) => p.estado === "ausente").length} ausentes del obj.`} icon={FileText} />
       </div>
 
       <Card className="border-primary/20 bg-primary/5">
@@ -199,10 +248,10 @@ export function ReporteDisplay({ reporte, footer }: { reporte: ReportePortafolio
         </CardContent>
       </Card>
 
-      {reporte.alertas.length > 0 && (
+      {alertasSafe.length > 0 && (
         <div className="space-y-2">
           <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Alertas</h2>
-          {reporte.alertas.map((a, i) => {
+          {alertasSafe.map((a, i) => {
             const cfg = alertaConfig[a.tipo];
             const Icon = cfg.icon || Info;
             return (
@@ -226,42 +275,54 @@ export function ReporteDisplay({ reporte, footer }: { reporte: ReportePortafolio
           <CardTitle className="text-base flex items-center gap-2">
             <ArrowRight className="w-4 h-4 text-primary" />
             Cómo invertir este mes
-            {reporte.verificacion_suma === true && (
-              <CheckCircle2 className="w-3.5 h-3.5 text-green-500 ml-auto" />
+            {verificacion === true && (
+              <CheckCircle2 className="w-3.5 h-3.5 text-green-500 ml-auto shrink-0" aria-hidden />
             )}
-            {reporte.verificacion_suma === false && (
-              <AlertCircle className="w-3.5 h-3.5 text-amber-500 ml-auto" />
+            {verificacion === false && (
+              <AlertCircle className="w-3.5 h-3.5 text-amber-500 ml-auto shrink-0" aria-hidden />
             )}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">{reporte.instruccion_mes.intro}</p>
+          <p className="text-sm text-muted-foreground">{instr.intro}</p>
           <Separator />
           <div className="space-y-3">
-            {reporte.instruccion_mes.asignaciones.map((a, i) => (
-              <div key={i} className="flex items-center gap-3">
+            {asignacionesSafe.map((a, i) => (
+              <div key={`${a.ticker}-${i}`} className="flex items-center gap-3">
                 <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
                   <span className="text-xs font-bold text-primary">{i + 1}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5"><span className="font-mono text-sm font-semibold">{a.ticker}</span><span className="text-sm text-muted-foreground">{a.nombre}</span></div>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="font-mono text-sm font-semibold">{a.ticker}</span>
+                    <span className="text-sm text-muted-foreground">{a.nombre}</span>
+                    {a.sesgo && sesgoConfig[a.sesgo] ? (
+                      <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-4 ${sesgoConfig[a.sesgo].color}`}>
+                        {sesgoConfig[a.sesgo].label}
+                      </Badge>
+                    ) : null}
+                  </div>
                   <p className="text-xs text-muted-foreground">{a.razon}</p>
+                  {(a.peso_objetivo !== undefined || a.peso_asignado_mes !== undefined) && (
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      Obj. modelo {a.peso_objetivo !== undefined ? `${a.peso_objetivo.toFixed(1)}%` : "—"}
+                      {" · "}
+                      Asign. mes {a.peso_asignado_mes !== undefined ? `${a.peso_asignado_mes.toFixed(1)}%` : "—"}
+                    </p>
+                  )}
                 </div>
                 <div className="text-right shrink-0">
                   <p className="text-sm font-semibold text-green-600 dark:text-green-400">{formatARS(a.monto_ars)}</p>
                   <p className="text-[10px] text-muted-foreground">{formatUSD(a.monto_usd)}</p>
-                  {a.peso_asignado_mes !== undefined && (
-                    <p className="text-[10px] text-muted-foreground">{a.peso_asignado_mes.toFixed(1)}% objetivo</p>
-                  )}
                 </div>
               </div>
             ))}
           </div>
-          {reporte.instruccion_mes.no_invertir.length > 0 && (
+          {noInvertirSafe.length > 0 && (
             <><Separator />
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs text-muted-foreground">No invertir:</span>
-                {reporte.instruccion_mes.no_invertir.map(t => (
+                {noInvertirSafe.map((t) => (
                   <Badge key={t} variant="outline" className="text-xs font-mono text-red-500 border-red-200 dark:border-red-900">{t}</Badge>
                 ))}
               </div></>
@@ -277,27 +338,32 @@ export function ReporteDisplay({ reporte, footer }: { reporte: ReportePortafolio
       </Card>
 
       <div className="grid md:grid-cols-2 gap-4">
-        {reporte.proximos_balances.length > 0 && (
+        {proximosBalancesSafe.length > 0 && (
           <Card>
             <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Calendar className="w-4 h-4" />Próximos balances</CardTitle></CardHeader>
             <CardContent className="space-y-2">
-              {reporte.proximos_balances.map((b, i) => (
-                <div key={i} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
+              {proximosBalancesSafe.map((b, i) => (
+                <div key={`${b.ticker}-${i}`} className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between text-sm border-b border-border/60 last:border-0 pb-2 last:pb-0">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="font-mono font-semibold">{b.ticker}</span>
-                    {b.en_cartera && <Badge variant="outline" className="text-[10px]">En cartera</Badge>}
+                    {b.en_cartera ? <Badge variant="outline" className="text-[10px]">En cartera</Badge> : null}
+                    {b.impacto_esperado ? (
+                      <Badge variant="secondary" className="text-[10px] font-normal capitalize">
+                        {b.impacto_esperado}
+                      </Badge>
+                    ) : null}
                   </div>
-                  <span className="text-muted-foreground text-xs">{b.fecha}</span>
+                  <span className="text-muted-foreground text-xs shrink-0">{b.fecha}</span>
                 </div>
               ))}
             </CardContent>
           </Card>
         )}
-        {reporte.dividendos_esperados.length > 0 && (
+        {dividendosSafe.length > 0 && (
           <Card>
             <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><DollarSign className="w-4 h-4" />Dividendos esperados</CardTitle></CardHeader>
             <CardContent className="space-y-2">
-              {reporte.dividendos_esperados.map((d, i) => (
+              {dividendosSafe.map((d, i) => (
                 <div key={i} className="flex items-center justify-between text-sm">
                   <div><span className="font-mono font-semibold">{d.ticker}</span><span className="text-muted-foreground text-xs ml-2">{d.frecuencia}</span></div>
                   <span className="text-green-600 dark:text-green-400 text-xs font-medium">USD {d.monto_usd_por_accion}/acción</span>

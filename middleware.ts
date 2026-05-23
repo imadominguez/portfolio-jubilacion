@@ -1,7 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { isAdminRole } from "@/lib/user-role";
 
 export const runtime = "nodejs";
+
+const ADMIN_PATH_PREFIXES = [
+  "/assets",
+  "/strategy",
+  "/settings",
+  "/portfolio",
+] as const;
+
+function isAdminOnlyPath(pathname: string): boolean {
+  return ADMIN_PATH_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -25,6 +39,14 @@ export async function middleware(request: NextRequest) {
   }
 
   if (session && (isLoginPage || isRegisterPage)) {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  if (
+    session &&
+    isAdminOnlyPath(pathname) &&
+    !isAdminRole(session.user.role)
+  ) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 

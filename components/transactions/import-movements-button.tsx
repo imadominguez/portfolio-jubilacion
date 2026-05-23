@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
 import { Upload, ArrowUpRight, ArrowDownRight, AlertTriangle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -156,16 +157,25 @@ export function ImportMovimientosButton() {
         onChange={handleFileChange}
       />
 
-      <Button
-        size="sm"
-        variant="outline"
-        className="gap-1.5 text-xs"
-        disabled={isParsing}
-        onClick={() => fileInputRef.current?.click()}
-      >
-        {isParsing ? <Spinner className="size-3" /> : <Upload className="size-3" />}
-        Importar CSV Cocos
-      </Button>
+      <div className="flex flex-col items-end gap-1">
+        <Button
+          id="tour-import-movimientos"
+          size="sm"
+          variant="outline"
+          className="gap-1.5 text-xs"
+          disabled={isParsing}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {isParsing ? <Spinner className="size-3" /> : <Upload className="size-3" />}
+          Importar CSV Cocos
+        </Button>
+        <Link
+          href="/guia#transacciones"
+          className="text-[11px] text-primary underline-offset-4 hover:underline"
+        >
+          ¿Cómo descargo movimientos desde Cocos?
+        </Link>
+      </div>
 
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col">

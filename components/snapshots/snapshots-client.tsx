@@ -10,7 +10,13 @@ export function ImportButton() {
 
   return (
     <>
-      <Button size="sm" variant="outline" className="gap-2 text-xs" onClick={() => setOpen(true)}>
+      <Button
+        id="tour-import-snapshot"
+        size="sm"
+        variant="outline"
+        className="gap-2 text-xs"
+        onClick={() => setOpen(true)}
+      >
         <Upload className="size-3" data-icon="inline-start" />
         Importar CSV
       </Button>

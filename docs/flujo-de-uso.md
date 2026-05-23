@@ -10,12 +10,22 @@ El sistema funciona con **snapshots**: capturas del estado del portafolio en un 
 
 ## Flujo mensual recomendado
 
-### 1. Exportar el CSV desde Cocos Capital
+> **Guía visual en la app:** la sección [Guía Cocos](/guia) explica con capturas de pantalla dónde descargar cada archivo en Cocos Capital.
+
+### 1. Exportar CSV desde Cocos Capital
+
+Cocos exporta archivos **CSV** (no Excel). Hay **dos descargas distintas** según el dato que necesites:
+
+#### A) Snapshots — estado del portfolio
 
 1. Iniciá sesión en [Cocos Capital](https://cocos.capital)
-2. Navegá a tu portafolio o cartera
-3. Exportá la cartera en formato **CSV**
-4. El archivo tendrá las siguientes columnas:
+2. En el menú lateral, entrá a **Portfolio** (no Actividad)
+3. Abrí **Descargar portfolio**
+4. Seleccioná la **fecha** del snapshot
+5. Descargá el archivo en formato **CSV**
+6. El archivo se llamará `portfolio_report_AAAAMMDD.csv` (ej: `portfolio_report_20260504.csv`)
+
+Columnas del CSV:
 
 ```
 instrumento;cantidad;precio;moneda;total
@@ -30,19 +40,31 @@ CEDEAR META PLATFORMS INC. (META);3;39780;ARS;119340
 CEDEAR NVIDIA CORPORATION (NVDA);11;11100;ARS;122100
 ```
 
+#### B) Transacciones — movimientos (compras/ventas)
+
+1. Iniciá sesión en [Cocos Capital](https://cocos.capital)
+2. En el menú lateral, entrá a **Actividad** (no Portfolio)
+3. Abrí **Descargar movimientos**
+4. Seleccioná el **año y mes** (o reporte anual) que necesitás
+5. Descargá el archivo en formato **CSV**
+6. El archivo se llamará `movements_report_YYYY-MM-DD_YYYY-MM-DD.csv`
+
+Importá este archivo en la sección **Transacciones** de la app con el botón **Importar CSV Cocos**.
+
 ---
 
 ### 2. Importar el snapshot en la plataforma
 
-1. Desde cualquier página, hacé click en el botón **"Importar CSV"** del header
-2. Se abre el sheet lateral de importación
-3. **Paso 1 — Seleccionar:**
+1. Desde el dashboard o Snapshots, hacé click en el botón **"Importar CSV"** del header
+2. Si tenés dudas sobre la descarga en Cocos, consultá la [Guía Cocos](/guia#snapshots)
+3. Se abre el sheet lateral de importación
+4. **Paso 1 — Seleccionar:**
    - Adjuntá el archivo CSV exportado
    - Completá la **fecha del snapshot** (la fecha a la que corresponde el estado de la cartera)
    - Opcionalmente ingresá el **CCL del día** (tipo de cambio ARS/USD) para habilitar los cálculos en dólares
    - Hacé click en **"Previsualizar"**
 
-4. **Paso 2 — Revisar:**
+5. **Paso 2 — Revisar:**
    - El sistema parsea el CSV y muestra una tabla con todas las posiciones detectadas: ticker, cantidad, precio, valor y peso porcentual
    - Verificá que los datos sean correctos
    - Hacé click en **"Confirmar importación"** para guardar el snapshot
