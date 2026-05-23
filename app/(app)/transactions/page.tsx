@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { SiteHeader } from "@/components/layout/site-header";
 import { TransactionsClient } from "@/components/transactions/transactions-client";
 import { TransactionForm } from "@/components/transactions/transaction-form";
@@ -44,7 +45,13 @@ export default async function TransactionsPage() {
           </p>
           <p className="text-sm text-muted-foreground max-w-lg leading-relaxed">
             Registrá manualmente tus compras, ventas y dividendos para calcular
-            el precio promedio de compra y el P&L realizado de tu portfolio.
+            el precio promedio de compra y el P&amp;L realizado de tu portfolio.
+            Para importar desde Cocos, descargá el CSV desde la sección{" "}
+            <strong className="text-foreground">Actividad</strong> —{" "}
+            <Link href="/guia#transacciones" className="text-primary underline-offset-4 hover:underline">
+              ver guía
+            </Link>
+            .
           </p>
         </div>
 

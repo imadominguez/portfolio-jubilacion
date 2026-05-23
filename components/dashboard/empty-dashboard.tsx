@@ -1,6 +1,9 @@
-import { Button } from "@/components/ui/button";
+"use client";
+
+import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import { Upload } from "lucide-react";
+import { ImportButton } from "@/components/snapshots/snapshots-client";
 
 export function EmptyDashboard() {
   return (
@@ -19,23 +22,28 @@ export function EmptyDashboard() {
           </p>
           <p className="text-sm text-muted-foreground leading-relaxed">
             Exportá tu cartera desde{" "}
-            <span className="text-foreground font-medium">Cocos Capital</span> en
-            formato CSV e importala para comenzar a registrar el historial de
-            tu portfolio.
+            <span className="text-foreground font-medium">Cocos Capital</span>{" "}
+            (sección <strong className="text-foreground">Portfolio</strong>) en
+            formato CSV e importala para comenzar a registrar el historial.
           </p>
         </div>
 
-        <Button variant="outline" size="sm" className="gap-2">
-          <Upload className="size-3.5" data-icon="inline-start" />
-          Importar primer snapshot
-        </Button>
+        <div className="flex flex-col items-center gap-2">
+          <ImportButton />
+          <Link
+            href="/guia#snapshots"
+            className="text-xs text-primary underline-offset-4 hover:underline"
+          >
+            ¿Cómo descargo el CSV desde Cocos?
+          </Link>
+        </div>
       </div>
 
       <Separator className="max-w-xs opacity-30" />
 
       <div className="grid grid-cols-3 gap-8 text-center max-w-sm">
         {[
-          { step: "01", label: "Exportá el CSV desde Cocos Capital" },
+          { step: "01", label: "Descargá el CSV desde Portfolio en Cocos" },
           { step: "02", label: "Importalo aquí para registrar el estado" },
           { step: "03", label: "Repetí mensualmente para ver el historial" },
         ].map(({ step, label }) => (

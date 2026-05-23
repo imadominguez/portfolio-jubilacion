@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import Link from "next/link";
 import { Upload, CheckCircle, AlertCircle, ArrowLeft, FileText, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -255,7 +256,19 @@ export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
             </span>
           </div>
           <SheetDescription className="text-xs text-muted-foreground">
-            {step === "select" && "Seleccioná el CSV exportado desde Cocos Capital e ingresá la fecha correspondiente."}
+            {step === "select" && (
+              <>
+                Seleccioná el CSV exportado desde la sección{" "}
+                <strong className="text-foreground">Portfolio</strong> de Cocos Capital e ingresá
+                la fecha correspondiente.{" "}
+                <Link
+                  href="/guia#snapshots"
+                  className="text-primary underline-offset-4 hover:underline"
+                >
+                  ¿Cómo descargo este archivo desde Cocos?
+                </Link>
+              </>
+            )}
             {step === "preview" && "Revisá las posiciones detectadas antes de confirmar el registro."}
             {step === "done" && "El snapshot fue registrado correctamente en el historial."}
           </SheetDescription>
