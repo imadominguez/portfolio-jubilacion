@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/user-role";
 
-export const runtime = "nodejs";
-
 const ADMIN_PATH_PREFIXES = [
   "/assets",
   "/strategy",
@@ -17,7 +15,7 @@ function isAdminOnlyPath(pathname: string): boolean {
   );
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isAuthRoute = pathname.startsWith("/api/auth");

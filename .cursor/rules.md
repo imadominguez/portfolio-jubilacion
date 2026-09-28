@@ -125,7 +125,7 @@ Always return a discriminated union `{ success: true, ... } | { success: false, 
 - All pages are wrapped in `<div className="flex flex-col min-h-svh">`.
 - Use `animate-fade-up` on `section` elements with progressive `animationDelay` (0ms, 100ms, 200ms…).
 - **User roles (Prisma):** `User.role` enum `UserRole` — `USER` (default) or `ADMIN`. New users receive `USER` from DB default. Promotion to `ADMIN` is done manually in the database (Prisma Studio or SQL update), never from client signup. Sessions expose `session.user.role` via Better Auth `user.additionalFields` (`input: false`). Helper: `lib/user-role.ts` (`isAdminRole`).
-- **Admin-only UI and routes:** The whole **«Configuración»** sidebar group (Assets, Estrategia, Configuración, Reporte mensual → `/portfolio`) is rendered only when `isAdminRole`. `middleware.ts` redirects non-admin users away from prefixes `/assets`, `/strategy`, `/settings`, `/portfolio`.
+- **Admin-only UI and routes:** The whole **«Configuración»** sidebar group (Assets, Estrategia, Configuración, Reporte mensual → `/portfolio`) is rendered only when `isAdminRole`. `proxy.ts` (Next 16; formerly `middleware.ts`) redirects non-admin users away from prefixes `/assets`, `/strategy`, `/settings`, `/portfolio`. Asset mutations additionally re-check ADMIN in `app/actions/assets.ts`.
 - The sidebar is defined in `components/layout/app-sidebar.tsx`. Props: `{ isAdmin: boolean }` from `app/(app)/layout.tsx` (server). To add a route: extend `NAV_MAIN`, `NAV_ANALYSIS`, or `NAV_CONFIG` as appropriate; keep admin-only items under `NAV_CONFIG`.
 - Use responsive design — `grid-cols-2 sm:grid-cols-4` pattern for KPI rows.
 
