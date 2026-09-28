@@ -1,23 +1,13 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import { SiteHeader } from "@/components/layout/site-header";
 
 export default function Loading() {
   return (
-    <div className="min-h-screen bg-background noise-bg">
-      {/* Header skeleton */}
-      <header className="sticky top-0 z-10 border-b border-border/40 bg-background/80 backdrop-blur-sm">
-        <div className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex flex-col gap-1">
-              <Skeleton className="h-2.5 w-14" />
-              <Skeleton className="h-3.5 w-20" />
-            </div>
-          </div>
-          <Skeleton className="h-8 w-28" />
-        </div>
-      </header>
+    <div className="flex min-h-svh flex-col bg-background noise-bg">
+      <SiteHeader title="Dashboard" />
 
-      <main className="mx-auto max-w-6xl px-6 py-10 flex flex-col gap-10">
+      <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-10 flex flex-col gap-10">
         {/* Hero value skeleton */}
         <section className="flex flex-col gap-6">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
