@@ -5,7 +5,7 @@ import { extractJson, normalizarReporte } from "@/lib/report-normalizer";
 
 // El análisis con web_search + thinking puede tardar varios minutos: streaming + límite alto.
 export const runtime = "nodejs";
-export const maxDuration = 800;
+export const maxDuration = 300;
 
 // Precios Sonnet 5 (USD por millón de tokens): input $2, output $10.
 // Cache write = 1.25× input ($2.5), cache read = 0.1× input ($0.2).
@@ -33,14 +33,16 @@ function estimateCostUsd(t: {
 async function guardarRespuesta(
   rawText: string,
   reporte: Record<string, unknown>,
-  userId: string
+  userId: string,
 ) {
   try {
     await db.portfolioReport.create({
       data: {
         fechaReporte: (reporte.fecha_reporte as string) ?? new Date().toISOString(),
         rawText,
-        normalizedJson: reporte as Parameters<typeof db.portfolioReport.create>[0]["data"]["normalizedJson"],
+        normalizedJson: reporte as Parameters<
+          typeof db.portfolioReport.create
+        >[0]["data"]["normalizedJson"],
         userId,
       },
     });
@@ -48,7 +50,6 @@ async function guardarRespuesta(
     console.error("No se pudo guardar el reporte en DB:", err);
   }
 }
-
 
 export async function POST(request: NextRequest) {
   let abortedByTimeout = false;
@@ -63,8 +64,11 @@ export async function POST(request: NextRequest) {
     const strategy = await db.investmentStrategy.findFirst({ where: { isActive: true } });
     if (!strategy) {
       return NextResponse.json(
-        { error: "No hay estrategia de inversión activa configurada. Configurala en /strategy." },
-        { status: 500 }
+        {
+          error:
+            "No hay estrategia de inversión activa configurada. Configurala en /strategy.",
+        },
+        { status: 500 },
       );
     }
 
@@ -72,7 +76,10 @@ export async function POST(request: NextRequest) {
     const file = formData.get("portfolio_pdf") as File;
 
     if (!file) {
-      return NextResponse.json({ error: "No se recibió ningún archivo." }, { status: 400 });
+      return NextResponse.json(
+        { error: "No se recibió ningún archivo." },
+        { status: 400 },
+      );
     }
 
     const arrayBuffer = await file.arrayBuffer();
@@ -145,7 +152,8 @@ No agregues markdown, explicaciones ni bloques \`\`\` — solo el objeto JSON.`,
       console.error("Anthropic API error:", err);
       let detail = "";
       try {
-        detail = (JSON.parse(err) as { error?: { message?: string } }).error?.message ?? "";
+        detail =
+          (JSON.parse(err) as { error?: { message?: string } }).error?.message ?? "";
       } catch {
         detail = err.slice(0, 200);
       }
@@ -154,7 +162,7 @@ No agregues markdown, explicaciones ni bloques \`\`\` — solo el objeto JSON.`,
         {
           error: `Error al llamar a la API de Claude (modelo ${model})${detail ? `: ${detail}` : "."}`,
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -171,7 +179,7 @@ No agregues markdown, explicaciones ni bloques \`\`\` — solo el objeto JSON.`,
       clearTimeout(timeout);
       return NextResponse.json(
         { error: "Anthropic no devolvió un stream de respuesta." },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -225,7 +233,8 @@ No agregues markdown, explicaciones ni bloques \`\`\` — solo el objeto JSON.`,
             }
           } else if (evt.type === "message_delta") {
             if (evt.delta?.stop_reason) stopReason = evt.delta.stop_reason;
-            if (evt.usage?.output_tokens !== undefined) outputTokens = evt.usage.output_tokens;
+            if (evt.usage?.output_tokens !== undefined)
+              outputTokens = evt.usage.output_tokens;
           } else if (evt.type === "error") {
             throw new Error(evt.error?.message ?? "Error de streaming de Anthropic");
           }
@@ -254,7 +263,7 @@ No agregues markdown, explicaciones ni bloques \`\`\` — solo el objeto JSON.`,
               : "Claude no devolvió texto en la respuesta.",
           stop_reason: stopReason,
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -267,7 +276,7 @@ No agregues markdown, explicaciones ni bloques \`\`\` — solo el objeto JSON.`,
         "No se pudo parsear JSON. stop_reason:",
         stopReason,
         "rawText (primeros 2000):",
-        rawText.slice(0, 2000)
+        rawText.slice(0, 2000),
       );
       return NextResponse.json(
         {
@@ -278,7 +287,7 @@ No agregues markdown, explicaciones ni bloques \`\`\` — solo el objeto JSON.`,
           stop_reason: stopReason,
           raw: rawText.slice(0, 4000),
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -296,11 +305,14 @@ No agregues markdown, explicaciones ni bloques \`\`\` — solo el objeto JSON.`,
           error:
             "El análisis superó el tiempo máximo configurado (ANTHROPIC_TIMEOUT_MS) y se canceló. Probá de nuevo o subí el límite.",
         },
-        { status: 504 }
+        { status: 504 },
       );
     }
     if (abortedByClient) {
-      return NextResponse.json({ error: "Análisis cancelado por el usuario." }, { status: 499 });
+      return NextResponse.json(
+        { error: "Análisis cancelado por el usuario." },
+        { status: 499 },
+      );
     }
     return NextResponse.json({ error: "Error interno del servidor." }, { status: 500 });
   }
