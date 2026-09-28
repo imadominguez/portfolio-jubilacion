@@ -8,6 +8,22 @@ El sistema funciona con **snapshots**: capturas del estado del portafolio en un 
 
 ---
 
+## Primer uso (onboarding)
+
+Al entrar por primera vez al dashboard se abre un **wizard de bienvenida** que guía la carga de datos en el orden correcto. Se puede omitir ("Más tarde") y retomar después; el progreso se guarda por usuario en la base (`UserSetup`).
+
+Orden recomendado:
+
+1. **Snapshot** (requerido) — CSV de Portfolio. Desbloquea el dashboard.
+2. **Assets** (requerido) — al importar el snapshot la app detecta los tickers y ofrece completar ratio, subyacente, sector y país (asistente en `/assets`).
+3. **Transacciones** — CSV de Actividad. Habilita PPM y P&L.
+4. **Históricos** — CCL y precios de acciones para la Ganancia Real.
+5. **Preferencias** — objetivos de rebalanceo y plan de retiro.
+
+El **checklist "Puesta en marcha"** (dashboard y `/datos`) muestra qué falta. El **Centro de Datos** (`/datos`) reúne todas las importaciones y actualizaciones. El tour guiado de `nextstepjs` sigue disponible como ayuda contextual desde la Guía.
+
+---
+
 ## Flujo mensual recomendado
 
 > **Guía visual en la app:** la sección [Guía Cocos](/guia) explica con capturas de pantalla dónde descargar cada archivo en Cocos Capital.

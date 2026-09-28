@@ -1,0 +1,224 @@
+# Server Actions (`app/actions/`)
+
+Todas las mutaciones de la app pasan por Server Actions (`"use server"`). Cada archivo corresponde a un dominio. Patrón general: validar → operar con Prisma → revalidar rutas con los helpers de `lib/revalidate.ts` → devolver una unión discriminada.
+
+### Revalidación (`lib/revalidate.ts`)
+
+La app **no usa caché de datos de Next** (ni `unstable_cache` ni `"use cache"`): las lecturas van a Prisma en cada render y las páginas de `(app)` son dinámicas. Aun así, cada mutación invalida explícitamente las rutas que consumen los datos afectados mediante helpers por dominio:
+
+| Helper | Rutas que revalida |
+|---|---|
+| `revalidatePortfolioData()` | `/`, `/snapshots`, `/performance`, `/ccl`, `/analysis`, `/rebalance`, `/retirement`, `/settings`, `/real-gains` |
+| `revalidateTrades()` | `/`, `/transactions`, `/real-gains` |
+| `revalidateDividends()` | `/`, `/transactions` |
+| `revalidateAssets()` | `/assets`, `/`, `/analysis`, `/real-gains` |
+| `revalidateCcl()` | `/ccl`, `/real-gains` |
+| `revalidateMarketPrices()` | `/`, `/real-gains` |
+| `revalidateHistoricalPrices()` | `/real-gains` |
+| `revalidateBenchmarks()` | `/performance` |
+| `revalidateRebalance()` | `/rebalance`, `/` |
+| `revalidateMilestones()` | `/settings`, `/` |
+| `revalidateRetirement()` | `/retirement`, `/` |
+| `revalidateStrategy()` | `/strategy` |
+
+Autorización: las actions que leen/escriben datos de usuario llaman a `requireAuth()` (lanza si no hay sesión) y filtran por `userId`. Varias actions sobre datos globales (assets, exchange-rate, benchmarks, precios, strategy, reports) **no** llaman a `requireAuth` ni filtran por usuario.
+
+---
+
+## `assets.ts` — Catálogo de CEDEARs
+
+El catálogo es **global (compartido)**: lectura para todos, **escritura sólo ADMIN**. Cada mutación llama a `requireAuth()` + `isAdminRole(...)` (defensa en profundidad, además del middleware).
+
+| Función | Comportamiento |
+|---|---|
+| `createAsset(data)` | Valida ticker no vacío y `cedearRatio > 0`; normaliza ticker/subyacente a mayúsculas. Error amigable si el ticker ya existe. `revalidatePath("/assets")`. |
+| `updateAsset(id, data)` | Actualiza solo campos definidos; **no permite cambiar `ticker`**. |
+| `deleteAsset(id)` | Elimina por id, sin verificar ownership. |
+
+`AssetFormData`: `ticker`, `instrumentName?`, `cedearRatio`, `description?`, `sector?`, `industry?`, `country?`, `underlyingTicker?`.
+
+---
+
+## `snapshots.ts` — Importación de snapshots
+
+| Función | Auth | Comportamiento |
+|---|---|---|
+| `parseSnapshotPreview(formData)` | No | Parsea el CSV (`file`), calcula totales y allocations, informa `hasUsdPositions` y `missingCcl`. No escribe. |
+| `importSnapshot(formData)` | Sí | Valida archivo/fecha; rechaza posiciones USD sin CCL; verifica que no exista un snapshot para esa fecha (inmutabilidad); crea `PortfolioSnapshot` con `positions` anidadas; `totalValueUsd = totalValueArs / ccl`; llama a `checkAndUpdateMilestones`. |
+| `deleteSnapshot(id)` | No | Elimina por id (los snapshots son inmutables, pero pueden borrarse). |
+
+Detalles del parser en [logica-financiera.md](./logica-financiera.md#parsing-de-csv-de-cocos).
+
+---
+
+## `transactions.ts` — Operaciones
+
+| Función | Auth | Comportamiento |
+|---|---|---|
+| `createTransaction(data)` | Sí | Valida ticker, `quantity > 0`, `price > 0` y fecha válida. Guarda con `userId`. |
+| `deleteTransaction(id)` | No (solo borra por id) | Elimina y revalida `/transactions` y `/`. |
+| `getAllTransactions()` | Sí | Devuelve las transacciones del usuario ordenadas por fecha desc. |
+| `calculatePPM()` | Sí | Ver [PPM](./logica-financiera.md#ppm--precio-promedio-ponderado-calculateppm). |
+| `getRealizedPnl()` | Sí | Ver [P&L realizado](./logica-financiera.md#realizado-getrealizedpnl). |
+
+---
+
+## `dividends.ts` — Dividendos
+
+| Función | Auth | Comportamiento |
+|---|---|---|
+| `createDividend(data)` | Sí | Valida ticker, `amount > 0`, fecha válida. Revalida `/transactions` y `/performance`. |
+| `deleteDividend(id)` | No | Elimina por id. |
+| `getAllDividends()` | Sí | Dividendos del usuario por fecha desc. |
+| `getTotalDividendsUsd()` | Sí | Suma de dividendos en USD del usuario. |
+
+---
+
+## `import-movements.ts` — Libro de movimientos de Cocos
+
+El parser puro vive en `lib/cocos-movements.ts` (`parseMovementCsv`), no en este archivo.
+
+| Función | Auth | Comportamiento |
+|---|---|---|
+| `importMovements(movements, sourceFile?)` | Sí | Persiste el libro de movimientos de forma **idempotente**. Deduplica por `Movement.(userId, nroTicket)` (y por compatibilidad con `Transaction.notes = "Cocos #<ticket>"` legacy). En una transacción `$transaction`: inserta `Movement` con `createManyAndReturn` + `skipDuplicates` y crea una `Transaction` para cada `TRADE_BUY`/`TRADE_SELL` con ticker, cantidad y precio. Devuelve `imported`, `transactionsCreated`, `duplicates` y `byCategory`. |
+| `getMovements(categories?)` | Sí | Devuelve el libro de movimientos del usuario (opcionalmente filtrado por categoría) ordenado por fecha desc, con `transactionId` asociado. |
+
+El parser clasifica cada fila en `MovementCategory`; sólo `TRADE_BUY`/`TRADE_SELL` generan transacción. Detalle de la categorización en [logica-financiera.md](./logica-financiera.md#parsing-de-csv-de-cocos).
+
+---
+
+## `rebalance.ts` — Asignación objetivo
+
+| Función | Auth | Comportamiento |
+|---|---|---|
+| `getRebalanceData()` | Sí | Snapshot más reciente + objetivos → filas con `currentPct`, `targetPct`, `deviation` y `suggestedAction`; ordena por `|deviation|` desc. |
+| `getTargetAllocations()` | Sí | Objetivos del usuario (`targetPct` ×100). |
+| `upsertTargetAllocation(ticker, targetPct, notes?)` | Sí | Valida ticker y `0 ≤ targetPct ≤ 100`; persiste `targetPct/100`. Upsert por la unique `[userId, ticker]`. |
+| `deleteTargetAllocation(id)` | Sí | `deleteMany({ id, userId })`; no elimina objetivos de otros usuarios. |
+
+---
+
+## `retirement.ts` — Configuración de jubilación
+
+| Función | Auth | Comportamiento |
+|---|---|---|
+| `getRetirementSettings()` | Sí | Primer registro del usuario o `null`. |
+| `saveRetirementSettings(data)` | Sí | Valida `1 ≤ currentAge ≤ 100`, `retirementAge > currentAge` y `monthlyExpensesUsd > 0`; actualiza el registro existente o crea uno nuevo. |
+
+---
+
+## `milestones.ts` — Hitos
+
+| Función | Auth | Comportamiento |
+|---|---|---|
+| `getMilestones()` | Sí | Hitos del usuario; si no tiene, crea los 5 por defecto. |
+| `createMilestone(label, targetValueUsd)` | Sí | Valida label y valor positivo. |
+| `deleteMilestone(id)` | No | Elimina por id. |
+| `checkAndUpdateMilestones(currentValueUsd)` | Sí | Marca como alcanzados los hitos cumplidos. Invocada desde `importSnapshot`. |
+
+---
+
+## `exchange-rate.ts` — CCL
+
+Datos globales, **sin `requireAuth`**.
+
+| Función | Comportamiento |
+|---|---|
+| `fetchAndSaveCCL()` | Obtiene el CCL actual de dolarapi.com, hace upsert por fecha. |
+| `fetchHistoricalCCL(from, to?)` | Descarga la serie de argentinadatos.com y hace upsert del rango, reportando `saved`/`skipped`. |
+| `getAllExchangeRates()` | Todo el historial ordenado asc. |
+| `getExchangeRateForDate(dateStr)` | CCL exacto de una fecha (usado para autocompletar al importar). |
+
+---
+
+## `market-prices.ts` — Precios actuales
+
+Datos globales, **sin `requireAuth`**.
+
+| Función | Comportamiento |
+|---|---|
+| `fetchAndSaveMarketPrices()` | `getQuotes` de Yahoo para los `underlyingTicker` de `Asset`; upsert en `MarketPriceCache`; reporta `updated` y `failed`. |
+| `getMarketPrices()` | Precios cacheados junto con ticker, subyacente y ratio. |
+
+---
+
+## `historical-prices.ts` — Precios históricos de subyacentes
+
+Datos globales, **sin `requireAuth`**.
+
+| Función | Comportamiento |
+|---|---|
+| `fetchAndCacheStockHistory()` | Para cada `Asset` con `underlyingTicker`, descarga el histórico desde la primera compra (o −365 días) hasta hoy y hace upsert en `HistoricalPriceCache`. Un fallo por ticker no aborta el resto. |
+
+---
+
+## `benchmarks.ts` — Benchmarks
+
+Datos globales, **sin `requireAuth`**.
+
+| Función | Comportamiento |
+|---|---|
+| `fetchAndSaveBenchmark(benchmarkId, fromDate, toDate?)` | Descarga el histórico del índice (`sp500`→`^GSPC`, `merval`→`^MERV`, `nasdaq`→`^IXIC`) y hace upsert en `BenchmarkPoint`. |
+| `getBenchmarkPoints(benchmarkId, fromDate?)` | Puntos normalizados a base 100. |
+
+---
+
+## `setup.ts` — Onboarding y estado de puesta en marcha
+
+| Función | Auth | Comportamiento |
+|---|---|---|
+| `getSetupStatus()` | Sí | Deriva el estado de cada paso (snapshot, assets, transacciones, históricos, preferencias) cruzando datos reales + metadata de `UserSetup`. Ver `lib/setup-status.ts` (lógica pura). |
+| `completeOnboarding()` | Sí | Marca `onboardingCompletedAt`. |
+| `dismissOnboarding()` | Sí | Marca `onboardingDismissedAt` (omitir). |
+| `setOnboardingStep(step)` | Sí | Guarda `lastStep` para reanudar el wizard. |
+| `restartOnboarding()` | Sí | Limpia completado/omitido para volver a mostrar el wizard. |
+
+La completitud de cada paso **no se guarda**: se deriva de `PortfolioSnapshot`, `Asset`, `Transaction`, `ExchangeRate` y `HistoricalPriceCache`. En `UserSetup` sólo vive la metadata de presentación (completado/omitido/paso).
+
+---
+
+## `strategy.ts` — Estrategia de inversión
+
+Datos globales, **sin `requireAuth`**.
+
+| Función | Comportamiento |
+|---|---|
+| `getActiveStrategy()` | Estrategia con `isActive = true`. |
+| `getStrategyHistory()` | Todas las versiones por fecha desc. |
+| `saveNewVersion(content, title)` | Valida contenido/título; en transacción desactiva la actual y crea la versión `N+1` activa. |
+| `restoreVersion(id)` | En transacción desactiva todas y activa la indicada. |
+
+---
+
+## `reports.ts` — Reportes mensuales
+
+Datos globales, **sin `requireAuth`**.
+
+| Función | Comportamiento |
+|---|---|
+| `listReports()` | Lista `id` + label (`fechaReporte — hora`) por fecha desc. |
+| `getReport(id)` | Devuelve `normalizedJson` casteado a `ReportePortafolio`. |
+
+---
+
+## Matriz de autorización
+
+| Archivo | `requireAuth` | Filtra por `userId` |
+|---|---|---|
+| `assets.ts` | Sí (admin) | No (catálogo global) |
+| `benchmarks.ts` | No | No |
+| `dividends.ts` | Sí | create/getAll/getTotal |
+| `exchange-rate.ts` | No | No (global) |
+| `historical-prices.ts` | No | No (global) |
+| `import-movements.ts` | Sí | import / getMovements |
+| `market-prices.ts` | No | No (global) |
+| `milestones.ts` | Sí | Sí |
+| `rebalance.ts` | Sí | Sí |
+| `reports.ts` | No | No (global) |
+| `retirement.ts` | Sí | Sí |
+| `setup.ts` | Sí | Sí (por usuario) |
+| `snapshots.ts` | Sí (import) | import |
+| `strategy.ts` | No | No (global) |
+| `transactions.ts` | Sí | Sí |
+
+> **Deuda técnica conocida:** varias funciones de borrado (`deleteTransaction`, `deleteDividend`, `deleteMilestone`, `deleteSnapshot`) operan solo por `id` sin validar ownership. `deleteAsset` ya exige ADMIN y `deleteTargetAllocation` ya filtra por `userId`. La autorización "dura" de rutas sigue en el proxy (sesión + rol para las rutas admin).

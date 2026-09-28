@@ -1,0 +1,127 @@
+# Componentes
+
+Organizados por dominio. Los componentes de `components/ui/` son primitivas shadcn/ui (`radix-nova`) y no se documentan aquí. Convención: **CC** = Client Component (`"use client"`), **SC** = Server Component.
+
+---
+
+## Layout
+
+| Componente | Tipo | Descripción |
+|---|---|---|
+| `layout/app-sidebar.tsx` — `AppSidebar` | CC | Sidebar colapsable con tres grupos: **Principal** (Dashboard, Snapshots, Historial CCL, Performance, Guía Cocos), **Análisis** (Análisis, Ganancia Real, Transacciones, Rebalanceo, Jubilación) y **Configuración** (Assets, Estrategia, Configuración, Reporte mensual), este último solo si `isAdmin`. Item activo por `pathname.startsWith(href)` (excepto `/`). Logout vía `signOut()`. Expone ids de tour: `tour-nav-snapshots`, `tour-nav-guia`, `tour-nav-transacciones`. |
+| `layout/site-header.tsx` — `SiteHeader` | SC | Header sticky con `SidebarTrigger`, título, descripción, `actions` a la derecha, `CommandMenu` y `ThemeToggle`. |
+| `layout/command-menu.tsx` — `CommandMenu` | CC | Buscador global (⌘K / Ctrl+K) con `cmdk` (`CommandDialog`). Navega a las secciones principales, de análisis y de datos. |
+
+---
+
+## Dashboard (`components/dashboard/`)
+
+| Componente | Tipo | Props / comportamiento |
+|---|---|---|
+| `dashboard-hero.tsx` | CC | `totalValueArs`, `totalValueUsd`, `snapshotDateFormatted`, `gainArs`, `gainPct`. Toggle ARS/USD (USD deshabilitado si es null); badge verde/rojo según la ganancia. |
+| `holdings-table.tsx` | SC | `positions`, `ppmData?`, `marketPrices?`. Tabla con barra de peso, PPM/P&L (solo si hay PPM en ARS) y valor USD en vivo (`(quantity / cedearRatio) × priceUsd`); pie con "total live USD" y timestamp. |
+| `allocation-panel.tsx` | CC | `positions`, `totalArs`. Donut Recharts (`innerRadius 55%`) + leyenda con barras de progreso. |
+| `performers-panel.tsx` | SC | `currentPositions`, `previousPositions`. Calcula `Δ%` de precio por ticker y muestra hasta 3 mejores y 3 peores. Retorna `null` si hay < 2 performers. |
+| `portfolio-chart-widget.tsx` | SC | `snapshots`. Envuelve `PerformanceChart` en una tarjeta; `null` si hay < 2 snapshots. |
+| `milestone-widget.tsx` | SC | `milestones`, `currentValueUsd`. Badges alcanzados y barra de progreso al próximo hito. |
+| `empty-dashboard.tsx` | CC | Estado sin snapshots: CTA importar, link a la guía y 3 pasos. |
+
+---
+
+## Performance (`components/performance/`)
+
+| Componente | Tipo | Descripción |
+|---|---|---|
+| `performance-chart.tsx` | CC | `snapshots`. Línea de evolución con toggle ARS/USD (USD = `totalValueUsd` o `totalValueArs / ccl`). Usa `ChartContainer`. |
+| `benchmark-overlay-chart.tsx` | CC | `snapshots`, `initialBenchmarks`. Normaliza a base 100 y superpone S&P 500 / Merval / NASDAQ; carga datos on-demand con `fetchAndSaveBenchmark` + `getBenchmarkPoints` dentro de `useTransition`. |
+
+---
+
+## Análisis (`components/analysis/`)
+
+| Componente | Tipo | Descripción |
+|---|---|---|
+| `concentration-charts.tsx` | CC | `data`. Tabs Sector / País / Industria con donuts y leyenda (top 8); nota de monto sin clasificar. |
+| `portfolio-analizer.tsx` | CC | `PortfolioAnalyzer`: drag & drop de PDF → `POST /api/analyze-portfolio`, render del reporte y caché en `localStorage`. También exporta `ReporteDisplay` y los tipos `ReportePortafolio`. |
+| `report-historial.tsx` | CC | Lista reportes (`listReports`) y muestra el seleccionado (`getReport`). |
+
+---
+
+## Snapshots (`components/snapshots/`)
+
+| Componente | Tipo | Descripción |
+|---|---|---|
+| `snapshots-client.tsx` — `ImportButton` | CC | Botón "Importar CSV" (`id="tour-import-snapshot"`) que abre el sheet. |
+| `import-csv-sheet.tsx` | CC | Flujo de 3 pasos: seleccionar → previsualizar → completado. Valida el nombre `portfolio_report_AAAAMMDD.csv`, deriva la fecha, autocompleta el CCL (`getExchangeRateForDate`), muestra la tabla de posiciones y bloquea la confirmación si `missingCcl`. |
+
+---
+
+## Transacciones (`components/transactions/`)
+
+| Componente | Tipo | Descripción |
+|---|---|---|
+| `transactions-client.tsx` | CC | Tabs Transacciones / PPM / P&L Realizado / Dividendos / **Movimientos**. El tab de Movimientos tiene sub-vistas "Todos" y "Fondos FCI" (aporta/rescata/neto por fondo). Eliminación con `AlertDialog`; fechas en `timeZone: "UTC"`. |
+| `transaction-form.tsx` | CC | Diálogo para registrar BUY/SELL (`createTransaction`). |
+| `dividend-form.tsx` | CC | Diálogo para registrar dividendos (`createDividend`, USD por defecto). |
+| `import-movements-button.tsx` | CC | Importación de movimientos de Cocos. Parsea el CSV en el cliente (`parseMovementCsv`) y muestra una previsualización **agrupada por categoría** con checkboxes por grupo y por fila (todo seleccionado por defecto). Avisos para tipos no reconocidos y trades sin ticker. Al confirmar llama a `importMovements`. `id="tour-import-movimientos"`. |
+
+---
+
+## Resto de módulos
+
+| Componente | Tipo | Descripción |
+|---|---|---|
+| `rebalance/rebalance-client.tsx` | CC | `rebalanceData`, `targets`, `totalPct`. Tabla ordenable, acciones sugeridas (Comprar/Vender/Mantener), alta/baja de objetivos y badge de total (alerta si se aleja de 100%). |
+| `retirement/retirement-client.tsx` | CC | `initialSettings`, `currentPortfolioUsd`, `historicalCagr`. Tabs Calculadora / Proyección / Monte Carlo; cálculos memoizados con `JSON.stringify(inputs)`; tasa anual `min(cagr/100, 0.30)` o `0.07`. |
+| `strategy/strategy-editor.tsx` | CC | `active`, `history`. Editor del system prompt con versionado (guardar nueva versión / restaurar versión anterior). |
+| `settings/milestones-client.tsx` | CC | `initialMilestones`, `currentPortfolioUsd`. Alta/baja de hitos y progreso al próximo. |
+| `real-gains/real-gains-wizard.tsx` | CC | `readiness`. Wizard de 2 pasos: backfill de CCL histórico y de precios históricos de subyacentes. |
+| `real-gains/real-gains-update-button.tsx` | CC | Actualiza CCL histórico y precios de acciones en paralelo (`Promise.all`). |
+| `ccl/ccl-chart.tsx` | CC | `rates`, `snapshots`. Gráfico de CCL con overlay del portafolio USD (doble eje Y). |
+| `exchange-rate/ccl-update-button.tsx` | CC | Actualiza el CCL actual (`fetchAndSaveCCL`); toast indica si ya existía. |
+| `market/market-prices-button.tsx` | CC | Actualiza precios de mercado (`fetchAndSaveMarketPrices`); reporta fallos. |
+| `assets/asset-dialog.tsx` | CC | Diálogo crear/editar CEDEAR (en edición no permite cambiar ticker). |
+| `assets/assets-table-client.tsx` | CC | Tabla del catálogo con alta/edición/eliminación y confirmación. |
+| `guide/cocos-guide.tsx` | CC | Guía visual de descarga de CSV + `RestartTourButton`. Secciones con ids `tour-guide-snapshots` y `tour-guide-transacciones`. |
+
+---
+
+## Onboarding (tours)
+
+Sistema de tour de primer uso basado en `nextstepjs`, activo solo en el Dashboard y la Guía.
+
+| Archivo | Rol |
+|---|---|
+| `components/onboarding/onboarding-provider.tsx` | Configura `NextStep` con `onboardingSteps`, la card custom y los sincronizadores. El tour ya **no se auto-inicia**: es una ayuda contextual opcional. |
+| `components/onboarding/onboarding-card.tsx` | Card del tour: barra de progreso, pasos, botones Omitir / Anterior / Siguiente-Finalizar. |
+| `components/onboarding/tour-highlight-sync.tsx` | Marca el elemento activo con `data-tour-highlight`. |
+| `components/onboarding/tour-position-sync.tsx` | Re-ancla spotlight/card en scroll y resize (nextstepjs no escucha scroll). |
+| `components/onboarding/tour-scroll-sync.tsx` | Hace scroll al target del paso en el sidebar o en la guía. |
+| `lib/onboarding/steps.tsx` | Define `PRIMER_USO_TOUR` con 6 pasos que recorren `/` y `/guia`. |
+| `lib/onboarding/tour-targets.ts` | Índices de pasos, selectores del sidebar y helpers de scroll. |
+
+El tour se lanza desde la Guía (`RestartTourButton`) o tras finalizar el wizard.
+
+## Setup / Onboarding de datos
+
+El onboarding principal es un **wizard accionable** que guía la carga de datos en orden. Su estado vive en la base (`UserSetup`), no en `localStorage`.
+
+| Componente | Tipo | Descripción |
+|---|---|---|
+| `setup/setup-panel.tsx` | CC | Orquesta wizard + checklist + una única instancia de `ImportCsvSheet`. Se monta en el Dashboard. |
+| `setup/welcome-wizard.tsx` | CC | Wizard de bienvenida de 6 pasos. Se auto-abre si `onboarding.shouldShowWizard`. Permite omitir, reanudar y finalizar (`completeOnboarding`). |
+| `setup/setup-checklist.tsx` | CC | Checklist "Puesta en marcha" con progreso, estado por paso y CTA. Se usa en el Dashboard y en `/datos`. |
+| `assets/assets-quick-setup.tsx` | CC | Completa en lote los Assets detectados en el snapshot (ratio obligatorio + subyacente/sector/país/industria). Aparece en `/assets`. |
+| `ui/empty-state.tsx` | SC | Estado vacío consistente (ícono + título + descripción + acción). |
+| `ui/info-tooltip.tsx` | CC | Ícono "?" con la definición del término del glosario (`lib/glossary.ts`). |
+
+Targets usados por los componentes: `#tour-import-snapshot`, `#tour-import-movimientos`, `#tour-nav-snapshots`, `#tour-nav-guia`, `#tour-nav-transacciones`, `#tour-guide-snapshots`, `#tour-guide-transacciones`.
+
+---
+
+## Estilos y animaciones
+
+- **Sistema de diseño:** ver [`DESIGN.md`](../DESIGN.md) — tokens Azure Tech (color, tipografía, radios, sombras, utilidades). Usar siempre tokens semánticos (`text-success`, `bg-warning/10`, `text-destructive`, `text-info`) y `var(--color-chart-*)`; nunca colores crudos de Tailwind.
+- Layout de página: `<div className="flex flex-col min-h-svh">` con `section` que usan `animate-fade-up` y `animationDelay` progresivo (0, 100, 200 ms…).
+- KPIs: patrón `border bg-card shadow-sm px-5 py-4`, grillas `grid-cols-2 sm:grid-cols-4`.
+- Números y fechas: `Intl.NumberFormat` / `Intl.DateTimeFormat` con locale `"es-AR"` (y `"en-US"` para USD).
