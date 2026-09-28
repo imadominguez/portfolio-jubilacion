@@ -17,7 +17,9 @@ import {
   Activity,
   FileText,
   BookOpen,
+  Database,
   HelpCircle,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
 import { signOut } from "@/lib/auth-client";
@@ -48,15 +50,20 @@ const NAV_MAIN: NavItem[] = [
   { label: "Snapshots", href: "/snapshots", icon: CalendarDays },
   { label: "Historial CCL", href: "/ccl", icon: Activity },
   { label: "Performance", href: "/performance", icon: TrendingUp },
-  { label: "Guía Cocos", href: "/guia", icon: HelpCircle },
 ];
 
 const NAV_ANALYSIS: NavItem[] = [
   { label: "Análisis", href: "/analysis", icon: BarChart3 },
   { label: "Ganancia Real", href: "/real-gains", icon: DollarSign },
-  { label: "Transacciones", href: "/transactions", icon: ArrowLeftRight },
   { label: "Rebalanceo", href: "/rebalance", icon: Scale },
+  { label: "Plan DCA", href: "/plan", icon: Wallet },
   { label: "Jubilación", href: "/retirement", icon: Target },
+];
+
+const NAV_DATA: NavItem[] = [
+  { label: "Centro de Datos", href: "/datos", icon: Database },
+  { label: "Transacciones", href: "/transactions", icon: ArrowLeftRight },
+  { label: "Guía Cocos", href: "/guia", icon: HelpCircle },
 ];
 
 const NAV_CONFIG: NavItem[] = [
@@ -88,6 +95,7 @@ export function AppSidebar({ isAdmin }: AppSidebarProps) {
   const sections: NavSection[] = [
     { label: null, items: NAV_MAIN },
     { label: "Análisis", items: NAV_ANALYSIS },
+    { label: "Datos", items: NAV_DATA },
     ...(isAdmin ? [{ label: "Configuración" as const, items: NAV_CONFIG }] : []),
   ];
 

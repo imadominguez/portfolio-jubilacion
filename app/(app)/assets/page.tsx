@@ -1,28 +1,33 @@
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/layout/site-header";
 import { AssetsTableClient } from "@/components/assets/assets-table-client";
+import { AssetsQuickSetup } from "@/components/assets/assets-quick-setup";
 import { ImportButton } from "@/components/snapshots/snapshots-client";
 import { CclUpdateButton } from "@/components/exchange-rate/ccl-update-button";
 import { MarketPricesButton } from "@/components/market/market-prices-button";
+import { getSetupStatus } from "@/app/actions/setup";
 import { db } from "@/lib/db";
 
 export const metadata: Metadata = { title: "Assets" };
 
 export default async function AssetsPage() {
-  const assets = await db.asset.findMany({
-    orderBy: { ticker: "asc" },
-    select: {
-      id: true,
-      ticker: true,
-      instrumentName: true,
-      cedearRatio: true,
-      description: true,
-      sector: true,
-      industry: true,
-      country: true,
-      underlyingTicker: true,
-    },
-  });
+  const [assets, setup] = await Promise.all([
+    db.asset.findMany({
+      orderBy: { ticker: "asc" },
+      select: {
+        id: true,
+        ticker: true,
+        instrumentName: true,
+        cedearRatio: true,
+        description: true,
+        sector: true,
+        industry: true,
+        country: true,
+        underlyingTicker: true,
+      },
+    }),
+    getSetupStatus(),
+  ]);
 
   const serialized = assets.map((a) => ({
     id: a.id,
@@ -61,6 +66,8 @@ export default async function AssetsPage() {
             habilitar análisis de concentración y precios en tiempo real.
           </p>
         </div>
+
+        <AssetsQuickSetup missingTickers={setup.missingAssetTickers} />
 
         <AssetsTableClient assets={serialized} />
       </main>

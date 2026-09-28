@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useTransition } from "react";
 import { useNextStep } from "nextstepjs";
 import {
   ArrowLeftRight,
@@ -14,11 +14,13 @@ import {
   FileSpreadsheet,
   PieChart,
   PlayCircle,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PRIMER_USO_TOUR } from "@/lib/onboarding/steps";
 import { scrollGuideTourTarget } from "@/lib/onboarding/tour-targets";
+import { restartOnboarding } from "@/app/actions/setup";
 import { cn } from "@/lib/utils";
 
 const SNAPSHOT_STEPS = [
@@ -81,8 +83,8 @@ function PhoneScreenshot({
       style={{ animationDelay: "120ms" }}
     >
       <div className="relative mx-auto w-full max-w-[240px] transition-transform duration-500 hover:scale-[1.02]">
-        <div className="rounded-[1.75rem] border border-border/80 bg-zinc-950 p-2 shadow-xl ring-1 ring-white/5">
-          <div className="overflow-hidden rounded-[1.35rem] bg-zinc-900">
+        <div className="device-frame rounded-[1.75rem] border border-border/80 p-2 shadow-xl ring-1 ring-white/5">
+          <div className="device-screen overflow-hidden rounded-[1.35rem]">
             <Image
               src={src}
               alt={alt}
@@ -194,6 +196,33 @@ export function RestartTourButton() {
   );
 }
 
+export function RestartOnboardingButton() {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  function handleRestart() {
+    startTransition(async () => {
+      await restartOnboarding();
+      router.push("/");
+      router.refresh();
+    });
+  }
+
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      className="gap-2 text-muted-foreground"
+      onClick={handleRestart}
+      disabled={isPending}
+    >
+      <Sparkles className="size-4" />
+      Repetir guía de inicio
+    </Button>
+  );
+}
+
 export function CocosGuide() {
   useEffect(() => {
     const hash = window.location.hash.replace("#", "");
@@ -232,6 +261,7 @@ export function CocosGuide() {
           </div>
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <RestartTourButton />
+            <RestartOnboardingButton />
             <Button asChild variant="ghost" size="sm" className="gap-2 text-muted-foreground">
               <a href="https://cocos.capital" target="_blank" rel="noopener noreferrer">
                 Abrir Cocos Capital
@@ -249,8 +279,8 @@ export function CocosGuide() {
           className="group rounded-xl border border-border bg-card p-5 shadow-sm transition-all hover:border-primary/30 hover:shadow-md"
         >
           <div className="flex items-start justify-between gap-3">
-            <div className="rounded-xl bg-blue-500/10 p-2.5">
-              <PieChart className="size-5 text-blue-400" />
+            <div className="rounded-xl bg-primary/10 p-2.5">
+              <PieChart className="size-5 text-primary" />
             </div>
             <ArrowUpRight className="size-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
           </div>
@@ -268,8 +298,8 @@ export function CocosGuide() {
           className="group rounded-xl border border-border bg-card p-5 shadow-sm transition-all hover:border-primary/30 hover:shadow-md"
         >
           <div className="flex items-start justify-between gap-3">
-            <div className="rounded-xl bg-emerald-500/10 p-2.5">
-              <ArrowLeftRight className="size-5 text-emerald-400" />
+            <div className="rounded-xl bg-success/10 p-2.5">
+              <ArrowLeftRight className="size-5 text-success" />
             </div>
             <ArrowUpRight className="size-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
           </div>
@@ -291,7 +321,7 @@ export function CocosGuide() {
           "Importá snapshots y transacciones por separado",
         ].map((tip) => (
           <span key={tip} className="flex items-center gap-2 text-xs text-muted-foreground">
-            <CheckCircle2 className="size-3.5 shrink-0 text-emerald-500" />
+            <CheckCircle2 className="size-3.5 shrink-0 text-success" />
             {tip}
           </span>
         ))}
@@ -304,7 +334,7 @@ export function CocosGuide() {
         title="Descargar snapshot desde Portfolio"
         description="Usá esta guía cuando quieras registrar el valor y composición de tu cartera en una fecha específica. En Cocos, Portfolio y Actividad son secciones distintas del menú lateral."
         steps={SNAPSHOT_STEPS}
-        accentClass="ring-1 ring-blue-500/10"
+        accentClass="ring-1 ring-primary/10"
         screenshots={[
           {
             src: "/guides/cocos/menu-lateral.png",
@@ -338,7 +368,7 @@ export function CocosGuide() {
         title="Descargar movimientos desde Actividad"
         description="Usá esta guía para importar compras, ventas y operaciones. Este archivo no sirve para snapshots: viene de Actividad, no de Portfolio."
         steps={TRANSACTION_STEPS}
-        accentClass="ring-1 ring-emerald-500/10"
+        accentClass="ring-1 ring-success/10"
         screenshots={[
           {
             src: "/guides/cocos/menu-lateral.png",

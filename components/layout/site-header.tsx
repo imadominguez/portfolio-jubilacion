@@ -1,6 +1,7 @@
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { CommandMenu } from "@/components/layout/command-menu";
 
 interface SiteHeaderProps {
   title: string;
@@ -28,6 +29,7 @@ export function SiteHeader({ title, description, actions }: SiteHeaderProps) {
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
+          <CommandMenu />
           {actions}
           <ThemeToggle />
         </div>

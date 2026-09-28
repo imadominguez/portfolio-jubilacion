@@ -2,12 +2,10 @@
 
 import { NextStep, NextStepProvider } from "nextstepjs";
 import { OnboardingCard } from "@/components/onboarding/onboarding-card";
-import { OnboardingTrigger } from "@/components/onboarding/onboarding-trigger";
 import { TourHighlightSync } from "@/components/onboarding/tour-highlight-sync";
 import { TourPositionSync } from "@/components/onboarding/tour-position-sync";
 import { TourScrollSync } from "@/components/onboarding/tour-scroll-sync";
 import { onboardingSteps } from "@/lib/onboarding/steps";
-import { markOnboardingCompleted } from "@/lib/onboarding/storage";
 import { nudgeTourPosition } from "@/lib/onboarding/tour-targets";
 
 type OnboardingProviderProps = {
@@ -21,7 +19,8 @@ const tourCardTransition = {
 
 export function OnboardingProvider({ children }: OnboardingProviderProps) {
   function handleFinish() {
-    markOnboardingCompleted();
+    // El estado de onboarding ahora vive en la base (app/actions/setup.ts).
+    // El tour es una ayuda contextual opcional, no el onboarding principal.
   }
 
   function handleStepChange() {
@@ -42,7 +41,6 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
         overlayZIndex={50}
         shadowOpacity="0.55"
       >
-        <OnboardingTrigger />
         <TourPositionSync />
         <TourScrollSync />
         <TourHighlightSync />
