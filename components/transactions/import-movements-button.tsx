@@ -2,10 +2,12 @@
 
 import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Upload, ArrowUpRight, ArrowDownRight, AlertTriangle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -22,34 +24,18 @@ import {
 } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
+import { importMovements } from "@/app/actions/import-movements";
 import {
-  parseCocosMovimientosCsv,
-  importMovimientos,
-} from "@/app/actions/import-movements";
-import type { MovimientoRow, ParsedMovimientos } from "@/app/actions/import-movements";
+  ALL_CATEGORIES,
+  CATEGORY_LABELS,
+  parseMovementCsv,
+  type MovementCategory,
+  type ParsedMovement,
+} from "@/lib/cocos-movements";
+import { formatDateUTC, formatCurrency } from "@/lib/format";
 
-function formatDate(iso: string) {
-  // Las fechas vienen como "YYYY-MM-DD" puras (sin TZ). new Date(iso) las parsea
-  // como UTC midnight; sin timeZone explícito, el formatter las muestra en la
-  // hora local y termina mostrando el día anterior en zonas con offset negativo.
-  return new Intl.DateTimeFormat("es-AR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(new Date(iso));
-}
-
-function formatNumber(n: number, currency: string) {
-  return new Intl.NumberFormat(currency === "USD" ? "en-US" : "es-AR", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(n);
-}
-
-// Cocos exporta los movimientos como movements_report_YYYY-MM-DD_YYYY-MM-DD.csv
+// Cocos exporta los movimientos como movements_report_YYYY-MM-DD_YYYY-MM-DD.csv.
+// El nombre no es obligatorio: si no matchea, se importa igual sin rango de fecha.
 const FILENAME_PATTERN = /^movements_report_(\d{4}-\d{2}-\d{2})_(\d{4}-\d{2}-\d{2})\.csv$/i;
 
 type DateRange = { from: string; to: string };
@@ -58,94 +44,129 @@ function parseFilenameRange(name: string): DateRange | null {
   const match = name.match(FILENAME_PATTERN);
   if (!match) return null;
   const [, from, to] = match;
-  const fromDate = new Date(`${from}T00:00:00.000Z`);
-  const toDate = new Date(`${to}T00:00:00.000Z`);
-  if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) return null;
-  if (fromDate.getTime() > toDate.getTime()) return null;
   return { from, to };
 }
 
+type ParsedState = {
+  movements: ParsedMovement[];
+  counts: Record<MovementCategory, number>;
+  warnings: string[];
+};
+
 export function ImportMovimientosButton() {
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
-  const [parsed, setParsed] = useState<ParsedMovimientos | null>(null);
+  const [parsed, setParsed] = useState<ParsedState | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [fileName, setFileName] = useState("");
   const [dateRange, setDateRange] = useState<DateRange | null>(null);
   const [isParsing, startParsing] = useTransition();
   const [isImporting, startImporting] = useTransition();
 
+  function reset() {
+    setOpen(false);
+    setParsed(null);
+    setSelected(new Set());
+    setFileName("");
+    setDateRange(null);
+  }
+
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    const range = parseFilenameRange(file.name);
-    if (!range) {
-      toast.error(
-        "El archivo debe llamarse movements_report_AAAA-MM-DD_AAAA-MM-DD.csv (ej: movements_report_2026-05-01_2026-05-31.csv)."
-      );
-      e.target.value = "";
-      return;
-    }
+    e.target.value = "";
 
     setFileName(file.name);
-    setDateRange(range);
+    setDateRange(parseFilenameRange(file.name));
 
     startParsing(async () => {
       const text = await file.text();
-      const result = await parseCocosMovimientosCsv(text);
-      if ("error" in result) {
+      const result = parseMovementCsv(text);
+      if (!result.success) {
         toast.error(result.error);
         return;
       }
-      setParsed(result);
+      if (result.movements.length === 0) {
+        toast.error("No se encontraron movimientos en el archivo.");
+        return;
+      }
+      setParsed({ movements: result.movements, counts: result.counts, warnings: result.warnings });
+      setSelected(new Set(result.movements.map((m) => m.nroTicket)));
       setOpen(true);
     });
+  }
 
-    e.target.value = "";
+  function toggleTicket(ticket: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(ticket)) next.delete(ticket);
+      else next.add(ticket);
+      return next;
+    });
+  }
+
+  function toggleCategory(category: MovementCategory) {
+    if (!parsed) return;
+    const tickets = parsed.movements.filter((m) => m.category === category).map((m) => m.nroTicket);
+    const allSelected = tickets.every((t) => selected.has(t));
+    setSelected((prev) => {
+      const next = new Set(prev);
+      for (const t of tickets) {
+        if (allSelected) next.delete(t);
+        else next.add(t);
+      }
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    if (!parsed) return;
+    const allSelected = parsed.movements.every((m) => selected.has(m.nroTicket));
+    setSelected(allSelected ? new Set() : new Set(parsed.movements.map((m) => m.nroTicket)));
   }
 
   function handleImport() {
-    if (!parsed || parsed.rows.length === 0) return;
+    if (!parsed) return;
+    const rows = parsed.movements.filter((m) => selected.has(m.nroTicket));
+    if (rows.length === 0) return;
 
     startImporting(async () => {
-      const result = await importMovimientos(parsed.rows);
+      const result = await importMovements(rows, fileName);
       if (!result.success) {
         toast.error(result.error);
         return;
       }
 
       const msgs: string[] = [];
-      if (result.imported > 0) msgs.push(`${result.imported} transacciones importadas`);
-      if (result.duplicates > 0) msgs.push(`${result.duplicates} duplicadas omitidas`);
+      if (result.imported > 0) msgs.push(`${result.imported} movimientos importados`);
+      if (result.transactionsCreated > 0) msgs.push(`${result.transactionsCreated} transacciones`);
+      if (result.duplicates > 0) msgs.push(`${result.duplicates} duplicados omitidos`);
       toast.success(msgs.join(" · ") || "Sin cambios");
 
-      setOpen(false);
-      setParsed(null);
-      setFileName("");
-      setDateRange(null);
+      if (result.historyBackfillNeeded) {
+        toast.warning("Datos históricos desactualizados", {
+          description:
+            "Hay compras más antiguas que tus precios/CCL en caché. Actualizá en Ganancia Real para incluirlas.",
+          action: { label: "Ir", onClick: () => router.push("/real-gains") },
+        });
+      }
+
+      reset();
     });
   }
 
-  function handleClose() {
-    if (isImporting) return;
-    setOpen(false);
-    setParsed(null);
-    setFileName("");
-    setDateRange(null);
-  }
+  const grouped = parsed
+    ? ALL_CATEGORIES.map((category) => ({
+        category,
+        rows: parsed.movements.filter((m) => m.category === category),
+      })).filter((g) => g.rows.length > 0)
+    : [];
 
-  const skipped = parsed?.skippedReasons;
-  const skippedDetails: string[] = [];
-  if (skipped) {
-    if (skipped.fci > 0) skippedDetails.push(`${skipped.fci} FCI`);
-    if (skipped.pagos > 0) skippedDetails.push(`${skipped.pagos} pagos/cobros`);
-    if (skipped.dividendos > 0) skippedDetails.push(`${skipped.dividendos} dividendos`);
-    if (skipped.mep > 0) skippedDetails.push(`${skipped.mep} MEP/conversiones`);
-    if (skipped.other > 0) skippedDetails.push(`${skipped.other} otros`);
-  }
-
-  const buyCount = parsed?.rows.filter((r) => r.type === "BUY").length ?? 0;
-  const sellCount = parsed?.rows.filter((r) => r.type === "SELL").length ?? 0;
+  const selectedRows = parsed ? parsed.movements.filter((m) => selected.has(m.nroTicket)) : [];
+  const selectedTrades = selectedRows.filter(
+    (m) => m.category === "TRADE_BUY" || m.category === "TRADE_SELL"
+  ).length;
 
   return (
     <>
@@ -177,8 +198,8 @@ export function ImportMovimientosButton() {
         </Link>
       </div>
 
-      <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col">
+      <Dialog open={open} onOpenChange={(o) => (o ? setOpen(true) : reset())}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <div className="flex items-start justify-between gap-4">
               <div className="flex flex-col gap-0.5">
@@ -187,24 +208,16 @@ export function ImportMovimientosButton() {
                 </DialogTitle>
                 {dateRange && (
                   <p className="text-[11px] font-mono text-muted-foreground">
-                    {formatDate(dateRange.from)} → {formatDate(dateRange.to)}
+                    {formatDateUTC(dateRange.from)} → {formatDateUTC(dateRange.to)}
                   </p>
                 )}
                 {parsed && (
                   <p className="text-xs text-muted-foreground">
-                    {buyCount > 0 && `${buyCount} compra${buyCount !== 1 ? "s" : ""}`}
-                    {buyCount > 0 && sellCount > 0 && " · "}
-                    {sellCount > 0 && `${sellCount} venta${sellCount !== 1 ? "s" : ""}`}
-                    {parsed.skippedCount > 0 && ` · ${parsed.skippedCount} filas ignoradas`}
+                    {parsed.movements.length} movimientos · {selectedRows.length} seleccionados
                   </p>
                 )}
               </div>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="size-7 p-0 shrink-0"
-                onClick={handleClose}
-              >
+              <Button size="sm" variant="ghost" className="size-7 p-0 shrink-0" onClick={reset}>
                 <X className="size-3.5" />
               </Button>
             </div>
@@ -212,141 +225,179 @@ export function ImportMovimientosButton() {
 
           <Separator className="opacity-30" />
 
-          {parsed?.rows.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 gap-2 text-center">
-              <AlertTriangle className="size-5 text-muted-foreground/50" />
-              <p className="text-sm text-muted-foreground">
-                No se encontraron compras ni ventas para importar.
-              </p>
-              {parsed.skippedCount > 0 && (
-                <p className="text-xs text-muted-foreground">
-                  {parsed.skippedCount} filas ignoradas ({skippedDetails.join(", ")})
-                </p>
-              )}
+          {parsed && parsed.warnings.length > 0 && (
+            <div className="flex gap-2 rounded-md border border-warning/30 bg-warning/10 px-3 py-2">
+              <AlertTriangle className="size-3.5 shrink-0 text-warning mt-0.5" />
+              <div className="flex flex-col gap-0.5 text-[11px] text-warning">
+                {parsed.warnings.slice(0, 5).map((w) => (
+                  <span key={w}>{w}</span>
+                ))}
+                {parsed.warnings.length > 5 && <span>+{parsed.warnings.length - 5} más…</span>}
+              </div>
             </div>
-          ) : (
-            <>
-              <div className="overflow-y-auto flex-1 rounded-lg border border-border">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-border hover:bg-transparent bg-muted/40">
-                      <TableHead className="pl-4 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-8">
-                        Fecha
-                      </TableHead>
-                      <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-8">
-                        Tipo
-                      </TableHead>
-                      <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-8">
-                        Ticker
-                      </TableHead>
-                      <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-8">
-                        Cantidad
-                      </TableHead>
-                      <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-8">
-                        Precio
-                      </TableHead>
-                      <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-8">
-                        Comisión
-                      </TableHead>
-                      <TableHead className="pr-4 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-8">
-                        Total
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {parsed?.rows.map((row: MovimientoRow) => (
-                      <TableRow key={row.nroTicket} className="border-border hover:bg-muted/30">
-                        <TableCell className="pl-4 py-2.5 text-xs text-muted-foreground">
-                          {formatDate(row.date)}
-                        </TableCell>
-                        <TableCell className="py-2.5">
-                          <Badge
-                            variant={row.type === "BUY" ? "default" : "secondary"}
-                            className="text-[10px] gap-1"
-                          >
-                            {row.type === "BUY" ? (
-                              <ArrowUpRight className="size-3" />
-                            ) : (
-                              <ArrowDownRight className="size-3" />
-                            )}
-                            {row.type === "BUY" ? "Compra" : "Venta"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="py-2.5">
-                          <span
-                            className="text-sm font-mono font-medium text-foreground"
-                            title={row.instrumento}
-                          >
-                            {row.ticker}
-                          </span>
-                        </TableCell>
-                        <TableCell className="py-2.5 text-right">
-                          <span className="text-sm font-mono tabular-nums text-foreground">
-                            {row.quantity.toLocaleString("es-AR")}
-                          </span>
-                        </TableCell>
-                        <TableCell className="py-2.5 text-right">
-                          <span className="text-sm font-mono tabular-nums text-muted-foreground">
-                            {formatNumber(row.price, row.currency)}
-                          </span>
-                        </TableCell>
-                        <TableCell className="py-2.5 text-right">
-                          <span className="text-xs font-mono tabular-nums text-muted-foreground">
-                            {row.fee > 0 ? formatNumber(row.fee, row.currency) : "—"}
-                          </span>
-                        </TableCell>
-                        <TableCell className="pr-4 py-2.5 text-right">
-                          <span
-                            className={`text-sm font-mono tabular-nums ${
-                              row.total >= 0 ? "text-emerald-500" : "text-foreground"
-                            }`}
-                          >
-                            {formatNumber(Math.abs(row.total), row.currency)}
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {/* Footer summary */}
-              <div className="flex items-center justify-between gap-3 pt-1">
-                <div className="flex flex-col gap-0.5">
-                  {parsed && parsed.skippedCount > 0 && (
-                    <p className="text-[11px] text-muted-foreground">
-                      <span className="text-amber-500 font-medium">
-                        {parsed.skippedCount} filas ignoradas:
-                      </span>{" "}
-                      {skippedDetails.join(", ")}
-                      {(parsed.skippedReasons.dividendos ?? 0) > 0 &&
-                        " (dividendos sin ticker — cargalos manualmente)"}
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs"
-                    onClick={handleClose}
-                    disabled={isImporting}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    size="sm"
-                    disabled={isImporting || parsed?.rows.length === 0}
-                    onClick={handleImport}
-                    className="gap-2"
-                  >
-                    {isImporting && <Spinner className="size-3" />}
-                    Importar {parsed?.rows.length} transacciones
-                  </Button>
-                </div>
-              </div>
-            </>
           )}
+
+          <div className="overflow-y-auto flex-1 flex flex-col gap-4 pr-1">
+            <div className="flex items-center gap-2 pt-1">
+              <Checkbox
+                checked={
+                  parsed
+                    ? selectedRows.length === parsed.movements.length
+                      ? true
+                      : selectedRows.length > 0
+                        ? "indeterminate"
+                        : false
+                    : false
+                }
+                onCheckedChange={toggleAll}
+              />
+              <span className="text-xs font-medium">Seleccionar todo</span>
+            </div>
+
+            {grouped.map(({ category, rows }) => {
+              const allSelected = rows.every((r) => selected.has(r.nroTicket));
+              const someSelected = rows.some((r) => selected.has(r.nroTicket));
+              return (
+                <div key={category} className="flex flex-col gap-1.5">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                      onCheckedChange={() => toggleCategory(category)}
+                    />
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      {CATEGORY_LABELS[category]}
+                    </span>
+                    <Badge variant="secondary" className="text-[10px]">
+                      {rows.length}
+                    </Badge>
+                  </div>
+
+                  <div className="rounded-lg border border-border overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-border hover:bg-transparent bg-muted/40">
+                          <TableHead className="w-8 pl-3 h-8" />
+                          <TableHead className="text-[11px] uppercase text-muted-foreground/70 h-8">
+                            Fecha
+                          </TableHead>
+                          <TableHead className="text-[11px] uppercase text-muted-foreground/70 h-8">
+                            Tipo
+                          </TableHead>
+                          <TableHead className="text-[11px] uppercase text-muted-foreground/70 h-8">
+                            Instrumento
+                          </TableHead>
+                          <TableHead className="text-[11px] uppercase text-muted-foreground/70 text-right h-8">
+                            Cantidad
+                          </TableHead>
+                          <TableHead className="text-[11px] uppercase text-muted-foreground/70 text-right h-8">
+                            Precio
+                          </TableHead>
+                          <TableHead className="pr-3 text-[11px] uppercase text-muted-foreground/70 text-right h-8">
+                            Total
+                          </TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {rows.map((row) => {
+                          const isBuy = row.category === "TRADE_BUY";
+                          const isSell = row.category === "TRADE_SELL";
+                          return (
+                            <TableRow key={row.nroTicket} className="border-border hover:bg-muted/30">
+                              <TableCell className="pl-3 py-2">
+                                <Checkbox
+                                  checked={selected.has(row.nroTicket)}
+                                  onCheckedChange={() => toggleTicket(row.nroTicket)}
+                                />
+                              </TableCell>
+                              <TableCell className="py-2 text-xs text-muted-foreground whitespace-nowrap">
+                                {formatDateUTC(row.date)}
+                              </TableCell>
+                              <TableCell className="py-2">
+                                {(isBuy || isSell) && (
+                                  <Badge
+                                    variant={isBuy ? "default" : "secondary"}
+                                    className="text-[10px] gap-1"
+                                  >
+                                    {isBuy ? (
+                                      <ArrowUpRight className="size-3" />
+                                    ) : (
+                                      <ArrowDownRight className="size-3" />
+                                    )}
+                                    {isBuy ? "Compra" : "Venta"}
+                                  </Badge>
+                                )}
+                                {!isBuy && !isSell && (
+                                  <span className="text-[11px] text-muted-foreground">
+                                    {row.rawType}
+                                  </span>
+                                )}
+                              </TableCell>
+                              <TableCell className="py-2 max-w-[220px]">
+                                {row.ticker ? (
+                                  <span
+                                    className="text-sm font-mono font-medium text-foreground"
+                                    title={row.instrument ?? undefined}
+                                  >
+                                    {row.ticker}
+                                  </span>
+                                ) : (
+                                  <span
+                                    className="text-[11px] text-muted-foreground line-clamp-1"
+                                    title={row.instrument ?? undefined}
+                                  >
+                                    {row.instrument ?? "—"}
+                                  </span>
+                                )}
+                              </TableCell>
+                              <TableCell className="py-2 text-right">
+                                <span className="text-sm font-mono tabular-nums">
+                                  {row.quantity !== null ? row.quantity.toLocaleString("es-AR") : "—"}
+                                </span>
+                              </TableCell>
+                              <TableCell className="py-2 text-right">
+                                <span className="text-sm font-mono tabular-nums text-muted-foreground">
+                                  {row.price !== null ? formatCurrency(row.price, row.currency) : "—"}
+                                </span>
+                              </TableCell>
+                              <TableCell className="pr-3 py-2 text-right">
+                                <span
+                                  className={`text-sm font-mono tabular-nums ${
+                                    row.total >= 0 ? "text-success" : "text-foreground"
+                                  }`}
+                                >
+                                  {formatCurrency(Math.abs(row.total), row.currency)}
+                                </span>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center justify-between gap-3 pt-1">
+            <p className="text-[11px] text-muted-foreground">
+              {selectedTrades} de los seleccionados generarán transacciones (compras/ventas).
+            </p>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button variant="ghost" size="sm" className="text-xs" onClick={reset} disabled={isImporting}>
+                Cancelar
+              </Button>
+              <Button
+                size="sm"
+                disabled={isImporting || selectedRows.length === 0}
+                onClick={handleImport}
+                className="gap-2"
+              >
+                {isImporting && <Spinner className="size-3" />}
+                Importar {selectedRows.length} movimientos
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </>

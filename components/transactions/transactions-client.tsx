@@ -25,46 +25,31 @@ import {
 } from "@/components/ui/alert-dialog";
 import type { TransactionRow, PpmRow, RealizedPnlRow } from "@/app/actions/transactions";
 import type { DividendRow } from "@/app/actions/dividends";
+import type { MovementRow } from "@/app/actions/import-movements";
 import { deleteTransaction } from "@/app/actions/transactions";
 import { deleteDividend } from "@/app/actions/dividends";
+import { CATEGORY_LABELS, type MovementCategory } from "@/lib/cocos-movements";
+import { formatDateUTC, formatCurrency } from "@/lib/format";
 
 interface TransactionsClientProps {
   transactions: TransactionRow[];
   ppmData: PpmRow[];
   realizedPnl: RealizedPnlRow[];
   dividends: DividendRow[];
+  movements: MovementRow[];
 }
 
-type Tab = "transactions" | "ppm" | "pnl" | "dividends";
-
-function formatDate(d: Date) {
-  // Las fechas vienen de columnas @db.Date, que Prisma materializa como UTC
-  // midnight. Sin timeZone explícito, en zonas con offset negativo (UTC-3) se
-  // mostraría el día anterior.
-  return new Intl.DateTimeFormat("es-AR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(new Date(d));
-}
-
-function formatCurrency(amount: number, currency: string) {
-  return new Intl.NumberFormat(currency === "USD" ? "en-US" : "es-AR", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
-}
+type Tab = "transactions" | "ppm" | "pnl" | "dividends" | "movements";
 
 export function TransactionsClient({
   transactions,
   ppmData,
   realizedPnl,
   dividends,
+  movements,
 }: TransactionsClientProps) {
   const [tab, setTab] = useState<Tab>("transactions");
+  const [movementView, setMovementView] = useState<"all" | "fci">("all");
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [deleteDivTarget, setDeleteDivTarget] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -74,11 +59,52 @@ export function TransactionsClient({
     .filter((d) => d.currency === "USD")
     .reduce((sum, d) => sum + d.amount, 0);
 
+  const fciMovements = movements.filter(
+    (m) => m.category === "FCI_SUBSCRIPTION" || m.category === "FCI_REDEMPTION"
+  );
+  const funds = (() => {
+    const map = new Map<
+      string,
+      {
+        instrument: string;
+        ticker: string | null;
+        subscribedQty: number;
+        redeemedQty: number;
+        subscribedAmount: number;
+        redeemedAmount: number;
+      }
+    >();
+    for (const m of fciMovements) {
+      const key = m.ticker ?? m.instrument ?? "FCI";
+      const g =
+        map.get(key) ??
+        {
+          instrument: m.instrument ?? key,
+          ticker: m.ticker,
+          subscribedQty: 0,
+          redeemedQty: 0,
+          subscribedAmount: 0,
+          redeemedAmount: 0,
+        };
+      const qty = Math.abs(m.quantity ?? 0);
+      if (m.category === "FCI_SUBSCRIPTION") {
+        g.subscribedQty += qty;
+        g.subscribedAmount += Math.abs(m.total);
+      } else {
+        g.redeemedQty += qty;
+        g.redeemedAmount += Math.abs(m.total);
+      }
+      map.set(key, g);
+    }
+    return [...map.values()];
+  })();
+
   const tabs: { id: Tab; label: string; count: number }[] = [
     { id: "transactions", label: "Transacciones", count: transactions.length },
     { id: "ppm", label: "Precio Promedio", count: ppmData.length },
     { id: "pnl", label: "P&L Realizado", count: realizedPnl.length },
     { id: "dividends", label: "Dividendos", count: dividends.length },
+    { id: "movements", label: "Movimientos", count: movements.length },
   ];
 
   return (
@@ -139,7 +165,7 @@ export function TransactionsClient({
                 {transactions.map((tx) => (
                   <TableRow key={tx.id} className="border-border hover:bg-muted/30">
                     <TableCell className="pl-5 py-3 text-xs text-muted-foreground">
-                      {formatDate(tx.date)}
+                      {formatDateUTC(tx.date)}
                     </TableCell>
                     <TableCell className="py-3">
                       <Badge
@@ -255,7 +281,7 @@ export function TransactionsClient({
                 <p className="text-xs text-muted-foreground mb-1">P&L Total Realizado</p>
                 <p
                   className={`text-lg font-bold font-mono ${
-                    totalRealizedPnl >= 0 ? "text-emerald-500" : "text-destructive"
+                    totalRealizedPnl >= 0 ? "text-success" : "text-destructive"
                   }`}
                 >
                   {totalRealizedPnl >= 0 ? "+" : ""}
@@ -273,7 +299,7 @@ export function TransactionsClient({
                 <p
                   className={`text-lg font-bold font-mono ${
                     realizedPnl.reduce((sum, r) => sum + r.pnlPct, 0) / realizedPnl.length >= 0
-                      ? "text-emerald-500"
+                      ? "text-success"
                       : "text-destructive"
                   }`}
                 >
@@ -337,7 +363,7 @@ export function TransactionsClient({
                       <TableCell className="py-3.5 text-right">
                         <span
                           className={`text-sm font-mono tabular-nums ${
-                            row.pnl >= 0 ? "text-emerald-500" : "text-destructive"
+                            row.pnl >= 0 ? "text-success" : "text-destructive"
                           }`}
                         >
                           {row.pnl >= 0 ? "+" : ""}
@@ -347,7 +373,7 @@ export function TransactionsClient({
                       <TableCell className="pr-5 py-3.5 text-right">
                         <span
                           className={`text-sm font-mono tabular-nums ${
-                            row.pnlPct >= 0 ? "text-emerald-500" : "text-destructive"
+                            row.pnlPct >= 0 ? "text-success" : "text-destructive"
                           }`}
                         >
                           {row.pnlPct >= 0 ? "+" : ""}
@@ -369,7 +395,7 @@ export function TransactionsClient({
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-xl border border-border bg-card shadow-sm px-5 py-4">
                 <p className="text-xs text-muted-foreground mb-1">Total dividendos USD</p>
-                <p className="text-lg font-bold font-mono text-emerald-500">
+                <p className="text-lg font-bold font-mono text-success">
                   +{formatCurrency(totalDividendsUsd, "USD")}
                 </p>
               </div>
@@ -407,7 +433,7 @@ export function TransactionsClient({
                   {dividends.map((div) => (
                     <TableRow key={div.id} className="border-border hover:bg-muted/30">
                       <TableCell className="pl-5 py-3 text-xs text-muted-foreground">
-                        {formatDate(div.date)}
+                        {formatDateUTC(div.date)}
                       </TableCell>
                       <TableCell className="py-3">
                         <span className="text-sm font-mono font-medium text-foreground">
@@ -415,7 +441,7 @@ export function TransactionsClient({
                         </span>
                       </TableCell>
                       <TableCell className="py-3 text-right">
-                        <span className="text-sm font-mono tabular-nums text-emerald-500">
+                        <span className="text-sm font-mono tabular-nums text-success">
                           +{formatCurrency(div.amount, div.currency)}
                         </span>
                       </TableCell>
@@ -438,6 +464,228 @@ export function TransactionsClient({
               </Table>
             </div>
           )}
+        </>
+      )}
+
+      {tab === "movements" && (
+        <>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setMovementView("all")}
+              className={`px-3 py-1.5 text-xs rounded-md transition-colors ${
+                movementView === "all"
+                  ? "bg-muted text-foreground font-medium"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Todos ({movements.length})
+            </button>
+            <button
+              onClick={() => setMovementView("fci")}
+              className={`px-3 py-1.5 text-xs rounded-md transition-colors ${
+                movementView === "fci"
+                  ? "bg-muted text-foreground font-medium"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Fondos FCI ({fciMovements.length})
+            </button>
+          </div>
+
+          {movementView === "all" &&
+            (movements.length === 0 ? (
+              <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">
+                No hay movimientos importados. Importá el CSV de Cocos para verlos acá.
+              </div>
+            ) : (
+              <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-border hover:bg-transparent bg-muted/40">
+                      <TableHead className="pl-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
+                        Fecha
+                      </TableHead>
+                      <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
+                        Categoría
+                      </TableHead>
+                      <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
+                        Instrumento
+                      </TableHead>
+                      <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
+                        Cantidad
+                      </TableHead>
+                      <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
+                        Precio
+                      </TableHead>
+                      <TableHead className="pr-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
+                        Total
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {movements.map((m) => (
+                      <TableRow key={m.id} className="border-border hover:bg-muted/30">
+                        <TableCell className="pl-5 py-2.5 text-xs text-muted-foreground whitespace-nowrap">
+                          {formatDateUTC(m.date)}
+                        </TableCell>
+                        <TableCell className="py-2.5">
+                          <Badge variant="secondary" className="text-[10px] whitespace-nowrap">
+                            {CATEGORY_LABELS[m.category as MovementCategory] ?? m.category}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="py-2.5 max-w-[260px]">
+                          {m.ticker ? (
+                            <span
+                              className="text-sm font-mono font-medium text-foreground"
+                              title={m.instrument ?? undefined}
+                            >
+                              {m.ticker}
+                            </span>
+                          ) : (
+                            <span
+                              className="text-[11px] text-muted-foreground line-clamp-1"
+                              title={m.instrument ?? undefined}
+                            >
+                              {m.instrument ?? m.rawType}
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className="py-2.5 text-right">
+                          <span className="text-sm font-mono tabular-nums text-muted-foreground">
+                            {m.quantity !== null ? m.quantity.toLocaleString("es-AR") : "—"}
+                          </span>
+                        </TableCell>
+                        <TableCell className="py-2.5 text-right">
+                          <span className="text-sm font-mono tabular-nums text-muted-foreground">
+                            {m.price !== null ? formatCurrency(m.price, m.currency) : "—"}
+                          </span>
+                        </TableCell>
+                        <TableCell className="pr-5 py-2.5 text-right">
+                          <span
+                            className={`text-sm font-mono tabular-nums ${
+                              m.total >= 0 ? "text-success" : "text-foreground"
+                            }`}
+                          >
+                            {formatCurrency(m.total, m.currency)}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ))}
+
+          {movementView === "fci" &&
+            (funds.length === 0 ? (
+              <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">
+                No hay movimientos de fondos FCI. Importá el CSV de Cocos para verlos acá.
+              </div>
+            ) : (
+              <div className="flex flex-col gap-4">
+                {funds.map((fund, i) => (
+                  <div
+                    key={fund.ticker ?? i}
+                    className="rounded-xl border border-border bg-card shadow-sm px-5 py-4 flex flex-col gap-3"
+                  >
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-sm font-semibold text-foreground">
+                        {fund.ticker ?? fund.instrument}
+                      </span>
+                      {fund.instrument && fund.instrument !== fund.ticker && (
+                        <span className="text-[11px] text-muted-foreground">
+                          {fund.instrument}
+                        </span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <p className="text-[11px] text-muted-foreground mb-0.5">Aportado</p>
+                        <p className="text-sm font-mono tabular-nums text-foreground">
+                          {formatCurrency(fund.subscribedAmount, "ARS")}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[11px] text-muted-foreground mb-0.5">Rescatado</p>
+                        <p className="text-sm font-mono tabular-nums text-foreground">
+                          {formatCurrency(fund.redeemedAmount, "ARS")}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[11px] text-muted-foreground mb-0.5">Cuotapartes netas</p>
+                        <p className="text-sm font-mono tabular-nums text-foreground">
+                          {(fund.subscribedQty - fund.redeemedQty).toLocaleString("es-AR", {
+                            maximumFractionDigits: 4,
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-border hover:bg-transparent bg-muted/40">
+                        <TableHead className="pl-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
+                          Fecha
+                        </TableHead>
+                        <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
+                          Operación
+                        </TableHead>
+                        <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
+                          Cuotapartes
+                        </TableHead>
+                        <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
+                          Valor cuotaparte
+                        </TableHead>
+                        <TableHead className="pr-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
+                          Total
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {fciMovements.map((m) => (
+                        <TableRow key={m.id} className="border-border hover:bg-muted/30">
+                          <TableCell className="pl-5 py-2.5 text-xs text-muted-foreground whitespace-nowrap">
+                            {formatDateUTC(m.date)}
+                          </TableCell>
+                          <TableCell className="py-2.5">
+                            <Badge
+                              variant={m.category === "FCI_SUBSCRIPTION" ? "default" : "secondary"}
+                              className="text-[10px]"
+                            >
+                              {m.category === "FCI_SUBSCRIPTION" ? "Suscripción" : "Rescate"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="py-2.5 text-right">
+                            <span className="text-sm font-mono tabular-nums text-muted-foreground">
+                              {m.quantity !== null
+                                ? m.quantity.toLocaleString("es-AR", { maximumFractionDigits: 4 })
+                                : "—"}
+                            </span>
+                          </TableCell>
+                          <TableCell className="py-2.5 text-right">
+                            <span className="text-sm font-mono tabular-nums text-muted-foreground">
+                              {m.price !== null ? formatCurrency(m.price, m.currency) : "—"}
+                            </span>
+                          </TableCell>
+                          <TableCell className="pr-5 py-2.5 text-right">
+                            <span
+                              className={`text-sm font-mono tabular-nums ${
+                                m.total >= 0 ? "text-success" : "text-foreground"
+                              }`}
+                            >
+                              {formatCurrency(m.total, m.currency)}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            ))}
         </>
       )}
 

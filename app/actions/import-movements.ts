@@ -1,241 +1,248 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidateTrades } from "@/lib/revalidate";
+import { getDataReadiness } from "@/lib/real-gains-data";
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth-session";
-import type { TransactionType, Currency } from "@/app/generated/prisma/client";
+import {
+  isTradeCategory,
+  type MovementCategory,
+  type ParsedMovement,
+} from "@/lib/cocos-movements";
+import type { Currency } from "@/app/generated/prisma/client";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-export type MovimientoRow = {
-  nroTicket: string;
-  date: string;
-  type: TransactionType;
-  ticker: string;
-  instrumento: string;
-  quantity: number;
-  price: number;
-  currency: Currency;
-  fee: number;
-  total: number;
-};
-
-export type ParsedMovimientos = {
-  rows: MovimientoRow[];
-  skippedCount: number;
-  skippedReasons: { fci: number; pagos: number; dividendos: number; mep: number; other: number };
-};
-
-export type ImportMovimientosResult =
-  | { success: true; imported: number; duplicates: number }
+export type ImportMovementsResult =
+  | {
+      success: true;
+      imported: number;
+      transactionsCreated: number;
+      duplicates: number;
+      byCategory: Record<MovementCategory, number>;
+      historyBackfillNeeded: boolean;
+    }
   | { success: false; error: string };
+
+export type MovementRow = {
+  id: string;
+  date: Date;
+  rawType: string;
+  category: MovementCategory;
+  instrument: string | null;
+  ticker: string | null;
+  currency: Currency;
+  quantity: number | null;
+  price: number | null;
+  total: number;
+  sourceFile: string | null;
+  transactionId: string | null;
+};
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-function parseArNumber(raw: string): number {
-  if (!raw || raw.trim() === "") return 0;
-  // Argentine format: dot = thousands sep, comma = decimal sep
-  const cleaned = raw.trim().replace(/\./g, "").replace(",", ".");
-  const n = parseFloat(cleaned);
-  return isNaN(n) ? 0 : n;
+function toDate(value: string): Date {
+  return new Date(`${value}T00:00:00.000Z`);
 }
 
-function parseDateDDMMYYYY(raw: string): string {
-  // Input: "08-04-2025" → output: "2025-04-08"
-  const parts = raw.trim().split("-");
-  if (parts.length !== 3) return raw;
-  const [dd, mm, yyyy] = parts;
-  return `${yyyy}-${mm}-${dd}`;
+function tradeFee(m: ParsedMovement): number {
+  const fee =
+    Math.abs(m.commission ?? 0) +
+    Math.abs(m.ddmm ?? 0) +
+    Math.abs(m.iva ?? 0) +
+    Math.abs(m.other ?? 0);
+  return Math.round(fee * 100) / 100;
 }
 
-function extractTicker(instrumento: string): string | null {
-  const match = instrumento.match(/\(([A-Z0-9]+)\)/);
-  return match ? match[1] : null;
+function toMovementData(m: ParsedMovement, userId: string, sourceFile?: string) {
+  return {
+    nroTicket: m.nroTicket,
+    nroComprobante: m.nroComprobante,
+    date: toDate(m.date),
+    settlementDate: m.settlementDate ? toDate(m.settlementDate) : null,
+    rawType: m.rawType,
+    category: m.category,
+    instrument: m.instrument,
+    ticker: m.ticker,
+    currency: m.currency as Currency,
+    market: m.market,
+    quantity: m.quantity,
+    price: m.price,
+    grossAmount: m.grossAmount,
+    commission: m.commission,
+    ddmm: m.ddmm,
+    iva: m.iva,
+    other: m.other,
+    total: m.total,
+    sourceFile: sourceFile ?? null,
+    userId,
+  };
 }
 
-function classifyTipoOperacion(
-  tipo: string
-): "BUY" | "SELL" | "SKIP_FCI" | "SKIP_PAGO" | "SKIP_DIVIDENDO" | "SKIP_MEP" | "SKIP_OTHER" {
-  const t = tipo.trim();
-  const lower = t.toLowerCase();
-
-  // "Compra/Venta Registracion ARS/USD" son asientos contables internos del canje (ej: bonos),
-  // no compras reales del activo. Se descartan antes que el match de "Compra"/"Venta".
-  if (/registracion/i.test(t)) return "SKIP_OTHER";
-
-  if (lower.includes("fci")) return "SKIP_FCI";
-  if (t === "Orden De Pago" || t === "Recibo De Cobro") return "SKIP_PAGO";
-  if (lower.includes("dividendo")) return "SKIP_DIVIDENDO";
-
-  // Compras/ventas reales: en pesos ("Compra"/"Venta") o vía dólar MEP.
-  // La moneda real viene en la columna `moneda` del CSV.
-  if (t === "Compra" || t === "Compra Dolar Mep") return "BUY";
-  if (t === "Venta" || t === "Venta Dolar Mep") return "SELL";
-
-  if (lower.includes("bono") || lower.includes("nota de credito")) return "SKIP_OTHER";
-
-  return "SKIP_OTHER";
-}
-
-// ---------------------------------------------------------------------------
-// parseCocosMovimientosCsv — pure parse, no DB access
-// ---------------------------------------------------------------------------
-
-export async function parseCocosMovimientosCsv(csvText: string): Promise<ParsedMovimientos | { error: string }> {
-  try {
-    const lines = csvText
-      .split("\n")
-      .map((l) => l.trim())
-      .filter((l) => l.length > 0);
-
-    if (lines.length < 2) {
-      return { error: "El archivo está vacío o no tiene filas de datos." };
-    }
-
-    // Strip BOM
-    const headerLine = lines[0].replace(/^\uFEFF/, "");
-    const headers = headerLine.split(";").map((h) => h.trim().toLowerCase());
-
-    const idx = {
-      nroTicket: headers.indexOf("nroticket"),
-      fechaEjecucion: headers.indexOf("fechaejecucion"),
-      tipoOperacion: headers.indexOf("tipooperacion"),
-      instrumento: headers.indexOf("instrumento"),
-      moneda: headers.indexOf("moneda"),
-      cantidad: headers.indexOf("cantidad"),
-      precio: headers.indexOf("precio"),
-      montoBruto: headers.indexOf("montobruto"),
-      comision: headers.indexOf("comision"),
-      ddmm: headers.indexOf("ddmm"),
-      iva: headers.indexOf("iva"),
-      otros: headers.indexOf("otros"),
-      total: headers.indexOf("total"),
-    };
-
-    if (idx.tipoOperacion === -1 || idx.instrumento === -1 || idx.cantidad === -1) {
-      return {
-        error: `Columnas no reconocidas. ¿Es un CSV de movimientos de Cocos Capital? Columnas encontradas: ${headers.join(", ")}`,
-      };
-    }
-
-    const rows: MovimientoRow[] = [];
-    const skipped = { fci: 0, pagos: 0, dividendos: 0, mep: 0, other: 0 };
-
-    for (let i = 1; i < lines.length; i++) {
-      const cols = lines[i].split(";").map((c) => c.trim().replace(/^["']|["']$/g, ""));
-      const get = (colIdx: number) => (colIdx !== -1 ? cols[colIdx] ?? "" : "");
-
-      const tipo = get(idx.tipoOperacion);
-      const classification = classifyTipoOperacion(tipo);
-
-      if (classification !== "BUY" && classification !== "SELL") {
-        if (classification === "SKIP_FCI") skipped.fci++;
-        else if (classification === "SKIP_PAGO") skipped.pagos++;
-        else if (classification === "SKIP_DIVIDENDO") skipped.dividendos++;
-        else if (classification === "SKIP_MEP") skipped.mep++;
-        else skipped.other++;
-        continue;
-      }
-
-      const instrumento = get(idx.instrumento);
-      const ticker = extractTicker(instrumento);
-      if (!ticker) {
-        skipped.other++;
-        continue;
-      }
-
-      const monedaRaw = get(idx.moneda).trim().toUpperCase();
-      const currency: Currency = monedaRaw === "USD" ? "USD" : "ARS";
-
-      const cantidad = Math.abs(parseArNumber(get(idx.cantidad)));
-      const precio = parseArNumber(get(idx.precio));
-      const fee =
-        Math.abs(parseArNumber(get(idx.comision))) +
-        Math.abs(parseArNumber(get(idx.ddmm))) +
-        Math.abs(parseArNumber(get(idx.iva))) +
-        Math.abs(parseArNumber(get(idx.otros)));
-      const total = parseArNumber(get(idx.total));
-
-      rows.push({
-        nroTicket: get(idx.nroTicket),
-        date: parseDateDDMMYYYY(get(idx.fechaEjecucion)),
-        type: classification,
-        ticker,
-        instrumento,
-        quantity: cantidad,
-        price: precio,
-        currency,
-        fee: Math.round(fee * 100) / 100,
-        total,
-      });
-    }
-
-    return {
-      rows,
-      skippedCount: skipped.fci + skipped.pagos + skipped.dividendos + skipped.mep + skipped.other,
-      skippedReasons: skipped,
-    };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Error inesperado al parsear el archivo.";
-    return { error: message };
-  }
+function emptyCounts(): Record<MovementCategory, number> {
+  return {
+    TRADE_BUY: 0,
+    TRADE_SELL: 0,
+    FCI_SUBSCRIPTION: 0,
+    FCI_REDEMPTION: 0,
+    PAYMENT: 0,
+    RECEIPT: 0,
+    DIVIDEND: 0,
+    DIVIDEND_IN_KIND: 0,
+    CONVERSION: 0,
+    OTHER: 0,
+  };
 }
 
 // ---------------------------------------------------------------------------
-// importMovimientos — bulk insert, skipping duplicates by nroTicket
+// importMovements — persiste el libro de movimientos (idempotente) y crea
+// las Transaction correspondientes a las operaciones de compra/venta.
 // ---------------------------------------------------------------------------
 
-export async function importMovimientos(rows: MovimientoRow[]): Promise<ImportMovimientosResult> {
+export async function importMovements(
+  movements: ParsedMovement[],
+  sourceFile?: string
+): Promise<ImportMovementsResult> {
   try {
     const session = await requireAuth();
     const userId = session.user.id;
 
-    if (rows.length === 0) {
-      return { success: false, error: "No hay transacciones para importar." };
+    if (movements.length === 0) {
+      return { success: false, error: "No hay movimientos para importar." };
     }
 
-    // Fetch existing nroTickets from notes to detect duplicates
-    const existingNotes = await db.transaction.findMany({
-      where: {
-        userId,
-        notes: { in: rows.map((r) => `Cocos #${r.nroTicket}`) },
-      },
-      select: { notes: true },
-    });
+    const tickets = movements.map((m) => m.nroTicket);
 
-    const existingTicketSet = new Set(existingNotes.map((t) => t.notes));
+    // Dedup por libro de movimientos + compatibilidad con transacciones legacy
+    // (importadas antes del refactor, identificadas por notes = "Cocos #<ticket>").
+    const [existingMovements, legacyTransactions] = await Promise.all([
+      db.movement.findMany({
+        where: { userId, nroTicket: { in: tickets } },
+        select: { nroTicket: true },
+      }),
+      db.transaction.findMany({
+        where: { userId, notes: { in: tickets.map((t) => `Cocos #${t}`) } },
+        select: { notes: true },
+      }),
+    ]);
 
-    const toInsert = rows.filter((r) => !existingTicketSet.has(`Cocos #${r.nroTicket}`));
-    const duplicates = rows.length - toInsert.length;
+    const seen = new Set(existingMovements.map((m) => m.nroTicket));
+    for (const t of legacyTransactions) {
+      if (t.notes) seen.add(t.notes.replace(/^Cocos #/, ""));
+    }
+
+    const toInsert = movements.filter((m) => !seen.has(m.nroTicket));
+    const duplicates = movements.length - toInsert.length;
 
     if (toInsert.length === 0) {
-      return { success: true, imported: 0, duplicates };
+      const readiness = await getDataReadiness();
+      return {
+        success: true,
+        imported: 0,
+        transactionsCreated: 0,
+        duplicates,
+        byCategory: emptyCounts(),
+        historyBackfillNeeded: readiness.needsBackfill,
+      };
     }
 
-    await db.transaction.createMany({
-      data: toInsert.map((r) => ({
-        ticker: r.ticker,
-        type: r.type,
-        quantity: r.quantity,
-        price: r.price,
-        currency: r.currency,
-        fee: r.fee > 0 ? r.fee : null,
-        date: new Date(r.date),
-        notes: `Cocos #${r.nroTicket}`,
-        userId,
-      })),
+    const byCategory = emptyCounts();
+
+    const transactionsCreated = await db.$transaction(async (tx) => {
+      let created;
+      try {
+        created = await tx.movement.createManyAndReturn({
+          data: toInsert.map((m) => toMovementData(m, userId, sourceFile)),
+          skipDuplicates: true,
+        });
+      } catch {
+        // Fallback para adapters que no soportan createManyAndReturn.
+        created = [];
+        for (const m of toInsert) {
+          const row = await tx.movement.create({ data: toMovementData(m, userId, sourceFile) });
+          created.push(row);
+        }
+      }
+
+      const tradeRows = created
+        .filter((row) => isTradeCategory(row.category as MovementCategory))
+        .filter((row) => row.ticker && row.quantity && row.price)
+        .map((row) => {
+          const source = toInsert.find((m) => m.nroTicket === row.nroTicket)!;
+          return {
+            ticker: row.ticker!,
+            type: row.category === "TRADE_BUY" ? ("BUY" as const) : ("SELL" as const),
+            quantity: row.quantity!,
+            price: row.price!,
+            currency: row.currency as Currency,
+            fee: tradeFee(source) > 0 ? tradeFee(source) : null,
+            date: row.date,
+            notes: `Cocos #${row.nroTicket}`,
+            userId,
+            movementId: row.id,
+          };
+        });
+
+      if (tradeRows.length > 0) {
+        await tx.transaction.createMany({ data: tradeRows });
+      }
+
+      for (const row of created) {
+        byCategory[row.category as MovementCategory]++;
+      }
+
+      return tradeRows.length;
     });
 
-    revalidatePath("/transactions");
-    revalidatePath("/");
+    revalidateTrades();
 
-    return { success: true, imported: toInsert.length, duplicates };
+    const readiness = await getDataReadiness();
+
+    return {
+      success: true,
+      imported: toInsert.length,
+      transactionsCreated,
+      duplicates,
+      byCategory,
+      historyBackfillNeeded: readiness.needsBackfill,
+    };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error inesperado al importar.";
     return { success: false, error: message };
   }
+}
+
+// ---------------------------------------------------------------------------
+// getMovements — lectura del libro de movimientos para las vistas.
+// ---------------------------------------------------------------------------
+
+export async function getMovements(categories?: MovementCategory[]): Promise<MovementRow[]> {
+  const session = await requireAuth();
+  const movements = await db.movement.findMany({
+    where: {
+      userId: session.user.id,
+      ...(categories && categories.length > 0 ? { category: { in: categories } } : {}),
+    },
+    orderBy: { date: "desc" },
+    include: { transaction: { select: { id: true } } },
+  });
+
+  return movements.map((m) => ({
+    id: m.id,
+    date: m.date,
+    rawType: m.rawType,
+    category: m.category as MovementCategory,
+    instrument: m.instrument,
+    ticker: m.ticker,
+    currency: m.currency as Currency,
+    quantity: m.quantity !== null ? Number(m.quantity) : null,
+    price: m.price !== null ? Number(m.price) : null,
+    total: Number(m.total),
+    sourceFile: m.sourceFile,
+    transactionId: m.transaction?.id ?? null,
+  }));
 }

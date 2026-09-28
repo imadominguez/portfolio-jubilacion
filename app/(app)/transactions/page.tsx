@@ -12,15 +12,17 @@ import {
   getRealizedPnl,
 } from "@/app/actions/transactions";
 import { getAllDividends } from "@/app/actions/dividends";
+import { getMovements } from "@/app/actions/import-movements";
 
 export const metadata: Metadata = { title: "Transacciones" };
 
 export default async function TransactionsPage() {
-  const [transactions, ppmData, realizedPnl, dividends] = await Promise.all([
+  const [transactions, ppmData, realizedPnl, dividends, movements] = await Promise.all([
     getAllTransactions(),
     calculatePPM(),
     getRealizedPnl(),
     getAllDividends(),
+    getMovements(),
   ]);
 
   return (
@@ -60,6 +62,7 @@ export default async function TransactionsPage() {
           ppmData={ppmData}
           realizedPnl={realizedPnl}
           dividends={dividends}
+          movements={movements}
         />
       </main>
     </div>
