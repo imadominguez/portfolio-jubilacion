@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/layout/site-header";
 import { RebalanceClient } from "@/components/rebalance/rebalance-client";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ImportButton } from "@/components/snapshots/snapshots-client";
 import { getRebalanceData, getTargetAllocations } from "@/app/actions/rebalance";
 import { Scale } from "lucide-react";
 
@@ -34,18 +36,12 @@ export default async function RebalancePage() {
         </div>
 
         {rebalanceData.length === 0 && targets.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
-            <div className="size-12 rounded-full bg-muted flex items-center justify-center">
-              <Scale className="size-6 text-muted-foreground" />
-            </div>
-            <div className="flex flex-col gap-1">
-              <p className="text-sm font-medium text-foreground">Sin objetivos configurados</p>
-              <p className="text-xs text-muted-foreground max-w-xs">
-                Agregá la asignación objetivo para cada ticker de tu portfolio para
-                ver las recomendaciones de rebalanceo.
-              </p>
-            </div>
-          </div>
+          <EmptyState
+            icon={Scale}
+            title="Sin datos para rebalancear"
+            description="Importá tu primer snapshot para que la app conozca tus posiciones. Después definí el porcentaje objetivo de cada ticker."
+            action={<ImportButton />}
+          />
         ) : (
           <RebalanceClient
             rebalanceData={rebalanceData}

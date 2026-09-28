@@ -9,24 +9,7 @@ import {
 import type { PositionRow } from "@/lib/portfolio-data";
 import type { PpmRow } from "@/app/actions/transactions";
 import type { MarketPriceRow } from "@/app/actions/market-prices";
-
-function formatARS(value: number): string {
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-function formatUSD(value: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
+import { formatARS, formatUSD } from "@/lib/format";
 
 interface HoldingsTableProps {
   positions: PositionRow[];
@@ -138,7 +121,7 @@ export function HoldingsTable({ positions, ppmData = [], marketPrices = [] }: Ho
                           {unrealizedPnlPct !== null && (
                             <span
                               className={`text-xs font-mono tabular-nums ${
-                                unrealizedPnlPct >= 0 ? "text-emerald-500" : "text-destructive"
+                                unrealizedPnlPct >= 0 ? "text-success" : "text-destructive"
                               }`}
                             >
                               {unrealizedPnlPct >= 0 ? "+" : ""}

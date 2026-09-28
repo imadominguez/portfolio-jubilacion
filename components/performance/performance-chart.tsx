@@ -13,39 +13,12 @@ import {
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { Button } from "@/components/ui/button";
 import type { SnapshotPoint } from "@/lib/portfolio-data";
+import { formatARSCompact, formatUSDCompact, formatDateShort } from "@/lib/format";
 
 type Currency = "ARS" | "USD";
 
 interface PerformanceChartProps {
   snapshots: SnapshotPoint[];
-}
-
-function formatDateShort(date: Date | string): string {
-  return new Intl.DateTimeFormat("es-AR", {
-    day: "2-digit",
-    month: "short",
-    year: "2-digit",
-  }).format(new Date(date));
-}
-
-function formatARS(value: number): string {
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-    notation: "compact",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 1,
-  }).format(value);
-}
-
-function formatUSD(value: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    notation: "compact",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 1,
-  }).format(value);
 }
 
 const chartConfig = {
@@ -105,7 +78,7 @@ export function PerformanceChart({ snapshots }: PerformanceChartProps) {
             />
             <YAxis
               tickFormatter={(v) =>
-                currency === "ARS" ? formatARS(v) : formatUSD(v)
+                currency === "ARS" ? formatARSCompact(v) : formatUSDCompact(v)
               }
               tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
               tickLine={false}

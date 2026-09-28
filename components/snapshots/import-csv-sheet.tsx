@@ -34,20 +34,17 @@ interface PreviewData {
 }
 
 // Cocos Capital exporta el snapshot con el formato: portfolio_report_YYYYMMDD.csv
-const FILENAME_PATTERN = /^portfolio_report_(\d{4})(\d{2})(\d{2})\.csv$/i;
+// Aceptamos variantes (guiones/underscores) y, como fallback, cualquier fecha
+// YYYYMMDD presente en el nombre. Si no se detecta, el usuario ingresa la fecha
+// manualmente.
+const FILENAME_PATTERN = /portfolio_report[_-]?(\d{4})[_-]?(\d{2})[_-]?(\d{2})/i;
+const GENERIC_DATE_PATTERN = /(\d{4})[_-]?(\d{2})[_-]?(\d{2})/;
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-function formatARS(value: number): string {
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
+import { formatARS } from "@/lib/format";
 
 function formatUSD(value: number): string {
   return new Intl.NumberFormat("es-AR", {
@@ -63,12 +60,12 @@ type FilenameParseResult =
   | { success: false; error: string };
 
 function parseFilename(name: string): FilenameParseResult {
-  const match = name.match(FILENAME_PATTERN);
+  const match = name.match(FILENAME_PATTERN) ?? name.match(GENERIC_DATE_PATTERN);
   if (!match) {
     return {
       success: false,
       error:
-        "El archivo debe llamarse portfolio_report_AAAAMMDD.csv (ej: portfolio_report_20260504.csv).",
+        "No pudimos detectar la fecha desde el nombre del archivo. Ingresala manualmente abajo.",
     };
   }
   const [, year, month, day] = match;
@@ -82,7 +79,7 @@ function parseFilename(name: string): FilenameParseResult {
   ) {
     return {
       success: false,
-      error: `La fecha "${day}/${month}/${year}" extraída del nombre del archivo no es válida.`,
+      error: `La fecha "${day}/${month}/${year}" detectada no es válida. Ingresala manualmente.`,
     };
   }
   return { success: true, date };
@@ -118,6 +115,7 @@ export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
   const [ccl, setCcl] = useState<string>("");
   const [cclAutofilled, setCclAutofilled] = useState<boolean>(false);
   const [cclMissingForDate, setCclMissingForDate] = useState<boolean>(false);
+  const [dateWarning, setDateWarning] = useState<string | null>(null);
 
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -134,6 +132,7 @@ export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
     setCcl("");
     setCclAutofilled(false);
     setCclMissingForDate(false);
+    setDateWarning(null);
     setSelectedFile(null);
     formRef.current?.reset();
   }
@@ -149,6 +148,7 @@ export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
     setError(null);
     setCclAutofilled(false);
     setCclMissingForDate(false);
+    setDateWarning(null);
 
     if (!file) {
       setFileName(null);
@@ -162,19 +162,22 @@ export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
 
     const parsed = parseFilename(file.name);
     if (!parsed.success) {
-      setSelectedFile(null);
+      // No bloqueamos: dejamos el archivo cargado y pedimos la fecha a mano.
+      setSelectedFile(file);
       setDate("");
       setCcl("");
-      setError(parsed.error);
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      setDateWarning(parsed.error);
       return;
     }
 
     setSelectedFile(file);
     setDate(parsed.date);
+    void autofillCcl(parsed.date);
+  }
 
+  function autofillCcl(dateStr: string) {
     startTransition(async () => {
-      const rate = await getExchangeRateForDate(parsed.date);
+      const rate = await getExchangeRateForDate(dateStr);
       if (rate) {
         setCcl(String(rate.ccl));
         setCclAutofilled(true);
@@ -185,6 +188,15 @@ export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
         setCclMissingForDate(true);
       }
     });
+  }
+
+  function handleDateChange(value: string) {
+    setDate(value);
+    setCclAutofilled(false);
+    setCclMissingForDate(false);
+    setDateWarning(null);
+    if (!value) return;
+    void autofillCcl(value);
   }
 
   function handlePreview(e: React.FormEvent<HTMLFormElement>) {
@@ -314,12 +326,17 @@ export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
                   name="date"
                   required
                   value={date}
-                  readOnly
-                  disabled={!date}
+                  onChange={(e) => handleDateChange(e.target.value)}
                   className="text-sm font-mono"
                 />
                 <FieldDescription className="text-xs text-muted-foreground">
-                  Se detecta automáticamente desde el nombre del archivo.
+                  {dateWarning ? (
+                    <span className="text-amber-600 dark:text-amber-400">
+                      {dateWarning}
+                    </span>
+                  ) : (
+                    "Se detecta automáticamente desde el nombre del archivo. Podés corregirla si hace falta."
+                  )}
                 </FieldDescription>
               </Field>
 
@@ -519,8 +536,8 @@ export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
         {/* ---------------------------------------------------------------- */}
         {step === "done" && (
           <div className="flex flex-col flex-1 items-center justify-center gap-5 px-6 py-10 text-center">
-            <div className="flex size-12 items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-500/10">
-              <CheckCircle className="size-5 text-emerald-500" />
+            <div className="flex size-12 items-center justify-center rounded-full border border-success/20 bg-success/10">
+              <CheckCircle className="size-5 text-success" />
             </div>
             <div className="flex flex-col gap-1.5">
               <p className="text-sm font-medium text-foreground">Snapshot importado</p>
@@ -572,10 +589,10 @@ function ErrorAlert({ message }: { message: string }) {
 
 function WarningAlert({ message }: { message: string }) {
   return (
-    <div className="flex items-start gap-3 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3">
-      <AlertCircle className="size-4 text-amber-500 shrink-0 mt-0.5" />
+    <div className="flex items-start gap-3 rounded-lg border border-warning/20 bg-warning/5 px-4 py-3">
+      <AlertCircle className="size-4 text-warning shrink-0 mt-0.5" />
       <div className="flex flex-col gap-0.5">
-        <p className="text-xs font-medium text-amber-500">CCL faltante</p>
+        <p className="text-xs font-medium text-warning">CCL faltante</p>
         <p className="text-xs text-muted-foreground">{message}</p>
       </div>
     </div>

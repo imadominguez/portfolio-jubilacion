@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Field, FieldLabel } from "@/components/ui/field";
+import { formatARSCompact } from "@/lib/format";
 import {
   Dialog,
   DialogContent,
@@ -39,16 +40,6 @@ interface RebalanceClientProps {
   rebalanceData: RebalanceRow[];
   targets: TargetAllocationRow[];
   totalPct: number;
-}
-
-function formatARS(v: number) {
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-    notation: "compact",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 1,
-  }).format(v);
 }
 
 export function RebalanceClient({ rebalanceData, targets, totalPct }: RebalanceClientProps) {
@@ -212,8 +203,8 @@ export function RebalanceClient({ rebalanceData, targets, totalPct }: RebalanceC
                         Math.abs(row.deviation) <= 1
                           ? "text-muted-foreground"
                           : row.deviation > 0
-                            ? "text-amber-500"
-                            : "text-blue-500"
+                            ? "text-warning"
+                            : "text-info"
                       }`}
                     >
                       {row.deviation > 0 ? "+" : ""}
@@ -222,20 +213,20 @@ export function RebalanceClient({ rebalanceData, targets, totalPct }: RebalanceC
                   </TableCell>
                   <TableCell className="py-3.5 text-right">
                     <span className="text-sm font-mono tabular-nums text-muted-foreground">
-                      {formatARS(row.currentValue)}
+                      {formatARSCompact(row.currentValue)}
                     </span>
                   </TableCell>
                   <TableCell className="pr-5 py-3.5">
                     {row.suggestedAction === "BUY" && (
                       <div className="flex items-center gap-1.5">
-                        <TrendingUp className="size-3.5 text-emerald-500" />
-                        <span className="text-xs text-emerald-500 font-medium">Comprar</span>
+                        <TrendingUp className="size-3.5 text-success" />
+                        <span className="text-xs text-success font-medium">Comprar</span>
                       </div>
                     )}
                     {row.suggestedAction === "SELL" && (
                       <div className="flex items-center gap-1.5">
-                        <TrendingDown className="size-3.5 text-amber-500" />
-                        <span className="text-xs text-amber-500 font-medium">Vender</span>
+                        <TrendingDown className="size-3.5 text-warning" />
+                        <span className="text-xs text-warning font-medium">Vender</span>
                       </div>
                     )}
                     {row.suggestedAction === "HOLD" && (

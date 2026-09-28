@@ -18,6 +18,7 @@ import { Download } from "lucide-react";
 import type { SnapshotPoint } from "@/lib/portfolio-data";
 import { fetchAndSaveBenchmark, getBenchmarkPoints } from "@/app/actions/benchmarks";
 import { BENCHMARKS } from "@/lib/benchmarks-config";
+import { formatDateShort } from "@/lib/format";
 import type { BenchmarkId } from "@/lib/benchmarks-config";
 
 interface BenchmarkPoint {
@@ -28,14 +29,6 @@ interface BenchmarkPoint {
 interface BenchmarkOverlayChartProps {
   snapshots: SnapshotPoint[];
   initialBenchmarks: Record<string, BenchmarkPoint[]>;
-}
-
-function formatDateShort(date: Date | string): string {
-  return new Intl.DateTimeFormat("es-AR", {
-    day: "2-digit",
-    month: "short",
-    year: "2-digit",
-  }).format(new Date(date));
 }
 
 const chartConfig = {

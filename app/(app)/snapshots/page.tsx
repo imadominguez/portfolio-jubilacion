@@ -6,26 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { SiteHeader } from "@/components/layout/site-header";
 import { ImportButton } from "@/components/snapshots/snapshots-client";
 import { getAllSnapshotPoints } from "@/lib/portfolio-data";
+import { formatARS, formatUSD } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Snapshots" };
-
-function formatARS(value: number): string {
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-function formatUSD(value: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
 
 export default async function SnapshotsPage() {
   const snapshots = await getAllSnapshotPoints();
@@ -57,7 +40,7 @@ export default async function SnapshotsPage() {
             <div className="flex flex-col gap-1.5 max-w-xs">
               <p className="text-sm font-medium text-foreground">Sin snapshots</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Aún no importaste ningún snapshot. Usá el botón "Importar CSV"
+                Aún no importaste ningún snapshot. Usá el botón &quot;Importar CSV&quot;
                 para registrar el primer estado de tu portfolio.
               </p>
             </div>
@@ -89,7 +72,7 @@ export default async function SnapshotsPage() {
                       className="px-5 py-4 flex items-center justify-between gap-4 hover:bg-muted/50 transition-colors group"
                     >
                       <div className="flex items-center gap-4 min-w-0">
-                        <div className="size-2 rounded-full bg-emerald-500/50 shrink-0" />
+                        <div className="size-2 rounded-full bg-success/50 shrink-0" />
                         <div className="flex flex-col gap-0.5 min-w-0">
                           <span className="text-sm font-mono text-foreground">
                             {new Intl.DateTimeFormat("es-AR", {
@@ -121,7 +104,7 @@ export default async function SnapshotsPage() {
                           <Badge
                             variant="secondary"
                             className={`font-mono text-[11px] tabular-nums ${
-                              isPos ? "text-emerald-500" : "text-destructive"
+                              isPos ? "text-success" : "text-destructive"
                             }`}
                           >
                             {isPos ? "+" : ""}

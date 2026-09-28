@@ -27,6 +27,7 @@ import {
   buildProjectionCurve,
   runMonteCarlo,
 } from "@/lib/projections";
+import { formatUSDCompact } from "@/lib/format";
 
 interface RetirementClientProps {
   initialSettings: RetirementSettingsData | null;
@@ -44,16 +45,6 @@ const DEFAULT_SETTINGS: RetirementSettingsData = {
 };
 
 type Tab = "calculator" | "projection" | "montecarlo";
-
-function formatUSD(v: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    notation: "compact",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 1,
-  }).format(v);
-}
 
 const chartConfig = {
   projected: { label: "Portfolio proyectado", color: "var(--color-chart-1)" },
@@ -82,13 +73,15 @@ export function RetirementClient({
     annualReturnRate: historicalCagr > 0 ? Math.min(historicalCagr / 100, 0.30) : 0.07,
   };
 
-  const goal = useMemo(() => calculateRetirementGoal(inputs), [JSON.stringify(inputs)]);
-  const projectionData = useMemo(() => buildProjectionCurve({ ...inputs, capitalNeeded: goal.capitalNeeded } as never), [JSON.stringify(inputs), goal.capitalNeeded]);
+  const inputsKey = JSON.stringify(inputs);
+
+  const goal = useMemo(() => calculateRetirementGoal(inputs), [inputsKey]);
+  const projectionData = useMemo(() => buildProjectionCurve({ ...inputs, capitalNeeded: goal.capitalNeeded } as never), [inputsKey, goal.capitalNeeded]);
 
   const monteCarloData = useMemo(() => {
     if (tab !== "montecarlo") return null;
     return runMonteCarlo(inputs, 500);
-  }, [tab, JSON.stringify(inputs)]);
+  }, [tab, inputsKey]);
 
   const mcChartData = useMemo(() => {
     if (!monteCarloData) return [];
@@ -255,8 +248,8 @@ export function RetirementClient({
             {[
               { label: "Edad actual", value: settings.currentAge },
               { label: "Retiro a los", value: settings.retirementAge },
-              { label: "Gastos/mes", value: formatUSD(settings.monthlyExpensesUsd) },
-              { label: "Aporte/mes", value: formatUSD(settings.monthlyContribution) },
+              { label: "Gastos/mes", value: formatUSDCompact(settings.monthlyExpensesUsd) },
+              { label: "Aporte/mes", value: formatUSDCompact(settings.monthlyContribution) },
               { label: "Inflación", value: `${(settings.inflationRate * 100).toFixed(1)}%` },
               { label: "Tasa retiro", value: `${(settings.withdrawalRate * 100).toFixed(1)}%` },
             ].map(({ label, value }) => (
@@ -275,7 +268,7 @@ export function RetirementClient({
           </span>
           {currentPortfolioUsd && (
             <span className="text-[10px] text-muted-foreground">
-              · Portfolio actual: {formatUSD(currentPortfolioUsd)}
+              · Portfolio actual: {formatUSDCompact(currentPortfolioUsd)}
             </span>
           )}
         </div>
@@ -304,21 +297,21 @@ export function RetirementClient({
             {[
               {
                 label: "Capital necesario",
-                value: formatUSD(goal.capitalNeeded),
-                sub: `Para retirar ${formatUSD(settings.monthlyExpensesUsd)}/mes`,
+                value: formatUSDCompact(goal.capitalNeeded),
+                sub: `Para retirar ${formatUSDCompact(settings.monthlyExpensesUsd)}/mes`,
                 icon: Target,
                 accent: null as boolean | null,
               },
               {
                 label: "Capital proyectado",
-                value: formatUSD(goal.capitalAtRetirement),
+                value: formatUSDCompact(goal.capitalAtRetirement),
                 sub: `Al jubilarme a los ${settings.retirementAge}`,
                 icon: TrendingUp,
                 accent: goal.isOnTrack,
               },
               {
                 label: "Brecha actual",
-                value: goal.currentGap > 0 ? formatUSD(goal.currentGap) : "¡Meta alcanzada!",
+                value: goal.currentGap > 0 ? formatUSDCompact(goal.currentGap) : "¡Meta alcanzada!",
                 sub: `Faltan ${goal.yearsRemaining} años`,
                 icon: goal.isOnTrack ? CheckCircle : AlertTriangle,
                 accent: goal.isOnTrack,
@@ -338,9 +331,9 @@ export function RetirementClient({
                 key={label}
                 className={`rounded-xl border bg-card shadow-sm px-5 py-4 flex flex-col gap-3 ${
                   accent === true
-                    ? "border-emerald-500/30"
+                    ? "border-success/30"
                     : accent === false
-                      ? "border-amber-500/30"
+                      ? "border-warning/30"
                       : "border-border"
                 }`}
               >
@@ -352,9 +345,9 @@ export function RetirementClient({
                   <Icon
                     className={`size-4 shrink-0 ${
                       accent === true
-                        ? "text-emerald-500"
+                        ? "text-success"
                         : accent === false
-                          ? "text-amber-500"
+                          ? "text-warning"
                           : "text-muted-foreground"
                     }`}
                   />
@@ -362,9 +355,9 @@ export function RetirementClient({
                 <span
                   className={`text-xl font-bold font-mono tabular-nums leading-none ${
                     accent === true
-                      ? "text-emerald-500"
+                      ? "text-success"
                       : accent === false
-                        ? "text-amber-500"
+                        ? "text-warning"
                         : "text-foreground"
                   }`}
                 >
@@ -413,7 +406,7 @@ export function RetirementClient({
                     label={{ value: "Edad", position: "insideBottom", offset: -2, style: { fontSize: 10, fill: "var(--color-muted-foreground)" } }}
                   />
                   <YAxis
-                    tickFormatter={(v) => formatUSD(v)}
+                    tickFormatter={(v) => formatUSDCompact(v)}
                     tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
                     tickLine={false}
                     axisLine={false}
@@ -421,7 +414,7 @@ export function RetirementClient({
                   />
                   <Tooltip
                     formatter={(v: number, name: string) => [
-                      formatUSD(v),
+                      formatUSDCompact(v),
                       name === "projected" ? "Portfolio" : "Meta",
                     ]}
                     contentStyle={{
@@ -467,9 +460,9 @@ export function RetirementClient({
                 <p
                   className={`text-2xl font-bold font-mono ${
                     monteCarloData.successProbability >= 70
-                      ? "text-emerald-500"
+                      ? "text-success"
                       : monteCarloData.successProbability >= 50
-                        ? "text-amber-500"
+                        ? "text-warning"
                         : "text-destructive"
                   }`}
                 >
@@ -480,13 +473,13 @@ export function RetirementClient({
               <div className="rounded-xl border border-border bg-card shadow-sm px-5 py-4">
                 <p className="text-xs text-muted-foreground mb-1">Escenario pesimista (P10)</p>
                 <p className="text-2xl font-bold font-mono text-foreground">
-                  {formatUSD(monteCarloData.percentile10[monteCarloData.percentile10.length - 1])}
+                  {formatUSDCompact(monteCarloData.percentile10[monteCarloData.percentile10.length - 1])}
                 </p>
               </div>
               <div className="rounded-xl border border-border bg-card shadow-sm px-5 py-4">
                 <p className="text-xs text-muted-foreground mb-1">Escenario optimista (P90)</p>
                 <p className="text-2xl font-bold font-mono text-foreground">
-                  {formatUSD(monteCarloData.percentile90[monteCarloData.percentile90.length - 1])}
+                  {formatUSDCompact(monteCarloData.percentile90[monteCarloData.percentile90.length - 1])}
                 </p>
               </div>
             </div>
@@ -516,7 +509,7 @@ export function RetirementClient({
                       axisLine={false}
                     />
                     <YAxis
-                      tickFormatter={(v) => formatUSD(v)}
+                      tickFormatter={(v) => formatUSDCompact(v)}
                       tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
                       tickLine={false}
                       axisLine={false}
@@ -524,7 +517,7 @@ export function RetirementClient({
                     />
                     <Tooltip
                       formatter={(v: number, name: string) => [
-                        formatUSD(v),
+                        formatUSDCompact(v),
                         name === "p10" ? "Pesimista (P10)" : name === "p90" ? "Optimista (P90)" : "Mediana (P50)",
                       ]}
                       contentStyle={{

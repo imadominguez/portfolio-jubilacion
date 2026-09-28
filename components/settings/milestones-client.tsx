@@ -128,7 +128,7 @@ export function MilestonesClient({
               <div key={m.id || m.label} className="flex items-center justify-between px-5 py-3.5">
                 <div className="flex items-center gap-3">
                   {m.reached ? (
-                    <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
+                    <CheckCircle2 className="size-4 text-success shrink-0" />
                   ) : (
                     <div className="size-4 rounded-full border-2 border-muted-foreground/30 shrink-0" />
                   )}

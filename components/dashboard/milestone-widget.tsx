@@ -1,18 +1,10 @@
 import { CheckCircle2, Target } from "lucide-react";
 import type { MilestoneRow } from "@/app/actions/milestones";
+import { formatUSD } from "@/lib/format";
 
 interface MilestoneWidgetProps {
   milestones: MilestoneRow[];
   currentValueUsd: number;
-}
-
-function formatUSD(value: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
 }
 
 export function MilestoneWidget({
@@ -40,7 +32,7 @@ export function MilestoneWidget({
             {reached.map((m) => (
               <div
                 key={m.id}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-500 text-xs font-mono font-semibold"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-success/10 text-success text-xs font-mono font-semibold"
               >
                 <CheckCircle2 className="size-3.5 shrink-0" />
                 {m.label}
@@ -70,7 +62,7 @@ export function MilestoneWidget({
             {/* Progress bar */}
             <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
               <div
-                className="h-full rounded-full bg-emerald-500 transition-all duration-700"
+                className="h-full rounded-full bg-success transition-all duration-700"
                 style={{ width: `${progressPct}%` }}
               />
             </div>
@@ -82,7 +74,7 @@ export function MilestoneWidget({
                   {formatUSD(nextMilestone.targetValueUsd - currentValueUsd)}
                 </span>
               </span>
-              <span className="text-xs font-mono font-semibold text-emerald-500">
+              <span className="text-xs font-mono font-semibold text-success">
                 {progressPct.toFixed(1)}%
               </span>
             </div>

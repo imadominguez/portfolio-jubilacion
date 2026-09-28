@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition, useState, useEffect } from "react";
+import { useTransition, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,9 +40,10 @@ export function AssetDialog({ open, onOpenChange, asset }: AssetDialogProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (open) setError(null);
-  }, [open]);
+  function handleOpenChange(next: boolean) {
+    if (next) setError(null);
+    onOpenChange(next);
+  }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -74,7 +75,7 @@ export function AssetDialog({ open, onOpenChange, asset }: AssetDialogProps) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={isPending ? undefined : onOpenChange}>
+    <Dialog open={open} onOpenChange={isPending ? undefined : handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-sm font-medium">

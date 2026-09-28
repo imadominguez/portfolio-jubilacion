@@ -10,6 +10,7 @@ import {
   Legend,
 } from "recharts";
 import type { ConcentrationData, ConcentrationItem } from "@/lib/analysis-data";
+import { formatARSCompact } from "@/lib/format";
 
 const CHART_COLORS = [
   "var(--color-chart-1)",
@@ -17,24 +18,14 @@ const CHART_COLORS = [
   "var(--color-chart-3)",
   "var(--color-chart-4)",
   "var(--color-chart-5)",
-  "#6366f1",
-  "#f59e0b",
-  "#10b981",
-  "#ef4444",
-  "#8b5cf6",
+  "var(--color-primary)",
+  "var(--color-accent)",
+  "var(--color-info)",
+  "var(--color-success)",
+  "var(--color-warning)",
 ];
 
 type Tab = "sector" | "country" | "industry";
-
-function formatARS(v: number) {
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-    notation: "compact",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 1,
-  }).format(v);
-}
 
 interface ConcentrationChartProps {
   items: ConcentrationItem[];
@@ -69,7 +60,7 @@ function ConcentrationChart({ items, label }: ConcentrationChartProps) {
             ))}
           </Pie>
           <Tooltip
-            formatter={(value: number) => [formatARS(value), "Valor"]}
+            formatter={(value: number) => [formatARSCompact(value), "Valor"]}
             contentStyle={{
               background: "var(--color-card)",
               border: "1px solid var(--color-border)",
@@ -103,7 +94,7 @@ function ConcentrationChart({ items, label }: ConcentrationChartProps) {
               <span className="text-xs font-mono text-foreground">
                 {item.pct.toFixed(1)}%
               </span>
-              <span className="text-xs text-muted-foreground">{formatARS(item.value)}</span>
+              <span className="text-xs text-muted-foreground">{formatARSCompact(item.value)}</span>
             </div>
           </div>
         ))}
@@ -152,7 +143,7 @@ export function ConcentrationCharts({ data }: ConcentrationChartsProps) {
 
       {data.unclassified > 0 && (
         <p className="text-xs text-muted-foreground">
-          * {formatARS(data.unclassified)} sin clasificar — completá el sector/país en la
+          * {formatARSCompact(data.unclassified)} sin clasificar — completá el sector/país en la
           página de Assets para ver el análisis completo.
         </p>
       )}

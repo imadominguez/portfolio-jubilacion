@@ -11,20 +11,11 @@ import { Label } from "@/components/ui/label";
 import { saveNewVersion, restoreVersion } from "@/app/actions/strategy";
 import type { InvestmentStrategy } from "@/app/generated/prisma/client";
 import { CheckCircle2, Clock, RotateCcw, Save, AlertCircle, BookOpen } from "lucide-react";
+import { formatDateTime } from "@/lib/format";
 
 interface StrategyEditorProps {
   active: InvestmentStrategy | null;
   history: InvestmentStrategy[];
-}
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("es-AR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(date));
 }
 
 export function StrategyEditor({ active, history }: StrategyEditorProps) {
@@ -78,10 +69,10 @@ export function StrategyEditor({ active, history }: StrategyEditorProps) {
             {active && (
               <Badge
                 variant="outline"
-                className="text-[11px] bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-900/50"
+                className="text-[11px] bg-success/10 text-success border-success/20"
               >
                 <CheckCircle2 className="w-3 h-3 mr-1" />
-                v{active.version} — Activa desde {formatDate(active.createdAt)}
+                v{active.version} — Activa desde {formatDateTime(active.createdAt)}
               </Badge>
             )}
           </div>
@@ -134,13 +125,13 @@ export function StrategyEditor({ active, history }: StrategyEditorProps) {
           )}
 
           {error && (
-            <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 rounded-lg px-4 py-3">
+            <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-lg px-4 py-3">
               <AlertCircle className="w-4 h-4 shrink-0" />
               {error}
             </div>
           )}
           {successMsg && (
-            <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-900/50 rounded-lg px-4 py-3">
+            <div className="flex items-center gap-2 text-sm text-success bg-success/10 border border-success/30 rounded-lg px-4 py-3">
               <CheckCircle2 className="w-4 h-4 shrink-0" />
               {successMsg}
             </div>
@@ -172,7 +163,7 @@ export function StrategyEditor({ active, history }: StrategyEditorProps) {
                       </Badge>
                     </div>
                     <span className="text-xs text-muted-foreground">
-                      Guardada el {formatDate(v.createdAt)}
+                      Guardada el {formatDateTime(v.createdAt)}
                     </span>
                   </div>
                   <Button

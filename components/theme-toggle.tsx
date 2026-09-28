@@ -30,6 +30,9 @@ export function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // Guard de hidratación: next-themes no conoce el tema hasta montar en el
+    // cliente; este patrón evita el mismatch de SSR.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

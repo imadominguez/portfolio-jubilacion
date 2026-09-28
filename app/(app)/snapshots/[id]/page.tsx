@@ -8,7 +8,10 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { HoldingsTable } from "@/components/dashboard/holdings-table";
 import { AllocationPanel } from "@/components/dashboard/allocation-panel";
 import { ExportButtons } from "@/components/export/export-buttons";
+import { getSnapshotById } from "@/lib/portfolio-data";
+import { requireUserId } from "@/lib/auth-session";
 import { db } from "@/lib/db";
+import { formatARS, formatUSD, formatDateMedium } from "@/lib/format";
 
 export async function generateMetadata({
   params,
@@ -16,35 +19,13 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const snapshot = await db.portfolioSnapshot.findUnique({
-    where: { id },
+  const userId = await requireUserId();
+  const snapshot = await db.portfolioSnapshot.findFirst({
+    where: { id, userId },
     select: { snapshotDate: true },
   });
   if (!snapshot) return { title: "Snapshot no encontrado" };
-  const date = new Intl.DateTimeFormat("es-AR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(snapshot.snapshotDate));
-  return { title: `Snapshot ${date}` };
-}
-
-function formatARS(value: number): string {
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-function formatUSD(value: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
+  return { title: `Snapshot ${formatDateMedium(snapshot.snapshotDate)}` };
 }
 
 export default async function SnapshotDetailPage({
@@ -53,13 +34,9 @@ export default async function SnapshotDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const userId = await requireUserId();
 
-  const snapshot = await db.portfolioSnapshot.findUnique({
-    where: { id },
-    include: {
-      positions: { orderBy: { positionValue: "desc" } },
-    },
-  });
+  const snapshot = await getSnapshotById(id, userId);
 
   if (!snapshot) notFound();
 
@@ -70,18 +47,11 @@ export default async function SnapshotDetailPage({
     year: "numeric",
   }).format(snapshotDate);
 
-  const positions = snapshot.positions.map((p) => ({
-    ticker: p.ticker,
-    instrumentName: p.instrumentName,
-    quantity: Number(p.quantity),
-    price: Number(p.price),
-    positionValue: Number(p.positionValue),
-    allocationPct: Number(p.allocationPct) * 100,
-  }));
+  const positions = snapshot.positions;
 
-  const totalArs = Number(snapshot.totalValueArs);
-  const totalUsd = snapshot.totalValueUsd ? Number(snapshot.totalValueUsd) : null;
-  const ccl = snapshot.ccl ? Number(snapshot.ccl) : null;
+  const totalArs = snapshot.totalValueArs;
+  const totalUsd = snapshot.totalValueUsd;
+  const ccl = snapshot.ccl;
 
   const kpis = [
     {
@@ -162,7 +132,7 @@ export default async function SnapshotDetailPage({
                 {value}
               </span>
               <div className="flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-emerald-500/50 shrink-0" />
+                <span className="size-2 rounded-full bg-success/50 shrink-0" />
                 <span className="text-xs text-muted-foreground">snapshot</span>
               </div>
             </div>

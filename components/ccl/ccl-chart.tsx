@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import { ChartContainer } from "@/components/ui/chart";
 import { Button } from "@/components/ui/button";
+import { formatARS, formatUSDCompact, formatDateShort as formatDateShortBase } from "@/lib/format";
 
 interface ExchangeRatePoint {
   date: Date;
@@ -32,30 +33,7 @@ interface CCLChartProps {
 }
 
 function formatDateShort(dateStr: string): string {
-  return new Intl.DateTimeFormat("es-AR", {
-    day: "2-digit",
-    month: "short",
-    year: "2-digit",
-  }).format(new Date(dateStr + "T00:00:00"));
-}
-
-function formatCCL(value: number): string {
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-function formatUSD(value: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    notation: "compact",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 1,
-  }).format(value);
+  return formatDateShortBase(new Date(dateStr + "T00:00:00"));
 }
 
 const chartConfig = {
@@ -95,8 +73,8 @@ function CustomTooltip({ active, payload, label }: any) {
             </span>
             <span className="font-mono font-semibold text-foreground">
               {entry.name === "ccl"
-                ? formatCCL(entry.value)
-                : formatUSD(entry.value)}
+                ? formatARS(entry.value)
+                : formatUSDCompact(entry.value)}
             </span>
           </div>
         )
@@ -198,7 +176,7 @@ export function CCLChart({ rates, snapshots }: CCLChartProps) {
             <YAxis
               yAxisId="ccl"
               orientation="left"
-              tickFormatter={(v) => formatCCL(v)}
+              tickFormatter={(v) => formatARS(v)}
               tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
               tickLine={false}
               axisLine={false}
@@ -209,7 +187,7 @@ export function CCLChart({ rates, snapshots }: CCLChartProps) {
               <YAxis
                 yAxisId="portfolio"
                 orientation="right"
-                tickFormatter={(v) => formatUSD(v)}
+                tickFormatter={(v) => formatUSDCompact(v)}
                 tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
                 tickLine={false}
                 axisLine={false}

@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { SiteHeader } from "@/components/layout/site-header";
 import { ConcentrationCharts } from "@/components/analysis/concentration-charts";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ImportButton } from "@/components/snapshots/snapshots-client";
+import { Button } from "@/components/ui/button";
 import { getConcentrationData } from "@/lib/analysis-data";
 import { BarChart3 } from "lucide-react";
 
@@ -63,18 +67,19 @@ export default async function AnalysisPage() {
             </div>
           </>
         ) : (
-          <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
-            <div className="size-12 rounded-full bg-muted flex items-center justify-center">
-              <BarChart3 className="size-6 text-muted-foreground" />
-            </div>
-            <div className="flex flex-col gap-1">
-              <p className="text-sm font-medium text-foreground">Sin datos de portfolio</p>
-              <p className="text-xs text-muted-foreground max-w-xs">
-                Importá al menos un snapshot desde el dashboard para ver el análisis de
-                concentración.
-              </p>
-            </div>
-          </div>
+          <EmptyState
+            icon={BarChart3}
+            title="Sin datos de portfolio"
+            description="Importá al menos un snapshot desde el dashboard para ver el análisis de concentración. Después completá sector, país e industria en Assets."
+            action={
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <ImportButton />
+                <Button asChild size="sm" variant="outline">
+                  <Link href="/assets">Completar Assets</Link>
+                </Button>
+              </div>
+            }
+          />
         )}
       </main>
     </div>

@@ -1,5 +1,6 @@
 import { TrendingUp, TrendingDown } from "lucide-react";
 import type { PositionRow } from "@/lib/portfolio-data";
+import { formatARS } from "@/lib/format";
 
 interface PerformersPanelProps {
   currentPositions: PositionRow[];
@@ -13,15 +14,6 @@ type TickerPerf = {
   previousPrice: number;
 };
 
-function formatARS(value: number): string {
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
 function PerformerCard({ item }: { item: TickerPerf }) {
   const isPositive = item.pricePct >= 0;
 
@@ -30,11 +22,11 @@ function PerformerCard({ item }: { item: TickerPerf }) {
       <div className="flex items-center gap-3 min-w-0">
         <div
           className={`size-8 rounded-lg flex items-center justify-center shrink-0 ${
-            isPositive ? "bg-emerald-500/10" : "bg-destructive/10"
+            isPositive ? "bg-success/10" : "bg-destructive/10"
           }`}
         >
           {isPositive ? (
-            <TrendingUp className="size-4 text-emerald-500" />
+            <TrendingUp className="size-4 text-success" />
           ) : (
             <TrendingDown className="size-4 text-destructive" />
           )}
@@ -52,7 +44,7 @@ function PerformerCard({ item }: { item: TickerPerf }) {
       <div
         className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold tabular-nums shrink-0 ${
           isPositive
-            ? "bg-emerald-500/10 text-emerald-500"
+            ? "bg-success/10 text-success"
             : "bg-destructive/10 text-destructive"
         }`}
       >

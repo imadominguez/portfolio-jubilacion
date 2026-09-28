@@ -2,24 +2,7 @@
 
 import { useState } from "react";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
-
-function formatARS(value: number): string {
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-function formatUSD(value: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
+import { formatARS, formatUSD } from "@/lib/format";
 
 interface DashboardHeroProps {
   totalValueArs: number;
@@ -49,14 +32,14 @@ export function DashboardHero({
         : "—";
 
   return (
-    /* Dark hero card — always dark like the Material Dashboard info card */
-    <div className="relative overflow-hidden rounded-xl bg-[oklch(0.185_0.008_75)] dark:bg-[oklch(0.085_0.006_240)] shadow-lg px-6 py-7 sm:px-8 sm:py-8">
+    /* Azure Tech hero — navy profundo con glow azul/cian (ver DESIGN.md) */
+    <div className="hero-surface relative overflow-hidden rounded-xl shadow-lg px-6 py-7 sm:px-8 sm:py-8">
       {/* Subtle radial glow */}
       <div
-        className="pointer-events-none absolute -top-20 -right-20 size-72 rounded-full opacity-20"
+        className="pointer-events-none absolute -top-24 -right-20 size-72 rounded-full opacity-20"
         style={{
           background:
-            "radial-gradient(circle, oklch(0.697 0.195 149) 0%, transparent 70%)",
+            "radial-gradient(circle, color-mix(in oklab, var(--accent) 60%, transparent) 0%, transparent 70%)",
         }}
       />
 
@@ -76,7 +59,7 @@ export function DashboardHero({
                 disabled={c === "USD" && !hasUsd}
                 className={`px-3 py-1 text-[11px] font-semibold rounded-md transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed ${
                   currency === c
-                    ? "bg-white text-[oklch(0.185_0.008_75)] shadow-sm"
+                    ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-white/60 hover:text-white"
                 }`}
               >
@@ -95,7 +78,7 @@ export function DashboardHero({
           <div className="flex flex-col sm:items-end gap-2 pb-0.5">
             {/* Date indicator */}
             <div className="flex items-center gap-1.5">
-              <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="size-1.5 rounded-full bg-success animate-pulse" />
               <span className="text-xs font-mono text-white/50">
                 {snapshotDateFormatted}
               </span>
@@ -106,8 +89,8 @@ export function DashboardHero({
               <div
                 className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono font-semibold tabular-nums ${
                   isPositive
-                    ? "bg-emerald-500/20 text-emerald-400"
-                    : "bg-red-500/20 text-red-400"
+                    ? "bg-success/20 text-success"
+                    : "bg-destructive/20 text-destructive"
                 }`}
               >
                 {isPositive ? (

@@ -27,8 +27,8 @@ const palette = {
   border: "#e5e7eb",
   text: "#111827",
   muted: "#6b7280",
-  accent: "#16a34a",
-  accentMuted: "#bbf7d0",
+  accent: "#1d4ed8",
+  accentMuted: "#dbeafe",
 };
 
 const styles = StyleSheet.create({
