@@ -67,8 +67,10 @@ export const ModelName = {
   RetirementSettings: 'RetirementSettings',
   HistoricalPriceCache: 'HistoricalPriceCache',
   MilestoneAlert: 'MilestoneAlert',
+  UserSetup: 'UserSetup',
   InvestmentStrategy: 'InvestmentStrategy',
-  PortfolioReport: 'PortfolioReport'
+  PortfolioReport: 'PortfolioReport',
+  Movement: 'Movement'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -186,6 +188,7 @@ export const AssetScalarFieldEnum = {
   industry: 'industry',
   country: 'country',
   underlyingTicker: 'underlyingTicker',
+  assetKind: 'assetKind',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -249,7 +252,8 @@ export const TransactionScalarFieldEnum = {
   date: 'date',
   notes: 'notes',
   createdAt: 'createdAt',
-  userId: 'userId'
+  userId: 'userId',
+  movementId: 'movementId'
 } as const
 
 export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
@@ -308,6 +312,18 @@ export const MilestoneAlertScalarFieldEnum = {
 export type MilestoneAlertScalarFieldEnum = (typeof MilestoneAlertScalarFieldEnum)[keyof typeof MilestoneAlertScalarFieldEnum]
 
 
+export const UserSetupScalarFieldEnum = {
+  userId: 'userId',
+  onboardingCompletedAt: 'onboardingCompletedAt',
+  onboardingDismissedAt: 'onboardingDismissedAt',
+  lastStep: 'lastStep',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserSetupScalarFieldEnum = (typeof UserSetupScalarFieldEnum)[keyof typeof UserSetupScalarFieldEnum]
+
+
 export const InvestmentStrategyScalarFieldEnum = {
   id: 'id',
   title: 'title',
@@ -331,6 +347,34 @@ export const PortfolioReportScalarFieldEnum = {
 } as const
 
 export type PortfolioReportScalarFieldEnum = (typeof PortfolioReportScalarFieldEnum)[keyof typeof PortfolioReportScalarFieldEnum]
+
+
+export const MovementScalarFieldEnum = {
+  id: 'id',
+  nroTicket: 'nroTicket',
+  nroComprobante: 'nroComprobante',
+  date: 'date',
+  settlementDate: 'settlementDate',
+  rawType: 'rawType',
+  category: 'category',
+  instrument: 'instrument',
+  ticker: 'ticker',
+  currency: 'currency',
+  market: 'market',
+  quantity: 'quantity',
+  price: 'price',
+  grossAmount: 'grossAmount',
+  commission: 'commission',
+  ddmm: 'ddmm',
+  iva: 'iva',
+  other: 'other',
+  total: 'total',
+  sourceFile: 'sourceFile',
+  createdAt: 'createdAt',
+  userId: 'userId'
+} as const
+
+export type MovementScalarFieldEnum = (typeof MovementScalarFieldEnum)[keyof typeof MovementScalarFieldEnum]
 
 
 export const SortOrder = {

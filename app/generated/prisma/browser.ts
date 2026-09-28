@@ -98,6 +98,11 @@ export type HistoricalPriceCache = Prisma.HistoricalPriceCacheModel
  */
 export type MilestoneAlert = Prisma.MilestoneAlertModel
 /**
+ * Model UserSetup
+ * 
+ */
+export type UserSetup = Prisma.UserSetupModel
+/**
  * Model InvestmentStrategy
  * 
  */
@@ -107,3 +112,8 @@ export type InvestmentStrategy = Prisma.InvestmentStrategyModel
  * 
  */
 export type PortfolioReport = Prisma.PortfolioReportModel
+/**
+ * Model Movement
+ * 
+ */
+export type Movement = Prisma.MovementModel

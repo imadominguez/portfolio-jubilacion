@@ -26,6 +26,32 @@ enum UserRole {
   ADMIN
 }
 
+// Tipo de activo del catálogo. Distingue CEDEARs de instrumentos FCI y otros.
+// Ya existe en la base de datos (migración add_asset_kind) y se usa para los
+// fondos FCI de Cocos (COCORMA / COCOUSDPA).
+enum AssetKind {
+  CEDEAR
+  FCI
+  OTHER
+}
+
+// Categoría normalizada de un movimiento del CSV de Cocos Capital.
+// El parser asigna una categoría a cada fila; sólo TRADE_BUY/TRADE_SELL generan
+// una Transaction (FCI, pagos, cobros, dividendos y conversiones quedan como
+// Movement).
+enum MovementCategory {
+  TRADE_BUY
+  TRADE_SELL
+  FCI_SUBSCRIPTION
+  FCI_REDEMPTION
+  PAYMENT
+  RECEIPT
+  DIVIDEND
+  DIVIDEND_IN_KIND
+  CONVERSION
+  OTHER
+}
+
 // ---------------------------------------------------------------------------
 // Auth models (Better Auth — tables already created via migration)
 // ---------------------------------------------------------------------------
@@ -49,6 +75,8 @@ model User {
   targetAllocations  TargetAllocation[]
   milestoneAlerts    MilestoneAlert[]
   portfolioReports   PortfolioReport[]
+  movements          Movement[]
+  setup              UserSetup?
 
   @@map("user")
 }
@@ -168,10 +196,12 @@ model Asset {
   industry         String?
   country          String?
   underlyingTicker String?
+  assetKind        AssetKind @default(CEDEAR)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
   @@index([ticker])
+  @@index([assetKind])
   @@map("assets")
 }
 
@@ -239,7 +269,7 @@ model BenchmarkPoint {
 
 model TargetAllocation {
   id        String   @id @default(cuid())
-  ticker    String   @unique
+  ticker    String
   targetPct Decimal  @db.Decimal(8, 6)
   notes     String?
   createdAt DateTime @default(now())
@@ -247,6 +277,7 @@ model TargetAllocation {
   userId    String?
   user      User?    @relation(fields: [userId], references: [id])
 
+  @@unique([userId, ticker])
   @@map("target_allocations")
 }
 
@@ -270,6 +301,8 @@ model Transaction {
   createdAt DateTime        @default(now())
   userId    String?
   user      User?           @relation(fields: [userId], references: [id])
+  movementId String?        @unique
+  movement   Movement?      @relation(fields: [movementId], references: [id])
 
   @@index([ticker])
   @@index([date])
@@ -362,6 +395,27 @@ model MilestoneAlert {
 }
 
 // ---------------------------------------------------------------------------
+// UserSetup
+//
+// Metadata de presentación del onboarding por usuario. La completitud real de
+// cada paso NO se guarda acá: se deriva de los datos (snapshots, assets,
+// transacciones, históricos) en `lib/setup-status.ts`. Este registro sólo
+// recuerda si el wizard fue completado/omitido y en qué paso quedó.
+// ---------------------------------------------------------------------------
+
+model UserSetup {
+  userId                String    @id
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  onboardingCompletedAt DateTime?
+  onboardingDismissedAt DateTime?
+  lastStep              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("user_setup")
+}
+
+// ---------------------------------------------------------------------------
 // InvestmentStrategy
 //
 // Almacena versiones inmutables de la estrategia de inversión en CEDEARs.
@@ -402,5 +456,49 @@ model PortfolioReport {
 
   @@index([createdAt])
   @@map("portfolio_reports")
+}
+
+// ---------------------------------------------------------------------------
+// Movement
+//
+// Libro de movimientos: una fila por cada línea del CSV de movimientos de
+// Cocos Capital, ya categorizada. Es la fuente de verdad de la importación y
+// permite trazabilidad completa (pagos, cobros, FCI, dividendos, conversiones).
+// Sólo las categorías TRADE_BUY / TRADE_SELL generan una Transaction asociada
+// (relación 1:1 opcional). La unique [userId, nroTicket] garantiza que la
+// importación sea idempotente.
+// ---------------------------------------------------------------------------
+
+model Movement {
+  id             String           @id @default(cuid())
+  nroTicket      String
+  nroComprobante String?
+  date           DateTime         @db.Date
+  settlementDate DateTime?        @db.Date
+  rawType        String
+  category       MovementCategory
+  instrument     String?
+  ticker         String?
+  currency       Currency         @default(ARS)
+  market         String?
+  quantity       Decimal?         @db.Decimal(18, 8)
+  price          Decimal?         @db.Decimal(18, 4)
+  grossAmount    Decimal?         @db.Decimal(18, 4)
+  commission     Decimal?         @db.Decimal(18, 2)
+  ddmm           Decimal?         @db.Decimal(18, 4)
+  iva            Decimal?         @db.Decimal(18, 4)
+  other          Decimal?         @db.Decimal(18, 4)
+  total          Decimal          @db.Decimal(18, 2)
+  sourceFile     String?
+  createdAt      DateTime         @default(now())
+  userId         String?
+  user           User?            @relation(fields: [userId], references: [id])
+  transaction    Transaction?
+
+  @@unique([userId, nroTicket])
+  @@index([date])
+  @@index([category])
+  @@index([ticker])
+  @@map("movements")
 }
 

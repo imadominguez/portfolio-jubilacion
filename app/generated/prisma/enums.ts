@@ -31,3 +31,28 @@ export const UserRole = {
 } as const
 
 export type UserRole = (typeof UserRole)[keyof typeof UserRole]
+
+
+export const AssetKind = {
+  CEDEAR: 'CEDEAR',
+  FCI: 'FCI',
+  OTHER: 'OTHER'
+} as const
+
+export type AssetKind = (typeof AssetKind)[keyof typeof AssetKind]
+
+
+export const MovementCategory = {
+  TRADE_BUY: 'TRADE_BUY',
+  TRADE_SELL: 'TRADE_SELL',
+  FCI_SUBSCRIPTION: 'FCI_SUBSCRIPTION',
+  FCI_REDEMPTION: 'FCI_REDEMPTION',
+  PAYMENT: 'PAYMENT',
+  RECEIPT: 'RECEIPT',
+  DIVIDEND: 'DIVIDEND',
+  DIVIDEND_IN_KIND: 'DIVIDEND_IN_KIND',
+  CONVERSION: 'CONVERSION',
+  OTHER: 'OTHER'
+} as const
+
+export type MovementCategory = (typeof MovementCategory)[keyof typeof MovementCategory]

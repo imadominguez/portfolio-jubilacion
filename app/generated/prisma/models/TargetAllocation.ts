@@ -248,17 +248,18 @@ export type TargetAllocationOrderByWithRelationInput = {
 
 export type TargetAllocationWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  ticker?: string
+  userId_ticker?: Prisma.TargetAllocationUserIdTickerCompoundUniqueInput
   AND?: Prisma.TargetAllocationWhereInput | Prisma.TargetAllocationWhereInput[]
   OR?: Prisma.TargetAllocationWhereInput[]
   NOT?: Prisma.TargetAllocationWhereInput | Prisma.TargetAllocationWhereInput[]
+  ticker?: Prisma.StringFilter<"TargetAllocation"> | string
   targetPct?: Prisma.DecimalFilter<"TargetAllocation"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.StringNullableFilter<"TargetAllocation"> | string | null
   createdAt?: Prisma.DateTimeFilter<"TargetAllocation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"TargetAllocation"> | Date | string
   userId?: Prisma.StringNullableFilter<"TargetAllocation"> | string | null
   user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
-}, "id" | "ticker">
+}, "id" | "userId_ticker">
 
 export type TargetAllocationOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -365,6 +366,11 @@ export type TargetAllocationListRelationFilter = {
 
 export type TargetAllocationOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type TargetAllocationUserIdTickerCompoundUniqueInput = {
+  userId: string
+  ticker: string
 }
 
 export type TargetAllocationCountOrderByAggregateInput = {

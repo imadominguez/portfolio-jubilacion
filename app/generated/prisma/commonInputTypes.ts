@@ -236,6 +236,23 @@ export type EnumCurrencyWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumCurrencyFilter<$PrismaModel>
 }
 
+export type EnumAssetKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.AssetKind | Prisma.EnumAssetKindFieldRefInput<$PrismaModel>
+  in?: $Enums.AssetKind[] | Prisma.ListEnumAssetKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AssetKind[] | Prisma.ListEnumAssetKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAssetKindFilter<$PrismaModel> | $Enums.AssetKind
+}
+
+export type EnumAssetKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.AssetKind | Prisma.EnumAssetKindFieldRefInput<$PrismaModel>
+  in?: $Enums.AssetKind[] | Prisma.ListEnumAssetKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AssetKind[] | Prisma.ListEnumAssetKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAssetKindWithAggregatesFilter<$PrismaModel> | $Enums.AssetKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumAssetKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumAssetKindFilter<$PrismaModel>
+}
+
 export type EnumTransactionTypeFilter<$PrismaModel = never> = {
   equals?: $Enums.TransactionType | Prisma.EnumTransactionTypeFieldRefInput<$PrismaModel>
   in?: $Enums.TransactionType[] | Prisma.ListEnumTransactionTypeFieldRefInput<$PrismaModel>
@@ -329,6 +346,23 @@ export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedJsonFilter<$PrismaModel>
   _max?: Prisma.NestedJsonFilter<$PrismaModel>
+}
+
+export type EnumMovementCategoryFilter<$PrismaModel = never> = {
+  equals?: $Enums.MovementCategory | Prisma.EnumMovementCategoryFieldRefInput<$PrismaModel>
+  in?: $Enums.MovementCategory[] | Prisma.ListEnumMovementCategoryFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MovementCategory[] | Prisma.ListEnumMovementCategoryFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMovementCategoryFilter<$PrismaModel> | $Enums.MovementCategory
+}
+
+export type EnumMovementCategoryWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.MovementCategory | Prisma.EnumMovementCategoryFieldRefInput<$PrismaModel>
+  in?: $Enums.MovementCategory[] | Prisma.ListEnumMovementCategoryFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MovementCategory[] | Prisma.ListEnumMovementCategoryFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMovementCategoryWithAggregatesFilter<$PrismaModel> | $Enums.MovementCategory
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumMovementCategoryFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumMovementCategoryFilter<$PrismaModel>
 }
 
 export type NestedStringFilter<$PrismaModel = never> = {
@@ -566,6 +600,23 @@ export type NestedEnumCurrencyWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumCurrencyFilter<$PrismaModel>
 }
 
+export type NestedEnumAssetKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.AssetKind | Prisma.EnumAssetKindFieldRefInput<$PrismaModel>
+  in?: $Enums.AssetKind[] | Prisma.ListEnumAssetKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AssetKind[] | Prisma.ListEnumAssetKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAssetKindFilter<$PrismaModel> | $Enums.AssetKind
+}
+
+export type NestedEnumAssetKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.AssetKind | Prisma.EnumAssetKindFieldRefInput<$PrismaModel>
+  in?: $Enums.AssetKind[] | Prisma.ListEnumAssetKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AssetKind[] | Prisma.ListEnumAssetKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAssetKindWithAggregatesFilter<$PrismaModel> | $Enums.AssetKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumAssetKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumAssetKindFilter<$PrismaModel>
+}
+
 export type NestedEnumTransactionTypeFilter<$PrismaModel = never> = {
   equals?: $Enums.TransactionType | Prisma.EnumTransactionTypeFieldRefInput<$PrismaModel>
   in?: $Enums.TransactionType[] | Prisma.ListEnumTransactionTypeFieldRefInput<$PrismaModel>
@@ -632,6 +683,23 @@ export type NestedJsonFilterBase<$PrismaModel = never> = {
   gt?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
   gte?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
   not?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
+}
+
+export type NestedEnumMovementCategoryFilter<$PrismaModel = never> = {
+  equals?: $Enums.MovementCategory | Prisma.EnumMovementCategoryFieldRefInput<$PrismaModel>
+  in?: $Enums.MovementCategory[] | Prisma.ListEnumMovementCategoryFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MovementCategory[] | Prisma.ListEnumMovementCategoryFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMovementCategoryFilter<$PrismaModel> | $Enums.MovementCategory
+}
+
+export type NestedEnumMovementCategoryWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.MovementCategory | Prisma.EnumMovementCategoryFieldRefInput<$PrismaModel>
+  in?: $Enums.MovementCategory[] | Prisma.ListEnumMovementCategoryFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MovementCategory[] | Prisma.ListEnumMovementCategoryFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMovementCategoryWithAggregatesFilter<$PrismaModel> | $Enums.MovementCategory
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumMovementCategoryFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumMovementCategoryFilter<$PrismaModel>
 }
 
 
