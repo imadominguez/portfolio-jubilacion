@@ -5,20 +5,15 @@ import { getAllSnapshotPoints } from "@/lib/portfolio-data";
 import { SiteHeader } from "@/components/layout/site-header";
 import { PerformanceChart } from "@/components/performance/performance-chart";
 import { BenchmarkOverlayChart } from "@/components/performance/benchmark-overlay-chart";
+import { InflationChart } from "@/components/performance/inflation-chart";
 import { ImportButton } from "@/components/snapshots/snapshots-client";
 import { getBenchmarkPoints } from "@/app/actions/benchmarks";
-import type { BenchmarkId } from "@/lib/benchmarks-config";
+import { getIndexPoints } from "@/app/actions/indices";
+import type { BenchmarkId, IndexBenchmarkId } from "@/lib/benchmarks-config";
+import { annualize, indexChangePct, realReturnPct } from "@/lib/inflation";
+import { formatARS } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Performance" };
-
-function formatARS(value: number): string {
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
 
 function calcCAGR(first: number, last: number, years: number): number {
   if (years <= 0 || first <= 0) return 0;
@@ -48,6 +43,14 @@ export default async function PerformancePage() {
   const initialBenchmarks = Object.fromEntries(
     benchmarkIds.map((id, i) => [id, benchmarkResults[i]])
   );
+
+  const indexIds: IndexBenchmarkId[] = ["inflacion", "cer"];
+  const indexResults = await Promise.all(
+    indexIds.map((id) => getIndexPoints(id, fromDate))
+  );
+  const initialIndices = Object.fromEntries(
+    indexIds.map((id, i) => [id, indexResults[i]])
+  ) as Record<IndexBenchmarkId, (typeof indexResults)[number]>;
 
   if (snapshots.length === 0) {
     return (
@@ -93,6 +96,25 @@ export default async function PerformancePage() {
   const cagr = calcCAGR(first.totalValueArs, last.totalValueArs, yearsDiff);
   const maxDD = calcMaxDrawdown(snapshots.map((s) => s.totalValueArs));
 
+  // Inflación del período (IPC; fallback CER) y rendimiento real.
+  const toValues = (pts: { date: Date | string; normalizedValue: number | null }[]) =>
+    pts
+      .filter((p) => p.normalizedValue !== null)
+      .map((p) => ({ date: new Date(p.date), value: p.normalizedValue as number }));
+  const ipcValues = toValues(initialIndices.inflacion);
+  const cerValues = toValues(initialIndices.cer);
+  const inflationSeries = ipcValues.length > 1 ? ipcValues : cerValues;
+  const inflationPct =
+    inflationSeries.length > 0
+      ? indexChangePct(inflationSeries, first.snapshotDate, last.snapshotDate)
+      : null;
+  const inflationAnnual =
+    inflationPct !== null ? annualize(inflationPct, yearsDiff) : null;
+  const realCagr =
+    inflationAnnual !== null && yearsDiff >= 0.1
+      ? realReturnPct(cagr, inflationAnnual)
+      : null;
+
   const kpis = [
     {
       label: `Rendimiento ${currentYear}`,
@@ -105,6 +127,18 @@ export default async function PerformancePage() {
       value: yearsDiff >= 0.1 ? `${cagr >= 0 ? "+" : ""}${cagr.toFixed(2)}%` : "—",
       sub: "Tasa anual compuesta",
       accent: cagr >= 0,
+    },
+    {
+      label: "CAGR real",
+      value:
+        realCagr !== null
+          ? `${realCagr >= 0 ? "+" : ""}${realCagr.toFixed(2)}%`
+          : "—",
+      sub:
+        inflationPct !== null
+          ? `vs inflación ${inflationPct >= 0 ? "+" : ""}${inflationPct.toFixed(1)}%`
+          : "Sin índices cargados",
+      accent: realCagr !== null ? realCagr >= 0 : null,
     },
     {
       label: "Máx. Drawdown",
@@ -126,7 +160,7 @@ export default async function PerformancePage() {
 
       <main className="flex-1 px-6 py-10 flex flex-col gap-6 max-w-6xl w-full mx-auto">
         {/* KPI row */}
-        <section className="animate-fade-up grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <section className="animate-fade-up grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {kpis.map(({ label, value, sub, accent }) => (
             <div
               key={label}
@@ -140,14 +174,14 @@ export default async function PerformancePage() {
               </div>
               <div className="flex items-center gap-1.5">
                 {accent === true && (
-                  <ArrowUpRight className="size-4 text-emerald-500 shrink-0" />
+                  <ArrowUpRight className="size-4 text-success shrink-0" />
                 )}
                 {accent === false && maxDD > 0 && (
                   <ArrowDownRight className="size-4 text-destructive shrink-0" />
                 )}
                 <span
                   className={`text-xl font-bold font-mono tabular-nums leading-none ${accent === true
-                    ? "text-emerald-500"
+                    ? "text-success"
                     : accent === false &&
                       (label === "Máx. Drawdown" ? maxDD > 0 : true)
                       ? "text-destructive"
@@ -159,7 +193,7 @@ export default async function PerformancePage() {
               </div>
               <div className="flex items-center gap-1.5">
                 <span
-                  className={`size-2 rounded-full shrink-0 ${accent === false && maxDD > 0 ? "bg-destructive/50" : "bg-emerald-500/50"}`}
+                  className={`size-2 rounded-full shrink-0 ${accent === false && maxDD > 0 ? "bg-destructive/50" : "bg-success/50"}`}
                 />
                 <span className="text-xs text-muted-foreground">
                   {accent === null ? "registros" : "del período"}
@@ -196,6 +230,15 @@ export default async function PerformancePage() {
               />
             </div>
           </div>
+
+          <div className="flex flex-col gap-3">
+            <p className="text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
+              Rendimiento real vs inflación
+            </p>
+            <div className="rounded-xl border border-border bg-card shadow-sm p-5">
+              <InflationChart snapshots={snapshots} initialIndices={initialIndices} />
+            </div>
+          </div>
         </section>
 
         {/* Snapshot timeline */}
@@ -221,7 +264,7 @@ export default async function PerformancePage() {
                     className="px-5 py-3.5 flex items-center justify-between gap-4 hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="size-2 rounded-full bg-emerald-500/50 shrink-0" />
+                      <span className="size-2 rounded-full bg-success/50 shrink-0" />
                       <span className="text-sm font-mono text-foreground">
                         {new Intl.DateTimeFormat("es-AR", {
                           day: "2-digit",
@@ -236,7 +279,7 @@ export default async function PerformancePage() {
                       </span>
                       {change !== null && (
                         <span
-                          className={`text-xs font-mono tabular-nums ${pos ? "text-emerald-500" : "text-destructive"
+                          className={`text-xs font-mono tabular-nums ${pos ? "text-success" : "text-destructive"
                             }`}
                         >
                           {pos ? "+" : ""}

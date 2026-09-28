@@ -1,18 +1,12 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { getHistorical } from "@/lib/yahoo-finance-client";
+import { revalidateHistoricalPrices } from "@/lib/revalidate";
 
 export type StockHistoryResult =
   | { success: true; results: { ticker: string; saved: number; skipped: number }[] }
   | { success: false; error: string };
-
-export type HistoricalPriceRow = {
-  ticker: string;
-  date: Date;
-  priceUsd: number;
-};
 
 // ---------------------------------------------------------------------------
 // fetchAndCacheStockHistory
@@ -107,82 +101,11 @@ export async function fetchAndCacheStockHistory(): Promise<StockHistoryResult> {
       }
     }
 
-    revalidatePath("/real-gains");
+    revalidateHistoricalPrices();
     return { success: true, results };
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Error inesperado al obtener precios históricos.";
     return { success: false, error: message };
   }
-}
-
-// ---------------------------------------------------------------------------
-// getHistoricalPricesForTicker
-//
-// Devuelve los precios históricos cacheados para un ticker en un rango.
-// ---------------------------------------------------------------------------
-
-export async function getHistoricalPricesForTicker(
-  ticker: string,
-  from: Date,
-  to: Date = new Date()
-): Promise<HistoricalPriceRow[]> {
-  const rows = await db.historicalPriceCache.findMany({
-    where: {
-      ticker,
-      date: { gte: from, lte: to },
-    },
-    orderBy: { date: "asc" },
-  });
-
-  return rows.map((r) => ({
-    ticker: r.ticker,
-    date: r.date,
-    priceUsd: Number(r.priceUsd),
-  }));
-}
-
-// ---------------------------------------------------------------------------
-// getStockHistoryCoverage
-//
-// Devuelve un resumen de cuántos datos históricos hay por ticker,
-// para mostrar el estado en el wizard de la página /real-gains.
-// ---------------------------------------------------------------------------
-
-export type CoverageRow = {
-  underlyingTicker: string;
-  cedearTicker: string;
-  cachedPoints: number;
-  oldestDate: Date | null;
-  newestDate: Date | null;
-};
-
-export async function getStockHistoryCoverage(): Promise<CoverageRow[]> {
-  const assets = await db.asset.findMany({
-    where: { underlyingTicker: { not: null } },
-    select: { ticker: true, underlyingTicker: true },
-  });
-
-  const rows: CoverageRow[] = [];
-
-  for (const asset of assets) {
-    if (!asset.underlyingTicker) continue;
-
-    const agg = await db.historicalPriceCache.aggregate({
-      where: { ticker: asset.underlyingTicker },
-      _count: { id: true },
-      _min: { date: true },
-      _max: { date: true },
-    });
-
-    rows.push({
-      underlyingTicker: asset.underlyingTicker,
-      cedearTicker: asset.ticker,
-      cachedPoints: agg._count.id,
-      oldestDate: agg._min.date,
-      newestDate: agg._max.date,
-    });
-  }
-
-  return rows;
 }
