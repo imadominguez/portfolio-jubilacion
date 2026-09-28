@@ -1,173 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { getSession } from "@/lib/auth-session";
+import { extractJson, normalizarReporte } from "@/lib/report-normalizer";
+
+// El análisis con web_search + thinking puede tardar varios minutos: streaming + límite alto.
+export const runtime = "nodejs";
+export const maxDuration = 800;
+
+// Precios Sonnet 5 (USD por millón de tokens): input $2, output $10.
+// Cache write = 1.25× input ($2.5), cache read = 0.1× input ($0.2).
+const PRICE_INPUT = 2 / 1_000_000;
+const PRICE_OUTPUT = 10 / 1_000_000;
+const PRICE_CACHE_WRITE = 2.5 / 1_000_000;
+const PRICE_CACHE_READ = 0.2 / 1_000_000;
+
+function estimateCostUsd(t: {
+  inputTokens: number;
+  cacheCreationTokens: number;
+  cacheReadTokens: number;
+  outputTokens: number;
+}): number {
+  return (
+    t.inputTokens * PRICE_INPUT +
+    t.cacheCreationTokens * PRICE_CACHE_WRITE +
+    t.cacheReadTokens * PRICE_CACHE_READ +
+    t.outputTokens * PRICE_OUTPUT
+  );
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function extractJson(raw: string): string {
-  const start = raw.indexOf("{");
-  const end = raw.lastIndexOf("}");
-  if (start === -1 || end === -1)
-    throw new Error("No se encontró un objeto JSON en la respuesta");
-  return raw.slice(start, end + 1);
-}
-
-const VALID_ESTADO = ["infrapon", "sobrepon", "ok", "ausente", "fuera_objetivo"];
-const VALID_ACCION = ["agregar", "no_agregar", "evaluar", "mantener"];
-const VALID_ALERTA_TIPO = ["critica", "advertencia", "oportunidad", "info"];
-const VALID_SESGO = ["sobreponderar", "subponderar", "neutral", "saltear"];
-
-function coerceNumber(value: unknown, fallback = 0): number {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-  if (typeof value === "string" && value.trim() !== "") {
-    const n = Number(value);
-    return Number.isFinite(n) ? n : fallback;
-  }
-  return fallback;
-}
-
-const ESTADO_MAP: Record<string, string> = {
-  neutro: "ok",
-  sobrepond: "sobrepon",
-  fuera_obj: "fuera_objetivo",
-  fuera_objetivo_directo: "fuera_objetivo",
-};
-const ACCION_MAP: Record<string, string> = {
-  evaluar_rotacion: "evaluar",
-};
-const ALERTA_TIPO_MAP: Record<string, string> = {
-  ganancia: "oportunidad",
-};
-
-function normalizeSesgo(
-  value: unknown,
-  onlyIfProvided: boolean
-): (typeof VALID_SESGO)[number] | undefined {
-  if (value === undefined || value === null || String(value).trim() === "") {
-    return onlyIfProvided ? undefined : "neutral";
-  }
-  const s = String(value).trim().toLowerCase();
-  if (VALID_SESGO.includes(s)) {
-    return s as (typeof VALID_SESGO)[number];
-  }
-  return "neutral";
-}
-
-function normalizarReporte(raw: Record<string, unknown>): Record<string, unknown> {
-  const r = { ...raw };
-
-  if (Array.isArray(r.posiciones)) {
-    r.posiciones = (r.posiciones as Record<string, unknown>[]).map((p) => {
-      const sesgo_mes = normalizeSesgo(p.sesgo_mes, true);
-      const base = {
-        ...p,
-        cantidad: coerceNumber(p.cantidad),
-        precio_cedear_ars: coerceNumber(p.precio_cedear_ars),
-        valor_ars: coerceNumber(p.valor_ars),
-        peso_actual: coerceNumber(p.peso_actual),
-        peso_objetivo: coerceNumber(p.peso_objetivo),
-        diferencia: coerceNumber(p.diferencia),
-        ganancia_pct: coerceNumber(p.ganancia_pct),
-        ppm_ars: coerceNumber(p.ppm_ars),
-        variacion_mensual_pct:
-          p.variacion_mensual_pct === undefined ? undefined : coerceNumber(p.variacion_mensual_pct),
-        estado: (() => {
-          const key = ESTADO_MAP[p.estado as string] ?? p.estado;
-          return VALID_ESTADO.includes(key as string) ? key : "ok";
-        })(),
-        accion: (() => {
-          const key = ACCION_MAP[p.accion as string] ?? p.accion;
-          return VALID_ACCION.includes(key as string) ? key : "mantener";
-        })(),
-      };
-      return sesgo_mes ? { ...base, sesgo_mes } : base;
-    });
-  } else {
-    r.posiciones = [];
-  }
-
-  if (Array.isArray(r.alertas)) {
-    r.alertas = (r.alertas as Record<string, unknown>[]).map((a) => ({
-      ...a,
-      tipo: (() => {
-        const v = ALERTA_TIPO_MAP[a.tipo as string] ?? a.tipo;
-        return VALID_ALERTA_TIPO.includes(v as string) ? v : "info";
-      })(),
-    }));
-  } else {
-    r.alertas = [];
-  }
-
-  let im = r.instruccion_mes as Record<string, unknown> | undefined;
-  if (!im || typeof im !== "object") {
-    im = { intro: "", asignaciones: [], no_invertir: [], total_ars: coerceNumber(r.aporte_mensual_ars) };
-    r.instruccion_mes = im;
-  }
-
-  const rootVerify = r.verificacion_suma;
-  if (
-    typeof im.verificacion_suma !== "boolean" &&
-    (rootVerify === true || rootVerify === false)
-  ) {
-    im.verificacion_suma = rootVerify;
-  }
-  delete r.verificacion_suma;
-
-  if (Array.isArray(im.asignaciones)) {
-    im.asignaciones = (im.asignaciones as Record<string, unknown>[]).map((a) => {
-      const sesgo = normalizeSesgo(a.sesgo, false);
-      return {
-        ...a,
-        monto_ars: coerceNumber(a.monto_ars),
-        monto_usd: coerceNumber(a.monto_usd),
-        peso_objetivo:
-          a.peso_objetivo === undefined ? undefined : coerceNumber(a.peso_objetivo),
-        peso_asignado_mes:
-          a.peso_asignado_mes === undefined ? undefined : coerceNumber(a.peso_asignado_mes),
-        sesgo,
-      };
-    });
-  } else {
-    im.asignaciones = [];
-  }
-
-  im.intro = typeof im.intro === "string" ? im.intro : "";
-  im.total_ars =
-    coerceNumber(im.total_ars) || coerceNumber(r.aporte_mensual_ars, 500_000);
-
-  im.no_invertir = Array.isArray(im.no_invertir)
-    ? (im.no_invertir as unknown[])
-        .map((x) => String(x ?? "").trim())
-        .filter(Boolean)
-    : [];
-
-  if (!Array.isArray(r.proximos_balances)) {
-    r.proximos_balances = [];
-  }
-
-  if (!Array.isArray(r.dividendos_esperados)) {
-    r.dividendos_esperados = [];
-  }
-
-  r.ccl_actual = coerceNumber(r.ccl_actual);
-  r.valor_total_ars = coerceNumber(r.valor_total_ars);
-  r.valor_total_usd = coerceNumber(r.valor_total_usd);
-  r.aporte_mensual_ars = coerceNumber(r.aporte_mensual_ars, 500_000);
-  r.aporte_mensual_usd = coerceNumber(r.aporte_mensual_usd);
-  r.resumen_ejecutivo =
-    typeof r.resumen_ejecutivo === "string" ? r.resumen_ejecutivo : "";
-
-  return r;
-}
-
-async function guardarRespuesta(rawText: string, reporte: Record<string, unknown>) {
+async function guardarRespuesta(
+  rawText: string,
+  reporte: Record<string, unknown>,
+  userId: string
+) {
   try {
     await db.portfolioReport.create({
       data: {
         fechaReporte: (reporte.fecha_reporte as string) ?? new Date().toISOString(),
         rawText,
         normalizedJson: reporte as Parameters<typeof db.portfolioReport.create>[0]["data"]["normalizedJson"],
+        userId,
       },
     });
   } catch (err) {
@@ -177,7 +51,15 @@ async function guardarRespuesta(rawText: string, reporte: Record<string, unknown
 
 
 export async function POST(request: NextRequest) {
+  let abortedByTimeout = false;
+  let abortedByClient = false;
   try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    }
+    const userId = session.user.id;
+
     const strategy = await db.investmentStrategy.findFirst({ where: { isActive: true } });
     if (!strategy) {
       return NextResponse.json(
@@ -196,29 +78,50 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const base64 = Buffer.from(arrayBuffer).toString("base64");
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY!,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 8192,
-        system: strategy.content,
-        tools: [{ type: "web_search_20250305", name: "web_search" }],
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "document",
-                source: { type: "base64", media_type: "application/pdf", data: base64 },
-              },
-              {
-                type: "text",
-                text: `Analizá este PDF de mi tenencia en Cocos Capital.
+    const controller = new AbortController();
+    const timeoutMs = Number(process.env.ANTHROPIC_TIMEOUT_MS ?? 900_000);
+    const effectiveTimeout =
+      Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : 900_000;
+    const timeout = setTimeout(() => {
+      abortedByTimeout = true;
+      controller.abort();
+    }, effectiveTimeout);
+
+    // Si el cliente cancela el análisis, abortamos también la llamada a Anthropic.
+    const onClientAbort = () => {
+      abortedByClient = true;
+      controller.abort();
+    };
+    request.signal.addEventListener("abort", onClientAbort);
+
+    let response: Response;
+    try {
+      response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": process.env.ANTHROPIC_API_KEY!,
+          "anthropic-version": "2023-06-01",
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5",
+          max_tokens: 32000,
+          stream: true,
+          output_config: { effort: process.env.ANTHROPIC_EFFORT ?? "low" },
+          system: strategy.content,
+          tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 12 }],
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "document",
+                  source: { type: "base64", media_type: "application/pdf", data: base64 },
+                },
+                {
+                  type: "text",
+                  text: `Analizá este PDF de mi tenencia en Cocos Capital.
 El PDF contiene el estado actual del portafolio: posiciones reales, cantidades, precios en ARS y pesos actuales. Usá esos datos como fuente de verdad del estado presente — no uses el system prompt como reflejo del estado actual.
 La estrategia objetivo y el formato exacto del JSON están en el system prompt — seguí ese esquema al pie de la letra.
 
@@ -226,41 +129,179 @@ Buscá en la web antes de responder: (1) CCL actual de hoy, (2) precio en USD y 
 
 Generá únicamente el JSON del reporte mensual según las instrucciones del system.
 No agregues markdown, explicaciones ni bloques \`\`\` — solo el objeto JSON.`,
-              },
-            ],
-          },
-        ],
-      }),
-    });
+                },
+              ],
+            },
+          ],
+        }),
+      });
+    } catch (e) {
+      clearTimeout(timeout);
+      throw e;
+    }
 
     if (!response.ok) {
       const err = await response.text();
       console.error("Anthropic API error:", err);
-      return NextResponse.json({ error: "Error al llamar a la API de Claude." }, { status: 500 });
+      let detail = "";
+      try {
+        detail = (JSON.parse(err) as { error?: { message?: string } }).error?.message ?? "";
+      } catch {
+        detail = err.slice(0, 200);
+      }
+      const model = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5";
+      return NextResponse.json(
+        {
+          error: `Error al llamar a la API de Claude (modelo ${model})${detail ? `: ${detail}` : "."}`,
+        },
+        { status: 500 }
+      );
     }
 
-    const data = await response.json();
-    const textBlocks = data.content.filter((b: { type: string }) => b.type === "text");
-    const rawText = textBlocks.map((b: { text: string }) => b.text).join("");
+    // Leer el stream SSE de Anthropic y acumular el texto del mensaje.
+    let rawText = "";
+    let stopReason: string | undefined;
+    let inputTokens = 0;
+    let cacheCreationTokens = 0;
+    let cacheReadTokens = 0;
+    let outputTokens: number | undefined;
+
+    const reader = response.body?.getReader();
+    if (!reader) {
+      clearTimeout(timeout);
+      return NextResponse.json(
+        { error: "Anthropic no devolvió un stream de respuesta." },
+        { status: 500 }
+      );
+    }
+
+    const decoder = new TextDecoder();
+    let buffer = "";
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.startsWith("data:")) continue;
+          const payload = line.slice(5).trim();
+          if (!payload || payload === "[DONE]") continue;
+          let evt: {
+            type?: string;
+            content_block?: { type?: string };
+            delta?: { type?: string; text?: string; stop_reason?: string };
+            message?: {
+              usage?: {
+                input_tokens?: number;
+                cache_creation_input_tokens?: number;
+                cache_read_input_tokens?: number;
+                output_tokens?: number;
+                output_tokens_details?: { thinking_tokens?: number };
+              };
+            };
+            usage?: {
+              output_tokens?: number;
+              output_tokens_details?: { thinking_tokens?: number };
+            };
+            error?: { message?: string };
+          };
+          try {
+            evt = JSON.parse(payload);
+          } catch {
+            continue;
+          }
+          if (evt.type === "message_start") {
+            const u = evt.message?.usage;
+            if (u) {
+              inputTokens = u.input_tokens ?? 0;
+              cacheCreationTokens = u.cache_creation_input_tokens ?? 0;
+              cacheReadTokens = u.cache_read_input_tokens ?? 0;
+            }
+          } else if (evt.type === "content_block_delta") {
+            if (evt.delta?.type === "text_delta" && typeof evt.delta.text === "string") {
+              rawText += evt.delta.text;
+            }
+          } else if (evt.type === "message_delta") {
+            if (evt.delta?.stop_reason) stopReason = evt.delta.stop_reason;
+            if (evt.usage?.output_tokens !== undefined) outputTokens = evt.usage.output_tokens;
+          } else if (evt.type === "error") {
+            throw new Error(evt.error?.message ?? "Error de streaming de Anthropic");
+          }
+        }
+      }
+    } finally {
+      clearTimeout(timeout);
+      reader.releaseLock();
+    }
+    rawText = rawText.trim();
+
+    const costUsd = estimateCostUsd({
+      inputTokens,
+      cacheCreationTokens,
+      cacheReadTokens,
+      outputTokens: outputTokens ?? 0,
+    });
+
+    if (!rawText) {
+      console.error("Claude no devolvió texto. stop_reason:", stopReason);
+      return NextResponse.json(
+        {
+          error:
+            stopReason === "max_tokens"
+              ? "Claude agotó el límite de tokens antes de responder. Subí max_tokens o achicá la estrategia."
+              : "Claude no devolvió texto en la respuesta.",
+          stop_reason: stopReason,
+        },
+        { status: 500 }
+      );
+    }
 
     let parsed: Record<string, unknown>;
     try {
       const clean = extractJson(rawText);
       parsed = JSON.parse(clean) as Record<string, unknown>;
     } catch {
-      console.error("No se pudo parsear JSON:", rawText);
+      console.error(
+        "No se pudo parsear JSON. stop_reason:",
+        stopReason,
+        "rawText (primeros 2000):",
+        rawText.slice(0, 2000)
+      );
       return NextResponse.json(
-        { error: "La respuesta de Claude no fue JSON válido.", raw: rawText },
+        {
+          error:
+            stopReason === "max_tokens"
+              ? "La respuesta de Claude se cortó por el límite de tokens (max_tokens) y quedó un JSON incompleto. Subí max_tokens o achicá la estrategia."
+              : "La respuesta de Claude no fue JSON válido.",
+          stop_reason: stopReason,
+          raw: rawText.slice(0, 4000),
+        },
         { status: 500 }
       );
     }
 
     const normalizado = normalizarReporte(parsed);
-    await guardarRespuesta(rawText, normalizado);
+    await guardarRespuesta(rawText, normalizado, userId);
 
-    return NextResponse.json(normalizado);
+    return NextResponse.json(normalizado, {
+      headers: { "x-estimated-cost-usd": costUsd.toFixed(6) },
+    });
   } catch (error) {
     console.error("Error en analyze-portfolio:", error);
+    if (abortedByTimeout) {
+      return NextResponse.json(
+        {
+          error:
+            "El análisis superó el tiempo máximo configurado (ANTHROPIC_TIMEOUT_MS) y se canceló. Probá de nuevo o subí el límite.",
+        },
+        { status: 504 }
+      );
+    }
+    if (abortedByClient) {
+      return NextResponse.json({ error: "Análisis cancelado por el usuario." }, { status: 499 });
+    }
     return NextResponse.json({ error: "Error interno del servidor." }, { status: 500 });
   }
 }

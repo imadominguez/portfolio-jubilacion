@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useDropzone } from "react-dropzone";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -79,33 +79,39 @@ export interface ReportePortafolio {
 const formatARS = (n: number) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n);
 const formatUSD = (n: number) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
 
+function formatElapsed(totalSeconds: number): string {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
 const estadoConfig = {
-  infrapon: { label: "Infraponderada", color: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300", icon: TrendingDown },
-  sobrepon: { label: "Sobreponderada", color: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300", icon: TrendingUp },
-  ok: { label: "En objetivo", color: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300", icon: CheckCircle2 },
-  ausente: { label: "Ausente", color: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300", icon: PlusCircle },
-  fuera_objetivo: { label: "Fuera del obj.", color: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400", icon: MinusCircle },
+  infrapon: { label: "Infraponderada", color: "bg-warning/10 text-warning", icon: TrendingDown },
+  sobrepon: { label: "Sobreponderada", color: "bg-destructive/10 text-destructive", icon: TrendingUp },
+  ok: { label: "En objetivo", color: "bg-success/10 text-success", icon: CheckCircle2 },
+  ausente: { label: "Ausente", color: "bg-info/10 text-info", icon: PlusCircle },
+  fuera_objetivo: { label: "Fuera del obj.", color: "bg-muted text-muted-foreground", icon: MinusCircle },
 };
 
 const accionConfig = {
-  agregar: { label: "Agregar", color: "text-green-600 dark:text-green-400" },
-  no_agregar: { label: "No agregar", color: "text-red-500 dark:text-red-400" },
-  evaluar: { label: "Evaluar", color: "text-amber-600 dark:text-amber-400" },
-  mantener: { label: "Mantener", color: "text-slate-500 dark:text-slate-400" },
+  agregar: { label: "Agregar", color: "text-success" },
+  no_agregar: { label: "No agregar", color: "text-destructive" },
+  evaluar: { label: "Evaluar", color: "text-warning" },
+  mantener: { label: "Mantener", color: "text-muted-foreground" },
 };
 
 const sesgoConfig = {
-  sobreponderar: { label: "Sobreponderar", color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300" },
-  subponderar:   { label: "Subponderar",   color: "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300" },
-  neutral:       { label: "Neutral",       color: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300" },
-  saltear:       { label: "Saltear",       color: "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400" },
+  sobreponderar: { label: "Sobreponderar", color: "bg-success/10 text-success" },
+  subponderar:   { label: "Subponderar",   color: "bg-warning/10 text-warning" },
+  neutral:       { label: "Neutral",       color: "bg-info/10 text-info" },
+  saltear:       { label: "Saltear",       color: "bg-muted text-muted-foreground" },
 };
 
 const alertaConfig = {
-  critica: { icon: XCircle, color: "border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-950/30", iconColor: "text-red-500", badge: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300" },
-  advertencia: { icon: AlertTriangle, color: "border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-950/30", iconColor: "text-amber-500", badge: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300" },
-  oportunidad: { icon: Zap, color: "border-green-200 bg-green-50 dark:border-green-900/50 dark:bg-green-950/30", iconColor: "text-green-500", badge: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300" },
-  info: { icon: Info, color: "border-blue-200 bg-blue-50 dark:border-blue-900/50 dark:bg-blue-950/30", iconColor: "text-blue-500", badge: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300" },
+  critica: { icon: XCircle, color: "border-destructive/30 bg-destructive/10", iconColor: "text-destructive", badge: "bg-destructive/10 text-destructive" },
+  advertencia: { icon: AlertTriangle, color: "border-warning/30 bg-warning/10", iconColor: "text-warning", badge: "bg-warning/10 text-warning" },
+  oportunidad: { icon: Zap, color: "border-success/30 bg-success/10", iconColor: "text-success", badge: "bg-success/10 text-success" },
+  info: { icon: Info, color: "border-info/30 bg-info/10", iconColor: "text-info", badge: "bg-info/10 text-info" },
 };
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -174,17 +180,17 @@ function PosicionRow({ p }: { p: Posicion }) {
           <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2 flex-wrap">
             <span>Actual <strong className="text-foreground">{p.peso_actual.toFixed(1)}%</strong></span>
             <span>Obj. <strong className="text-foreground">{p.peso_objetivo.toFixed(1)}%</strong></span>
-            {p.diferencia !== 0 && <span className={p.diferencia < 0 ? "text-amber-600 dark:text-amber-400" : "text-red-500"}>{p.diferencia > 0 ? "+" : ""}{p.diferencia.toFixed(1)}pp</span>}
-            {p.ganancia_pct !== 0 && <span className={p.ganancia_pct >= 0 ? "text-green-600 dark:text-green-400" : "text-red-500"}>{p.ganancia_pct >= 0 ? "▲" : "▼"} {Math.abs(p.ganancia_pct).toFixed(1)}%</span>}
+            {p.diferencia !== 0 && <span className={p.diferencia < 0 ? "text-warning" : "text-destructive"}>{p.diferencia > 0 ? "+" : ""}{p.diferencia.toFixed(1)}pp</span>}
+            {p.ganancia_pct !== 0 && <span className={p.ganancia_pct >= 0 ? "text-success" : "text-destructive"}>{p.ganancia_pct >= 0 ? "▲" : "▼"} {Math.abs(p.ganancia_pct).toFixed(1)}%</span>}
             {p.variacion_mensual_pct !== undefined && p.variacion_mensual_pct !== 0 && (
-              <span className={p.variacion_mensual_pct >= 0 ? "text-green-600 dark:text-green-400" : "text-red-500"}>
+              <span className={p.variacion_mensual_pct >= 0 ? "text-success" : "text-destructive"}>
                 {p.variacion_mensual_pct >= 0 ? "▲" : "▼"} {Math.abs(p.variacion_mensual_pct).toFixed(1)}% mes
               </span>
             )}
           </div>
           {p.peso_objetivo > 0 && (
             <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-              <div className={`h-full rounded-full transition-all ${isOver ? "bg-red-400" : p.estado === "ok" ? "bg-green-400" : "bg-amber-400"}`} style={{ width: `${barPct}%` }} />
+              <div className={`h-full rounded-full transition-all ${isOver ? "bg-destructive" : p.estado === "ok" ? "bg-success" : "bg-warning"}`} style={{ width: `${barPct}%` }} />
             </div>
           )}
           {p.nota && <p className="text-[11px] text-muted-foreground mt-1.5 italic">{p.nota}</p>}
@@ -276,10 +282,10 @@ export function ReporteDisplay({ reporte, footer }: { reporte: ReportePortafolio
             <ArrowRight className="w-4 h-4 text-primary" />
             Cómo invertir este mes
             {verificacion === true && (
-              <CheckCircle2 className="w-3.5 h-3.5 text-green-500 ml-auto shrink-0" aria-hidden />
+              <CheckCircle2 className="w-3.5 h-3.5 text-success ml-auto shrink-0" aria-hidden />
             )}
             {verificacion === false && (
-              <AlertCircle className="w-3.5 h-3.5 text-amber-500 ml-auto shrink-0" aria-hidden />
+              <AlertCircle className="w-3.5 h-3.5 text-warning ml-auto shrink-0" aria-hidden />
             )}
           </CardTitle>
         </CardHeader>
@@ -312,7 +318,7 @@ export function ReporteDisplay({ reporte, footer }: { reporte: ReportePortafolio
                   )}
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-sm font-semibold text-green-600 dark:text-green-400">{formatARS(a.monto_ars)}</p>
+                  <p className="text-sm font-semibold text-success">{formatARS(a.monto_ars)}</p>
                   <p className="text-[10px] text-muted-foreground">{formatUSD(a.monto_usd)}</p>
                 </div>
               </div>
@@ -323,7 +329,7 @@ export function ReporteDisplay({ reporte, footer }: { reporte: ReportePortafolio
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs text-muted-foreground">No invertir:</span>
                 {noInvertirSafe.map((t) => (
-                  <Badge key={t} variant="outline" className="text-xs font-mono text-red-500 border-red-200 dark:border-red-900">{t}</Badge>
+                  <Badge key={t} variant="outline" className="text-xs font-mono text-destructive border-destructive/30">{t}</Badge>
                 ))}
               </div></>
           )}
@@ -366,7 +372,7 @@ export function ReporteDisplay({ reporte, footer }: { reporte: ReportePortafolio
               {dividendosSafe.map((d, i) => (
                 <div key={i} className="flex items-center justify-between text-sm">
                   <div><span className="font-mono font-semibold">{d.ticker}</span><span className="text-muted-foreground text-xs ml-2">{d.frecuencia}</span></div>
-                  <span className="text-green-600 dark:text-green-400 text-xs font-medium">USD {d.monto_usd_por_accion}/acción</span>
+                  <span className="text-success text-xs font-medium">USD {d.monto_usd_por_accion}/acción</span>
                 </div>
               ))}
             </CardContent>
@@ -402,6 +408,15 @@ export function PortfolioAnalyzer() {
   });
   const [error, setError] = useState<string | null>(null);
 
+  const [elapsed, setElapsed] = useState(0);
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    if (!loading) return;
+    const id = setInterval(() => setElapsed((s) => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [loading]);
+
   const saveReporte = (r: ReportePortafolio) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(r));
     setReporte(r);
@@ -418,19 +433,35 @@ export function PortfolioAnalyzer() {
 
   const handleAnalyze = async () => {
     if (!file) return;
+    setElapsed(0);
     setLoading(true); setError(null);
+    const controller = new AbortController();
+    abortRef.current = controller;
     try {
       const formData = new FormData();
       formData.append("portfolio_pdf", file);
-      const res = await fetch("/api/analyze-portfolio", { method: "POST", body: formData });
+      const res = await fetch("/api/analyze-portfolio", {
+        method: "POST",
+        body: formData,
+        signal: controller.signal,
+      });
       const json = await res.json();
       if (!res.ok || json.error) throw new Error(json.error || "Error al analizar.");
       saveReporte(json);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Error inesperado.");
+      if (controller.signal.aborted) {
+        setError("Análisis cancelado.");
+      } else {
+        setError(e instanceof Error ? e.message : "Error inesperado.");
+      }
     } finally {
+      abortRef.current = null;
       setLoading(false);
     }
+  };
+
+  const handleCancel = () => {
+    abortRef.current?.abort();
   };
 
   return (
@@ -443,13 +474,25 @@ export function PortfolioAnalyzer() {
       <Card>
         <CardContent className="pt-6 space-y-4">
           <DropZone onFile={setFile} file={file} />
-          <Button onClick={handleAnalyze} disabled={!file || loading} className="w-full" size="lg">
-            {loading
-              ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Analizando… esto puede tardar unos segundos</>
-              : <><Zap className="w-4 h-4 mr-2" />Generar reporte del mes</>}
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={handleAnalyze} disabled={!file || loading} className="flex-1" size="lg">
+              {loading
+                ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Analizando… {formatElapsed(elapsed)}</>
+                : <><Zap className="w-4 h-4 mr-2" />Generar reporte del mes</>}
+            </Button>
+            {loading && (
+              <Button onClick={handleCancel} variant="outline" size="lg">
+                Cancelar
+              </Button>
+            )}
+          </div>
+          {loading && (
+            <p className="text-center text-xs text-muted-foreground">
+              Buscando precios y noticias en la web y analizando tu cartera. Puede tardar entre 1 y 5 minutos.
+            </p>
+          )}
           {error && (
-            <div className="flex items-center gap-2 text-sm text-red-500 bg-red-50 dark:bg-red-950/40 px-4 py-3 rounded-lg border border-red-200 dark:border-red-900">
+            <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 px-4 py-3 rounded-lg border border-destructive/30">
               <AlertCircle className="w-4 h-4 shrink-0" />{error}
             </div>
           )}
@@ -459,12 +502,12 @@ export function PortfolioAnalyzer() {
       {reporte && (
         <>
           {fromCache && (
-            <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-950/30 text-sm">
-              <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300">
+            <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-lg border border-warning/30 bg-warning/10 text-sm">
+              <div className="flex items-center gap-2 text-warning">
                 <AlertTriangle className="w-4 h-4 shrink-0" />
                 <span>Mostrando el último reporte guardado ({reporte.fecha_reporte}). Subí un nuevo PDF para actualizar.</span>
               </div>
-              <Button variant="outline" size="sm" onClick={clearCache} className="shrink-0 border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-300 dark:hover:bg-amber-900/40">
+              <Button variant="outline" size="sm" onClick={clearCache} className="shrink-0 border-warning/40 text-warning hover:bg-warning/20">
                 Nuevo análisis
               </Button>
             </div>
