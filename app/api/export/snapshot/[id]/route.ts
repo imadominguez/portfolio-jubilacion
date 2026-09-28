@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { requireUserId } from "@/lib/auth-session";
+import { formatARS, formatDateLong } from "@/lib/format";
 
 export async function GET(
   req: NextRequest,
@@ -8,8 +10,15 @@ export async function GET(
   const { id } = await params;
   const format = req.nextUrl.searchParams.get("format");
 
-  const snapshot = await db.portfolioSnapshot.findUnique({
-    where: { id },
+  let userId: string;
+  try {
+    userId = await requireUserId();
+  } catch {
+    return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+  }
+
+  const snapshot = await db.portfolioSnapshot.findFirst({
+    where: { id, userId },
     include: {
       positions: { orderBy: { positionValue: "desc" } },
     },
@@ -42,20 +51,6 @@ export async function GET(
     });
   }
 
-  const formatARS = (v: number) =>
-    new Intl.NumberFormat("es-AR", {
-      style: "currency",
-      currency: "ARS",
-      minimumFractionDigits: 0,
-    }).format(v);
-
-  const formatDate = (d: Date) =>
-    new Intl.DateTimeFormat("es-AR", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    }).format(new Date(d));
-
   const rows = snapshot.positions
     .map(
       (p) => `
@@ -73,21 +68,21 @@ export async function GET(
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Portfolio — ${formatDate(snapshot.snapshotDate)}</title>
+<title>Portfolio — ${formatDateLong(snapshot.snapshotDate)}</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: system-ui, sans-serif; color: #111; background: #fff; padding: 40px; font-size: 13px; }
-  h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
-  .subtitle { color: #666; font-size: 12px; margin-bottom: 32px; }
+  body { font-family: system-ui, sans-serif; color: #1e293b; background: #fff; padding: 40px; font-size: 13px; }
+  h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; border-left: 4px solid #1d4ed8; padding-left: 12px; }
+  .subtitle { color: #64748b; font-size: 12px; margin-bottom: 32px; padding-left: 16px; }
   .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
-  .kpi { border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 16px; }
-  .kpi-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-  .kpi-value { font-size: 18px; font-weight: 700; font-family: monospace; }
+  .kpi { border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; }
+  .kpi-label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .kpi-value { font-size: 18px; font-weight: 700; font-family: monospace; color: #1d4ed8; }
   table { width: 100%; border-collapse: collapse; }
-  thead tr { background: #f9fafb; }
-  th { padding: 8px 12px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #666; font-weight: 600; }
+  thead tr { background: #eff6ff; }
+  th { padding: 8px 12px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #1d4ed8; font-weight: 600; }
   th:not(:first-child) { text-align: right; }
-  tr:not(:last-child) td { border-bottom: 1px solid #f0f0f0; }
+  tr:not(:last-child) td { border-bottom: 1px solid #eef2f7; }
   .footer { margin-top: 32px; color: #aaa; font-size: 11px; }
   @media print {
     body { padding: 20px; }
@@ -97,7 +92,7 @@ export async function GET(
 </head>
 <body>
 <h1>Portfolio de Jubilación</h1>
-<p class="subtitle">Snapshot del ${formatDate(snapshot.snapshotDate)} · Cocos Capital</p>
+<p class="subtitle">Snapshot del ${formatDateLong(snapshot.snapshotDate)} · Cocos Capital</p>
 
 <div class="kpi-grid">
   <div class="kpi">

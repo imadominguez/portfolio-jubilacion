@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { requireUserId } from "@/lib/auth-session";
 
 export async function GET(_req: NextRequest) {
+  let userId: string;
+  try {
+    userId = await requireUserId();
+  } catch {
+    return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+  }
+
   const transactions = await db.transaction.findMany({
+    where: { userId },
     orderBy: { date: "desc" },
   });
 

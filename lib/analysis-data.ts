@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { getSession } from "@/lib/auth-session";
+import { requireUserId } from "@/lib/auth-session";
 
 export type ConcentrationItem = {
   name: string;
@@ -15,10 +15,9 @@ export type ConcentrationData = {
 };
 
 export async function getConcentrationData(): Promise<ConcentrationData | null> {
-  const session = await getSession();
-  const userId = session?.user.id;
+  const userId = await requireUserId();
   const snapshot = await db.portfolioSnapshot.findFirst({
-    where: userId ? { userId } : {},
+    where: { userId },
     orderBy: { snapshotDate: "desc" },
     include: {
       positions: {

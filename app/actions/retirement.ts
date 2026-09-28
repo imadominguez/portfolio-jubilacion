@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidateRetirement } from "@/lib/revalidate";
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth-session";
 
@@ -83,7 +83,7 @@ export async function saveRetirementSettings(
       });
     }
 
-    revalidatePath("/retirement");
+    revalidateRetirement();
     return { success: true };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error inesperado.";

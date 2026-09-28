@@ -1,9 +1,10 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePortfolioData } from "@/lib/revalidate";
 import { db } from "@/lib/db";
-import { requireAuth } from "@/lib/auth-session";
+import { requireAuth, requireUserId } from "@/lib/auth-session";
 import { checkAndUpdateMilestones } from "@/app/actions/milestones";
+import { parseCocosNumber } from "@/lib/number-parsing";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -45,14 +46,6 @@ export type ImportResult =
 function extractTicker(instrumento: string): string | null {
   const match = instrumento.match(/\(([A-Z0-9]+)\)/);
   return match ? match[1] : null;
-}
-
-function parseNumber(raw: string): number {
-  // Remove currency symbols, spaces, dots used as thousands separators
-  // then replace comma decimal separator with dot
-  const cleaned = raw.trim().replace(/[$ ]/g, "").replace(/\./g, "").replace(",", ".");
-  const n = parseFloat(cleaned);
-  return isNaN(n) ? 0 : n;
 }
 
 function detectDelimiter(headerLine: string): string {
@@ -102,11 +95,11 @@ function parseCocosCapitalCsv(csvText: string): RawParsedPosition[] | string {
     const ticker = extractTicker(instrumento);
     if (!ticker) continue;
 
-    const cantidad = parseNumber(cols[idx.cantidad] ?? "0");
+    const cantidad = parseCocosNumber(cols[idx.cantidad] ?? "0");
     if (cantidad <= 0) continue;
 
-    const precio = idx.precio !== -1 ? parseNumber(cols[idx.precio] ?? "0") : 0;
-    const total = parseNumber(cols[idx.total] ?? "0");
+    const precio = idx.precio !== -1 ? parseCocosNumber(cols[idx.precio] ?? "0") : 0;
+    const total = parseCocosNumber(cols[idx.total] ?? "0");
     const positionValue = total > 0 ? total : cantidad * precio;
 
     const monedaRaw =
@@ -276,9 +269,7 @@ export async function importSnapshot(formData: FormData): Promise<ImportResult> 
       },
     });
 
-    revalidatePath("/");
-    revalidatePath("/snapshots");
-    revalidatePath("/performance");
+    revalidatePortfolioData();
 
     if (totalValueUsd && totalValueUsd > 0) {
       await checkAndUpdateMilestones(totalValueUsd);
@@ -295,10 +286,12 @@ export async function deleteSnapshot(
   id: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    await db.portfolioSnapshot.delete({ where: { id } });
-    revalidatePath("/");
-    revalidatePath("/snapshots");
-    revalidatePath("/performance");
+    const userId = await requireUserId();
+    const result = await db.portfolioSnapshot.deleteMany({ where: { id, userId } });
+    if (result.count === 0) {
+      return { success: false, error: "No se encontró el snapshot." };
+    }
+    revalidatePortfolioData();
     return { success: true };
   } catch {
     return { success: false, error: "No se pudo eliminar el snapshot." };

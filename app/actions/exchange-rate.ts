@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidateCcl } from "@/lib/revalidate";
 import { db } from "@/lib/db";
 
 export type ExchangeRateResult =
@@ -52,8 +52,7 @@ export async function fetchAndSaveCCL(): Promise<ExchangeRateResult> {
       });
     }
 
-    revalidatePath("/");
-    revalidatePath("/snapshots");
+    revalidateCcl();
 
     return {
       success: true,
@@ -65,19 +64,6 @@ export async function fetchAndSaveCCL(): Promise<ExchangeRateResult> {
     const message = err instanceof Error ? err.message : "Error inesperado al obtener el CCL.";
     return { success: false, error: message };
   }
-}
-
-export async function getLatestExchangeRate(): Promise<{
-  ccl: number;
-  date: Date;
-  source: string | null;
-} | null> {
-  const rate = await db.exchangeRate.findFirst({
-    orderBy: { date: "desc" },
-  });
-
-  if (!rate) return null;
-  return { ccl: Number(rate.ccl), date: rate.date, source: rate.source };
 }
 
 export async function getAllExchangeRates(): Promise<
@@ -202,8 +188,7 @@ export async function fetchHistoricalCCL(
       saved++;
     }
 
-    revalidatePath("/real-gains");
-    revalidatePath("/settings");
+    revalidateCcl();
 
     return { success: true, saved, skipped };
   } catch (err) {

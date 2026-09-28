@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db";
 import type { InvestmentStrategy } from "@/app/generated/prisma/client";
-import { revalidatePath } from "next/cache";
+import { revalidateStrategy } from "@/lib/revalidate";
 
 export async function getActiveStrategy(): Promise<InvestmentStrategy | null> {
   return db.investmentStrategy.findFirst({ where: { isActive: true } });
@@ -38,7 +38,7 @@ export async function saveNewVersion(
       });
     });
 
-    revalidatePath("/strategy");
+    revalidateStrategy();
     return { ok: true, strategy };
   } catch (e) {
     console.error("saveNewVersion error:", e);
@@ -61,7 +61,7 @@ export async function restoreVersion(
       });
     });
 
-    revalidatePath("/strategy");
+    revalidateStrategy();
     return { ok: true };
   } catch (e) {
     console.error("restoreVersion error:", e);

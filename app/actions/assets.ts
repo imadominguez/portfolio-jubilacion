@@ -1,7 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidateAssets } from "@/lib/revalidate";
 import { db } from "@/lib/db";
+import { requireAuth } from "@/lib/auth-session";
+import { isAdminRole } from "@/lib/user-role";
 
 export type AssetFormData = {
   ticker: string;
@@ -18,8 +20,17 @@ export type AssetResult =
   | { success: true }
   | { success: false; error: string };
 
+// El catálogo de assets es global (compartido). Sólo un ADMIN puede mutarlo.
+async function requireAdmin(): Promise<void> {
+  const session = await requireAuth();
+  if (!isAdminRole(session.user.role)) {
+    throw new Error("No autorizado. Se requiere rol administrador.");
+  }
+}
+
 export async function createAsset(data: AssetFormData): Promise<AssetResult> {
   try {
+    await requireAdmin();
     if (!data.ticker.trim()) {
       return { success: false, error: "El ticker es obligatorio." };
     }
@@ -40,7 +51,7 @@ export async function createAsset(data: AssetFormData): Promise<AssetResult> {
       },
     });
 
-    revalidatePath("/assets");
+    revalidateAssets();
     return { success: true };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Error inesperado.";
@@ -56,6 +67,7 @@ export async function updateAsset(
   data: Partial<AssetFormData>
 ): Promise<AssetResult> {
   try {
+    await requireAdmin();
     await db.asset.update({
       where: { id },
       data: {
@@ -83,7 +95,7 @@ export async function updateAsset(
       },
     });
 
-    revalidatePath("/assets");
+    revalidateAssets();
     return { success: true };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Error inesperado.";
@@ -93,10 +105,14 @@ export async function updateAsset(
 
 export async function deleteAsset(id: string): Promise<AssetResult> {
   try {
+    await requireAdmin();
     await db.asset.delete({ where: { id } });
-    revalidatePath("/assets");
+    revalidateAssets();
     return { success: true };
-  } catch {
-    return { success: false, error: "No se pudo eliminar el activo." };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "No se pudo eliminar el activo.",
+    };
   }
 }

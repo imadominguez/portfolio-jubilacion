@@ -1,8 +1,8 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidateDividends } from "@/lib/revalidate";
 import { db } from "@/lib/db";
-import { requireAuth } from "@/lib/auth-session";
+import { requireAuth, requireUserId } from "@/lib/auth-session";
 import type { Currency } from "@/app/generated/prisma/client";
 
 export type DividendFormData = {
@@ -48,8 +48,7 @@ export async function createDividend(data: DividendFormData): Promise<DividendRe
       },
     });
 
-    revalidatePath("/transactions");
-    revalidatePath("/performance");
+    revalidateDividends();
     return { success: true, id: div.id };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error inesperado.";
@@ -59,9 +58,12 @@ export async function createDividend(data: DividendFormData): Promise<DividendRe
 
 export async function deleteDividend(id: string): Promise<{ success: boolean; error?: string }> {
   try {
-    await db.dividend.delete({ where: { id } });
-    revalidatePath("/transactions");
-    revalidatePath("/performance");
+    const userId = await requireUserId();
+    const result = await db.dividend.deleteMany({ where: { id, userId } });
+    if (result.count === 0) {
+      return { success: false, error: "No se encontró el dividendo." };
+    }
+    revalidateDividends();
     return { success: true };
   } catch {
     return { success: false, error: "No se pudo eliminar el dividendo." };

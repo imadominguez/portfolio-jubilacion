@@ -1,8 +1,8 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidateTrades } from "@/lib/revalidate";
 import { db } from "@/lib/db";
-import { requireAuth } from "@/lib/auth-session";
+import { requireAuth, requireUserId } from "@/lib/auth-session";
 import type { TransactionType, Currency } from "@/app/generated/prisma/client";
 
 export type TransactionFormData = {
@@ -60,8 +60,7 @@ export async function createTransaction(
       },
     });
 
-    revalidatePath("/transactions");
-    revalidatePath("/");
+    revalidateTrades();
     return { success: true, id: tx.id };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error inesperado.";
@@ -71,9 +70,12 @@ export async function createTransaction(
 
 export async function deleteTransaction(id: string): Promise<{ success: boolean; error?: string }> {
   try {
-    await db.transaction.delete({ where: { id } });
-    revalidatePath("/transactions");
-    revalidatePath("/");
+    const userId = await requireUserId();
+    const result = await db.transaction.deleteMany({ where: { id, userId } });
+    if (result.count === 0) {
+      return { success: false, error: "No se encontró la transacción." };
+    }
+    revalidateTrades();
     return { success: true };
   } catch {
     return { success: false, error: "No se pudo eliminar la transacción." };

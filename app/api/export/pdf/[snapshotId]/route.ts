@@ -4,6 +4,8 @@ import type { DocumentProps } from "@react-pdf/renderer";
 import { createElement } from "react";
 import type { ReactElement } from "react";
 import { db } from "@/lib/db";
+import { requireUserId } from "@/lib/auth-session";
+import { formatARS, formatUSD, formatDateLong } from "@/lib/format";
 import { PortfolioPDF } from "@/components/export/portfolio-pdf";
 import type { PDFPosition, PDFSector } from "@/components/export/portfolio-pdf";
 
@@ -13,8 +15,15 @@ export async function GET(
 ) {
   const { snapshotId } = await params;
 
-  const snapshot = await db.portfolioSnapshot.findUnique({
-    where: { id: snapshotId },
+  let userId: string;
+  try {
+    userId = await requireUserId();
+  } catch {
+    return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+  }
+
+  const snapshot = await db.portfolioSnapshot.findFirst({
+    where: { id: snapshotId, userId },
     include: {
       positions: { orderBy: { positionValue: "desc" } },
     },
@@ -58,28 +67,7 @@ export async function GET(
     .sort((a, b) => b.value - a.value);
 
   // Format values for display
-  const formatARS = (v: number) =>
-    new Intl.NumberFormat("es-AR", {
-      style: "currency",
-      currency: "ARS",
-      minimumFractionDigits: 0,
-    }).format(v);
-
-  const formatUSD = (v: number) =>
-    new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 0,
-    }).format(v);
-
-  const formatDate = (d: Date) =>
-    new Intl.DateTimeFormat("es-AR", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    }).format(new Date(d));
-
-  const snapshotDate = formatDate(snapshot.snapshotDate);
+  const snapshotDate = formatDateLong(snapshot.snapshotDate);
   const totalUsd = snapshot.totalValueUsd
     ? formatUSD(Number(snapshot.totalValueUsd))
     : null;

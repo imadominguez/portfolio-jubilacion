@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidateBenchmarks } from "@/lib/revalidate";
 import { db } from "@/lib/db";
 import { getHistorical } from "@/lib/yahoo-finance-client";
 import { BENCHMARKS, type BenchmarkId } from "@/lib/benchmarks-config";
@@ -36,7 +36,7 @@ export async function fetchAndSaveBenchmark(
       saved++;
     }
 
-    revalidatePath("/performance");
+    revalidateBenchmarks();
     return { success: true, benchmarkId, saved };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error inesperado.";
@@ -51,7 +51,7 @@ export type BenchmarkPoint = {
 };
 
 export async function getBenchmarkPoints(
-  benchmarkId: BenchmarkId,
+  benchmarkId: string,
   fromDate?: Date
 ): Promise<BenchmarkPoint[]> {
   const points = await db.benchmarkPoint.findMany({

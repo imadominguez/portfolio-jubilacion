@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidateMarketPrices } from "@/lib/revalidate";
 import { db } from "@/lib/db";
 import { getQuotes } from "@/lib/yahoo-finance-client";
 
@@ -61,8 +61,7 @@ export async function fetchAndSaveMarketPrices(): Promise<MarketPriceResult> {
       updated++;
     }
 
-    revalidatePath("/");
-    revalidatePath("/assets");
+    revalidateMarketPrices();
 
     return { success: true, updated, failed };
   } catch (err) {

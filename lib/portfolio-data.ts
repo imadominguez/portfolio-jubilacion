@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { getSession } from "@/lib/auth-session";
+import { requireUserId } from "@/lib/auth-session";
 
 export type PositionRow = {
   ticker: string;
@@ -20,10 +20,9 @@ export type SnapshotData = {
 };
 
 export async function getLatestSnapshot(): Promise<SnapshotData | null> {
-  const session = await getSession();
-  const userId = session?.user.id;
+  const userId = await requireUserId();
   const snapshot = await db.portfolioSnapshot.findFirst({
-    where: userId ? { userId } : {},
+    where: { userId },
     orderBy: { snapshotDate: "desc" },
     include: {
       positions: {
@@ -54,10 +53,9 @@ export async function getLatestSnapshot(): Promise<SnapshotData | null> {
 export async function getPreviousSnapshot(
   beforeDate: Date
 ): Promise<{ totalValueArs: number } | null> {
-  const session = await getSession();
-  const userId = session?.user.id;
+  const userId = await requireUserId();
   const snapshot = await db.portfolioSnapshot.findFirst({
-    where: { snapshotDate: { lt: beforeDate }, ...(userId ? { userId } : {}) },
+    where: { snapshotDate: { lt: beforeDate }, userId },
     orderBy: { snapshotDate: "desc" },
     select: { totalValueArs: true },
   });
@@ -74,10 +72,9 @@ export type PreviousSnapshotData = {
 export async function getPreviousSnapshotFull(
   beforeDate: Date
 ): Promise<PreviousSnapshotData | null> {
-  const session = await getSession();
-  const userId = session?.user.id;
+  const userId = await requireUserId();
   const snapshot = await db.portfolioSnapshot.findFirst({
-    where: { snapshotDate: { lt: beforeDate }, ...(userId ? { userId } : {}) },
+    where: { snapshotDate: { lt: beforeDate }, userId },
     orderBy: { snapshotDate: "desc" },
     include: {
       positions: {
@@ -102,9 +99,8 @@ export async function getPreviousSnapshotFull(
 }
 
 export async function getSnapshotCount(): Promise<number> {
-  const session = await getSession();
-  const userId = session?.user.id;
-  return db.portfolioSnapshot.count({ where: userId ? { userId } : {} });
+  const userId = await requireUserId();
+  return db.portfolioSnapshot.count({ where: { userId } });
 }
 
 export type SnapshotPoint = {
@@ -117,10 +113,9 @@ export type SnapshotPoint = {
 };
 
 export async function getAllSnapshotPoints(): Promise<SnapshotPoint[]> {
-  const session = await getSession();
-  const userId = session?.user.id;
+  const userId = await requireUserId();
   const snapshots = await db.portfolioSnapshot.findMany({
-    where: userId ? { userId } : {},
+    where: { userId },
     orderBy: { snapshotDate: "asc" },
     select: {
       id: true,
@@ -140,4 +135,45 @@ export async function getAllSnapshotPoints(): Promise<SnapshotPoint[]> {
     ccl: s.ccl ? Number(s.ccl) : null,
     positionCount: s._count.positions,
   }));
+}
+
+// Lectura con ownership de un snapshot puntual y sus posiciones. Se usa en el
+// detalle y en las rutas de exportación para no exponer snapshots ajenos.
+export async function getSnapshotById(
+  id: string,
+  userId: string
+): Promise<{
+  id: string;
+  snapshotDate: Date;
+  totalValueArs: number;
+  totalValueUsd: number | null;
+  ccl: number | null;
+  sourceFile: string | null;
+  positions: PositionRow[];
+} | null> {
+  const snapshot = await db.portfolioSnapshot.findFirst({
+    where: { id, userId },
+    include: {
+      positions: { orderBy: { positionValue: "desc" } },
+    },
+  });
+
+  if (!snapshot) return null;
+
+  return {
+    id: snapshot.id,
+    snapshotDate: snapshot.snapshotDate,
+    totalValueArs: Number(snapshot.totalValueArs),
+    totalValueUsd: snapshot.totalValueUsd ? Number(snapshot.totalValueUsd) : null,
+    ccl: snapshot.ccl ? Number(snapshot.ccl) : null,
+    sourceFile: snapshot.sourceFile,
+    positions: snapshot.positions.map((p) => ({
+      ticker: p.ticker,
+      instrumentName: p.instrumentName,
+      quantity: Number(p.quantity),
+      price: Number(p.price),
+      positionValue: Number(p.positionValue),
+      allocationPct: Number(p.allocationPct) * 100,
+    })),
+  };
 }

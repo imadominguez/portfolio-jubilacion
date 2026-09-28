@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidateRebalance } from "@/lib/revalidate";
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth-session";
 
@@ -52,10 +52,12 @@ export async function upsertTargetAllocation(
       return { success: false, error: "El porcentaje debe estar entre 0 y 100." };
     }
 
+    const tickerUpper = ticker.trim().toUpperCase();
+
     await db.targetAllocation.upsert({
-      where: { ticker: ticker.trim().toUpperCase() },
+      where: { userId_ticker: { userId, ticker: tickerUpper } },
       create: {
-        ticker: ticker.trim().toUpperCase(),
+        ticker: tickerUpper,
         targetPct: targetPct / 100,
         notes: notes?.trim() || null,
         userId,
@@ -66,7 +68,7 @@ export async function upsertTargetAllocation(
       },
     });
 
-    revalidatePath("/rebalance");
+    revalidateRebalance();
     return { success: true };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error inesperado.";
@@ -76,11 +78,20 @@ export async function upsertTargetAllocation(
 
 export async function deleteTargetAllocation(id: string): Promise<TargetAllocationResult> {
   try {
-    await db.targetAllocation.delete({ where: { id } });
-    revalidatePath("/rebalance");
+    const session = await requireAuth();
+    const result = await db.targetAllocation.deleteMany({
+      where: { id, userId: session.user.id },
+    });
+    if (result.count === 0) {
+      return { success: false, error: "No se encontró el objetivo." };
+    }
+    revalidateRebalance();
     return { success: true };
-  } catch {
-    return { success: false, error: "No se pudo eliminar." };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "No se pudo eliminar.",
+    };
   }
 }
 

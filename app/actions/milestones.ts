@@ -1,8 +1,8 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidateMilestones } from "@/lib/revalidate";
 import { db } from "@/lib/db";
-import { requireAuth } from "@/lib/auth-session";
+import { requireAuth, requireUserId } from "@/lib/auth-session";
 
 export type MilestoneRow = {
   id: string;
@@ -69,7 +69,7 @@ export async function createMilestone(
       data: { label: label.trim(), targetValueUsd, userId },
     });
 
-    revalidatePath("/settings");
+    revalidateMilestones();
     return { success: true };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error inesperado.";
@@ -79,8 +79,12 @@ export async function createMilestone(
 
 export async function deleteMilestone(id: string): Promise<MilestoneResult> {
   try {
-    await db.milestoneAlert.delete({ where: { id } });
-    revalidatePath("/settings");
+    const userId = await requireUserId();
+    const result = await db.milestoneAlert.deleteMany({ where: { id, userId } });
+    if (result.count === 0) {
+      return { success: false, error: "No se encontró el hito." };
+    }
+    revalidateMilestones();
     return { success: true };
   } catch {
     return { success: false, error: "No se pudo eliminar." };
