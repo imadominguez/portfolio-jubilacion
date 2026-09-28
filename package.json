@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:seed": "npx tsx prisma/seed.ts"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:seed": "npx tsx prisma/seed.ts",
+    "db:strategy": "npx tsx scripts/refresh-strategy.ts"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"
@@ -56,6 +59,7 @@
     "eslint-config-next": "16.1.6",
     "prisma": "^7.4.2",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^5.0.1"
   }
 }
