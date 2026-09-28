@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { getSession } from "@/lib/auth-session";
+import { requireUserId } from "@/lib/auth-session";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -71,7 +71,19 @@ export type DataReadiness = {
   hasStockHistory: number;     // cantidad de registros en HistoricalPriceCache
   transactionCount: number;
   firstBuyDate: Date | null;
+  needsBackfill: boolean;              // hay compras anteriores a la cobertura de históricos/CCL
+  tickersMissingHistory: string[];     // subyacentes sin precio/CCL cerca de su primera compra
+  oldestCclDate: Date | null;
+  oldestHistoricalPriceDate: Date | null;
 };
+
+// Márgenes equivalentes a los usados en calculateRealGains (findNearest).
+const PRICE_TOLERANCE_DAYS = 5;
+const CCL_TOLERANCE_DAYS = 7;
+
+function daysAfter(later: Date, earlier: Date): number {
+  return (later.getTime() - earlier.getTime()) / (1000 * 60 * 60 * 24);
+}
 
 // ---------------------------------------------------------------------------
 // Helper: nearest date lookup
@@ -109,28 +121,68 @@ function findNearest<T extends { date: Date }>(
 // ---------------------------------------------------------------------------
 
 export async function getDataReadiness(): Promise<DataReadiness> {
-  const session = await getSession();
-  const userId = session?.user.id;
-  const [snapshot, transactionCount, firstBuy, cclCount, stockHistoryCount] =
+  const userId = await requireUserId();
+  const [snapshot, transactionCount, firstBuy, cclAgg, priceAgg, buys, assets] =
     await Promise.all([
-      db.portfolioSnapshot.findFirst({ where: userId ? { userId } : {}, select: { id: true } }),
-      db.transaction.count({ where: { type: "BUY", ...(userId ? { userId } : {}) } }),
+      db.portfolioSnapshot.findFirst({ where: { userId }, select: { id: true } }),
+      db.transaction.count({ where: { type: "BUY", userId } }),
       db.transaction.findFirst({
-        where: { type: "BUY", ...(userId ? { userId } : {}) },
+        where: { type: "BUY", userId },
         orderBy: { date: "asc" },
         select: { date: true },
       }),
-      db.exchangeRate.count(),
-      db.historicalPriceCache.count(),
+      db.exchangeRate.aggregate({ _count: true, _min: { date: true } }),
+      db.historicalPriceCache.aggregate({ _count: true, _min: { date: true } }),
+      db.transaction.findMany({
+        where: { type: "BUY", userId },
+        select: { ticker: true, date: true },
+      }),
+      db.asset.findMany({ select: { ticker: true, underlyingTicker: true } }),
     ]);
+
+  const oldestCclDate = cclAgg._min.date ?? null;
+  const oldestHistoricalPriceDate = priceAgg._min.date ?? null;
+
+  // Cobertura por ticker: ¿existe un precio histórico/CCL cerca de la primera compra?
+  const priceByTicker = await db.historicalPriceCache.groupBy({
+    by: ["ticker"],
+    _min: { date: true },
+  });
+  const oldestPriceByUnderlying = new Map(
+    priceByTicker.map((r) => [r.ticker, r._min.date ?? null])
+  );
+  const underlyingByTicker = new Map(assets.map((a) => [a.ticker, a.underlyingTicker]));
+
+  const earliestBuyByTicker = new Map<string, Date>();
+  for (const b of buys) {
+    const current = earliestBuyByTicker.get(b.ticker);
+    if (!current || b.date < current) earliestBuyByTicker.set(b.ticker, b.date);
+  }
+
+  const tickersMissingHistory: string[] = [];
+  for (const [ticker, buyDate] of earliestBuyByTicker) {
+    const underlying = underlyingByTicker.get(ticker);
+    // Los instrumentos sin subyacente (bonos, acciones locales) quedan fuera del módulo.
+    if (!underlying) continue;
+    const oldestPrice = oldestPriceByUnderlying.get(underlying) ?? null;
+    const priceMissing =
+      !oldestPrice || daysAfter(oldestPrice, buyDate) > PRICE_TOLERANCE_DAYS;
+    const cclMissing =
+      !oldestCclDate || daysAfter(oldestCclDate, buyDate) > CCL_TOLERANCE_DAYS;
+    if (priceMissing || cclMissing) tickersMissingHistory.push(underlying);
+  }
 
   return {
     hasSnapshot: snapshot !== null,
     hasTransactions: transactionCount > 0,
-    hasCclHistory: cclCount,
-    hasStockHistory: stockHistoryCount,
+    hasCclHistory: cclAgg._count,
+    hasStockHistory: priceAgg._count,
     transactionCount,
     firstBuyDate: firstBuy?.date ?? null,
+    needsBackfill: tickersMissingHistory.length > 0,
+    tickersMissingHistory,
+    oldestCclDate,
+    oldestHistoricalPriceDate,
   };
 }
 
@@ -144,12 +196,11 @@ export async function getDataReadiness(): Promise<DataReadiness> {
 // ---------------------------------------------------------------------------
 
 export async function calculateRealGains(): Promise<RealGainsSummary | null> {
-  const session = await getSession();
-  const userId = session?.user.id;
+  const userId = await requireUserId();
 
   // 1. Snapshot más reciente
   const snapshot = await db.portfolioSnapshot.findFirst({
-    where: userId ? { userId } : {},
+    where: { userId },
     orderBy: { snapshotDate: "desc" },
     include: { positions: true },
   });
@@ -160,7 +211,7 @@ export async function calculateRealGains(): Promise<RealGainsSummary | null> {
 
   // 2. Transacciones BUY
   const buys = await db.transaction.findMany({
-    where: { type: "BUY", ...(userId ? { userId } : {}) },
+    where: { type: "BUY", userId },
     orderBy: { date: "asc" },
   });
 
@@ -285,8 +336,11 @@ export async function calculateRealGains(): Promise<RealGainsSummary | null> {
     if (!pos) continue;
 
     const asset = assetMap.get(ticker);
-    const underlyingTicker = asset?.underlyingTicker ?? null;
-    const cedearRatio = asset ? Number(asset.cedearRatio) : 1;
+    // Sólo se descompone la ganancia de instrumentos con subyacente (CEDEARs).
+    // Bonos y acciones locales (ej: T661O, VALO) quedan fuera del módulo.
+    if (!asset?.underlyingTicker) continue;
+    const underlyingTicker = asset.underlyingTicker;
+    const cedearRatio = Number(asset.cedearRatio);
 
     const quantity = Number(pos.quantity);
     const valueArs = Number(pos.positionValue);
@@ -341,9 +395,7 @@ export async function calculateRealGains(): Promise<RealGainsSummary | null> {
     // Razón de datos faltantes (para el panel de diagnóstico)
     let missingReason: string | null = null;
     if (!hasFullData) {
-      if (!underlyingTicker) {
-        missingReason = "Sin underlyingTicker configurado en Assets";
-      } else if (!priceHistoryByTicker.has(underlyingTicker)) {
+      if (!priceHistoryByTicker.has(underlyingTicker)) {
         missingReason = "Sin precios históricos en cache — ejecutá el Paso 2 del wizard";
       } else if (!currentUsdPrice) {
         missingReason = "Sin precio actual en Yahoo Finance — actualizá precios en Assets";

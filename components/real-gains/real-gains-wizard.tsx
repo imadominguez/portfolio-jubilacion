@@ -76,7 +76,7 @@ export function RealGainsWizard({ readiness }: RealGainsWizardProps) {
         {/* Paso 1: CCL histórico */}
         <div
           className={`rounded-xl border bg-card shadow-sm p-5 flex flex-col gap-4 transition-colors ${
-            hasCcl ? "border-emerald-500/30" : "border-border"
+            hasCcl ? "border-success/30" : "border-border"
           }`}
         >
           <div className="flex items-start justify-between gap-3">
@@ -86,14 +86,14 @@ export function RealGainsWizard({ readiness }: RealGainsWizardProps) {
                   Paso 1 — CCL histórico
                 </span>
                 {hasCcl && (
-                  <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
+                  <CheckCircle2 className="size-4 text-success shrink-0" />
                 )}
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Tipo de cambio CCL por fecha desde{" "}
                 <span className="font-mono">argentinadatos.com</span>.{" "}
                 {readiness.hasCclHistory > 0 && (
-                  <span className="text-emerald-600 dark:text-emerald-400">
+                  <span className="text-success">
                     {readiness.hasCclHistory} fechas ya cargadas.
                   </span>
                 )}
@@ -113,7 +113,7 @@ export function RealGainsWizard({ readiness }: RealGainsWizardProps) {
               disabled={loadingCcl}
               className={`flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-xs font-semibold transition-all ${
                 hasCcl
-                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20"
+                  ? "bg-success/10 text-success hover:bg-success/20 border border-success/20"
                   : "bg-foreground text-background hover:opacity-80"
               } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
@@ -134,7 +134,7 @@ export function RealGainsWizard({ readiness }: RealGainsWizardProps) {
         {/* Paso 2: Precios de acciones */}
         <div
           className={`rounded-xl border bg-card shadow-sm p-5 flex flex-col gap-4 transition-colors ${
-            hasStocks ? "border-emerald-500/30" : "border-border"
+            hasStocks ? "border-success/30" : "border-border"
           }`}
         >
           <div className="flex items-start justify-between gap-3">
@@ -144,14 +144,14 @@ export function RealGainsWizard({ readiness }: RealGainsWizardProps) {
                   Paso 2 — Precios de acciones
                 </span>
                 {hasStocks && (
-                  <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
+                  <CheckCircle2 className="size-4 text-success shrink-0" />
                 )}
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Precios USD históricos de los subyacentes desde{" "}
                 <span className="font-mono">Yahoo Finance</span>.{" "}
                 {readiness.hasStockHistory > 0 && (
-                  <span className="text-emerald-600 dark:text-emerald-400">
+                  <span className="text-success">
                     {readiness.hasStockHistory} registros ya cargados.
                   </span>
                 )}
@@ -165,7 +165,7 @@ export function RealGainsWizard({ readiness }: RealGainsWizardProps) {
             disabled={loadingStocks}
             className={`flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-xs font-semibold transition-all ${
               hasStocks
-                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20"
+                ? "bg-success/10 text-success hover:bg-success/20 border border-success/20"
                 : "bg-foreground text-background hover:opacity-80"
             } disabled:opacity-50 disabled:cursor-not-allowed`}
           >
@@ -184,9 +184,9 @@ export function RealGainsWizard({ readiness }: RealGainsWizardProps) {
       </div>
 
       {allDone && (
-        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-5 py-4 flex items-center gap-3">
-          <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
-          <p className="text-sm text-emerald-700 dark:text-emerald-400">
+        <div className="rounded-xl border border-success/30 bg-success/5 px-5 py-4 flex items-center gap-3">
+          <CheckCircle2 className="size-4 text-success shrink-0" />
+          <p className="text-sm text-success">
             Datos cargados. Recargá la página para ver el análisis completo de ganancia real.
           </p>
         </div>
