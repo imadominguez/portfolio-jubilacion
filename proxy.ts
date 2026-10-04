@@ -33,7 +33,12 @@ export async function proxy(request: NextRequest) {
   const session = await auth.api.getSession({ headers: request.headers });
 
   if (!session && !isLoginPage && !isRegisterPage) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const loginUrl = new URL("/login", request.url);
+    // Guardamos la ruta pedida para volver a ella después del login.
+    if (pathname !== "/") {
+      loginUrl.searchParams.set("next", pathname + request.nextUrl.search);
+    }
+    return NextResponse.redirect(loginUrl);
   }
 
   if (session && (isLoginPage || isRegisterPage)) {

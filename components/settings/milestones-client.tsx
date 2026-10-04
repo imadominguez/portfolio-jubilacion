@@ -23,6 +23,8 @@ interface MilestonesClientProps {
   currentPortfolioUsd: number | null;
 }
 
+const UNDO_WINDOW_MS = 8000;
+
 function formatUSD(v: number) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -58,17 +60,41 @@ export function MilestonesClient({
     });
   }
 
+  // Borrado diferido: el hito desaparece ya y se borra recién cuando vence
+  // el toast, así "Deshacer" no tiene que recrearlo (y perder reachedAt).
   function handleDelete(id: string) {
     if (!id) return;
-    startTransition(async () => {
-      const result = await deleteMilestone(id);
-      if (result.success) {
-        setMilestones((prev) => prev.filter((m) => m.id !== id));
-        toast.success("Hito eliminado");
-      } else {
-        toast.error(result.error);
-      }
+    const index = milestones.findIndex((m) => m.id === id);
+    const removed = milestones[index];
+    if (!removed) return;
+    let undone = false;
+
+    setMilestones((prev) => prev.filter((m) => m.id !== id));
+    toast.success(`Hito "${removed.label}" eliminado`, {
+      duration: UNDO_WINDOW_MS,
+      action: {
+        label: "Deshacer",
+        onClick: () => {
+          undone = true;
+          setMilestones((prev) => {
+            const next = [...prev];
+            next.splice(Math.min(index, next.length), 0, removed);
+            return next;
+          });
+        },
+      },
     });
+
+    setTimeout(() => {
+      if (undone) return;
+      startTransition(async () => {
+        const result = await deleteMilestone(id);
+        if (!result.success) {
+          setMilestones((prev) => [...prev, removed]);
+          toast.error(`No se pudo eliminar "${removed.label}": ${result.error}`);
+        }
+      });
+    }, UNDO_WINDOW_MS);
   }
 
   const reachedCount = milestones.filter((m) => m.reached).length;

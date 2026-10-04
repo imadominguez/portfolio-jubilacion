@@ -27,6 +27,8 @@ import { Spinner } from "@/components/ui/spinner";
 import type { RebalanceRow, TargetAllocationRow } from "@/app/actions/rebalance";
 
 type SortCol = "ticker" | "currentPct" | "targetPct" | "deviation" | "currentValue" | "suggestedAction";
+const UNDO_WINDOW_MS = 8000;
+
 type SortDir = "asc" | "desc";
 
 function SortIcon({ col, sortCol, sortDir }: { col: SortCol; sortCol: SortCol | null; sortDir: SortDir }) {
@@ -42,7 +44,12 @@ interface RebalanceClientProps {
   totalPct: number;
 }
 
-export function RebalanceClient({ rebalanceData, targets, totalPct }: RebalanceClientProps) {
+export function RebalanceClient({
+  rebalanceData,
+  targets: allTargets,
+  totalPct: serverTotalPct,
+}: RebalanceClientProps) {
+  const [pendingDeleteIds, setPendingDeleteIds] = useState<Set<string>>(new Set());
   const [addOpen, setAddOpen] = useState(false);
   const [ticker, setTicker] = useState("");
   const [targetPct, setTargetPct] = useState("");
@@ -92,16 +99,48 @@ export function RebalanceClient({ rebalanceData, targets, totalPct }: RebalanceC
     });
   }
 
+  // Borrado diferido: el objetivo se oculta ya y se borra cuando vence el
+  // toast, para que "Deshacer" no dependa de recrearlo.
   function handleDelete(id: string, ticker: string) {
-    startTransition(async () => {
-      const result = await deleteTargetAllocation(id);
-      if (result.success) {
-        toast.success(`Objetivo de ${ticker} eliminado`);
-      } else {
-        toast.error(result.error);
-      }
+    let undone = false;
+    setPendingDeleteIds((prev) => new Set(prev).add(id));
+
+    const restore = () =>
+      setPendingDeleteIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+
+    toast.success(`Objetivo de ${ticker} eliminado`, {
+      duration: UNDO_WINDOW_MS,
+      action: {
+        label: "Deshacer",
+        onClick: () => {
+          undone = true;
+          restore();
+        },
+      },
     });
+
+    setTimeout(() => {
+      if (undone) return;
+      startTransition(async () => {
+        const result = await deleteTargetAllocation(id);
+        if (!result.success) {
+          toast.error(`No se pudo eliminar el objetivo de ${ticker}: ${result.error}`);
+        }
+        restore();
+      });
+    }, UNDO_WINDOW_MS);
   }
+
+  const targets = allTargets.filter((t) => !pendingDeleteIds.has(t.id));
+  const totalPct =
+    serverTotalPct -
+    allTargets
+      .filter((t) => pendingDeleteIds.has(t.id))
+      .reduce((sum, t) => sum + t.targetPct, 0);
 
   const isOverAllocated = totalPct > 100.5;
   const isUnderAllocated = totalPct < 99.5 && targets.length > 0;

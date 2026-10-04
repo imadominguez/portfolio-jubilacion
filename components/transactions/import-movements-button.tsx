@@ -63,6 +63,10 @@ export function ImportMovimientosButton() {
   const [dateRange, setDateRange] = useState<DateRange | null>(null);
   const [isParsing, startParsing] = useTransition();
   const [isImporting, startImporting] = useTransition();
+  // Los errores quedan visibles hasta el próximo intento: un toast que se
+  // cierra solo se lleva el único detalle del fallo.
+  const [parseError, setParseError] = useState<string | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
 
   function reset() {
     setOpen(false);
@@ -70,6 +74,7 @@ export function ImportMovimientosButton() {
     setSelected(new Set());
     setFileName("");
     setDateRange(null);
+    setImportError(null);
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -79,16 +84,19 @@ export function ImportMovimientosButton() {
 
     setFileName(file.name);
     setDateRange(parseFilenameRange(file.name));
+    setParseError(null);
 
     startParsing(async () => {
       const text = await file.text();
       const result = parseMovementCsv(text);
       if (!result.success) {
-        toast.error(result.error);
+        setParseError(`${file.name}: ${result.error}`);
         return;
       }
       if (result.movements.length === 0) {
-        toast.error("No se encontraron movimientos en el archivo.");
+        setParseError(
+          `${file.name} no tiene movimientos. Verificá que sea el CSV de Actividad (no el de Portfolio).`
+        );
         return;
       }
       setParsed({ movements: result.movements, counts: result.counts, warnings: result.warnings });
@@ -131,10 +139,11 @@ export function ImportMovimientosButton() {
     const rows = parsed.movements.filter((m) => selected.has(m.nroTicket));
     if (rows.length === 0) return;
 
+    setImportError(null);
     startImporting(async () => {
       const result = await importMovements(rows, fileName);
       if (!result.success) {
-        toast.error(result.error);
+        setImportError(`No se guardaron los movimientos: ${result.error} La selección se mantiene para que reintentes.`);
         return;
       }
 
@@ -196,6 +205,25 @@ export function ImportMovimientosButton() {
         >
           ¿Cómo descargo movimientos desde Cocos?
         </Link>
+        {parseError && (
+          <div
+            role="alert"
+            className="mt-1 max-w-xs flex items-start gap-2 rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-left"
+          >
+            <AlertTriangle className="size-3.5 text-destructive shrink-0 mt-0.5" />
+            <p className="text-[11px] text-muted-foreground leading-relaxed flex-1">
+              {parseError}
+            </p>
+            <button
+              type="button"
+              aria-label="Cerrar aviso"
+              onClick={() => setParseError(null)}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <X className="size-3" />
+            </button>
+          </div>
+        )}
       </div>
 
       <Dialog open={open} onOpenChange={(o) => (o ? setOpen(true) : reset())}>
@@ -378,6 +406,16 @@ export function ImportMovimientosButton() {
               );
             })}
           </div>
+
+          {importError && (
+            <div
+              role="alert"
+              className="flex items-start gap-2 rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2"
+            >
+              <AlertTriangle className="size-3.5 text-destructive shrink-0 mt-0.5" />
+              <p className="text-xs text-muted-foreground">{importError}</p>
+            </div>
+          )}
 
           <div className="flex items-center justify-between gap-3 pt-1">
             <p className="text-[11px] text-muted-foreground">

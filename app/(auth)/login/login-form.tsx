@@ -9,7 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TrendingUp, Lock, Mail, AlertCircle } from "lucide-react";
 
-export function LoginForm({ allowSignup }: { allowSignup: boolean }) {
+export function LoginForm({
+  allowSignup,
+  redirectTo,
+}: {
+  allowSignup: boolean;
+  redirectTo: string;
+}) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,7 +39,7 @@ export function LoginForm({ allowSignup }: { allowSignup: boolean }) {
       return;
     }
 
-    router.push("/");
+    router.push(redirectTo);
     router.refresh();
   }
 
