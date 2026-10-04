@@ -82,7 +82,7 @@ export async function doSomething(input: InputType): Promise<Result> {
     const userId = await requireUserId();
     // validate input
     // db operation — always scoped: where: { ..., userId }
-    revalidateTrades(); // domain helper from lib/revalidate.ts, not a loose revalidatePath
+    revalidateTrades(userId); // domain helper from lib/revalidate.ts (updateTag), not a loose revalidatePath
     return { success: true, ... };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error inesperado.";

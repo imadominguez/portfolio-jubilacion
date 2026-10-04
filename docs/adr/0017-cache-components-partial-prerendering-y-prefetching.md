@@ -57,6 +57,8 @@ Next.js 16 ofrece **Cache Components** (`cacheComponents: true`), que trae **Par
 - `new Date()`, `Date.now()`, `Math.random()` en el render: después de un dato de request, o con `connection()` dentro de `<Suspense>`.
 - No usar `export const dynamic`, `revalidate`, `fetchCache`, `dynamicParams` ni `runtime` (no son compatibles).
 - Al quitar un `instant = false`, borrar también su `TODO: Cache Components adoption`. Si se deja a propósito, reemplazar el TODO por el motivo.
+- Cada función cacheada declara un tag por cada dominio que lee (`lib/cache-tags.ts`) y cada escritura invalida solo el suyo (`lib/revalidate.ts`), así ninguna lista de rutas queda desactualizada.
+- Las lecturas sin datos de request (datos de mercado globales) llaman a `connection()` antes del `'use cache'`: si no, Next las ejecuta en `next build` contra la base (que en CI no existe) y congela el resultado en el shell del deploy.
 
 ## Referencias
 

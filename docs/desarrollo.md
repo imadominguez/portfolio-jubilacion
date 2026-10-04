@@ -120,7 +120,7 @@ Definidas en `.cursor/rules.md`:
 - **Sin `console.log`** en código de producción; comentarios que expliquen el *por qué*.
 - UI: usar shadcn/ui, `SiteHeader` para headers, `ChartContainer` para gráficos, `Intl.*` con locale `"es-AR"`, `key` estables en listas.
 - Roles: `lib/user-role.ts` (`isAdminRole`); los items admin van bajo `NAV_CONFIG` en el sidebar y deben coincidir con `ADMIN_PATH_PREFIXES` del proxy (`proxy.ts`).
-- **Datos de usuario:** toda lectura/borrado filtra por `userId` (`requireUserId()`); después de mutar, revalidar con los helpers de `lib/revalidate.ts`.
+- **Datos de usuario:** toda lectura/borrado filtra por `userId` (`requireUserId()`); después de mutar, invalidar con los helpers de `lib/revalidate.ts` (`updateTag` del dominio, ver [server-actions.md](./server-actions.md)).
 - **Lógica nueva** (cálculos, parsers): función pura en `lib/` + `*.test.ts` al lado.
 - **Decisiones de arquitectura:** si un cambio contradice o reemplaza algo registrado en [`adr/`](./adr/README.md), agregar un ADR nuevo (y marcar el anterior como *Reemplazado*) en lugar de editar el viejo.
 - **Cache Components** (Next 16.3, [ADR-0017](./adr/0017-cache-components-partial-prerendering-y-prefetching.md)): la sesión, `cookies()`, `headers()`, `params` y `searchParams` se leen dentro de un componente envuelto en `<Suspense>`, nunca en el top-level de un layout o página. Los datos se cachean con `'use cache'` + `cacheLife` + `cacheTag`. Las rutas que todavía tienen `export const instant = false` con `// TODO: Cache Components adoption` están pendientes de convertir.
