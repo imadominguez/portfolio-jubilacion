@@ -8,9 +8,10 @@ Organizados por dominio. Los componentes de `components/ui/` son primitivas shad
 
 | Componente | Tipo | Descripción |
 |---|---|---|
-| `layout/app-sidebar.tsx` — `AppSidebar` | CC | Sidebar colapsable con tres grupos: **Principal** (Dashboard, Snapshots, Historial CCL, Performance, Guía Cocos), **Análisis** (Análisis, Ganancia Real, Transacciones, Rebalanceo, Jubilación) y **Configuración** (Assets, Estrategia, Configuración, Reporte mensual), este último solo si `isAdmin`. Item activo por `pathname.startsWith(href)` (excepto `/`). Logout vía `signOut()`. Expone ids de tour: `tour-nav-snapshots`, `tour-nav-guia`, `tour-nav-transacciones`. |
+| `layout/app-sidebar.tsx` — `AppSidebar` | CC | Sidebar colapsable con cuatro grupos: **Principal** (`NAV_MAIN`: Dashboard, Snapshots, Historial CCL, Performance), **Análisis** (`NAV_ANALYSIS`: Análisis, Ganancia Real, Rebalanceo, Plan DCA, Jubilación), **Datos** (`NAV_DATA`: Centro de Datos, Transacciones, Guía Cocos) y **Configuración** (`NAV_CONFIG`: Assets, Estrategia, Configuración, Reporte mensual), este último solo si `isAdmin`. Item activo por `pathname.startsWith(href)` (excepto `/`). Logout vía `signOut()`. Expone ids de tour: `tour-nav-snapshots`, `tour-nav-guia`, `tour-nav-transacciones`. |
 | `layout/site-header.tsx` — `SiteHeader` | SC | Header sticky con `SidebarTrigger`, título, descripción, `actions` a la derecha, `CommandMenu` y `ThemeToggle`. |
 | `layout/command-menu.tsx` — `CommandMenu` | CC | Buscador global (⌘K / Ctrl+K) con `cmdk` (`CommandDialog`). Navega a las secciones principales, de análisis y de datos. |
+| `theme-toggle.tsx` / `theme-provider.tsx` | CC | Toggle claro/oscuro y wrapper de `next-themes` (dark por defecto). |
 
 ---
 
@@ -19,6 +20,8 @@ Organizados por dominio. Los componentes de `components/ui/` son primitivas shad
 | Componente | Tipo | Props / comportamiento |
 |---|---|---|
 | `dashboard-hero.tsx` | CC | `totalValueArs`, `totalValueUsd`, `snapshotDateFormatted`, `gainArs`, `gainPct`. Toggle ARS/USD (USD deshabilitado si es null); badge verde/rojo según la ganancia. |
+| `dashboard-kpi-strip.tsx` | SC | `totalValueUsd`, `ccl`, `positionCount`, `gainPct`, `totalUnrealizedPnlArs`, `totalDividendsUsd` y flags de signo. Tira de KPIs secundarios. |
+| `analysis-tools.tsx` | SC | `realGains`, `retirementGoal`, `retirementSettings`, `rebalanceData`, `topSector`, `totalSectors`. Tarjetas resumen que enlazan a Ganancia Real, Jubilación, Rebalanceo y Concentración. |
 | `holdings-table.tsx` | SC | `positions`, `ppmData?`, `marketPrices?`. Tabla con barra de peso, PPM/P&L (solo si hay PPM en ARS) y valor USD en vivo (`(quantity / cedearRatio) × priceUsd`); pie con "total live USD" y timestamp. |
 | `allocation-panel.tsx` | CC | `positions`, `totalArs`. Donut Recharts (`innerRadius 55%`) + leyenda con barras de progreso. |
 | `performers-panel.tsx` | SC | `currentPositions`, `previousPositions`. Calcula `Δ%` de precio por ticker y muestra hasta 3 mejores y 3 peores. Retorna `null` si hay < 2 performers. |
@@ -34,6 +37,15 @@ Organizados por dominio. Los componentes de `components/ui/` son primitivas shad
 |---|---|---|
 | `performance-chart.tsx` | CC | `snapshots`. Línea de evolución con toggle ARS/USD (USD = `totalValueUsd` o `totalValueArs / ccl`). Usa `ChartContainer`. |
 | `benchmark-overlay-chart.tsx` | CC | `snapshots`, `initialBenchmarks`. Normaliza a base 100 y superpone S&P 500 / Merval / NASDAQ; carga datos on-demand con `fetchAndSaveBenchmark` + `getBenchmarkPoints` dentro de `useTransition`. |
+| `inflation-chart.tsx` | CC | `snapshots`, `initialIndices`. Portfolio en ARS vs IPC acumulado y CER/UVA, base 100; escala logarítmica por defecto; descarga los índices on-demand (`fetchAndSaveInflation` / `fetchAndSaveCer` + `getIndexPoints`). |
+
+---
+
+## Plan DCA (`components/plan/`)
+
+| Componente | Tipo | Descripción |
+|---|---|---|
+| `dca-planner-client.tsx` | CC | `portfolioValueArs`, `ccl`, `positions`, `targets`, `assets`, `marketPrices`. Input del aporte (default $500.000), corre `planDca()` (`lib/dca-planner.ts`) en el cliente y muestra por ticker el desvío, el monto a comprar, los CEDEARs estimados y el peso resultante. |
 
 ---
 
@@ -77,9 +89,11 @@ Organizados por dominio. Los componentes de `components/ui/` son primitivas shad
 | `settings/milestones-client.tsx` | CC | `initialMilestones`, `currentPortfolioUsd`. Alta/baja de hitos y progreso al próximo. |
 | `real-gains/real-gains-wizard.tsx` | CC | `readiness`. Wizard de 2 pasos: backfill de CCL histórico y de precios históricos de subyacentes. |
 | `real-gains/real-gains-update-button.tsx` | CC | Actualiza CCL histórico y precios de acciones en paralelo (`Promise.all`). |
+| `real-gains/kpi-card.tsx`, `breakdown-bar.tsx`, `positions-table.tsx`, `methodology-note.tsx` | SC | Bloques de `/real-gains`: KPIs, barra de desglose apreciación vs impacto CCL, tabla por posición con cobertura de datos y nota metodológica. Reciben `RealGainsSummary`. |
+| `market/indices-update-button.tsx` | CC | Actualiza IPC y CER/UVA juntos (`fetchAndSaveAllIndices`). Se usa en `/datos`; en `/performance`, `InflationChart` descarga cada índice por separado. |
 | `ccl/ccl-chart.tsx` | CC | `rates`, `snapshots`. Gráfico de CCL con overlay del portafolio USD (doble eje Y). |
-| `exchange-rate/ccl-update-button.tsx` | CC | Actualiza el CCL actual (`fetchAndSaveCCL`); toast indica si ya existía. |
-| `market/market-prices-button.tsx` | CC | Actualiza precios de mercado (`fetchAndSaveMarketPrices`); reporta fallos. |
+| `exchange-rate/ccl-update-button.tsx` | CC | Actualiza el CCL actual (`fetchAndSaveCCL`); toast indica si ya existía. En `/datos`, `/ccl` y `/assets`. |
+| `market/market-prices-button.tsx` | CC | Actualiza precios de mercado (`fetchAndSaveMarketPrices`); reporta fallos. En `/datos` y `/assets`. |
 | `assets/asset-dialog.tsx` | CC | Diálogo crear/editar CEDEAR (en edición no permite cambiar ticker). |
 | `assets/assets-table-client.tsx` | CC | Tabla del catálogo con alta/edición/eliminación y confirmación. |
 | `guide/cocos-guide.tsx` | CC | Guía visual de descarga de CSV + `RestartTourButton`. Secciones con ids `tour-guide-snapshots` y `tour-guide-transacciones`. |

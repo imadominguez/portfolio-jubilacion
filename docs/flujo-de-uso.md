@@ -10,12 +10,12 @@ El sistema funciona con **snapshots**: capturas del estado del portafolio en un 
 
 ## Primer uso (onboarding)
 
-Al entrar por primera vez al dashboard se abre un **wizard de bienvenida** que guía la carga de datos en el orden correcto. Se puede omitir ("Más tarde") y retomar después; el progreso se guarda por usuario en la base (`UserSetup`).
+Al entrar por primera vez al dashboard se abre un **wizard de bienvenida** que guía la carga de datos en el orden correcto. "Más tarde" lo cierra por la sesión del navegador (vuelve a aparecer en la próxima sesión) y "No mostrar más" lo descarta; el progreso se guarda por usuario en la base (`UserSetup`) y el checklist sigue disponible.
 
 Orden recomendado:
 
 1. **Snapshot** (requerido) — CSV de Portfolio. Desbloquea el dashboard.
-2. **Assets** (requerido) — al importar el snapshot la app detecta los tickers y ofrece completar ratio, subyacente, sector y país (asistente en `/assets`).
+2. **Assets** (requerido para ADMIN) — al importar el snapshot la app detecta los tickers y ofrece completar ratio, subyacente, sector y país (asistente en `/assets`). El catálogo es global y admin-only: para un usuario `USER` el paso aparece como informativo ("Lo configura el administrador") y no bloquea la puesta en marcha.
 3. **Transacciones** — CSV de Actividad. Habilita PPM y P&L.
 4. **Históricos** — CCL y precios de acciones para la Ganancia Real.
 5. **Preferencias** — objetivos de rebalanceo y plan de retiro.
@@ -65,19 +65,19 @@ CEDEAR NVIDIA CORPORATION (NVDA);11;11100;ARS;122100
 5. Descargá el archivo en formato **CSV**
 6. El archivo se llamará `movements_report_YYYY-MM-DD_YYYY-MM-DD.csv`
 
-Importá este archivo en la sección **Transacciones** de la app con el botón **Importar CSV Cocos**.
+Importá este archivo en **Transacciones** o en el **Centro de Datos** (`/datos`) con el botón **Importar CSV Cocos**. La app muestra una previsualización agrupada por categoría (compras, ventas, FCI, pagos, dividendos…) donde podés destildar filas. Solo las compras y ventas generan transacciones; el resto queda en el libro de movimientos. Podés reimportar el mismo archivo (o uno que se superponga en fechas) sin duplicar: se deduplica por número de ticket de Cocos.
 
 ---
 
 ### 2. Importar el snapshot en la plataforma
 
-1. Desde el dashboard o Snapshots, hacé click en el botón **"Importar CSV"** del header
+1. Desde el dashboard, Snapshots o el Centro de Datos, hacé click en el botón **"Importar CSV"** del header
 2. Si tenés dudas sobre la descarga en Cocos, consultá la [Guía Cocos](/guia#snapshots)
 3. Se abre el sheet lateral de importación
 4. **Paso 1 — Seleccionar:**
    - Adjuntá el archivo CSV exportado
-   - Completá la **fecha del snapshot** (la fecha a la que corresponde el estado de la cartera)
-   - Opcionalmente ingresá el **CCL del día** (tipo de cambio ARS/USD) para habilitar los cálculos en dólares
+   - La **fecha del snapshot** se toma del nombre del archivo (`portfolio_report_AAAAMMDD.csv`). Si el nombre no tiene ese formato, se pide a mano
+   - El **CCL del día** se autocompleta con el CCL guardado para esa fecha; si no hay, se avisa y podés ingresarlo. Es opcional, salvo que el CSV tenga posiciones en USD
    - Hacé click en **"Previsualizar"**
 
 5. **Paso 2 — Revisar:**
@@ -85,29 +85,35 @@ Importá este archivo en la sección **Transacciones** de la app con el botón *
    - Verificá que los datos sean correctos
    - Hacé click en **"Confirmar importación"** para guardar el snapshot
 
-> El sistema impide importar dos snapshots para la misma fecha. Si ya existe uno para esa fecha, se muestra un error.
+> El sistema impide importar dos snapshots para la misma fecha: el aviso aparece al elegir la fecha, antes de previsualizar. Si un snapshot quedó mal cargado, eliminalo desde su detalle (`/snapshots/[id]` → "Eliminar snapshot") y volvé a importarlo.
+>
+> Al confirmar, la pantalla de éxito muestra el total importado y el siguiente paso pendiente de la puesta en marcha.
 
 ---
 
 ### 3. Consultar el dashboard
 
-Una vez importado el snapshot, podés navegar las cuatro secciones del dashboard:
+Una vez importado el snapshot, estas son las secciones principales (el detalle de cada métrica está en [datos-del-portfolio.md](./datos-del-portfolio.md)):
 
 #### Dashboard (`/`)
-- Valor total del portfolio en ARS
-- Equivalente en USD (si se ingresó el CCL)
-- Rendimiento vs el snapshot anterior
-- Tipo de cambio CCL implícito
-- Tabla de posiciones actuales ordenadas por valor
-- Panel de distribución con barras de asignación por activo
+- Valor total del portfolio en ARS y su equivalente en USD (si se ingresó el CCL)
+- Rendimiento vs el snapshot anterior, P&L no realizado, dividendos y CCL
+- Resumen de ganancia real, jubilación, rebalanceo y concentración, con acceso a cada módulo
+- Tabla de posiciones actuales ordenadas por valor y panel de distribución
+- Mientras falten datos, el checklist de **puesta en marcha**
 
 #### Performance (`/performance`)
-- Rendimiento total desde el primer snapshot
-- CAGR (tasa anual compuesta)
-- Máximo drawdown registrado
-- Gráfico de línea con la evolución del portfolio a lo largo del tiempo
-- Toggle ARS / USD para cambiar la unidad del gráfico
+- Rendimiento del año, CAGR nominal y **CAGR real** (descontando inflación), máximo drawdown
+- Gráfico de evolución con toggle ARS / USD
+- Comparación contra S&P 500, Merval y NASDAQ, y contra IPC y CER/UVA
 - Timeline de todos los snapshots con la variación porcentual entre cada uno
+
+#### Análisis y planificación
+- **Análisis** (`/analysis`): concentración por sector, país e industria
+- **Ganancia Real** (`/real-gains`): cuánto de la ganancia en USD es apreciación de la acción y cuánto es efecto del CCL
+- **Rebalanceo** (`/rebalance`): pesos objetivo por ticker y desvío actual
+- **Plan DCA** (`/plan`): cómo repartir el aporte del mes según los objetivos
+- **Jubilación** (`/retirement`): capital necesario, proyección y Monte Carlo
 
 #### Snapshots (`/snapshots`)
 - Lista cronológica de todos los snapshots importados
@@ -120,10 +126,10 @@ Una vez importado el snapshot, podés navegar las cuatro secciones del dashboard
 - Tabla de posiciones con todos los datos
 - Panel de distribución
 
-#### Assets (`/assets`)
-- Catálogo de CEDEARs con su ratio de conversión
-- Permite agregar, editar y eliminar activos de referencia
-- El ratio se usa para validar y enriquecer los cálculos en USD
+#### Assets (`/assets`) — solo ADMIN
+- Catálogo de CEDEARs con su ratio de conversión, subyacente, sector, industria y país
+- Permite agregar, editar y eliminar activos de referencia (el catálogo es compartido por todos los usuarios)
+- El ratio y el subyacente se usan para los cálculos en USD (precios de Yahoo, ganancia real, plan DCA)
 
 ---
 
@@ -131,10 +137,12 @@ Una vez importado el snapshot, podés navegar las cuatro secciones del dashboard
 
 | Regla | Descripción |
 |---|---|
-| Snapshots inmutables | Una vez importado, un snapshot no puede modificarse ni sobreescribirse |
-| Una fecha, un snapshot | No pueden existir dos snapshots para la misma fecha |
+| Snapshots inmutables | Una vez importado, un snapshot no puede modificarse ni sobreescribirse (sí borrarse, para reimportarlo) |
+| Una fecha, un snapshot | No pueden existir dos snapshots para la misma fecha (por usuario) |
 | Datos históricos preservados | El historial nunca se modifica; los nuevos snapshots se agregan al final |
 | Fuente única de datos | Todo el historial proviene de CSV exportados de Cocos Capital |
+| Importación idempotente | Reimportar movimientos no duplica: se deduplica por número de ticket |
+| Datos por usuario | Cada usuario ve solo sus snapshots, transacciones, objetivos e hitos; el CCL, los precios y el catálogo de assets son compartidos |
 
 ---
 
@@ -143,19 +151,17 @@ Una vez importado el snapshot, podés navegar las cuatro secciones del dashboard
 ```
 Cocos Capital
      │
-     │  Exportar CSV
-     ▼
-Archivo CSV local
+     ├── CSV de Portfolio ──► PortfolioSnapshot (inmutable) ──► Positions
      │
-     │  Importar CSV en la plataforma
-     ▼
-PortfolioSnapshot (inmutable)
+     ├── CSV de Actividad ──► Movement (libro) ──► Transaction (solo compras/ventas) ──► PPM, P&L
      │
-     ├── Positions (posiciones del snapshot)
-     │
-     ▼
-Dashboard / Performance / Snapshots
-(lectura y visualización)
+     └── PDF de tenencia  ──► Claude + web search ──► PortfolioReport
+
+dolarapi / argentinadatos / Yahoo ──► caches en DB (CCL, precios, benchmarks, IPC/CER)
+                                            │
+                                            ▼
+              Dashboard / Performance / Análisis / Ganancia real / Plan DCA / Jubilación
+                                  (lectura y visualización)
 ```
 
 ---
@@ -164,7 +170,7 @@ Dashboard / Performance / Snapshots
 
 | Frecuencia | Acción |
 |---|---|
-| **Mensual** | Exportar e importar un snapshot nuevo para registrar el estado del mes |
+| **Mensual** | Exportar e importar un snapshot nuevo y el CSV de movimientos del mes; actualizar CCL y precios en `/datos`; revisar el Plan DCA |
 | **Semestral** | Revisar la página de Performance para evaluar el crecimiento del portfolio |
 | **Cuando cambia un ratio** | Actualizar el ratio CEDEAR correspondiente en la sección Assets |
 

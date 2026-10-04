@@ -10,7 +10,7 @@ Documentación técnica y funcional completa de la aplicación **Portfolio Jubil
 
 ## ¿Qué es la app?
 
-Un tracker privado (single-user con autenticación) que:
+Un tracker privado (multiusuario con autenticación: cada usuario ve solo sus datos; el registro público está cerrado) que:
 
 1. Importa **snapshots inmutables** del portafolio desde CSV exportados de Cocos Capital.
 2. Registra **transacciones** (compras/ventas) y **dividendos** para calcular PPM y P&L.
@@ -36,6 +36,10 @@ Un tracker privado (single-user con autenticación) que:
 | [integraciones.md](./integraciones.md) | Cocos Capital, dolarapi.com, argentinadatos.com, Yahoo Finance, Anthropic. |
 | [componentes.md](./componentes.md) | Componentes de UI por dominio, layout y sistema de onboarding/tours. |
 | [desarrollo.md](./desarrollo.md) | Setup local, scripts, migraciones, convenciones de código y deploy. |
+| [adr/](./adr/README.md) | **Architecture Decision Records**: por qué se tomó cada decisión de arquitectura, con sus alternativas y consecuencias. |
+| [flujo-de-uso.md](./flujo-de-uso.md) | Flujo operativo mensual y guía de importación. |
+| [datos-del-portfolio.md](./datos-del-portfolio.md) | Qué métrica muestra cada pantalla y cómo se calcula. |
+| [movimientos/analisis-csv-movimientos.md](./movimientos/analisis-csv-movimientos.md) | Análisis del formato del CSV de movimientos de Cocos. |
 
 ---
 
@@ -71,3 +75,6 @@ Un tracker privado (single-user con autenticación) que:
 4. **Decimal para dinero.** Todos los valores financieros se guardan como `Decimal` en Prisma y se convierten con `Number(...)` al exponerlos.
 5. **Datos externos cacheados.** Yahoo Finance y CCL se persisten en DB para no depender de llamadas repetidas.
 6. **Lógica separada de la UI.** Cálculos puros en `lib/`, accesos a DB en `app/actions/` y en los helpers `lib/*-data.ts`.
+7. **Aislamiento por usuario.** Los datos del portafolio llevan `userId` y toda lectura/borrado filtra por el usuario de la sesión; los datos de mercado (CCL, precios, benchmarks, catálogo de assets) son globales.
+
+Cada uno de estos principios tiene su ADR con el contexto y las alternativas descartadas: ver [`adr/`](./adr/README.md).

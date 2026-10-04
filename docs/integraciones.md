@@ -21,7 +21,8 @@ Fuente primaria del estado del portafolio. No hay API: se descargan archivos CSV
 - Archivo: `movements_report_YYYY-MM-DD_YYYY-MM-DD.csv`.
 - Separador `;`; números con coma decimal, miles con punto; fechas `DD-MM-YYYY`.
 - Columnas: `nroticket, fechaejecucion, tipooperacion, instrumento, moneda, cantidad, precio, montobruto, comision, ddmm, iva, otros, total`.
-- Usado por `parseCocosMovimientosCsv` / `importMovimientos` (`app/actions/import-movements.ts`).
+- Parseado por `parseMovementCsv` (`lib/cocos-movements.ts`, puro: corre en el cliente para la previsualización) y persistido por `importMovements` (`app/actions/import-movements.ts`) de forma idempotente por `nroTicket`.
+- Análisis detallado del formato: [`movimientos/analisis-csv-movimientos.md`](./movimientos/analisis-csv-movimientos.md).
 
 ### C) PDF de tenencia
 
@@ -37,7 +38,7 @@ Guía visual y capturas: `components/guide/cocos-guide.tsx` (ruta `/guia`), con 
 - Campo usado: `venta ?? compra`.
 - Se guarda por fecha (medianoche local) en `ExchangeRate` con `source: "dolarapi.com"`.
 - Implementado en `fetchAndSaveCCL` (`app/actions/exchange-rate.ts`).
-- Disparado desde `CclUpdateButton` (Assets) y como parte del wizard de ganancia real.
+- Disparado desde `CclUpdateButton` (`/datos`, `/ccl`, `/assets`) y como parte del wizard de ganancia real.
 
 ---
 
@@ -57,7 +58,7 @@ Usados en `/performance` para comparar el portfolio contra la inflación.
 | IPC mensual | `GET /v1/finanzas/indices/inflacion` | `[{ fecha (fin de mes), valor: <% mensual> }]` | `BenchmarkPoint` con `benchmarkId: "inflacion"` como **índice acumulado base 100** |
 | CER (proxy UVA) | `GET /v1/finanzas/indices/uva` | `[{ fecha, valor }]` (índice diario) | `BenchmarkPoint` con `benchmarkId: "cer"` (valor directo) |
 
-- Implementado en `app/actions/indices.ts` (`fetchAndSaveInflation`, `fetchAndSaveCer`).
+- Implementado en `app/actions/indices.ts` (`fetchAndSaveInflation`, `fetchAndSaveCer`, y `fetchAndSaveAllIndices` que corre ambos desde el primer snapshot del usuario).
 - El IPC se compone con `buildCumulativeIndex` (`lib/inflation.ts`) porque la API entrega **tasas**, no un índice.
 - No existe endpoint `/cer` en argentinadatos; **UVA** es el índice diario basado en CER.
 - La lectura (`getIndexPoints`) reutiliza `getBenchmarkPoints`, que normaliza a base 100.
@@ -66,7 +67,7 @@ Usados en `/performance` para comparar el portfolio contra la inflación.
 
 ## 4. Yahoo Finance — precios
 
-Cliente propio en `lib/yahoo-finance-client.ts` (no usa `yahoo-finance2`). Implementa el flujo **cookie + crumb** que Yahoo exige desde 2023.
+Cliente propio en `lib/yahoo-finance-client.ts` (no usa `yahoo-finance2`). Implementa el flujo **cookie + crumb** que Yahoo exige desde 2023, con `fetch` nativo para que funcione en cualquier entorno server ([ADR-0007](./adr/0007-cliente-propio-de-yahoo-finance.md)).
 
 ### Autenticación
 
@@ -98,7 +99,7 @@ Cliente propio en `lib/yahoo-finance-client.ts` (no usa `yahoo-finance2`). Imple
 
 ### Limitaciones conocidas
 
-- Sin `AbortController`/timeout: un cuelgue de red bloquea la server action.
+- Sin `AbortController`/timeout (tampoco en los fetch a dolarapi/argentinadatos): un cuelgue de red bloquea la server action.
 - La caché de auth puede expirar antes de 23 h; no hay reintento de re-auth automático (solo fallback `query1 → query2`).
 
 ---
@@ -106,10 +107,12 @@ Cliente propio en `lib/yahoo-finance-client.ts` (no usa `yahoo-finance2`). Imple
 ## 5. Anthropic (Claude) — análisis mensual
 
 - Endpoint: `POST https://api.anthropic.com/v1/messages` con **streaming** (`stream: true`).
-- Variables de entorno: `ANTHROPIC_API_KEY` (obligatoria), `ANTHROPIC_MODEL` (default `claude-sonnet-5`), `ANTHROPIC_EFFORT` (default `low`: `low|medium|high|max`), `ANTHROPIC_TIMEOUT_MS` (default `900000`, 15 min).
+- Variables de entorno: `ANTHROPIC_API_KEY` (obligatoria), `ANTHROPIC_MODEL` (default `claude-sonnet-5`), `ANTHROPIC_EFFORT` (default `low`: `low|medium|high|max`), `ANTHROPIC_TIMEOUT_MS` (default y máximo `290000`, por debajo de `maxDuration`).
 - Modelo: `process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5"`, `max_tokens: 32000`, `output_config: { effort: process.env.ANTHROPIC_EFFORT ?? "low" }`.
 - El `effort` controla cuánto "piensa" Sonnet 5 (thinking adaptativo). Bajarlo reduce tokens de salida, costo y evita cortes por `max_tokens`.
-- El route loguea por corrida: `stop_reason`, tipos de bloque, tokens (input / cache_write / cache_read / output / thinking) y **costo estimado en USD** usando los precios de Sonnet 5 (input $2/MTok, output $10/MTok, cache write 1.25×, cache read 0.1×).
+- El route lee el uso de tokens del stream (input / cache_write / cache_read / output) y calcula el **costo estimado en USD** con los precios de Sonnet 5 (input $2/MTok, output $10/MTok, cache write 1.25×, cache read 0.1×). Lo devuelve en el header `x-estimated-cost-usd`. Los precios están hardcodeados en el route: si cambiás `ANTHROPIC_MODEL`, el costo estimado deja de ser exacto.
+- `maxDuration = 300` s en el route; el timeout propio se acota a 290 s para devolver un `504` claro antes de que la plataforma corte (ver [api-y-exportacion.md](./api-y-exportacion.md#errores)).
+- Se llama con `fetch` directo, sin el SDK de Anthropic ([ADR-0011](./adr/0011-analisis-mensual-con-claude-y-estrategia-versionada.md)).
 - Tool: `web_search_20250305` (`web_search`, `max_uses: 12`) para consultar CCL, precios y noticias.
 - `system` = contenido de la `InvestmentStrategy` activa (editable y versionada en `/strategy`).
 - Entrada: el PDF de tenencia de Cocos en base64 + instrucciones.
@@ -124,12 +127,14 @@ Detalle completo en [api-y-exportacion.md](./api-y-exportacion.md#post-apianalyz
 
 | Fuente | Dato | Actualización | Cache |
 |---|---|---|---|
-| Cocos Capital (CSV) | Posiciones y movimientos | Manual (importación) | DB (`portfolio_snapshots`, `transactions`) |
+| Cocos Capital (CSV) | Posiciones y movimientos | Manual (importación) | DB (`portfolio_snapshots`, `movements`, `transactions`) |
 | Cocos Capital (PDF) | Tenencia para IA | Manual (upload) | DB (`portfolio_reports`) |
 | dolarapi.com | CCL actual | Manual (botón) | `exchange_rates` |
 | argentinadatos.com | CCL histórico | Manual (wizard/backfill) | `exchange_rates` |
-| argentinadatos.com | Inflación (IPC) y CER/UVA | Manual (botón en `/performance`) | `benchmark_points` |
+| argentinadatos.com | Inflación (IPC) y CER/UVA | Manual (botón en `/datos` o carga on-demand en `/performance`) | `benchmark_points` |
 | Yahoo Finance | Precios actuales e históricos | Manual (botones) | `market_price_cache`, `historical_price_cache`, `benchmark_points` |
 | Anthropic | Análisis mensual | Manual (upload PDF) | `portfolio_reports` |
 
-Variables de entorno relacionadas: `ANTHROPIC_API_KEY`, `DATABASE_URL` (ver [arquitectura.md](./arquitectura.md#variables-de-entorno)).
+Variables de entorno relacionadas: `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `ANTHROPIC_EFFORT`, `ANTHROPIC_TIMEOUT_MS`, `DATABASE_URL` (ver [arquitectura.md](./arquitectura.md#variables-de-entorno)).
+
+La decisión de cachear todo en DB y refrescar solo con botones está registrada en [ADR-0006](./adr/0006-datos-externos-cacheados-en-db-con-refresco-manual.md).

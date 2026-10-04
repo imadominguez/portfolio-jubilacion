@@ -41,7 +41,7 @@ El **registro público está cerrado por defecto**: `/register` redirige a `/log
 | `build` | `next build` | Build de producción. |
 | `start` | `next start` | Servidor de producción. |
 | `lint` | `eslint` | Lint. |
-| `test` | `vitest run` | Tests unitarios (parser de movimientos). |
+| `test` | `vitest run` | Tests unitarios de la lógica pura de `lib/` (`*.test.ts`). |
 | `test:watch` | `vitest` | Tests en modo watch. |
 | `db:seed` | `npx tsx prisma/seed.ts` | Seed de estrategia + admins. |
 | `db:strategy` | `npx tsx scripts/refresh-strategy.ts` | Activa la estrategia compacta de `lib/default-strategy.ts` como nueva versión (idempotente). |
@@ -97,7 +97,7 @@ o con Prisma Studio. Alternativas de bootstrap:
 | `ANTHROPIC_API_KEY` | Para `/portfolio` | Análisis con Claude. |
 | `ANTHROPIC_MODEL` | Opcional | Modelo Claude (default `claude-sonnet-5`). |
 | `ANTHROPIC_EFFORT` | Opcional | Nivel de razonamiento `low\|medium\|high\|max` (default `low`). |
-| `ANTHROPIC_TIMEOUT_MS` | Opcional | Timeout del análisis en ms (default `900000`). |
+| `ANTHROPIC_TIMEOUT_MS` | Opcional | Timeout del análisis en ms (default y máximo `290000`, por debajo de `maxDuration`). |
 | `SEED_ADMIN_EMAIL` | Opcional | Emails (coma-separados) a promover en el seed. |
 | `ALLOW_PUBLIC_SIGNUP` | Opcional | `true` reactiva el registro público en `/register` (por defecto cerrado). |
 
@@ -117,6 +117,9 @@ Definidas en `.cursor/rules.md`:
 - **Sin `console.log`** en código de producción; comentarios que expliquen el *por qué*.
 - UI: usar shadcn/ui, `SiteHeader` para headers, `ChartContainer` para gráficos, `Intl.*` con locale `"es-AR"`, `key` estables en listas.
 - Roles: `lib/user-role.ts` (`isAdminRole`); los items admin van bajo `NAV_CONFIG` en el sidebar y deben coincidir con `ADMIN_PATH_PREFIXES` del proxy (`proxy.ts`).
+- **Datos de usuario:** toda lectura/borrado filtra por `userId` (`requireUserId()`); después de mutar, revalidar con los helpers de `lib/revalidate.ts`.
+- **Lógica nueva** (cálculos, parsers): función pura en `lib/` + `*.test.ts` al lado.
+- **Decisiones de arquitectura:** si un cambio contradice o reemplaza algo registrado en [`adr/`](./adr/README.md), agregar un ADR nuevo (y marcar el anterior como *Reemplazado*) en lugar de editar el viejo.
 
 ---
 
@@ -126,8 +129,9 @@ Definidas en `.cursor/rules.md`:
 # desarrollo
 npm run dev
 
-# validar antes de commitear
+# validar antes de commitear (mismo orden que el CI)
 npm run lint
+npm test                                        # o un archivo: npx vitest run lib/dca-planner.test.ts
 npm run build
 
 # cambios de esquema
@@ -148,14 +152,39 @@ npm run db:seed
 
 ## Notas y deuda técnica
 
+### Repositorio y CI
+
+- **Fixtures reales vs sintéticos:** `__fixtures__/` (CSV reales de la cuenta) está ignorado. `lib/cocos-movements.test.ts` usa un CSV sintético embebido que cubre cada tipo de operación; los tests contra los archivos reales son una regresión local que se saltea (`describe.skipIf`) cuando no están, como en CI.
+- **Scripts:** `scripts/*` está ignorado salvo las excepciones explícitas en `.gitignore`. Un script nuevo que se use desde `package.json` o la doc necesita su línea `!scripts/<nombre>`.
+- Las exportaciones reales de la cuenta en `docs/movimientos/*.csv` y `docs/portfolio_report/` están ignoradas: no versionarlas.
+- Hay `package-lock.json` y `pnpm-lock.yaml`; el CI usa npm.
+- `xlsx` y `@types/xlsx` siguen en `dependencies` pero ya no se importan en ningún archivo (quedaron de la importación XLSX que se eliminó).
+
+### Seguridad
+
+- Las actions de refresco de mercado (`exchange-rate`, `market-prices`, `historical-prices`, `benchmarks`, `indices`) no validan sesión dentro de la action (dependen del proxy); solo escriben caches globales de datos públicos.
+- `scripts/seed-admin.mjs` tiene la contraseña `Admin1234!` hardcodeada.
+
+### Integraciones
+
+- Los precios de Sonnet 5 para el costo estimado están hardcodeados en el route; cambiar `ANTHROPIC_MODEL` hace que el costo informado sea incorrecto.
 - **Sin timeouts** en `lib/yahoo-finance-client.ts` ni en los fetch a dolarapi/argentinadatos.
 - **Caché de auth de Yahoo** de 23 h sin reintento de re-auth ante 401.
-- **`getPreviousSnapshot` y `getSnapshotCount`** no tienen consumidores detectados.
-- **Tolerancias documentadas vs código:** el mensaje de ganancia real menciona ±3 días para precio histórico, pero el código usa 5.
-- **Monte Carlo** usa volatilidad mensual fija (4%) independiente de los inputs.
-- Los CSV exportados no incluyen BOM UTF-8.
 
-> **Resuelto:** el aislamiento por ownership (deletes y API routes de export filtran por `userId`), el registro público cerrado por defecto y `PortfolioReport` ahora guarda `userId`.
+### Código
+
+- **`getPreviousSnapshot` y `getSnapshotCount`** (`lib/portfolio-data.ts`) no tienen consumidores.
+- **Tolerancias documentadas vs código:** el `missingReason` de ganancia real (`lib/real-gains-data.ts`) dice "±3 días" para el precio histórico, pero `PRICE_TOLERANCE_DAYS = 5`.
+- **Monte Carlo** usa volatilidad mensual fija (4%) independiente de los inputs.
+- Los CSV exportados no incluyen BOM UTF-8; las rutas de export no tienen `try/catch` alrededor de la DB.
+- `/portfolio` no usa `SiteHeader` (excepción a la convención de UI).
+
+> **Resuelto:**
+> - El aislamiento por ownership (deletes, reportes y API routes de export filtran por `userId`), el registro público cerrado por defecto y `PortfolioReport` con `userId`.
+> - Los tests ya no fallan en un checkout limpio: CSV sintético embebido + regresión con archivos reales salteada si faltan.
+> - Las actions de `strategy.ts` exigen rol ADMIN (`requireAdmin()` en `lib/auth-session.ts`, compartido con `assets.ts`) y `POST /api/analyze-portfolio` responde `403` a no-admins.
+> - El timeout del análisis se acota a 290 s para vencer antes de `maxDuration` (300 s).
+> - `scripts/refresh-strategy.ts` y `backfill-movements.ts` versionados (`npm run db:strategy` funciona en un clone nuevo); los CSV reales de `docs/` ignorados.
 
 ---
 
@@ -166,3 +195,4 @@ npm run db:seed
 - [modelo-de-datos.md](./modelo-de-datos.md) — schema Prisma.
 - [flujo-de-uso.md](./flujo-de-uso.md) — flujo operativo mensual.
 - [datos-del-portfolio.md](./datos-del-portfolio.md) — métricas por pantalla.
+- [adr/](./adr/README.md) — registro de decisiones de arquitectura.

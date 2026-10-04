@@ -2,6 +2,8 @@
 
 This project is a personal financial dashboard used to manage a long-term investment portfolio focused on CEDEARs. The system is designed for private use and imports portfolio snapshots from Cocos Capital CSV exports.
 
+> **Source of truth:** the architecture and module lists below are a summary and may lag behind the code. For the current state, read `docs/arquitectura.md`, `docs/modulos.md` and `docs/server-actions.md`; for the reasons behind each design decision, read `docs/adr/`.
+
 ---
 
 ## Goals
@@ -94,17 +96,22 @@ lib/
 | Route | Description |
 |-------|-------------|
 | `/` | Dashboard: KPIs (ARS/USD/CCL/positions/change vs prev), unrealized P&L, dividends, chart, performers, holdings table, milestones |
-| `/performance` | CAGR, max drawdown, yearly return, portfolio chart, benchmarks overlay (S&P 500, Merval, Nasdaq), snapshot timeline |
+| `/performance` | CAGR, real CAGR (inflation-adjusted), max drawdown, yearly return, portfolio chart, benchmarks overlay (S&P 500, Merval, Nasdaq), inflation chart (IPC, CER/UVA), snapshot timeline |
 | `/ccl` | CCL history chart with dual Y-axis, overlay portfolio USD, KPIs (current/1m/YTD/1y change) |
 | `/snapshots` | Chronological list with % change; detail page per snapshot |
 | `/snapshots/[id]` | KPIs, AllocationPanel, HoldingsTable, export buttons (PDF/HTML/CSV) |
 | `/analysis` | Concentration by sector, country, industry (pie + bar charts) |
 | `/rebalance` | TargetAllocation vs current positions, deviation, suggested actions |
-| `/transactions` | BUY/SELL history, PPM per ticker, realized P&L, dividends, import, CSV export |
+| `/transactions` | BUY/SELL history, PPM per ticker, realized P&L, dividends, Cocos movements ledger (with FCI view), import, CSV export |
+| `/plan` | Deterministic monthly DCA plan (`lib/dca-planner.ts`), no AI |
+| `/datos` | Data hub: setup checklist, imports, CCL/prices/indices refresh, historical backfill |
+| `/guia` | Visual guide to export CSVs from Cocos; onboarding tour targets |
 | `/retirement` | Retirement calculator, deterministic projection curve, Monte Carlo simulation |
 | `/real-gains` | Real USD gains broken down by underlying appreciation vs CCL impact |
-| `/assets` | CEDEAR catalog (ratio, sector, industry, country, underlying ticker), inline editing |
-| `/settings` | Milestone management (USD targets, reached status) |
+| `/assets` | (ADMIN) CEDEAR catalog (ratio, sector, industry, country, underlying ticker), inline editing |
+| `/strategy` | (ADMIN) Versioned investment strategy = system prompt of the AI analysis |
+| `/settings` | (ADMIN) Milestone management (USD targets, reached status) |
+| `/portfolio` | (ADMIN) Monthly AI report from the Cocos holdings PDF (Claude + web search) and report history |
 
 ---
 

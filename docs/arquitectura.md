@@ -26,11 +26,14 @@ app/
   layout.tsx                    Layout raíz: fuentes, ThemeProvider (dark por defecto), Toaster
   globals.css                   Tailwind v4 + tokens de tema (OKLCH), animaciones, estilos de tour
   (auth)/
-    login/page.tsx              Login (client component)
-    register/page.tsx           Registro (client component)
+    login/                      page.tsx (server, dinámico) + login-form.tsx (client)
+    register/                   page.tsx redirige a /login salvo ALLOW_PUBLIC_SIGNUP=true + register-form.tsx
+    error.tsx                   Error boundary de auth
   (app)/                        Zona autenticada con sidebar
     layout.tsx                  Server component: calcula isAdmin y monta Onboarding/Tooltip/Sidebar
+    error.tsx / not-found.tsx   Error boundary y 404 compartidos; cada ruta tiene su loading.tsx
     page.tsx                    Dashboard
+    plan/                       Plan DCA determinista del mes
     performance/                CAGR, drawdown, benchmarks
     ccl/                        Historial CCL
     snapshots/                  Listado + [id] detalle
@@ -55,9 +58,10 @@ app/
       transactions/             CSV de transacciones
   generated/prisma/             Cliente Prisma generado (no editar a mano)
 components/
-  layout/                       AppSidebar, SiteHeader
-  dashboard/                    Hero, HoldingsTable, AllocationPanel, PerformersPanel, MilestoneWidget, chart widget, empty
-  performance/                  PerformanceChart, BenchmarkOverlayChart
+  layout/                       AppSidebar, SiteHeader, CommandMenu
+  dashboard/                    Hero, KpiStrip, AnalysisTools, HoldingsTable, AllocationPanel, PerformersPanel, MilestoneWidget, chart widget, empty
+  performance/                  PerformanceChart, BenchmarkOverlayChart, InflationChart
+  plan/                         DcaPlannerClient
   analysis/                     ConcentrationCharts, PortfolioAnalyzer, ReportHistorial
   assets/                       AssetDialog, AssetsTableClient
   snapshots/                    ImportCsvSheet, ImportButton
@@ -66,8 +70,8 @@ components/
   retirement/                   RetirementClient
   strategy/                     StrategyEditor
   settings/                     MilestonesClient
-  real-gains/                   RealGainsWizard, RealGainsUpdateButton
-  ccl/  exchange-rate/  market/ chart + botones de actualización
+  real-gains/                   RealGainsWizard, RealGainsUpdateButton, KpiCard, BreakdownBar, PositionsTable, MethodologyNote
+  ccl/  exchange-rate/  market/ chart + botones de actualización (CCL, precios, índices)
   export/                       ExportButtons, CsvExportButton, portfolio-pdf
   onboarding/                   Provider, card, trigger y sincronizadores de tour
   setup/                        Wizard de bienvenida, checklist de puesta en marcha y orquestador
@@ -77,14 +81,20 @@ lib/
   db.ts                         Singleton de Prisma (adapter pg)
   auth.ts                       Config Better Auth (server)
   auth-client.ts                Cliente Better Auth (browser)
-  auth-session.ts               getSession / requireAuth
+  auth-session.ts               getSession / requireAuth / requireUserId / requireAdmin
   user-role.ts                  isAdminRole / ADMIN_ROLE
   portfolio-data.ts             Lecturas de snapshots (Prisma, read-only)
   analysis-data.ts              Concentración (Prisma, read-only)
   real-gains-data.ts            Ganancia real USD (Prisma, read-only)
-  cocos-movements.ts            Parser puro de movimientos de Cocos + categorización + tests
+  cocos-movements.ts            Parser puro de movimientos de Cocos + categorización (corre en cliente y servidor)
+  number-parsing.ts             Parseo de números en formato es-AR / Cocos
+  format.ts                     Formateadores Intl (ARS/USD/fechas) compartidos
   revalidate.ts                 Helpers centralizados de revalidación de rutas
   projections.ts                Cálculos puros de jubilación (sin Prisma)
+  inflation.ts                  Índice acumulado de IPC, anualización y rendimiento real
+  dca-planner.ts                Plan DCA determinista (water-filling sobre el gap)
+  report-normalizer.ts          extractJson + normalizarReporte del análisis con IA
+  default-strategy.ts           Estrategia por defecto (system prompt) para seed/refresh
   setup-status.ts               Derivación pura del estado de onboarding/setup
   glossary.ts                   Definiciones de términos financieros (tooltips)
   benchmarks-config.ts          Catálogo de benchmarks
@@ -95,10 +105,14 @@ prisma/
   schema.prisma                 Modelos y enums
   migrations/                   Historial de migraciones
   seed.ts                       Seed de estrategia + promoción de admins
-scripts/
+scripts/                        (ignorado por .gitignore salvo los scripts listados abajo)
   seed-admin.mjs                Bootstrap de un admin (SQL directo + hash scrypt)
   add-user-id-columns.mjs       Script de migración puntual de columnas userId
+  refresh-strategy.ts           Activa lib/default-strategy.ts como nueva versión (npm run db:strategy)
+  backfill-movements.ts         Vincula transacciones legacy al libro de movimientos (one-shot)
 ```
+
+Los tests (`*.test.ts`, Vitest) viven junto al módulo de `lib/` que prueban.
 
 ---
 
@@ -119,7 +133,8 @@ Reglas de la arquitectura (ver `.cursor/rules.md`):
 - **RSC pages** (`app/(app)/**/page.tsx`) hacen el fetch de datos en el servidor y los pasan como props a componentes cliente.
 - **`lib/` sin Prisma** salvo los helpers de lectura permitidos: `portfolio-data.ts`, `analysis-data.ts`, `real-gains-data.ts`.
 - **Toda mutación** pasa por Server Actions que devuelven uniones discriminadas `{ success: true, ... } | { success: false, error }`.
-- **API routes** solo para binarios (PDF/CSV/HTML) y la integración con IA. Las tres rutas de export y el análisis requieren sesión por middleware, pero **no** validan rol ni ownership internamente.
+- **API routes** solo para binarios (PDF/CSV/HTML) y la integración con IA. Además del proxy, cada ruta valida la sesión (`401` si falta) y filtra por `userId` (un snapshot ajeno responde `404`).
+- **Aislamiento por usuario:** los datos del portafolio se leen y borran siempre con `where: { ..., userId }` (`requireUserId()`); los datos de mercado son globales. Ver [ADR-0008](./adr/0008-aislamiento-por-usuario-y-datos-de-mercado-globales.md).
 - **`Decimal` → `Number(...)`** explícito al exponer valores al cliente.
 
 ---
@@ -136,19 +151,22 @@ betterAuth({
       role: { type: "string", defaultValue: "USER", required: false, input: false },
     },
   },
-  emailAndPassword: { enabled: true },
+  emailAndPassword: { enabled: true, disableSignUp: !allowPublicSignup },
 });
 ```
 
 - `input: false` impide que el cliente envíe `role` en el registro → **no hay escalada de privilegios desde el front**.
+- **Registro cerrado por defecto:** `allowPublicSignup = process.env.ALLOW_PUBLIC_SIGNUP === "true"`. Si es `false`, Better Auth rechaza el alta y `/register` redirige a `/login`. Las páginas de auth son `force-dynamic` para que el flag se evalúe por request y no en build.
 - El cliente (`lib/auth-client.ts`) usa `inferAdditionalFields<Auth>()` para tipar `session.user.role` y `baseURL` = `NEXT_PUBLIC_APP_URL` (fallback `http://localhost:3000`).
 
 ### Helpers server-side (`lib/auth-session.ts`)
 
 | Función | Comportamiento |
 |---|---|
-| `getSession()` | `auth.api.getSession({ headers })`. Devuelve `Session \| null`. Usado en helpers de lectura y layouts. |
-| `requireAuth()` | Llama a `getSession()` y **lanza `Error("No autenticado")`** si no hay sesión. Usado en Server Actions que acceden a datos de usuario. |
+| `getSession()` | `auth.api.getSession({ headers })` envuelto en `React.cache()`: se deduplica dentro del mismo request (el dashboard dispara ~10 lecturas en paralelo). Devuelve `Session \| null`. |
+| `requireAuth()` | Llama a `getSession()` y **lanza `Error("No autenticado")`** si no hay sesión. |
+| `requireUserId()` | `requireAuth()` y devuelve `session.user.id`. Es el helper a usar en toda lectura/escritura de datos de usuario. |
+| `requireAdmin()` | `requireAuth()` y lanza `"No autorizado…"` si el rol no es ADMIN. Para actions sobre datos administrados (catálogo, estrategia). |
 
 ### Roles (`lib/user-role.ts`)
 
@@ -172,7 +190,7 @@ Flujo:
 5. **Rutas solo-ADMIN** (`ADMIN_PATH_PREFIXES = ["/assets", "/strategy", "/settings", "/portfolio"]` y sus subrutas): si `!isAdminRole(session.user.role)` → `redirect("/")`.
 6. En el resto, `NextResponse.next()`.
 
-> La restricción de rol de las rutas admin vive en el proxy y en el ocultamiento del grupo en el sidebar. Además, las actions de `assets.ts` revalidan rol ADMIN (defensa en profundidad).
+> La restricción de rol de las rutas admin vive en el proxy y en el ocultamiento del grupo en el sidebar. Como el proxy protege páginas y no Server Actions, las actions de `assets.ts` y `strategy.ts` y `POST /api/analyze-portfolio` revalidan el rol ADMIN por su cuenta (`requireAdmin()` / `isAdminRole`).
 
 ### UI de rol
 
@@ -190,6 +208,7 @@ Flujo:
 | `ANTHROPIC_API_KEY` | Para `/portfolio` | Header `x-api-key` del análisis con Claude. |
 | `ANTHROPIC_MODEL` / `ANTHROPIC_EFFORT` / `ANTHROPIC_TIMEOUT_MS` | Opcional | Config del análisis (modelo, effort, timeout). Ver [integraciones.md](./integraciones.md). |
 | `SEED_ADMIN_EMAIL` | Opcional | Lista separada por comas de emails existentes a promover a ADMIN en `prisma/seed.ts`. |
+| `ALLOW_PUBLIC_SIGNUP` | Opcional | `true` habilita el registro público (por defecto cerrado). |
 | `NODE_ENV` | Auto | Guard del singleton de Prisma. |
 
 > No hay `.env` ni `.env.example` versionados en el repositorio.
