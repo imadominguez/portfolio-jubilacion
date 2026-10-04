@@ -2,13 +2,30 @@
 
 import { db } from "@/lib/db";
 import type { InvestmentStrategy } from "@/app/generated/prisma/client";
+import { requireAdmin } from "@/lib/auth-session";
 import { revalidateStrategy } from "@/lib/revalidate";
 
+// La estrategia es global (system prompt del análisis IA): leerla y cambiarla
+// es exclusivo de ADMIN. /api/analyze-portfolio lee la activa directo de la DB.
+
+type StrategyError = { ok: false; error: string };
+
+async function adminGuard(): Promise<StrategyError | null> {
+  try {
+    await requireAdmin();
+    return null;
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "No autorizado." };
+  }
+}
+
 export async function getActiveStrategy(): Promise<InvestmentStrategy | null> {
+  await requireAdmin();
   return db.investmentStrategy.findFirst({ where: { isActive: true } });
 }
 
 export async function getStrategyHistory(): Promise<InvestmentStrategy[]> {
+  await requireAdmin();
   return db.investmentStrategy.findMany({
     orderBy: { createdAt: "desc" },
   });
@@ -17,7 +34,10 @@ export async function getStrategyHistory(): Promise<InvestmentStrategy[]> {
 export async function saveNewVersion(
   content: string,
   title: string
-): Promise<{ ok: true; strategy: InvestmentStrategy } | { ok: false; error: string }> {
+): Promise<{ ok: true; strategy: InvestmentStrategy } | StrategyError> {
+  const denied = await adminGuard();
+  if (denied) return denied;
+
   if (!content.trim()) return { ok: false, error: "El contenido no puede estar vacío." };
   if (!title.trim()) return { ok: false, error: "El título no puede estar vacío." };
 
@@ -48,7 +68,10 @@ export async function saveNewVersion(
 
 export async function restoreVersion(
   id: string
-): Promise<{ ok: true } | { ok: false; error: string }> {
+): Promise<{ ok: true } | StrategyError> {
+  const denied = await adminGuard();
+  if (denied) return denied;
+
   try {
     await db.$transaction(async (tx) => {
       await tx.investmentStrategy.updateMany({
