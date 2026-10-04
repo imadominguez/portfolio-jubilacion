@@ -55,7 +55,7 @@ export default async function PerformancePage() {
   if (snapshots.length === 0) {
     return (
       <div className="flex flex-col min-h-svh">
-        <SiteHeader title="Performance" description="Historial del portfolio" actions={<ImportButton />} />
+        <SiteHeader title="Performance" description="Historial del portfolio" />
         <main className="flex-1 flex items-center justify-center px-6 py-20">
           <div className="flex flex-col items-center gap-3 text-center max-w-xs">
             <TrendingUp className="size-8 text-muted-foreground/40" />
@@ -65,6 +65,7 @@ export default async function PerformancePage() {
             <p className="text-xs text-muted-foreground leading-relaxed">
               Importá al menos un snapshot para ver la evolución del portfolio.
             </p>
+            <ImportButton />
           </div>
         </main>
       </div>
@@ -156,7 +157,7 @@ export default async function PerformancePage() {
 
   return (
     <div className="flex flex-col min-h-svh">
-      <SiteHeader title="Performance" description="Historial del portfolio" actions={<ImportButton />} />
+      <SiteHeader title="Performance" description="Historial del portfolio" />
 
       <main className="flex-1 px-6 py-10 flex flex-col gap-6 max-w-6xl w-full mx-auto">
         {/* KPI row */}
