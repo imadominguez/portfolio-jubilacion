@@ -1,6 +1,6 @@
 # Módulos y rutas
 
-Descripción de cada página en `app/(app)/`. El layout común (`app/(app)/layout.tsx`) monta `OnboardingProvider → TooltipProvider → SidebarProvider → AppSidebar + SidebarInset`. Todas las rutas requieren sesión (proxy, `proxy.ts`); las marcadas **(ADMIN)** redirigen a `/` si el usuario no es admin. Todas tienen `loading.tsx` (skeletons) y comparten `error.tsx` / `not-found.tsx` del grupo `(app)`.
+Descripción de cada página en `app/(app)/`. El layout común (`app/(app)/layout.tsx`, síncrono: entra al static shell) monta `OnboardingProvider → TooltipProvider → SidebarProvider → AppSidebar + SidebarInset`; el grupo admin del sidebar se resuelve detrás de `<Suspense>`. **Estado de Cache Components (ADR-0017):** convertidas `/` y el layout; el resto conserva `instant = false` hasta su PR. Todas las rutas requieren sesión (proxy, `proxy.ts`); las marcadas **(ADMIN)** redirigen a `/` si el usuario no es admin. Todas tienen `loading.tsx` (skeletons) y comparten `error.tsx` / `not-found.tsx` del grupo `(app)`.
 
 Metadata raíz (`app/layout.tsx`): `title` por defecto `"Portfolio Jubilación"`, template `"%s | Portfolio Jubilación"`.
 
