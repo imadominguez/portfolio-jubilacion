@@ -198,7 +198,7 @@ export async function importMovements(
       return tradeRows.length;
     });
 
-    revalidateTrades();
+    revalidateTrades(session.user.id);
 
     const readiness = await getDataReadiness();
 

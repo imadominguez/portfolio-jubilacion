@@ -1,6 +1,8 @@
 "use server";
 
+import { cacheLife, cacheTag } from "next/cache";
 import { revalidateDividends } from "@/lib/revalidate";
+import { userTags } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
 import { requireAuth, requireUserId } from "@/lib/auth-session";
 import type { Currency } from "@/app/generated/prisma/client";
@@ -48,7 +50,7 @@ export async function createDividend(data: DividendFormData): Promise<DividendRe
       },
     });
 
-    revalidateDividends();
+    revalidateDividends(session.user.id);
     return { success: true, id: div.id };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error inesperado.";
@@ -63,7 +65,7 @@ export async function deleteDividend(id: string): Promise<{ success: boolean; er
     if (result.count === 0) {
       return { success: false, error: "No se encontró el dividendo." };
     }
-    revalidateDividends();
+    revalidateDividends(userId);
     return { success: true };
   } catch {
     return { success: false, error: "No se pudo eliminar el dividendo." };
@@ -88,9 +90,17 @@ export async function getAllDividends(): Promise<DividendRow[]> {
 }
 
 export async function getTotalDividendsUsd(): Promise<number> {
-  const session = await requireAuth();
+  return cachedTotalDividendsUsd(await requireUserId());
+}
+
+// No se exporta: recibe el userId ya resuelto de la sesión (ADR-0017).
+async function cachedTotalDividendsUsd(userId: string): Promise<number> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(userTags.dividends(userId));
+
   const divs = await db.dividend.findMany({
-    where: { currency: "USD", userId: session.user.id },
+    where: { currency: "USD", userId },
   });
   return divs.reduce((sum, d) => sum + Number(d.amount), 0);
 }

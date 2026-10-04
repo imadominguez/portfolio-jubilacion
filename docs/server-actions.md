@@ -1,28 +1,30 @@
 # Server Actions (`app/actions/`)
 
-Todas las mutaciones de la app pasan por Server Actions (`"use server"`). Cada archivo corresponde a un dominio. Patrón general: validar → operar con Prisma → revalidar rutas con los helpers de `lib/revalidate.ts` → devolver una unión discriminada.
+Todas las mutaciones de la app pasan por Server Actions (`"use server"`). Cada archivo corresponde a un dominio. Patrón general: validar → operar con Prisma → invalidar el caché con los helpers de `lib/revalidate.ts` → devolver una unión discriminada.
 
-### Revalidación (`lib/revalidate.ts`)
+### Caché e invalidación (`lib/cache-tags.ts`, `lib/revalidate.ts`)
 
-La app **no usa caché de datos de Next** (ni `unstable_cache` ni `"use cache"`): las lecturas van a Prisma en cada render y las páginas de `(app)` son dinámicas. Aun así, cada mutación invalida explícitamente las rutas que consumen los datos afectados mediante helpers por dominio:
+Las lecturas se cachean con `'use cache'` + `cacheLife("hours")` + `cacheTag` ([ADR-0017](./adr/0017-cache-components-partial-prerendering-y-prefetching.md)). El getter exportado resuelve el usuario de la sesión y llama a una función cacheada **no exportada** que recibe solo el `userId` (en un archivo `"use server"`, una función exportada que recibiera el `userId` sería una action invocable con cualquier id). Cada función cacheada declara un tag por cada dominio que lee:
 
-| Helper | Rutas que revalida |
-|---|---|
-| `revalidatePortfolioData()` | `/`, `/snapshots`, `/performance`, `/ccl`, `/analysis`, `/rebalance`, `/retirement`, `/settings`, `/real-gains`, `/datos` |
-| `revalidateTrades()` | `/`, `/transactions`, `/real-gains`, `/datos` |
-| `revalidateDividends()` | `/`, `/transactions` |
-| `revalidateAssets()` | `/assets`, `/`, `/analysis`, `/real-gains`, `/datos` |
-| `revalidateCcl()` | `/ccl`, `/real-gains`, `/datos` |
-| `revalidateMarketPrices()` | `/`, `/real-gains`, `/datos` |
-| `revalidateHistoricalPrices()` | `/real-gains`, `/datos` |
-| `revalidateBenchmarks()` | `/performance`, `/datos` |
-| `revalidateRebalance()` | `/rebalance`, `/`, `/datos` |
-| `revalidateMilestones()` | `/settings`, `/`, `/datos` |
-| `revalidateRetirement()` | `/retirement`, `/`, `/datos` |
-| `revalidateSetup()` | `/`, `/datos` |
-| `revalidateStrategy()` | `/strategy` |
+| Tag | Dominio | Helper que lo invalida |
+|---|---|---|
+| `snapshots:<userId>` | Snapshots y posiciones | `revalidatePortfolioData(userId)` |
+| `trades:<userId>` | Transacciones y movimientos | `revalidateTrades(userId)` |
+| `dividends:<userId>` | Dividendos | `revalidateDividends(userId)` |
+| `milestones:<userId>` | Hitos | `revalidateMilestones(userId)` |
+| `retirement:<userId>` | Configuración de retiro | `revalidateRetirement(userId)` |
+| `rebalance:<userId>` | Asignación objetivo | `revalidateRebalance(userId)` |
+| `setup:<userId>` | Estado de onboarding | `revalidateSetup(userId)` |
+| `assets` | Catálogo de assets | `revalidateAssets()` |
+| `ccl` | `ExchangeRate` | `revalidateCcl()` |
+| `market-prices` | `MarketPriceCache` | `revalidateMarketPrices()` |
+| `historical-prices` | `HistoricalPriceCache` | `revalidateHistoricalPrices()` |
+| `benchmarks` | Benchmarks e índices | `revalidateBenchmarks()` |
+| `strategy` | Estrategia | `revalidateStrategy()` |
 
-Al agregar una ruta que consume datos existentes, sumala al helper del dominio correspondiente en vez de llamar a `revalidatePath` suelto. Ver [ADR-0010](./adr/0010-sin-cache-de-datos-de-next-y-revalidacion-por-dominio.md).
+Los helpers usan `updateTag`: la siguiente lectura (incluso dentro de la misma action) espera datos frescos, y además se vacía el caché del router en el cliente, así que no hace falta `revalidatePath`. `updateTag` solo funciona en Server Actions; en un Route Handler usar `revalidateTag(tag, "max")`.
+
+Lecturas cacheadas hoy (las del Dashboard): `getLatestSnapshot`, `getPreviousSnapshotFull`, `getAllSnapshotPoints`, `getConcentrationData`, `calculateRealGains`, `calculatePPM`, `getMarketPrices`, `getTotalDividendsUsd`, `getMilestones`, `getRetirementSettings`, `getRebalanceData` y `getSetupStatus`. Al cachear una lectura nueva, sumá un tag por cada dominio que lee; al agregar una escritura, llamá al helper de su dominio.
 
 Autorización: las actions que leen/escriben datos de usuario llaman a `requireAuth()`/`requireUserId()` (lanzan si no hay sesión) y filtran por `userId`, **incluidos los borrados** (`deleteMany({ where: { id, userId } })`, que devuelve "no encontrado" si el registro es ajeno). Las actions sobre datos administrados (`assets.ts`, `strategy.ts`) llaman a `requireAdmin()`. Las de refresco de datos de mercado (exchange-rate, benchmarks, precios) **no** llaman a `requireAuth`: dependen solo de que el proxy exija sesión.
 

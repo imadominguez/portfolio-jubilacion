@@ -1,5 +1,7 @@
+import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db";
 import { requireUserId } from "@/lib/auth-session";
+import { marketTags, userTags } from "@/lib/cache-tags";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -196,7 +198,22 @@ export async function getDataReadiness(): Promise<DataReadiness> {
 // ---------------------------------------------------------------------------
 
 export async function calculateRealGains(): Promise<RealGainsSummary | null> {
-  const userId = await requireUserId();
+  return cachedRealGains(await requireUserId());
+}
+
+// No se exporta: recibe el userId ya resuelto de la sesión (ADR-0017). Cruza
+// datos del usuario con todo el historial de mercado, de ahí los seis tags.
+async function cachedRealGains(userId: string): Promise<RealGainsSummary | null> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(
+    userTags.snapshots(userId),
+    userTags.trades(userId),
+    marketTags.assets,
+    marketTags.ccl,
+    marketTags.historicalPrices,
+    marketTags.marketPrices
+  );
 
   // 1. Snapshot más reciente
   const snapshot = await db.portfolioSnapshot.findFirst({

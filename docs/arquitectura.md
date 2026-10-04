@@ -89,7 +89,8 @@ lib/
   cocos-movements.ts            Parser puro de movimientos de Cocos + categorización (corre en cliente y servidor)
   number-parsing.ts             Parseo de números en formato es-AR / Cocos
   format.ts                     Formateadores Intl (ARS/USD/fechas) compartidos
-  revalidate.ts                 Helpers centralizados de revalidación de rutas
+  cache-tags.ts                 Tags del caché de datos por dominio (por userId y globales)
+  revalidate.ts                 Helpers de invalidación por dominio (updateTag)
   projections.ts                Cálculos puros de jubilación (sin Prisma)
   inflation.ts                  Índice acumulado de IPC, anualización y rendimiento real
   dca-planner.ts                Plan DCA determinista (water-filling sobre el gap)
@@ -248,13 +249,14 @@ if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
 ```ts
 "use server";
 import { db } from "@/lib/db";
-import { revalidatePath } from "next/cache";
-import { requireAuth } from "@/lib/auth-session";
+import { requireUserId } from "@/lib/auth-session";
+import { revalidateTrades } from "@/lib/revalidate";
 
 export async function doSomething(input: InputType): Promise<Result> {
   try {
-    const session = await requireAuth();
-    // validar → operar con db → revalidatePath
+    const userId = await requireUserId();
+    // validar → operar con db (filtrando por userId)
+    revalidateTrades(userId); // updateTag del dominio, no revalidatePath
     return { success: true, ... };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : "Error inesperado." };

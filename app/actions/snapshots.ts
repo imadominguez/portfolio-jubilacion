@@ -309,7 +309,7 @@ export async function importSnapshot(formData: FormData): Promise<ImportResult> 
       },
     });
 
-    revalidatePortfolioData();
+    revalidatePortfolioData(userId);
 
     if (totalValueUsd && totalValueUsd > 0) {
       await checkAndUpdateMilestones(totalValueUsd);
@@ -344,7 +344,7 @@ export async function deleteSnapshot(
     if (result.count === 0) {
       return { success: false, error: "No se encontró el snapshot." };
     }
-    revalidatePortfolioData();
+    revalidatePortfolioData(userId);
     return { success: true };
   } catch {
     return { success: false, error: "No se pudo eliminar el snapshot." };
