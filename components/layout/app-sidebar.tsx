@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -73,17 +74,13 @@ const NAV_CONFIG: NavItem[] = [
   { label: "Reporte mensual", href: "/portfolio", icon: FileText },
 ];
 
-type NavSection = {
-  items: NavItem[];
-  label: string | null;
-};
-
 type AppSidebarProps = {
-  isAdmin: boolean;
+  // Grupo "Configuración": lo resuelve el servidor según el rol, detrás de su
+  // propio <Suspense>, para que el resto del sidebar quede en el static shell.
+  adminNav?: ReactNode;
 };
 
-export function AppSidebar({ isAdmin }: AppSidebarProps) {
-  const pathname = usePathname();
+export function AppSidebar({ adminNav }: AppSidebarProps) {
   const router = useRouter();
 
   async function handleSignOut() {
@@ -91,13 +88,6 @@ export function AppSidebar({ isAdmin }: AppSidebarProps) {
     router.push("/login");
     router.refresh();
   }
-
-  const sections: NavSection[] = [
-    { label: null, items: NAV_MAIN },
-    { label: "Análisis", items: NAV_ANALYSIS },
-    { label: "Datos", items: NAV_DATA },
-    ...(isAdmin ? [{ label: "Configuración" as const, items: NAV_CONFIG }] : []),
-  ];
 
   return (
     <Sidebar collapsible="icon">
@@ -122,74 +112,10 @@ export function AppSidebar({ isAdmin }: AppSidebarProps) {
       </SidebarHeader>
 
       <SidebarContent className="px-3 gap-1">
-        {sections.map(({ items, label }, groupIdx) => (
-          <div key={groupIdx}>
-            {groupIdx > 0 ? <SidebarSeparator className="my-2 opacity-80" /> : null}
-            <SidebarGroup className="p-0 gap-1">
-              {label ? (
-                <SidebarGroupLabel className="px-2 pb-1 text-[10px] font-semibold tracking-[0.2em] uppercase text-sidebar-foreground/38">
-                  {label}
-                </SidebarGroupLabel>
-              ) : null}
-              <SidebarGroupContent>
-                <SidebarMenu className="gap-1">
-                  {items.map(({ label: itemLabel, href, icon: Icon }) => {
-                    const isActive =
-                      href === "/" ? pathname === "/" : pathname.startsWith(href);
-
-                    return (
-                      <SidebarMenuItem key={href}>
-                        <SidebarMenuButton
-                          asChild
-                          isActive={isActive}
-                          tooltip={itemLabel}
-                          className={cn(
-                            "rounded-lg border border-transparent transition-colors duration-150",
-                            !isActive &&
-                              "hover:bg-sidebar-accent/50 hover:border-sidebar-border/40 hover:text-sidebar-foreground",
-                            isActive && "sidebar-active-item"
-                          )}
-                        >
-                          <Link
-                            href={href}
-                            id={
-                              href === "/snapshots"
-                                ? "tour-nav-snapshots"
-                                : href === "/guia"
-                                  ? "tour-nav-guia"
-                                  : href === "/transactions"
-                                    ? "tour-nav-transacciones"
-                                    : undefined
-                            }
-                          >
-                            <Icon
-                              className={cn(
-                                "size-4 shrink-0 transition-colors duration-150",
-                                isActive
-                                  ? "text-sidebar-accent-foreground"
-                                  : "text-sidebar-foreground/55"
-                              )}
-                            />
-                            <span
-                              className={cn(
-                                "text-sm transition-colors duration-150",
-                                isActive
-                                  ? "text-sidebar-accent-foreground font-semibold"
-                                  : "text-sidebar-foreground/72 font-medium"
-                              )}
-                            >
-                              {itemLabel}
-                            </span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </div>
-        ))}
+        <NavGroup label={null} items={NAV_MAIN} />
+        <NavGroup label="Análisis" items={NAV_ANALYSIS} separated />
+        <NavGroup label="Datos" items={NAV_DATA} separated />
+        {adminNav}
       </SidebarContent>
 
       <SidebarSeparator className="opacity-80" />
@@ -211,5 +137,97 @@ export function AppSidebar({ isAdmin }: AppSidebarProps) {
 
       <SidebarRail />
     </Sidebar>
+  );
+}
+
+export function AdminNavGroup() {
+  return <NavGroup label="Configuración" items={NAV_CONFIG} separated />;
+}
+
+function NavGroup({
+  label,
+  items,
+  separated = false,
+}: {
+  label: string | null;
+  items: NavItem[];
+  separated?: boolean;
+}) {
+  return (
+    <div>
+      {separated ? <SidebarSeparator className="my-2 opacity-80" /> : null}
+      <SidebarGroup className="p-0 gap-1">
+        {label ? (
+          <SidebarGroupLabel className="px-2 pb-1 text-[10px] font-semibold tracking-[0.2em] uppercase text-sidebar-foreground/38">
+            {label}
+          </SidebarGroupLabel>
+        ) : null}
+        <SidebarGroupContent>
+          {/* usePathname() se suspende al prerenderizar rutas con params
+              dinámicos (/snapshots/[id]): el fallback dibuja los mismos links
+              sin ítem activo, así el sidebar igual entra al static shell. */}
+          <Suspense fallback={<NavMenu items={items} pathname={null} />}>
+            <ActiveNavMenu items={items} />
+          </Suspense>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    </div>
+  );
+}
+
+function ActiveNavMenu({ items }: { items: NavItem[] }) {
+  const pathname = usePathname();
+  return <NavMenu items={items} pathname={pathname} />;
+}
+
+const TOUR_IDS: Record<string, string> = {
+  "/snapshots": "tour-nav-snapshots",
+  "/guia": "tour-nav-guia",
+  "/transactions": "tour-nav-transacciones",
+};
+
+function NavMenu({ items, pathname }: { items: NavItem[]; pathname: string | null }) {
+  return (
+    <SidebarMenu className="gap-1">
+      {items.map(({ label, href, icon: Icon }) => {
+        const isActive =
+          pathname !== null && (href === "/" ? pathname === "/" : pathname.startsWith(href));
+
+        return (
+          <SidebarMenuItem key={href}>
+            <SidebarMenuButton
+              asChild
+              isActive={isActive}
+              tooltip={label}
+              className={cn(
+                "rounded-lg border border-transparent transition-colors duration-150",
+                !isActive &&
+                  "hover:bg-sidebar-accent/50 hover:border-sidebar-border/40 hover:text-sidebar-foreground",
+                isActive && "sidebar-active-item"
+              )}
+            >
+              <Link href={href} id={TOUR_IDS[href]}>
+                <Icon
+                  className={cn(
+                    "size-4 shrink-0 transition-colors duration-150",
+                    isActive ? "text-sidebar-accent-foreground" : "text-sidebar-foreground/55"
+                  )}
+                />
+                <span
+                  className={cn(
+                    "text-sm transition-colors duration-150",
+                    isActive
+                      ? "text-sidebar-accent-foreground font-semibold"
+                      : "text-sidebar-foreground/72 font-medium"
+                  )}
+                >
+                  {label}
+                </span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        );
+      })}
+    </SidebarMenu>
   );
 }

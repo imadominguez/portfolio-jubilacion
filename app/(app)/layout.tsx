@@ -1,27 +1,28 @@
+import { Suspense } from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppSidebar } from "@/components/layout/app-sidebar";
+import { AdminNav } from "@/components/layout/admin-nav";
 import { OnboardingProvider } from "@/components/onboarding/onboarding-provider";
-import { getSession } from "@/lib/auth-session";
-import { isAdminRole } from "@/lib/user-role";
 
-// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
-
-export default async function AppLayout({
+// No lee la sesión en el top-level: el sidebar y los providers entran al static
+// shell, y solo el grupo admin espera al request (ADR-0017).
+export default function AppLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await getSession();
-  const isAdmin = isAdminRole(session?.user.role);
-
   return (
     <OnboardingProvider>
       <TooltipProvider>
         <SidebarProvider>
-          <AppSidebar isAdmin={isAdmin} />
+          <AppSidebar
+            adminNav={
+              <Suspense fallback={null}>
+                <AdminNav />
+              </Suspense>
+            }
+          />
           <SidebarInset>{children}</SidebarInset>
         </SidebarProvider>
       </TooltipProvider>

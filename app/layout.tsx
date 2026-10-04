@@ -4,10 +4,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
 import "./globals.css";
 
-// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
-
 // Fuentes self-hosted (variables, subset latin, de Fontsource; licencias OFL en
 // app/fonts/). next/font/google descarga de Google en cada build y falla de forma
 // intermitente con Turbopack (vercel/next.js#99114).
