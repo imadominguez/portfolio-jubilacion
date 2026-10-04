@@ -42,8 +42,17 @@ Cocos CSV / dolarapi / argentinadatos / Yahoo / Anthropic
    API routes (app/api/) only for binary output (PDF/CSV/HTML export) and the AI analysis
 ```
 
+**Next.js 16.3 with Cache Components enabled** (`cacheComponents: true` ⇒ Partial Prerendering). This is not the Next.js of your training data: read the version-accurate docs in `node_modules/next/dist/docs/` before writing Next code (start with `01-app/02-guides/migrating-to-cache-components.md` and `authentication-with-cache-components.md`). Rules and rationale are in ADR-0017. The Next.js MCP (`next-devtools`, `.mcp.json`) exposes dev-server errors and Cache Components insights via `get_errors` while `pnpm dev` runs; instant-navigation insights only show there or in the dev overlay, not in `pnpm build`.
+
+Cache Components adoption is **incremental**: routes still marked `export const instant = false` + `// TODO: Cache Components adoption` are unconverted. To convert one, remove both, then:
+- Never await session/`cookies()`/`headers()`/`params`/`searchParams` at the top of a layout or page; move the read into an async component inside `<Suspense>`.
+- Never read `cookies()`/`headers()` inside plain `'use cache'`; resolve the user outside and pass only `userId` to an unexported `'use cache'` function with `cacheLife` + `cacheTag(\`<domain>:${userId}\`)`, or use `'use cache: private'`.
+- `new Date()` / `Date.now()` / `Math.random()` during render must come after request data or `await connection()` inside `<Suspense>`.
+- Route segment configs `dynamic`, `revalidate`, `fetchCache`, `dynamicParams`, `runtime` are not allowed (build error).
+- State persists across navigations (`<Activity>`): forms/dialogs may need explicit resets.
+
 Layering rules:
-- **Pages are RSC** that fetch data at the top and pass props to `"use client"` components. No client-side data store for server data.
+- **Pages are RSC** that fetch data and pass props to `"use client"` components (data reads behind `<Suspense>`, see above). No client-side data store for server data.
 - **All mutations are Server Actions** in `app/actions/`, starting with `requireAuth()` (`lib/auth-session.ts`) and returning a discriminated union `{ success: true, ... } | { success: false, error: string }` (catch errors, don't throw to the client).
 - After a mutation, invalidate via the helpers in `lib/revalidate.ts` (e.g. `revalidatePortfolioData()`), which know which routes consume which data — prefer them over ad-hoc `revalidatePath`.
 - **`lib/` is pure domain logic without Prisma**, except the read helpers `portfolio-data.ts`, `analysis-data.ts`, `real-gains-data.ts`. New calculations go in `lib/` as pure functions with a colocated `*.test.ts`.

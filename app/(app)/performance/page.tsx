@@ -13,6 +13,10 @@ import type { BenchmarkId, IndexBenchmarkId } from "@/lib/benchmarks-config";
 import { annualize, indexChangePct, realReturnPct } from "@/lib/inflation";
 import { formatARS } from "@/lib/format";
 
+// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 export const metadata: Metadata = { title: "Performance" };
 
 function calcCAGR(first: number, last: number, years: number): number {

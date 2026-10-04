@@ -3,6 +3,10 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { StrategyEditor } from "@/components/strategy/strategy-editor";
 import { getActiveStrategy, getStrategyHistory } from "@/app/actions/strategy";
 
+// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 export const metadata: Metadata = {
   title: "Estrategia de inversión",
   description: "Gestioná el system prompt de la estrategia de inversión en CEDEARs.",

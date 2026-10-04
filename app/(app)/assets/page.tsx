@@ -8,6 +8,10 @@ import { MarketPricesButton } from "@/components/market/market-prices-button";
 import { getSetupStatus } from "@/app/actions/setup";
 import { db } from "@/lib/db";
 
+// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 export const metadata: Metadata = { title: "Assets" };
 
 export default async function AssetsPage() {

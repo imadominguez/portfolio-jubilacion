@@ -38,10 +38,11 @@ Se escribieron **retrospectivamente** el 2026-10-04 para documentar decisiones y
 | [0007](./0007-cliente-propio-de-yahoo-finance.md) | Cliente propio de Yahoo Finance en lugar de `yahoo-finance2` | Aceptado |
 | [0008](./0008-aislamiento-por-usuario-y-datos-de-mercado-globales.md) | Aislamiento por `userId`; datos de mercado globales | Aceptado |
 | [0009](./0009-better-auth-roles-en-db-y-registro-cerrado.md) | Better Auth con roles en DB, proxy y registro cerrado | Aceptado |
-| [0010](./0010-sin-cache-de-datos-de-next-y-revalidacion-por-dominio.md) | Sin caché de datos de Next; revalidación centralizada por dominio | Aceptado |
+| [0010](./0010-sin-cache-de-datos-de-next-y-revalidacion-por-dominio.md) | Sin caché de datos de Next; revalidación centralizada por dominio | Reemplazado por 0017 |
 | [0011](./0011-analisis-mensual-con-claude-y-estrategia-versionada.md) | Análisis mensual con Claude y estrategia versionada como system prompt | Aceptado |
 | [0012](./0012-libro-de-movimientos-como-fuente-de-verdad.md) | Libro de movimientos de Cocos como fuente de verdad de la importación | Aceptado |
 | [0013](./0013-plan-dca-determinista-sin-ia.md) | Plan DCA determinista, sin IA | Aceptado |
 | [0014](./0014-estado-de-onboarding-derivado-de-los-datos.md) | Estado de onboarding derivado de los datos | Aceptado |
 | [0015](./0015-inflacion-como-indice-acumulado-en-benchmarkpoint.md) | Inflación (IPC) como índice acumulado en `BenchmarkPoint` | Aceptado |
 | [0016](./0016-logica-pura-en-lib-testeada-con-vitest.md) | Lógica pura en `lib/` testeada con Vitest | Aceptado |
+| [0017](./0017-cache-components-partial-prerendering-y-prefetching.md) | Cache Components, Partial Prerendering y Partial Prefetching (adopción incremental) | Aceptado |
