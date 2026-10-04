@@ -123,6 +123,13 @@ Definidas en `.cursor/rules.md`:
 - **Datos de usuario:** toda lectura/borrado filtra por `userId` (`requireUserId()`); después de mutar, revalidar con los helpers de `lib/revalidate.ts`.
 - **Lógica nueva** (cálculos, parsers): función pura en `lib/` + `*.test.ts` al lado.
 - **Decisiones de arquitectura:** si un cambio contradice o reemplaza algo registrado en [`adr/`](./adr/README.md), agregar un ADR nuevo (y marcar el anterior como *Reemplazado*) en lugar de editar el viejo.
+- **Cache Components** (Next 16.3, [ADR-0017](./adr/0017-cache-components-partial-prerendering-y-prefetching.md)): la sesión, `cookies()`, `headers()`, `params` y `searchParams` se leen dentro de un componente envuelto en `<Suspense>`, nunca en el top-level de un layout o página. Los datos se cachean con `'use cache'` + `cacheLife` + `cacheTag`. Las rutas que todavía tienen `export const instant = false` con `// TODO: Cache Components adoption` están pendientes de convertir.
+
+### Cache Components y el MCP de Next.js
+
+- La documentación de la versión instalada está en `node_modules/next/dist/docs/` (usar esa, no la de memoria).
+- Validación: `pnpm build` muestra los errores que bloquean el build y la tabla de rutas (`◐` = Partial Prerender, `ƒ` = dinámica). Las validaciones de **navegación instantánea** aparecen solo en dev (overlay y log de `pnpm dev`). Para depurar un prerender: `pnpm exec next build --debug-prerender`.
+- MCP oficial (`.mcp.json`, `next-devtools-mcp`): con `pnpm dev` corriendo, el agente consulta `get_errors`, `get_routes`, `get_page_metadata`, etc. Hay que aprobar el servidor del proyecto la primera vez que se abre Claude Code.
 
 ---
 

@@ -1,6 +1,6 @@
 # ADR-0010: Sin caché de datos de Next; revalidación centralizada por dominio
 
-- **Estado:** Aceptado
+- **Estado:** Reemplazado por [ADR-0017](./0017-cache-components-partial-prerendering-y-prefetching.md)
 - **Fecha:** 2026-09-28 (registrado retrospectivamente el 2026-10-04)
 - **Relacionados:** ADR-0002
 

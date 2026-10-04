@@ -4,7 +4,7 @@
 
 | Capa | Tecnología |
 |---|---|
-| Framework | Next.js `16.1.6` (App Router, React Server Components) |
+| Framework | Next.js `16.3.8` (App Router, React Server Components, **Cache Components** con Partial Prerendering; ver [ADR-0017](./adr/0017-cache-components-partial-prerendering-y-prefetching.md)) |
 | UI | React `19.2.3`, shadcn/ui (`style: radix-nova`), Tailwind CSS v4, `radix-ui`, `@base-ui/react` |
 | Gráficos | Recharts `2.15` (vía `ChartContainer` de shadcn) |
 | Auth | Better Auth `1.6` (email + password, sesiones en cookie) |
