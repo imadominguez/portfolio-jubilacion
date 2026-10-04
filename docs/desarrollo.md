@@ -131,6 +131,31 @@ Definidas en `.cursor/rules.md`:
 - Validación: `pnpm build` muestra los errores que bloquean el build y la tabla de rutas (`◐` = Partial Prerender, `ƒ` = dinámica). Las validaciones de **navegación instantánea** aparecen solo en dev (overlay y log de `pnpm dev`). Para depurar un prerender: `pnpm exec next build --debug-prerender`.
 - MCP oficial (`.mcp.json`, `next-devtools-mcp`): con `pnpm dev` corriendo, el agente consulta `get_errors`, `get_routes`, `get_page_metadata`, etc. Hay que aprobar el servidor del proyecto la primera vez que se abre Claude Code.
 
+### Estado de la adopción de Cache Components (al 2026-10-04)
+
+Una PR por feature ([ADR-0017](./adr/0017-cache-components-partial-prerendering-y-prefetching.md)):
+
+| PR | Contenido | Estado |
+|---|---|---|
+| #3 | Pre-paso: `cacheComponents` + `partialPrefetching`, codemod `instant = false`, fuentes self-hosted | Mergeada |
+| #4 | Layout `(app)`, sidebar (grupo admin en `<Suspense>`), Dashboard, `getSession()` con `'use cache: private'` | Mergeada |
+| #5 | Caché de datos por usuario/dominio (`lib/cache-tags.ts`) e invalidación con `updateTag` (`lib/revalidate.ts`) | Abierta, CI y Vercel en verde |
+
+**Convertidos:** layout raíz, layout `(app)` y Dashboard (`/`). Todas las rutas ya son `◐` porque el layout no bloquea.
+
+**Pendientes** (todavía con `export const instant = false` + `// TODO: Cache Components adoption`): `/analysis`, `/assets`, `/ccl`, `/datos`, `/guia`, `/performance`, `/plan`, `/portfolio`, `/real-gains`, `/rebalance`, `/retirement`, `/settings`, `/snapshots`, `/snapshots/[id]`, `/strategy`, `/transactions`, `/login`, `/register`. Para listarlos: `grep -rl "instant = false" app`.
+
+**Cómo convertir una ruta** (mismo patrón que el Dashboard, `app/(app)/page.tsx`):
+
+1. Quitar `instant = false` y su TODO. El `SiteHeader` queda en la página (va al shell) y las lecturas pasan a un componente async dentro de `<Suspense>` con el skeleton de su `loading.tsx` como fallback (extraerlo a un componente compartido, como `DashboardSkeleton`).
+2. Cachear las lecturas que use y todavía no lo estén: getter exportado + función no exportada con `'use cache'`, `cacheLife("hours")` y un tag por dominio leído. Las globales sin datos de request llevan `await connection()` antes. Ver la tabla de tags en [server-actions.md](./server-actions.md).
+3. Si una escritura toca un dominio sin helper, agregarlo en `lib/revalidate.ts`.
+4. Validar: `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm test`, `pnpm build` (también con las variables falsas del CI) y recorrer la ruta en dev con el MCP (`get_errors`). Para `/snapshots/[id]` evaluar `<Link prefetch={true}>` (ADR-0017, punto 6).
+
+**Para validar en el navegador** con `agent-browser`: perfil de vault `portfolio` (`agent-browser auth login portfolio`). El vault no completa el email: cargarlo a mano en `input[type=email]`. Nunca leer el HTML ni los valores de un formulario de login completo (expondría la contraseña).
+
+**No probado todavía:** las escrituras con el caché nuevo (importar snapshot, cargar transacción). En la próxima carga real, confirmar que el Dashboard se actualiza al instante.
+
 ---
 
 ## Flujo de trabajo típico
