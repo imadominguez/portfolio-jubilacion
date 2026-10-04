@@ -30,7 +30,7 @@ app/
     register/                   page.tsx redirige a /login salvo ALLOW_PUBLIC_SIGNUP=true + register-form.tsx
     error.tsx                   Error boundary de auth
   (app)/                        Zona autenticada con sidebar
-    layout.tsx                  Server component: calcula isAdmin y monta Onboarding/Tooltip/Sidebar
+    layout.tsx                  Síncrono (static shell): Onboarding/Tooltip/Sidebar; el grupo admin va en <Suspense>
     error.tsx / not-found.tsx   Error boundary y 404 compartidos; cada ruta tiene su loading.tsx
     page.tsx                    Dashboard
     plan/                       Plan DCA determinista del mes
@@ -163,7 +163,8 @@ betterAuth({
 
 | Función | Comportamiento |
 |---|---|
-| `getSession()` | `auth.api.getSession({ headers })` envuelto en `React.cache()`: se deduplica dentro del mismo request (el dashboard dispara ~10 lecturas en paralelo). Devuelve `Session \| null`. |
+| `getSession()` | `auth.api.getSession({ headers })` con `'use cache: private'` + `cacheLife("minutes")`. Deduplica dentro del request (el dashboard dispara ~10 lecturas en paralelo) y le da a la lectura un lifetime para entrar al App Shell por sesión; nunca se guarda en el servidor. No se puede llamar desde un `'use cache'` plano. Devuelve `Session \| null`. |
+| `getViewerRole()` | Rol de la sesión para decidir qué UI mostrar (grupo admin del sidebar). No autoriza: para eso están el proxy y `requireAdmin()`. |
 | `requireAuth()` | Llama a `getSession()` y **lanza `Error("No autenticado")`** si no hay sesión. |
 | `requireUserId()` | `requireAuth()` y devuelve `session.user.id`. Es el helper a usar en toda lectura/escritura de datos de usuario. |
 | `requireAdmin()` | `requireAuth()` y lanza `"No autorizado…"` si el rol no es ADMIN. Para actions sobre datos administrados (catálogo, estrategia). |
@@ -194,7 +195,7 @@ Flujo:
 
 ### UI de rol
 
-`app/(app)/layout.tsx` (server) calcula `isAdmin = isAdminRole(session?.user.role)` y lo pasa a `AppSidebar`. El sidebar **oculta** el grupo "Configuración" (Assets, Estrategia, Configuración, Reporte mensual) a los no-admin.
+`app/(app)/layout.tsx` no lee la sesión (así el sidebar entra al static shell). Le pasa a `AppSidebar` el slot `adminNav`: `<Suspense fallback={null}><AdminNav /></Suspense>`, donde `AdminNav` (`components/layout/admin-nav.tsx`, server) lee `getViewerRole()` y renderiza `AdminNavGroup` solo para ADMIN. El grupo "Configuración" (Assets, Estrategia, Configuración, Reporte mensual) aparece cuando se resuelve el rol; a los no-admin nunca se les muestra.
 
 ---
 
