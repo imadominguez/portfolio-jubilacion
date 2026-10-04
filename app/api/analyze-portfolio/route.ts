@@ -5,7 +5,8 @@ import { isAdminRole } from "@/lib/user-role";
 import { extractJson, normalizarReporte } from "@/lib/report-normalizer";
 
 // El análisis con web_search + thinking puede tardar varios minutos: streaming + límite alto.
-export const runtime = "nodejs";
+// Corre en el runtime de Node.js (el default; Cache Components no admite el
+// export `runtime`).
 export const maxDuration = 300;
 
 // El timeout propio tiene que vencer antes que maxDuration: si no, la plataforma

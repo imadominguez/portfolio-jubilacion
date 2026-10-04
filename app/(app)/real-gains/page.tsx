@@ -21,6 +21,10 @@ import { formatARS, formatUSD } from "@/lib/format";
 import { getSession } from "@/lib/auth-session";
 import { isAdminRole } from "@/lib/user-role";
 
+// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 export const metadata: Metadata = { title: "Ganancia Real en USD" };
 
 // ---------------------------------------------------------------------------
