@@ -2,7 +2,8 @@
 
 import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
-import { Upload, CheckCircle, AlertCircle, ArrowLeft, FileText, Info } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Upload, CheckCircle, AlertCircle, ArrowLeft, ArrowRight, FileText, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,7 +18,13 @@ import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { parseSnapshotPreview, importSnapshot, type ParsedPosition } from "@/app/actions/snapshots";
+import {
+  parseSnapshotPreview,
+  importSnapshot,
+  checkSnapshotDate,
+  type ParsedPosition,
+  type NextSetupStep,
+} from "@/app/actions/snapshots";
 import { getExchangeRateForDate } from "@/app/actions/exchange-rate";
 
 // ---------------------------------------------------------------------------
@@ -103,12 +110,21 @@ type SavedFormValues = {
 
 export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
   const [step, setStep] = useState<Step>("select");
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  // El autocompletado de CCL y el chequeo de fecha corren aparte para no
+  // mostrar "Analizando…" mientras el usuario todavía está completando el form.
+  const [isLookupPending, startLookupTransition] = useTransition();
+  const [dateExists, setDateExists] = useState(false);
   const [preview, setPreview] = useState<PreviewData | null>(null);
   const [savedValues, setSavedValues] = useState<SavedFormValues | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
-  const [importedCount, setImportedCount] = useState<number | null>(null);
+  const [imported, setImported] = useState<{
+    positionCount: number;
+    totalValueArs: number;
+    nextStep: NextSetupStep | null;
+  } | null>(null);
 
   // Estado controlado del formulario para poder auto-rellenarlo desde el archivo.
   const [date, setDate] = useState<string>("");
@@ -127,7 +143,8 @@ export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
     setSavedValues(null);
     setError(null);
     setFileName(null);
-    setImportedCount(null);
+    setImported(null);
+    setDateExists(false);
     setDate("");
     setCcl("");
     setCclAutofilled(false);
@@ -143,12 +160,18 @@ export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
     setTimeout(reset, 300);
   }
 
+  function goTo(href: string) {
+    handleClose();
+    router.push(href);
+  }
+
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null;
     setError(null);
     setCclAutofilled(false);
     setCclMissingForDate(false);
     setDateWarning(null);
+    setDateExists(false);
 
     if (!file) {
       setFileName(null);
@@ -172,12 +195,16 @@ export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
 
     setSelectedFile(file);
     setDate(parsed.date);
-    void autofillCcl(parsed.date);
+    lookupDate(parsed.date);
   }
 
-  function autofillCcl(dateStr: string) {
-    startTransition(async () => {
-      const rate = await getExchangeRateForDate(dateStr);
+  function lookupDate(dateStr: string) {
+    startLookupTransition(async () => {
+      const [rate, dateCheck] = await Promise.all([
+        getExchangeRateForDate(dateStr),
+        checkSnapshotDate(dateStr),
+      ]);
+      setDateExists(dateCheck.success && dateCheck.exists);
       if (rate) {
         setCcl(String(rate.ccl));
         setCclAutofilled(true);
@@ -195,8 +222,9 @@ export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
     setCclAutofilled(false);
     setCclMissingForDate(false);
     setDateWarning(null);
+    setDateExists(false);
     if (!value) return;
-    void autofillCcl(value);
+    lookupDate(value);
   }
 
   function handlePreview(e: React.FormEvent<HTMLFormElement>) {
@@ -247,7 +275,11 @@ export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
     startTransition(async () => {
       const result = await importSnapshot(formData);
       if (result.success) {
-        setImportedCount(result.positionCount);
+        setImported({
+          positionCount: result.positionCount,
+          totalValueArs: result.totalValueArs,
+          nextStep: result.nextStep,
+        });
         setStep("done");
       } else {
         setError(result.error);
@@ -330,7 +362,12 @@ export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
                   className="text-sm font-mono"
                 />
                 <FieldDescription className="text-xs text-muted-foreground">
-                  {dateWarning ? (
+                  {dateExists ? (
+                    <span className="text-destructive">
+                      Ya importaste un snapshot para esta fecha. Si está mal,
+                      eliminalo desde su detalle en Snapshots y volvé a importar.
+                    </span>
+                  ) : dateWarning ? (
                     <span className="text-amber-600 dark:text-amber-400">
                       {dateWarning}
                     </span>
@@ -366,7 +403,9 @@ export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
                   className="text-sm font-mono"
                 />
                 <FieldDescription className="text-xs text-muted-foreground">
-                  {cclAutofilled
+                  {isLookupPending
+                    ? "Buscando el CCL guardado para esta fecha…"
+                    : cclAutofilled
                     ? "Valor obtenido automáticamente desde la cotización guardada."
                     : cclMissingForDate
                       ? "No hay un CCL guardado para esta fecha. Ingresalo manualmente si tu portfolio tiene posiciones en USD."
@@ -380,11 +419,13 @@ export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
             <div className="mt-auto flex flex-col gap-2">
               <Button
                 type="submit"
-                disabled={isPending || !selectedFile || !date}
+                disabled={isPending || isLookupPending || !selectedFile || !date || dateExists}
                 className="w-full gap-2"
               >
                 {isPending
                   ? <><Spinner className="size-3.5" /> Analizando...</>
+                  : isLookupPending
+                  ? <><Spinner className="size-3.5" /> Verificando fecha...</>
                   : <><Upload className="size-3.5" data-icon="inline-start" /> Previsualizar</>
                 }
               </Button>
@@ -541,11 +582,46 @@ export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
             </div>
             <div className="flex flex-col gap-1.5">
               <p className="text-sm font-medium text-foreground">Snapshot importado</p>
-              <p className="text-xs text-muted-foreground">
-                {importedCount} posiciones registradas correctamente en el historial del portfolio.
-              </p>
+              {imported && (
+                <>
+                  <p className="text-lg font-mono font-medium tabular-nums text-foreground">
+                    {formatARS(imported.totalValueArs)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {imported.positionCount} posiciones registradas en el historial. El
+                    dashboard ya muestra este estado.
+                  </p>
+                </>
+              )}
             </div>
+            {imported?.nextStep && (
+              <div className="w-full max-w-xs rounded-lg border border-border/60 bg-muted/20 px-4 py-3 text-left flex flex-col gap-0.5">
+                <span className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">
+                  Siguiente paso
+                </span>
+                <span className="text-xs text-foreground">{imported.nextStep.label}</span>
+              </div>
+            )}
             <div className="flex flex-col gap-2 w-full max-w-xs">
+              {imported?.nextStep ? (
+                <Button
+                  size="sm"
+                  onClick={() => goTo(imported.nextStep!.href)}
+                  className="w-full gap-2 text-xs"
+                >
+                  {imported.nextStep.ctaLabel}
+                  <ArrowRight className="size-3" />
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  onClick={() => goTo("/")}
+                  className="w-full gap-2 text-xs"
+                >
+                  Ver dashboard
+                  <ArrowRight className="size-3" />
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="sm"

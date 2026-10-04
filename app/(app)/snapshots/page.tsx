@@ -20,16 +20,13 @@ export default async function SnapshotsPage() {
 
       <main className="flex-1 px-6 py-10 flex flex-col gap-8 max-w-6xl w-full mx-auto">
         {/* Top row */}
-        <div className="animate-fade-up flex items-center justify-between gap-4">
-          <div className="flex flex-col gap-0.5">
-            <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
-              Total registrados
-            </p>
-            <p className="text-3xl font-mono font-light tabular-nums text-foreground">
-              {snapshots.length}
-            </p>
-          </div>
-          <ImportButton />
+        <div className="animate-fade-up flex flex-col gap-0.5">
+          <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
+            Total registrados
+          </p>
+          <p className="text-3xl font-mono font-light tabular-nums text-foreground">
+            {snapshots.length}
+          </p>
         </div>
 
         <Separator className="opacity-30" />
@@ -41,7 +38,7 @@ export default async function SnapshotsPage() {
               <p className="text-sm font-medium text-foreground">Sin snapshots</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Aún no importaste ningún snapshot. Usá el botón &quot;Importar CSV&quot;
-                para registrar el primer estado de tu portfolio.
+                de arriba para registrar el primer estado de tu portfolio.
               </p>
             </div>
           </div>
@@ -89,8 +86,8 @@ export default async function SnapshotsPage() {
                       </div>
 
                       <div className="flex items-center gap-4 shrink-0">
-                        <div className="text-right hidden sm:flex flex-col gap-0.5">
-                          <span className="text-sm font-mono tabular-nums text-foreground">
+                        <div className="text-right flex flex-col gap-0.5">
+                          <span className="text-xs sm:text-sm font-mono tabular-nums text-foreground">
                             {formatARS(s.totalValueArs)}
                           </span>
                           {s.totalValueUsd && (

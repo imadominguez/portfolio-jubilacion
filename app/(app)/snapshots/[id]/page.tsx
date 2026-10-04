@@ -8,6 +8,7 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { HoldingsTable } from "@/components/dashboard/holdings-table";
 import { AllocationPanel } from "@/components/dashboard/allocation-panel";
 import { ExportButtons } from "@/components/export/export-buttons";
+import { DeleteSnapshotButton } from "@/components/snapshots/delete-snapshot-button";
 import { getSnapshotById } from "@/lib/portfolio-data";
 import { requireUserId } from "@/lib/auth-session";
 import { db } from "@/lib/db";
@@ -88,17 +89,24 @@ export default async function SnapshotDetailPage({
       <main className="flex-1 px-6 py-10 flex flex-col gap-10 max-w-6xl w-full mx-auto">
         {/* Back + date header */}
         <section className="animate-fade-up flex flex-col gap-4">
-          <Button
-            asChild
-            variant="ghost"
-            size="sm"
-            className="w-fit -ml-2 gap-2 text-muted-foreground hover:text-foreground text-xs"
-          >
-            <Link href="/snapshots">
-              <ArrowLeft className="size-3.5" data-icon="inline-start" />
-              Volver a snapshots
-            </Link>
-          </Button>
+          <div className="flex items-center justify-between gap-2">
+            <Button
+              asChild
+              variant="ghost"
+              size="sm"
+              className="w-fit -ml-2 gap-2 text-muted-foreground hover:text-foreground text-xs"
+            >
+              <Link href="/snapshots">
+                <ArrowLeft className="size-3.5" data-icon="inline-start" />
+                Volver a snapshots
+              </Link>
+            </Button>
+            <DeleteSnapshotButton
+              snapshotId={id}
+              formattedDate={formattedDate}
+              positionCount={positions.length}
+            />
+          </div>
 
           <div className="flex flex-col gap-1">
             <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
