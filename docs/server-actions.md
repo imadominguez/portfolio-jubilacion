@@ -8,32 +8,41 @@ La app **no usa caché de datos de Next** (ni `unstable_cache` ni `"use cache"`)
 
 | Helper | Rutas que revalida |
 |---|---|
-| `revalidatePortfolioData()` | `/`, `/snapshots`, `/performance`, `/ccl`, `/analysis`, `/rebalance`, `/retirement`, `/settings`, `/real-gains` |
-| `revalidateTrades()` | `/`, `/transactions`, `/real-gains` |
+| `revalidatePortfolioData()` | `/`, `/snapshots`, `/performance`, `/ccl`, `/analysis`, `/rebalance`, `/retirement`, `/settings`, `/real-gains`, `/datos` |
+| `revalidateTrades()` | `/`, `/transactions`, `/real-gains`, `/datos` |
 | `revalidateDividends()` | `/`, `/transactions` |
-| `revalidateAssets()` | `/assets`, `/`, `/analysis`, `/real-gains` |
-| `revalidateCcl()` | `/ccl`, `/real-gains` |
-| `revalidateMarketPrices()` | `/`, `/real-gains` |
-| `revalidateHistoricalPrices()` | `/real-gains` |
-| `revalidateBenchmarks()` | `/performance` |
-| `revalidateRebalance()` | `/rebalance`, `/` |
-| `revalidateMilestones()` | `/settings`, `/` |
-| `revalidateRetirement()` | `/retirement`, `/` |
+| `revalidateAssets()` | `/assets`, `/`, `/analysis`, `/real-gains`, `/datos` |
+| `revalidateCcl()` | `/ccl`, `/real-gains`, `/datos` |
+| `revalidateMarketPrices()` | `/`, `/real-gains`, `/datos` |
+| `revalidateHistoricalPrices()` | `/real-gains`, `/datos` |
+| `revalidateBenchmarks()` | `/performance`, `/datos` |
+| `revalidateRebalance()` | `/rebalance`, `/`, `/datos` |
+| `revalidateMilestones()` | `/settings`, `/`, `/datos` |
+| `revalidateRetirement()` | `/retirement`, `/`, `/datos` |
+| `revalidateSetup()` | `/`, `/datos` |
 | `revalidateStrategy()` | `/strategy` |
 
-Autorización: las actions que leen/escriben datos de usuario llaman a `requireAuth()` (lanza si no hay sesión) y filtran por `userId`. Varias actions sobre datos globales (assets, exchange-rate, benchmarks, precios, strategy, reports) **no** llaman a `requireAuth` ni filtran por usuario.
+Al agregar una ruta que consume datos existentes, sumala al helper del dominio correspondiente en vez de llamar a `revalidatePath` suelto. Ver [ADR-0010](./adr/0010-sin-cache-de-datos-de-next-y-revalidacion-por-dominio.md).
+
+Autorización: las actions que leen/escriben datos de usuario llaman a `requireAuth()`/`requireUserId()` (lanzan si no hay sesión) y filtran por `userId`, **incluidos los borrados** (`deleteMany({ where: { id, userId } })`, que devuelve "no encontrado" si el registro es ajeno). Las actions sobre datos administrados (`assets.ts`, `strategy.ts`) llaman a `requireAdmin()`. Las de refresco de datos de mercado (exchange-rate, benchmarks, precios) **no** llaman a `requireAuth`: dependen solo de que el proxy exija sesión.
+
+| Helper (`lib/auth-session.ts`) | Uso |
+|---|---|
+| `requireAuth()` | Lanza `"No autenticado"` sin sesión; devuelve la sesión. |
+| `requireUserId()` | `requireAuth()` + devuelve `session.user.id`. Para todo dato de usuario. |
+| `requireAdmin()` | `requireAuth()` + lanza `"No autorizado. Se requiere rol administrador."` si el rol no es ADMIN. |
 
 ---
 
 ## `assets.ts` — Catálogo de CEDEARs
 
-El catálogo es **global (compartido)**: lectura para todos, **escritura sólo ADMIN**. Cada mutación llama a `requireAuth()` + `isAdminRole(...)` (defensa en profundidad, además del middleware).
+El catálogo es **global (compartido)**: lectura para todos, **escritura sólo ADMIN**. Cada mutación llama a `requireAdmin()` (defensa en profundidad, además del proxy).
 
 | Función | Comportamiento |
 |---|---|
-| `createAsset(data)` | Valida ticker no vacío y `cedearRatio > 0`; normaliza ticker/subyacente a mayúsculas. Error amigable si el ticker ya existe. `revalidatePath("/assets")`. |
+| `createAsset(data)` | Valida ticker no vacío y `cedearRatio > 0`; normaliza ticker/subyacente a mayúsculas. Error amigable si el ticker ya existe. `revalidateAssets()`. |
 | `updateAsset(id, data)` | Actualiza solo campos definidos; **no permite cambiar `ticker`**. |
-| `deleteAsset(id)` | Elimina por id, sin verificar ownership. |
+| `deleteAsset(id)` | Elimina por id (el catálogo es global; la protección es el rol ADMIN). |
 
 `AssetFormData`: `ticker`, `instrumentName?`, `cedearRatio`, `description?`, `sector?`, `industry?`, `country?`, `underlyingTicker?`.
 
@@ -43,9 +52,10 @@ El catálogo es **global (compartido)**: lectura para todos, **escritura sólo A
 
 | Función | Auth | Comportamiento |
 |---|---|---|
-| `parseSnapshotPreview(formData)` | No | Parsea el CSV (`file`), calcula totales y allocations, informa `hasUsdPositions` y `missingCcl`. No escribe. |
-| `importSnapshot(formData)` | Sí | Valida archivo/fecha; rechaza posiciones USD sin CCL; verifica que no exista un snapshot para esa fecha (inmutabilidad); crea `PortfolioSnapshot` con `positions` anidadas; `totalValueUsd = totalValueArs / ccl`; llama a `checkAndUpdateMilestones`. |
-| `deleteSnapshot(id)` | No | Elimina por id (los snapshots son inmutables, pero pueden borrarse). |
+| `checkSnapshotDate(dateStr)` | No | Devuelve `{ exists }` si el usuario ya tiene un snapshot en esa fecha. El sheet de import lo consulta al elegir la fecha para avisar antes de previsualizar. |
+| `parseSnapshotPreview(formData)` | No | Parsea el CSV (`file`), calcula totales y allocations, informa `hasUsdPositions` y `missingCcl`. Si recibe `date` y ya existe un snapshot ese día, devuelve el error de duplicado. No escribe. |
+| `importSnapshot(formData)` | Sí | Valida archivo/fecha; rechaza posiciones USD sin CCL; verifica que no exista un snapshot para esa fecha (inmutabilidad); crea `PortfolioSnapshot` con `positions` anidadas; `totalValueUsd = totalValueArs / ccl`; llama a `checkAndUpdateMilestones`. Devuelve `positionCount`, `totalValueArs` y `nextStep` (primer paso accionable pendiente del checklist) para la pantalla de éxito. |
+| `deleteSnapshot(id)` | Sí | `deleteMany({ id, userId })`. Los snapshots son inmutables (no se editan), pero el usuario puede borrar los propios. UI: botón "Eliminar snapshot" con confirmación en `/snapshots/[id]`. |
 
 Detalles del parser en [logica-financiera.md](./logica-financiera.md#parsing-de-csv-de-cocos).
 
@@ -56,7 +66,7 @@ Detalles del parser en [logica-financiera.md](./logica-financiera.md#parsing-de-
 | Función | Auth | Comportamiento |
 |---|---|---|
 | `createTransaction(data)` | Sí | Valida ticker, `quantity > 0`, `price > 0` y fecha válida. Guarda con `userId`. |
-| `deleteTransaction(id)` | No (solo borra por id) | Elimina y revalida `/transactions` y `/`. |
+| `deleteTransaction(id)` | Sí | `deleteMany({ id, userId })`; `revalidateTrades()`. |
 | `getAllTransactions()` | Sí | Devuelve las transacciones del usuario ordenadas por fecha desc. |
 | `calculatePPM()` | Sí | Ver [PPM](./logica-financiera.md#ppm--precio-promedio-ponderado-calculateppm). |
 | `getRealizedPnl()` | Sí | Ver [P&L realizado](./logica-financiera.md#realizado-getrealizedpnl). |
@@ -67,8 +77,8 @@ Detalles del parser en [logica-financiera.md](./logica-financiera.md#parsing-de-
 
 | Función | Auth | Comportamiento |
 |---|---|---|
-| `createDividend(data)` | Sí | Valida ticker, `amount > 0`, fecha válida. Revalida `/transactions` y `/performance`. |
-| `deleteDividend(id)` | No | Elimina por id. |
+| `createDividend(data)` | Sí | Valida ticker, `amount > 0`, fecha válida. `revalidateDividends()`. |
+| `deleteDividend(id)` | Sí | `deleteMany({ id, userId })`. |
 | `getAllDividends()` | Sí | Dividendos del usuario por fecha desc. |
 | `getTotalDividendsUsd()` | Sí | Suma de dividendos en USD del usuario. |
 
@@ -113,7 +123,7 @@ El parser clasifica cada fila en `MovementCategory`; sólo `TRADE_BUY`/`TRADE_SE
 |---|---|---|
 | `getMilestones()` | Sí | Hitos del usuario; si no tiene, crea los 5 por defecto. |
 | `createMilestone(label, targetValueUsd)` | Sí | Valida label y valor positivo. |
-| `deleteMilestone(id)` | No | Elimina por id. |
+| `deleteMilestone(id)` | Sí | `deleteMany({ id, userId })`. |
 | `checkAndUpdateMilestones(currentValueUsd)` | Sí | Marca como alcanzados los hitos cumplidos. Invocada desde `importSnapshot`. |
 
 ---
@@ -163,11 +173,24 @@ Datos globales, **sin `requireAuth`**.
 
 ---
 
+## `indices.ts` — Inflación (IPC) y CER/UVA
+
+Datos globales en `BenchmarkPoint` (fuente: argentinadatos.com). Reutiliza `getBenchmarkPoints` para la lectura.
+
+| Función | Auth | Comportamiento |
+|---|---|---|
+| `fetchAndSaveInflation(fromDate)` | No | Descarga el IPC mensual (tasas %), arranca un mes antes de `fromDate` y lo convierte en **índice acumulado base 100** con `buildCumulativeIndex` (`lib/inflation.ts`). Upsert como `benchmarkId: "inflacion"`. |
+| `fetchAndSaveCer(fromDate)` | No | Descarga la UVA diaria (proxy del CER, ya es un índice) y la guarda directo como `benchmarkId: "cer"`. |
+| `getIndexPoints(indexId, fromDate?)` | No | Alias de `getBenchmarkPoints` (normaliza a base 100). |
+| `fetchAndSaveAllIndices()` | Sí | Actualiza ambos índices en paralelo desde el primer snapshot del usuario (o 5 años atrás). Falla solo si fallan los dos. Lo usa `IndicesUpdateButton`. |
+
+---
+
 ## `setup.ts` — Onboarding y estado de puesta en marcha
 
 | Función | Auth | Comportamiento |
 |---|---|---|
-| `getSetupStatus()` | Sí | Deriva el estado de cada paso (snapshot, assets, transacciones, históricos, preferencias) cruzando datos reales + metadata de `UserSetup`. Ver `lib/setup-status.ts` (lógica pura). |
+| `getSetupStatus()` | Sí | Deriva el estado de cada paso (snapshot, assets, transacciones, históricos, preferencias) cruzando datos reales + metadata de `UserSetup`. Para un `USER` el paso Assets es informativo (`actionable: false`, no requerido ni contado) porque el catálogo es admin-only. Ver `lib/setup-status.ts` (lógica pura). |
 | `completeOnboarding()` | Sí | Marca `onboardingCompletedAt`. |
 | `dismissOnboarding()` | Sí | Marca `onboardingDismissedAt` (omitir). |
 | `setOnboardingStep(step)` | Sí | Guarda `lastStep` para reanudar el wizard. |
@@ -179,25 +202,25 @@ La completitud de cada paso **no se guarda**: se deriva de `PortfolioSnapshot`, 
 
 ## `strategy.ts` — Estrategia de inversión
 
-Datos globales, **sin `requireAuth`**.
+Datos globales, **solo ADMIN**: todas las funciones llaman a `requireAdmin()` (`lib/auth-session.ts`), además de la protección de la página `/strategy` en el proxy. `POST /api/analyze-portfolio` lee la estrategia activa directo de la DB, sin pasar por estas actions.
 
 | Función | Comportamiento |
 |---|---|
-| `getActiveStrategy()` | Estrategia con `isActive = true`. |
-| `getStrategyHistory()` | Todas las versiones por fecha desc. |
-| `saveNewVersion(content, title)` | Valida contenido/título; en transacción desactiva la actual y crea la versión `N+1` activa. |
-| `restoreVersion(id)` | En transacción desactiva todas y activa la indicada. |
+| `getActiveStrategy()` | Estrategia con `isActive = true`. Lanza si el usuario no es ADMIN. |
+| `getStrategyHistory()` | Todas las versiones por fecha desc. Lanza si el usuario no es ADMIN. |
+| `saveNewVersion(content, title)` | `{ ok: false, error }` si no es ADMIN. Valida contenido/título; en transacción desactiva la actual y crea la versión `N+1` activa. |
+| `restoreVersion(id)` | `{ ok: false, error }` si no es ADMIN. En transacción desactiva todas y activa la indicada. |
 
 ---
 
 ## `reports.ts` — Reportes mensuales
 
-Datos globales, **sin `requireAuth`**.
+Por usuario: ambas funciones usan `requireUserId()` y filtran por `userId`. Los reportes se crean en `POST /api/analyze-portfolio`, no en una action.
 
 | Función | Comportamiento |
 |---|---|
-| `listReports()` | Lista `id` + label (`fechaReporte — hora`) por fecha desc. |
-| `getReport(id)` | Devuelve `normalizedJson` casteado a `ReportePortafolio`. |
+| `listReports()` | Lista `id` + label (`fechaReporte — hora`) del usuario por fecha desc. |
+| `getReport(id)` | `findFirst({ id, userId })`; devuelve `normalizedJson` casteado a `ReportePortafolio` o `null`. |
 
 ---
 
@@ -207,18 +230,21 @@ Datos globales, **sin `requireAuth`**.
 |---|---|---|
 | `assets.ts` | Sí (admin) | No (catálogo global) |
 | `benchmarks.ts` | No | No |
-| `dividends.ts` | Sí | create/getAll/getTotal |
+| `dividends.ts` | Sí | Sí (incluye delete) |
 | `exchange-rate.ts` | No | No (global) |
 | `historical-prices.ts` | No | No (global) |
-| `import-movements.ts` | Sí | import / getMovements |
+| `import-movements.ts` | Sí | Sí |
+| `indices.ts` | Solo `fetchAndSaveAllIndices` | No (global; usa el primer snapshot del usuario como fecha de inicio) |
 | `market-prices.ts` | No | No (global) |
-| `milestones.ts` | Sí | Sí |
+| `milestones.ts` | Sí | Sí (incluye delete) |
 | `rebalance.ts` | Sí | Sí |
-| `reports.ts` | No | No (global) |
+| `reports.ts` | Sí | Sí |
 | `retirement.ts` | Sí | Sí |
 | `setup.ts` | Sí | Sí (por usuario) |
-| `snapshots.ts` | Sí (import) | import |
-| `strategy.ts` | No | No (global) |
-| `transactions.ts` | Sí | Sí |
+| `snapshots.ts` | Sí (import/delete; `parseSnapshotPreview` no escribe) | Sí |
+| `strategy.ts` | Sí (admin) | No (global) |
+| `transactions.ts` | Sí | Sí (incluye delete) |
 
-> **Deuda técnica conocida:** varias funciones de borrado (`deleteTransaction`, `deleteDividend`, `deleteMilestone`, `deleteSnapshot`) operan solo por `id` sin validar ownership. `deleteAsset` ya exige ADMIN y `deleteTargetAllocation` ya filtra por `userId`. La autorización "dura" de rutas sigue en el proxy (sesión + rol para las rutas admin).
+> **Por qué el rol se chequea en la action:** las Server Actions se invocan con un POST a la página desde donde se llaman, así que el proxy exige sesión pero **no** rol. Toda action sobre datos administrados usa `requireAdmin()`.
+>
+> **Deuda técnica conocida:** las actions de refresco de datos de mercado (`exchange-rate`, `market-prices`, `historical-prices`, `benchmarks`, y las de `indices.ts` salvo `fetchAndSaveAllIndices`) no llaman a `requireAuth`: dependen de que el proxy exija sesión. Solo escriben caches globales de datos públicos.

@@ -3,6 +3,7 @@
 import { revalidateSetup } from "@/lib/revalidate";
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth-session";
+import { isAdminRole } from "@/lib/user-role";
 import {
   deriveOnboardingState,
   deriveSetupStatus,
@@ -66,6 +67,7 @@ export async function getSetupStatus(): Promise<SetupStatus> {
     stockHistoryCount,
     targetAllocationCount,
     hasRetirementSettings: retirementSettings !== null,
+    canManageAssets: isAdminRole(session.user.role),
     onboarding,
   });
 }

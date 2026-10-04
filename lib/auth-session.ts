@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { headers } from "next/headers";
 import { auth } from "./auth";
+import { isAdminRole } from "./user-role";
 
 // cache() deduplica la lectura de sesión dentro de un mismo request:
 // el dashboard invoca varias acciones que llaman a getSession() en paralelo.
@@ -21,4 +22,15 @@ export async function requireAuth() {
 export async function requireUserId(): Promise<string> {
   const session = await requireAuth();
   return session.user.id;
+}
+
+// El proxy protege páginas, no Server Actions: una action se puede invocar
+// desde cualquier página a la que el usuario tenga acceso. Toda action sobre
+// datos administrados (catálogo, estrategia) tiene que chequear el rol acá.
+export async function requireAdmin() {
+  const session = await requireAuth();
+  if (!isAdminRole(session.user.role)) {
+    throw new Error("No autorizado. Se requiere rol administrador.");
+  }
+  return session;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Circle, PartyPopper } from "lucide-react";
+import { ArrowRight, CheckCircle2, Circle, Info, PartyPopper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -73,8 +73,8 @@ export function SetupChecklist({
 
       <ul className="border-t border-border/60 divide-y divide-border/40">
         {status.steps.map((step) => {
-          const Icon = step.done ? CheckCircle2 : Circle;
-          const showCta = !step.done;
+          const Icon = step.done ? CheckCircle2 : step.actionable ? Circle : Info;
+          const showCta = !step.done && step.actionable;
           const useImport = step.id === "snapshot" && onImportSnapshot;
 
           return (
@@ -106,6 +106,14 @@ export function SetupChecklist({
                       className="text-[10px] font-normal text-amber-600 dark:text-amber-400 border-amber-500/30"
                     >
                       Requerido
+                    </Badge>
+                  )}
+                  {!step.actionable && !step.done && (
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] font-normal text-muted-foreground"
+                    >
+                      Lo configura el administrador
                     </Badge>
                   )}
                 </div>

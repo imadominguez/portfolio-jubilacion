@@ -64,8 +64,8 @@ main().catch((e: unknown) => {
     console.error(
       "\n[seed] La base apuntada por DATABASE_URL no tiene las tablas Prisma esperadas.",
       "\n      Aplicá migraciones primero (mismo entorno que usa este DATABASE_URL):\n",
-      "        npx prisma migrate deploy\n",
-      "      En desarrollo local también podés usar: npx prisma migrate dev\n"
+      "        pnpm prisma migrate deploy\n",
+      "      En desarrollo local también podés usar: pnpm prisma migrate dev\n"
     );
   } else {
     console.error(e);

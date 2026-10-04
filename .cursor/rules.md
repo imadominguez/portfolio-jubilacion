@@ -1,5 +1,7 @@
 # Project Coding Rules
 
+> The *why* behind these rules is recorded as Architecture Decision Records in `docs/adr/`. If a change contradicts an accepted ADR, add a new ADR that supersedes it.
+
 ## General Principles
 
 - Prefer simplicity over complexity.
@@ -50,8 +52,8 @@ Exception: `lib/portfolio-data.ts`, `lib/analysis-data.ts`, `lib/real-gains-data
 
 ## State Management
 
-- Use **Zustand** only for client-side UI state (e.g. modal open/close, form step).
-- Do not store server data in Zustand. Server data flows through RSC → client component props.
+- No global state library: client UI state lives in `useState` inside the component that needs it.
+- Do not keep server data in client state stores. Server data flows through RSC → client component props.
 - Prefer `useTransition` for pending states on Server Action calls.
 
 ---
@@ -72,13 +74,15 @@ Exception: `lib/portfolio-data.ts`, `lib/analysis-data.ts`, `lib/real-gains-data
 "use server";
 
 import { db } from "@/lib/db";
-import { revalidatePath } from "next/cache";
+import { requireUserId } from "@/lib/auth-session";
+import { revalidateTrades } from "@/lib/revalidate";
 
 export async function doSomething(input: InputType): Promise<Result> {
   try {
+    const userId = await requireUserId();
     // validate input
-    // db operation
-    revalidatePath("/affected-path");
+    // db operation — always scoped: where: { ..., userId }
+    revalidateTrades(); // domain helper from lib/revalidate.ts, not a loose revalidatePath
     return { success: true, ... };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error inesperado.";
@@ -88,6 +92,9 @@ export async function doSomething(input: InputType): Promise<Result> {
 ```
 
 Always return a discriminated union `{ success: true, ... } | { success: false, error: string }`.
+
+- User data: read with `findFirst({ where: { id, userId } })` and delete with `deleteMany({ where: { id, userId } })`; never `findUnique({ where: { id } })` on user-owned rows.
+- The proxy protects pages, not actions. Admin-only actions must re-check the role with `requireAdmin()` from `lib/auth-session.ts`.
 
 ---
 

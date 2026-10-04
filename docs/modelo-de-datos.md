@@ -283,23 +283,26 @@ Ubicación: `prisma/migrations/`.
 Comandos (ver [desarrollo.md](./desarrollo.md)):
 
 ```bash
-npx prisma migrate dev       # crear/aplicar migración en desarrollo
-npx prisma migrate deploy    # aplicar en producción
-npx prisma studio            # inspeccionar/editar datos
+pnpm prisma migrate dev       # crear/aplicar migración en desarrollo
+pnpm prisma migrate deploy    # aplicar en producción
+pnpm prisma studio            # inspeccionar/editar datos
 ```
 
 ---
 
 ## Seed (`prisma/seed.ts`)
 
-Se ejecuta con `npm run db:seed` o `npx prisma db seed`. Crea su propio cliente `PrismaPg` (no reutiliza `lib/db.ts`).
+Se ejecuta con `pnpm db:seed` o `pnpm prisma db seed`. Crea su propio cliente `PrismaPg` (no reutiliza `lib/db.ts`).
 
-1. **`seedInvestmentStrategy()`** — si no existe ninguna estrategia, crea `"Estrategia CEDEARs — Portafolio Jubilación (compacta)"`, `isActive: true`, `version: 1` con el contenido de `ESTRATEGIA_DEFAULT` (`lib/default-strategy.ts`). Para actualizar la estrategia activa en una base existente usar `pnpm db:strategy`.
+1. **`seedInvestmentStrategy()`** — si no existe ninguna estrategia, crea `"Estrategia CEDEARs — Portafolio Jubilación (compacta)"`, `isActive: true`, `version: 1` con el contenido de `ESTRATEGIA_DEFAULT` (`lib/default-strategy.ts`). Para actualizar la estrategia activa en una base existente usar `pnpm db:strategy` (crea una nueva versión activa; es idempotente si el contenido no cambió).
 2. **`seedAdminRoles()`** — lee `SEED_ADMIN_EMAIL` (emails separados por coma) y hace `updateMany` a `role = ADMIN` sobre usuarios existentes (no crea usuarios).
 3. Captura `PrismaClientKnownRequestError` con código **P2021** (tablas faltantes) y sugiere correr migraciones.
 
 ### Scripts auxiliares (`scripts/`)
 
+> `.gitignore` ignora `scripts/*` (para scripts sueltos) con excepciones explícitas para `refresh-strategy.ts` y `backfill-movements.ts`. `seed-admin.mjs` y `add-user-id-columns.mjs` están versionados desde antes de la regla. Un script nuevo que se quiera versionar necesita su línea `!scripts/<nombre>` en `.gitignore`.
+
 - `seed-admin.mjs` — bootstrap de un admin hardcodeado (`admin@portfolio.com` / `Admin1234!`) con conexión `pg` directa y hash scrypt (`N=16384, r=16, p=1`, `dkLen=64`, formato `${saltHex}:${keyHex}`). También asocia datos huérfanos (`userId IS NULL`) al admin.
 - `add-user-id-columns.mjs` — agrega columnas `userId` (FK a `user`) a las tablas de dominio mediante `ALTER TABLE ... IF NOT EXISTS`.
-- `backfill-movements.ts` — crea un `Movement` por cada `Transaction` legacy (`notes = "Cocos #..."`) y la vincula. Ejecutar con `npx tsx scripts/backfill-movements.ts` una sola vez tras el refactor.
+- `backfill-movements.ts` — crea un `Movement` por cada `Transaction` legacy (`notes = "Cocos #..."`) y la vincula. Ejecutar con `pnpm exec tsx scripts/backfill-movements.ts` una sola vez tras el refactor.
+- `refresh-strategy.ts` — activa `ESTRATEGIA_DEFAULT` (`lib/default-strategy.ts`) como nueva versión de `InvestmentStrategy`. Se corre con `pnpm db:strategy`.

@@ -7,11 +7,17 @@ import { ImportButton } from "@/components/snapshots/snapshots-client";
 import { Button } from "@/components/ui/button";
 import { getConcentrationData } from "@/lib/analysis-data";
 import { BarChart3 } from "lucide-react";
+import { getSession } from "@/lib/auth-session";
+import { isAdminRole } from "@/lib/user-role";
 
 export const metadata: Metadata = { title: "Análisis de concentración" };
 
 export default async function AnalysisPage() {
-  const data = await getConcentrationData();
+  const [data, session] = await Promise.all([
+    getConcentrationData(),
+    getSession(),
+  ]);
+  const isAdmin = isAdminRole(session?.user.role);
 
   return (
     <div className="flex flex-col min-h-svh">
@@ -70,13 +76,15 @@ export default async function AnalysisPage() {
           <EmptyState
             icon={BarChart3}
             title="Sin datos de portfolio"
-            description="Importá al menos un snapshot desde el dashboard para ver el análisis de concentración. Después completá sector, país e industria en Assets."
+            description="Importá al menos un snapshot desde el dashboard para ver el análisis de concentración. Sector, país e industria salen del catálogo de Assets."
             action={
               <div className="flex flex-wrap items-center justify-center gap-2">
                 <ImportButton />
-                <Button asChild size="sm" variant="outline">
-                  <Link href="/assets">Completar Assets</Link>
-                </Button>
+                {isAdmin && (
+                  <Button asChild size="sm" variant="outline">
+                    <Link href="/assets">Completar Assets</Link>
+                  </Button>
+                )}
               </div>
             }
           />

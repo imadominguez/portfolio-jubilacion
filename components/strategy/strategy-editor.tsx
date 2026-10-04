@@ -49,7 +49,11 @@ export function StrategyEditor({ active, history }: StrategyEditorProps) {
       if (!result.ok) {
         setError(result.error);
       } else {
-        setSuccessMsg(`Versión ${version} restaurada como activa. Recargá para ver los cambios.`);
+        // revalidateStrategy() ya refresca las props; el textarea es estado
+        // local y hay que alinearlo a mano con la versión restaurada.
+        const restored = history.find((v) => v.id === id);
+        if (restored) setContent(restored.content);
+        setSuccessMsg(`Versión ${version} restaurada como activa.`);
       }
     });
   };

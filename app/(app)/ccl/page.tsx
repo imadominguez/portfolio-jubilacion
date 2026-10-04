@@ -7,7 +7,6 @@ import { CclUpdateButton } from "@/components/exchange-rate/ccl-update-button";
 import { getAllExchangeRates } from "@/app/actions/exchange-rate";
 import { getAllSnapshotPoints } from "@/lib/portfolio-data";
 import { formatDateMedium, formatARS } from "@/lib/format";
-import { ImportButton } from "@/components/snapshots/snapshots-client";
 
 export const metadata: Metadata = { title: "Historial CCL" };
 
@@ -23,7 +22,6 @@ export default async function CCLPage() {
         <SiteHeader
           title="Historial CCL"
           description="Contado con Liquidación"
-          actions={<ImportButton />}
         />
         <main className="flex-1 flex items-center justify-center px-6 py-20">
           <div className="flex flex-col items-center gap-3 text-center max-w-xs">
@@ -33,11 +31,10 @@ export default async function CCLPage() {
             </p>
             <p className="text-xs text-muted-foreground leading-relaxed">
               Actualizá el CCL para comenzar a registrar el historial. También
-              podés cargar todo desde el Centro de Datos.
+              podés cargar el histórico completo desde el Centro de Datos.
             </p>
             <div className="pt-1 flex flex-wrap items-center justify-center gap-2">
               <CclUpdateButton />
-              <ImportButton />
             </div>
           </div>
         </main>
@@ -114,7 +111,7 @@ export default async function CCLPage() {
       <SiteHeader
         title="Historial CCL"
         description="Contado con Liquidación"
-        actions={<ImportButton />}
+        actions={<CclUpdateButton />}
       />
 
       <main className="flex-1 px-6 py-10 flex flex-col gap-6 max-w-6xl w-full mx-auto">

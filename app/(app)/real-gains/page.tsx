@@ -18,6 +18,8 @@ import { MethodologyNote } from "@/components/real-gains/methodology-note";
 import { fmtPct } from "@/components/real-gains/real-gains-helpers";
 import { getDataReadiness, calculateRealGains } from "@/lib/real-gains-data";
 import { formatARS, formatUSD } from "@/lib/format";
+import { getSession } from "@/lib/auth-session";
+import { isAdminRole } from "@/lib/user-role";
 
 export const metadata: Metadata = { title: "Ganancia Real en USD" };
 
@@ -26,7 +28,8 @@ export const metadata: Metadata = { title: "Ganancia Real en USD" };
 // ---------------------------------------------------------------------------
 
 export default async function RealGainsPage() {
-  const [readiness, summary] = await Promise.all([
+  const [session, readiness, summary] = await Promise.all([
+    getSession(),
     getDataReadiness(),
     calculateRealGains(),
   ]);
@@ -189,7 +192,10 @@ export default async function RealGainsPage() {
               <p className="text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
                 Detalle por posición
               </p>
-              <PositionsTable summary={summary} />
+              <PositionsTable
+                summary={summary}
+                canManageAssets={isAdminRole(session?.user.role)}
+              />
             </div>
 
             {/* Nota metodológica */}

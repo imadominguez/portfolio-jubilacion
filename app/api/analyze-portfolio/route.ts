@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth-session";
+import { isAdminRole } from "@/lib/user-role";
 import { extractJson, normalizarReporte } from "@/lib/report-normalizer";
 
 // El análisis con web_search + thinking puede tardar varios minutos: streaming + límite alto.
 export const runtime = "nodejs";
 export const maxDuration = 300;
+
+// El timeout propio tiene que vencer antes que maxDuration: si no, la plataforma
+// mata la función y el cliente no recibe el 504 descriptivo. Mantener < maxDuration.
+const TIMEOUT_CAP_MS = 290_000;
 
 // Precios Sonnet 5 (USD por millón de tokens): input $2, output $10.
 // Cache write = 1.25× input ($2.5), cache read = 0.1× input ($0.2).
@@ -59,6 +64,13 @@ export async function POST(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
+    // Mismo criterio que la página /portfolio: cada análisis tiene costo en la API.
+    if (!isAdminRole(session.user.role)) {
+      return NextResponse.json(
+        { error: "No autorizado. Se requiere rol administrador." },
+        { status: 403 },
+      );
+    }
     const userId = session.user.id;
 
     const strategy = await db.investmentStrategy.findFirst({ where: { isActive: true } });
@@ -86,9 +98,11 @@ export async function POST(request: NextRequest) {
     const base64 = Buffer.from(arrayBuffer).toString("base64");
 
     const controller = new AbortController();
-    const timeoutMs = Number(process.env.ANTHROPIC_TIMEOUT_MS ?? 900_000);
+    const timeoutMs = Number(process.env.ANTHROPIC_TIMEOUT_MS ?? TIMEOUT_CAP_MS);
     const effectiveTimeout =
-      Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : 900_000;
+      Number.isFinite(timeoutMs) && timeoutMs > 0
+        ? Math.min(timeoutMs, TIMEOUT_CAP_MS)
+        : TIMEOUT_CAP_MS;
     const timeout = setTimeout(() => {
       abortedByTimeout = true;
       controller.abort();

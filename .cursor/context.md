@@ -4,7 +4,7 @@
 
 This is a **personal financial dashboard** for managing and analyzing a long-term investment portfolio.
 
-- **Private use** — single user (authenticated via Better Auth)
+- **Private use** — a few users, each isolated to their own data (Better Auth; public signup closed; `USER`/`ADMIN` roles)
 - **Focus** — CEDEARs (Certificados de Depósito Argentinos) purchased through Cocos Capital
 - **Goal** — track portfolio evolution, analyze performance, and plan for retirement
 

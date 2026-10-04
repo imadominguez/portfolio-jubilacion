@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { requireAuth, requireUserId } from "@/lib/auth-session";
 import { checkAndUpdateMilestones } from "@/app/actions/milestones";
 import { parseCocosNumber } from "@/lib/number-parsing";
+import { getSetupStatus } from "@/app/actions/setup";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -31,9 +32,47 @@ export type PreviewResult =
     }
   | { success: false; error: string };
 
+export type NextSetupStep = { label: string; href: string; ctaLabel: string };
+
 export type ImportResult =
-  | { success: true; snapshotId: string; positionCount: number }
+  | {
+      success: true;
+      snapshotId: string;
+      positionCount: number;
+      totalValueArs: number;
+      /** Primer paso pendiente del checklist que el usuario puede resolver. */
+      nextStep: NextSetupStep | null;
+    }
   | { success: false; error: string };
+
+function duplicateDateError(dateStr: string): string {
+  return `Ya existe un snapshot para la fecha ${dateStr}. Los snapshots no se sobreescriben: si el anterior está mal, eliminalo desde su detalle y volvé a importar.`;
+}
+
+async function snapshotExists(userId: string, snapshotDate: Date): Promise<boolean> {
+  const existing = await db.portfolioSnapshot.findFirst({
+    where: { snapshotDate, userId },
+    select: { id: true },
+  });
+  return existing !== null;
+}
+
+// Se consulta al elegir la fecha, para avisar del duplicado antes de revisar
+// la previsualización (la validación definitiva sigue en importSnapshot).
+export async function checkSnapshotDate(
+  dateStr: string
+): Promise<{ success: true; exists: boolean } | { success: false; error: string }> {
+  try {
+    const userId = await requireUserId();
+    const snapshotDate = new Date(dateStr);
+    if (isNaN(snapshotDate.getTime())) {
+      return { success: false, error: "La fecha ingresada no es válida." };
+    }
+    return { success: true, exists: await snapshotExists(userId, snapshotDate) };
+  } catch {
+    return { success: false, error: "No se pudo verificar la fecha." };
+  }
+}
 
 // ---------------------------------------------------------------------------
 // CSV parsing — Cocos Capital format
@@ -162,8 +201,17 @@ export async function parseSnapshotPreview(
   formData: FormData
 ): Promise<PreviewResult> {
   try {
+    const userId = await requireUserId();
     const file = formData.get("file") as File | null;
     if (!file) return { success: false, error: "No se adjuntó ningún archivo." };
+
+    const dateStr = formData.get("date") as string | null;
+    if (dateStr) {
+      const snapshotDate = new Date(dateStr);
+      if (!isNaN(snapshotDate.getTime()) && (await snapshotExists(userId, snapshotDate))) {
+        return { success: false, error: duplicateDateError(dateStr) };
+      }
+    }
 
     const cclStr = formData.get("ccl") as string | null;
     const ccl = cclStr ? parseFloat(cclStr.replace(",", ".")) : null;
@@ -235,16 +283,8 @@ export async function importSnapshot(formData: FormData): Promise<ImportResult> 
     const { positions, totalValueArs } = computeTotalsAndAllocations(raw, validCcl);
     const totalValueUsd = validCcl ? totalValueArs / validCcl : null;
 
-    const existing = await db.portfolioSnapshot.findFirst({
-      where: { snapshotDate, userId },
-      select: { id: true },
-    });
-
-    if (existing) {
-      return {
-        success: false,
-        error: `Ya existe un snapshot para la fecha ${dateStr}. Los snapshots son inmutables y no pueden sobreescribirse.`,
-      };
+    if (await snapshotExists(userId, snapshotDate)) {
+      return { success: false, error: duplicateDateError(dateStr) };
     }
 
     const snapshot = await db.portfolioSnapshot.create({
@@ -275,7 +315,20 @@ export async function importSnapshot(formData: FormData): Promise<ImportResult> 
       await checkAndUpdateMilestones(totalValueUsd);
     }
 
-    return { success: true, snapshotId: snapshot.id, positionCount: positions.length };
+    const setup = await getSetupStatus();
+    const pending = setup.steps.find(
+      (s) => s.actionable && !s.done && s.id !== "snapshot"
+    );
+
+    return {
+      success: true,
+      snapshotId: snapshot.id,
+      positionCount: positions.length,
+      totalValueArs,
+      nextStep: pending
+        ? { label: pending.label, href: pending.href, ctaLabel: pending.ctaLabel }
+        : null,
+    };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error inesperado.";
     return { success: false, error: message };

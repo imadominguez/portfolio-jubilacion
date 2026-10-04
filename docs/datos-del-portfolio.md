@@ -14,7 +14,7 @@ Punto de entrada principal. Muestra el estado actual del portfolio basado en el 
 |---|---|
 | **Valor total ARS** | Suma de `precio × cantidad` de todas las posiciones del snapshot. Fuente: CSV de Cocos Capital. |
 | **Equivalente USD** | `totalValueArs / CCL`, donde CCL es el tipo de cambio contado con liquidación registrado al importar el snapshot. |
-| **Tipo de cambio CCL implícito** | El valor del dólar CCL guardado junto al snapshot. Fuente: dolarapi.com en el momento de la importación. |
+| **Tipo de cambio CCL implícito** | El valor del dólar CCL guardado junto al snapshot. Se ingresa al importar y se autocompleta con el CCL registrado para esa fecha (`ExchangeRate`), si existe. Una vez guardado no cambia. |
 
 ### KPIs secundarios
 
@@ -69,16 +69,21 @@ Análisis del historial completo usando todos los snapshots importados.
 |---|---|
 | **Rendimiento del año (%)** | `(valorARS_último - valorARS_base_año) / valorARS_base_año × 100`. Base: último snapshot del año anterior, o el primero disponible. |
 | **CAGR** (Tasa anual compuesta) | `(valorFinal / valorInicial)^(1/años) - 1`. Calculado en ARS desde el primer al último snapshot. |
+| **CAGR real** | CAGR nominal descontando la inflación anualizada del período (IPC): `(1 + CAGR) / (1 + inflación) - 1`. Requiere haber cargado el IPC. |
 | **Máx. Drawdown** | Mayor caída porcentual desde un pico: `max((peak - value) / peak)` sobre todos los snapshots. |
 | **Snapshots importados** | Cantidad total de registros históricos disponibles. |
 
 ### Gráfico de evolución
 
-Serie temporal del valor del portfolio en ARS con opción de comparar contra benchmarks.
+Serie temporal del valor del portfolio con toggle ARS/USD.
 
 ### Comparación vs benchmarks
 
 Rendimiento normalizado del portfolio vs S&P 500 (`^GSPC`), Merval (`^MERV`) y NASDAQ (`^IXIC`). Los datos históricos se obtienen de Yahoo Finance y se almacenan en la tabla `BenchmarkPoint`. La base 100 es el primer snapshot disponible.
+
+### Comparación vs inflación
+
+Portfolio en ARS frente al **IPC acumulado** y al **CER/UVA** (argentinadatos.com), todos en base 100 desde el primer snapshot. Escala logarítmica por defecto. Responde a la pregunta "¿le gané a la inflación en pesos?". Detalle del cálculo en [logica-financiera.md](./logica-financiera.md#inflación-y-rendimiento-real-libinflationts-appactionsindicests).
 
 ### Timeline de snapshots
 
@@ -113,6 +118,22 @@ Herramienta para alinear el portfolio a una asignación objetivo.
 
 ---
 
+## Plan DCA (`/plan`)
+
+Reparto **determinista** (sin IA) del aporte del mes entre las posiciones del objetivo de rebalanceo.
+
+| Dato | Descripción |
+|---|---|
+| **Aporte** | Monto en ARS a invertir este mes (editable; default $500.000). |
+| **Gap por ticker** | `max(0, targetPct × valorCartera − valorActual)`: cuánto falta para llegar al peso objetivo. |
+| **Monto a comprar** | El aporte se reparte en proporción al gap restante de cada ticker (las más infraponderadas reciben más), sin superar el gap de ninguna. Lo que no entra en ningún gap queda como "sin asignar". |
+| **CEDEARs estimados** | Monto / precio estimado del CEDEAR (`precio USD del subyacente / ratio × CCL`). |
+| **Peso resultante** | Peso de cada posición después de la compra. |
+
+Requiere un snapshot y objetivos cargados en `/rebalance`. Detalle del algoritmo en [logica-financiera.md](./logica-financiera.md#plan-dca-libdca-plannerts).
+
+---
+
 ## Jubilación (`/retirement`)
 
 Calculadora de planificación para el retiro.
@@ -141,7 +162,7 @@ Calculadora de planificación para el retiro.
 
 ## Transacciones (`/transactions`)
 
-Registro manual de operaciones de compra/venta de CEDEARs y dividendos.
+Operaciones de compra/venta y dividendos. Las compras/ventas pueden cargarse a mano o, preferentemente, **importando el CSV de movimientos de Cocos**: cada fila queda en el libro de movimientos (pestaña *Movimientos*, con sub-vista de fondos FCI) y solo las compras/ventas generan una transacción que impacta el PPM. La importación es idempotente: reimportar el mismo CSV no duplica nada.
 
 ### Transacciones de compra/venta
 
@@ -189,10 +210,10 @@ Registro de dividendos cobrados por ticker con monto, moneda (ARS/USD) y fecha. 
 
 Vista y gestión del historial de snapshots importados.
 
-- **Importar**: CSV exportado desde Cocos Capital (formato: instrumento, cantidad, precio, moneda, total). Al importar se solicita la fecha y el CCL del día.
+- **Importar**: CSV `portfolio_report_AAAAMMDD.csv` exportado desde Cocos Capital (formato: instrumento, cantidad, precio, moneda, total). La fecha se deriva del nombre del archivo y el CCL se autocompleta con el registrado para esa fecha (editable). Si hay posiciones en USD, el CCL es obligatorio. No se puede importar dos veces la misma fecha.
 - **Ver detalle**: tabla completa de posiciones de cada snapshot histórico.
-- **Exportar**: descarga del snapshot en formato JSON.
-- **Eliminar**: los snapshots son inmutables pero pueden eliminarse.
+- **Exportar**: PDF, HTML imprimible o CSV (ver [api-y-exportacion.md](./api-y-exportacion.md)).
+- **Eliminar**: los snapshots son inmutables (no se editan), pero el usuario puede borrar los propios.
 
 ---
 
@@ -212,16 +233,36 @@ Tabla de referencia de los CEDEARs disponibles.
 
 ## Configuración (`/settings`)
 
-| Sección | Funcionalidad |
-|---|---|
-| **Tipo de cambio CCL** | Botón para obtener el CCL actual desde dolarapi.com y guardarlo. Historial de fechas guardadas. |
-| **Milestones** | Crear y eliminar hitos de valor en USD. |
-| **Benchmarks** | Botón para cargar/actualizar datos históricos del S&P500, Merval y NASDAQ desde Yahoo Finance. |
-| **Retiro** | Configurar los parámetros de la calculadora de jubilación. |
+Solo-ADMIN. Hoy contiene únicamente la gestión de **milestones**: crear y eliminar hitos de valor en USD y ver el progreso al próximo. Los hitos se marcan como alcanzados automáticamente al importar un snapshot que los supera.
+
+La actualización de CCL, precios e índices vive en el **Centro de Datos** (`/datos`); los parámetros de jubilación se editan en `/retirement`.
 
 ---
 
-## Ganancia Real (`/real-gains`) *(feature en desarrollo)*
+## Centro de Datos (`/datos`)
+
+Hub para cargar y mantener los datos. Muestra el checklist de **puesta en marcha** (qué falta cargar y dónde) y agrupa:
+
+| Bloque | Acciones |
+|---|---|
+| **Importar** | Snapshot (CSV de Portfolio) y movimientos (CSV de Actividad) de Cocos. |
+| **Mantenimiento** | CCL actual, precios de mercado (Yahoo), inflación IPC y CER/UVA. |
+| **Históricos** | Wizard de ganancia real: CCL histórico y precios históricos de subyacentes. |
+
+---
+
+## Historial CCL (`/ccl`)
+
+| Dato | Descripción |
+|---|---|
+| **CCL actual** | Último valor registrado en `ExchangeRate`. |
+| **Variación 1 mes / YTD / 1 año** | `(CCL_actual − CCL_período) / CCL_período × 100`, con el registro más cercano hacia atrás. Los colores están invertidos: que suba el CCL se muestra como negativo (el portfolio pierde valor medido en USD si los precios en ARS no acompañan). |
+| **Gráfico** | CCL y valor del portfolio en USD en doble eje Y. |
+| **Tabla** | Últimos 30 registros. |
+
+---
+
+## Ganancia Real (`/real-gains`)
 
 Módulo avanzado que descompone la ganancia en USD en sus dos componentes:
 
@@ -233,15 +274,21 @@ Módulo avanzado que descompone la ganancia en USD en sus dos componentes:
 
 **Ejemplo de interpretación**: Si una acción subió 20% en USD pero el CCL subió 30%, aunque ganaste en ARS, en dólares reales tu poder adquisitivo bajó. El impacto CCL captura exactamente ese efecto.
 
+La pantalla muestra KPIs, una barra de desglose (apreciación vs impacto CCL), una tabla por posición con la **cobertura de datos** (qué compras tienen CCL y precio histórico) y una nota metodológica. Solo incluye CEDEARs (posiciones con subyacente); bonos y acciones locales quedan fuera. Requiere haber cargado el CCL histórico y los precios históricos (wizard de 2 pasos). Fórmulas completas en [logica-financiera.md](./logica-financiera.md#ganancia-real-en-usd-e-impacto-ccl-libreal-gains-datats).
+
 ---
 
 ## Fuentes de datos externas
 
 | Fuente | Datos obtenidos | Actualización |
 |---|---|---|
-| **Cocos Capital (CSV)** | Posiciones, precios y valores del portfolio | Manual, al importar snapshot |
-| **dolarapi.com** | CCL actual e histórico | Manual (botón en Settings) |
-| **Yahoo Finance** | Precios actuales y históricos de acciones subyacentes en USD | Manual (botón en Assets/Settings) |
+| **Cocos Capital (CSV)** | Posiciones del portfolio (snapshot) y movimientos de la cuenta | Manual, al importar |
+| **Cocos Capital (PDF)** | Tenencia para el reporte mensual con IA | Manual, en `/portfolio` |
+| **dolarapi.com** | CCL actual | Manual (botón en `/datos`, `/ccl` o `/assets`) |
+| **argentinadatos.com** | CCL histórico, IPC y CER/UVA | Manual (`/datos`, wizard de ganancia real, `/performance`) |
+| **Yahoo Finance** | Precios actuales e históricos de subyacentes en USD y benchmarks | Manual (botón en `/datos` o `/assets`; benchmarks on-demand en `/performance`) |
+
+Detalle técnico en [integraciones.md](./integraciones.md).
 
 ---
 

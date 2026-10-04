@@ -41,5 +41,13 @@ yarn-error.log*
 next-env.d.ts
 
 #Scripts
+# Scripts sueltos quedan fuera de git; los que usa package.json o la doc se versionan.
 scripts/*
+!scripts/refresh-strategy.ts
+!scripts/backfill-movements.ts
+
+# Exportaciones reales de la cuenta de Cocos (datos personales): nunca versionar.
+# Los tests usan un CSV sintético; los fixtures reales solo corren localmente.
 __fixtures__/*
+docs/movimientos/*.csv
+docs/portfolio_report/

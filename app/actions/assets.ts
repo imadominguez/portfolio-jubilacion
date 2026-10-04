@@ -2,8 +2,7 @@
 
 import { revalidateAssets } from "@/lib/revalidate";
 import { db } from "@/lib/db";
-import { requireAuth } from "@/lib/auth-session";
-import { isAdminRole } from "@/lib/user-role";
+import { requireAdmin } from "@/lib/auth-session";
 
 export type AssetFormData = {
   ticker: string;
@@ -21,12 +20,6 @@ export type AssetResult =
   | { success: false; error: string };
 
 // El catálogo de assets es global (compartido). Sólo un ADMIN puede mutarlo.
-async function requireAdmin(): Promise<void> {
-  const session = await requireAuth();
-  if (!isAdminRole(session.user.role)) {
-    throw new Error("No autorizado. Se requiere rol administrador.");
-  }
-}
 
 export async function createAsset(data: AssetFormData): Promise<AssetResult> {
   try {

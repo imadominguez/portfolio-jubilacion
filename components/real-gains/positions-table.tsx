@@ -11,7 +11,14 @@ import { formatARS, formatUSD } from "@/lib/format";
 import type { RealGainsSummary } from "@/lib/real-gains-data";
 import { fmtPct, signColor } from "./real-gains-helpers";
 
-export function PositionsTable({ summary }: { summary: RealGainsSummary }) {
+export function PositionsTable({
+  summary,
+  canManageAssets,
+}: {
+  summary: RealGainsSummary;
+  /** Assets es admin-only: un USER no puede resolver el faltante desde ahí. */
+  canManageAssets: boolean;
+}) {
   const hasStockData = summary.positions.some((p) => p.stockPriceAvailable);
   const incompletePositions = summary.positions.filter((p) => p.missingReason !== null);
 
@@ -193,7 +200,7 @@ export function PositionsTable({ summary }: { summary: RealGainsSummary }) {
                   <span className="text-xs text-muted-foreground leading-relaxed">
                     {pos.missingReason}
                   </span>
-                  {pos.missingReason?.includes("underlyingTicker") && (
+                  {canManageAssets && pos.missingReason?.includes("underlyingTicker") && (
                     <a
                       href="/assets"
                       className="inline-flex items-center gap-1 text-[11px] text-warning hover:underline w-fit"
@@ -207,7 +214,7 @@ export function PositionsTable({ summary }: { summary: RealGainsSummary }) {
                       Usá el botón &ldquo;Actualizar datos&rdquo; del header para recargar precios
                     </span>
                   )}
-                  {pos.missingReason?.includes("Assets") && !pos.missingReason?.includes("underlyingTicker") && (
+                  {canManageAssets && pos.missingReason?.includes("Assets") && !pos.missingReason?.includes("underlyingTicker") && (
                     <a
                       href="/assets"
                       className="inline-flex items-center gap-1 text-[11px] text-warning hover:underline w-fit"
