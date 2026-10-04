@@ -1,6 +1,8 @@
 "use server";
 
+import { cacheLife, cacheTag } from "next/cache";
 import { revalidateMilestones } from "@/lib/revalidate";
+import { userTags } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
 import { requireAuth, requireUserId } from "@/lib/auth-session";
 
@@ -25,24 +27,28 @@ const DEFAULT_MILESTONES = [
 ];
 
 export async function getMilestones(): Promise<MilestoneRow[]> {
-  const session = await requireAuth();
-  const userId = session.user.id;
-  const milestones = await db.milestoneAlert.findMany({
+  return cachedMilestones(await requireUserId());
+}
+
+// No se exporta: recibe el userId ya resuelto de la sesión (ADR-0017).
+async function cachedMilestones(userId: string): Promise<MilestoneRow[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(userTags.milestones(userId));
+
+  const query = {
     where: { userId },
     orderBy: { targetValueUsd: "asc" },
-  });
+  } as const;
+  let milestones = await db.milestoneAlert.findMany(query);
 
+  // La primera lectura crea los hitos por defecto. Se vuelven a leer para
+  // cachear los ids reales (sin ellos no se podrían borrar desde /settings).
   if (milestones.length === 0) {
     await db.milestoneAlert.createMany({
       data: DEFAULT_MILESTONES.map((m) => ({ ...m, userId })),
     });
-    return DEFAULT_MILESTONES.map((m) => ({
-      id: "",
-      label: m.label,
-      targetValueUsd: m.targetValueUsd,
-      reached: false,
-      reachedAt: null,
-    }));
+    milestones = await db.milestoneAlert.findMany(query);
   }
 
   return milestones.map((m) => ({
@@ -69,7 +75,7 @@ export async function createMilestone(
       data: { label: label.trim(), targetValueUsd, userId },
     });
 
-    revalidateMilestones();
+    revalidateMilestones(session.user.id);
     return { success: true };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error inesperado.";
@@ -84,7 +90,7 @@ export async function deleteMilestone(id: string): Promise<MilestoneResult> {
     if (result.count === 0) {
       return { success: false, error: "No se encontró el hito." };
     }
-    revalidateMilestones();
+    revalidateMilestones(userId);
     return { success: true };
   } catch {
     return { success: false, error: "No se pudo eliminar." };
@@ -116,6 +122,8 @@ export async function checkAndUpdateMilestones(
       });
     }
   }
+
+  if (newlyReached.length > 0) revalidateMilestones(session.user.id);
 
   return { newlyReached };
 }

@@ -1,6 +1,8 @@
 "use server";
 
+import { cacheLife, cacheTag } from "next/cache";
 import { revalidateTrades } from "@/lib/revalidate";
+import { userTags } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
 import { requireAuth, requireUserId } from "@/lib/auth-session";
 import type { TransactionType, Currency } from "@/app/generated/prisma/client";
@@ -60,7 +62,7 @@ export async function createTransaction(
       },
     });
 
-    revalidateTrades();
+    revalidateTrades(session.user.id);
     return { success: true, id: tx.id };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error inesperado.";
@@ -75,7 +77,7 @@ export async function deleteTransaction(id: string): Promise<{ success: boolean;
     if (result.count === 0) {
       return { success: false, error: "No se encontró la transacción." };
     }
-    revalidateTrades();
+    revalidateTrades(userId);
     return { success: true };
   } catch {
     return { success: false, error: "No se pudo eliminar la transacción." };
@@ -111,8 +113,16 @@ export type PpmRow = {
 };
 
 export async function calculatePPM(): Promise<PpmRow[]> {
-  const session = await requireAuth();
-  const userId = session.user.id;
+  return cachedPPM(await requireUserId());
+}
+
+// No se exporta (sería una action invocable con cualquier userId): recibe el
+// usuario ya resuelto de la sesión (ADR-0017).
+async function cachedPPM(userId: string): Promise<PpmRow[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(userTags.trades(userId));
+
   const txs = await db.transaction.findMany({
     where: { type: "BUY", userId },
     orderBy: { date: "asc" },

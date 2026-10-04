@@ -1,6 +1,9 @@
 "use server";
 
+import { cacheLife, cacheTag } from "next/cache";
+import { connection } from "next/server";
 import { revalidateMarketPrices } from "@/lib/revalidate";
+import { marketTags } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
 import { getQuotes } from "@/lib/yahoo-finance-client";
 
@@ -71,6 +74,18 @@ export async function fetchAndSaveMarketPrices(): Promise<MarketPriceResult> {
 }
 
 export async function getMarketPrices(): Promise<MarketPriceRow[]> {
+  // Sin datos de request, Next la ejecutaría en el build contra la base (que en
+  // CI no existe) y congelaría los precios en el shell del deploy.
+  await connection();
+  return cachedMarketPrices();
+}
+
+// Datos globales: los precios solo cambian con el refresco manual (ADR-0006).
+async function cachedMarketPrices(): Promise<MarketPriceRow[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(marketTags.assets, marketTags.marketPrices);
+
   const assets = await db.asset.findMany({
     where: { underlyingTicker: { not: null } },
     select: { ticker: true, underlyingTicker: true, cedearRatio: true },

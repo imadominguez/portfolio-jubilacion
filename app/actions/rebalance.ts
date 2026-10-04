@@ -1,8 +1,10 @@
 "use server";
 
+import { cacheLife, cacheTag } from "next/cache";
 import { revalidateRebalance } from "@/lib/revalidate";
+import { userTags } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
-import { requireAuth } from "@/lib/auth-session";
+import { requireAuth, requireUserId } from "@/lib/auth-session";
 
 export type TargetAllocationRow = {
   id: string;
@@ -68,7 +70,7 @@ export async function upsertTargetAllocation(
       },
     });
 
-    revalidateRebalance();
+    revalidateRebalance(session.user.id);
     return { success: true };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error inesperado.";
@@ -85,7 +87,7 @@ export async function deleteTargetAllocation(id: string): Promise<TargetAllocati
     if (result.count === 0) {
       return { success: false, error: "No se encontró el objetivo." };
     }
-    revalidateRebalance();
+    revalidateRebalance(session.user.id);
     return { success: true };
   } catch (err) {
     return {
@@ -96,8 +98,15 @@ export async function deleteTargetAllocation(id: string): Promise<TargetAllocati
 }
 
 export async function getRebalanceData(): Promise<RebalanceRow[]> {
-  const session = await requireAuth();
-  const userId = session.user.id;
+  return cachedRebalanceData(await requireUserId());
+}
+
+// No se exporta: recibe el userId ya resuelto de la sesión (ADR-0017).
+async function cachedRebalanceData(userId: string): Promise<RebalanceRow[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(userTags.snapshots(userId), userTags.rebalance(userId));
+
   const [snapshot, targets] = await Promise.all([
     db.portfolioSnapshot.findFirst({
       where: { userId },

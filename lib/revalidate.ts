@@ -1,117 +1,77 @@
-import { revalidatePath } from "next/cache";
+import { updateTag } from "next/cache";
+import { marketTags, userTags } from "@/lib/cache-tags";
 
 // ---------------------------------------------------------------------------
-// Revalidación centralizada de rutas.
+// Invalidación centralizada del caché de datos (ADR-0017).
 //
-// La app no usa caché de datos de Next (ni `unstable_cache` ni `"use cache"`):
-// todas las lecturas van a Prisma en cada render y las páginas de `(app)` son
-// dinámicas. Igual, cada mutación invalida explícitamente las rutas que
-// consumen los datos afectados, para no depender del comportamiento por
-// defecto del caché y mantener el contrato correcto si se agrega caché.
+// Las lecturas se cachean con `'use cache'` + `cacheTag` por dominio
+// (`lib/cache-tags.ts`). Cada helper expira el tag del dominio que escribió
+// la mutación; las funciones cacheadas que dependen de varios dominios
+// declaran todos sus tags, así que no hace falta listar pantallas.
+//
+// `updateTag` solo funciona en Server Actions: la siguiente lectura espera
+// datos frescos (read-your-own-writes), incluso dentro de la misma action, y
+// además vacía el caché del router en el cliente. En un Route Handler usar
+// `revalidateTag(tag, "max")`.
 // ---------------------------------------------------------------------------
 
-const PATHS = {
-  dashboard: "/",
-  snapshots: "/snapshots",
-  performance: "/performance",
-  ccl: "/ccl",
-  analysis: "/analysis",
-  rebalance: "/rebalance",
-  retirement: "/retirement",
-  settings: "/settings",
-  realGains: "/real-gains",
-  transactions: "/transactions",
-  assets: "/assets",
-  strategy: "/strategy",
-  dataHub: "/datos",
-} as const;
-
-function revalidate(paths: readonly string[]): void {
-  for (const path of paths) revalidatePath(path);
-}
-
-// Snapshots y todo lo que deriva de posiciones/fechas.
-// Afecta: dashboard, snapshots, performance, CCL (overlay), análisis,
-// rebalanceo, retiro (CAGR), hitos (último snapshot) y ganancia real.
-export function revalidatePortfolioData(): void {
-  revalidate([
-    PATHS.dashboard,
-    PATHS.snapshots,
-    PATHS.performance,
-    PATHS.ccl,
-    PATHS.analysis,
-    PATHS.rebalance,
-    PATHS.retirement,
-    PATHS.settings,
-    PATHS.realGains,
-    PATHS.dataHub,
-  ]);
+// Snapshots y posiciones.
+export function revalidatePortfolioData(userId: string): void {
+  updateTag(userTags.snapshots(userId));
 }
 
 // Transacciones y movimientos (PPM, P&L, costo de ganancia real).
-export function revalidateTrades(): void {
-  revalidate([PATHS.dashboard, PATHS.transactions, PATHS.realGains, PATHS.dataHub]);
+export function revalidateTrades(userId: string): void {
+  updateTag(userTags.trades(userId));
 }
 
-// Dividendos (KPI del dashboard + listado en transacciones).
-export function revalidateDividends(): void {
-  revalidate([PATHS.dashboard, PATHS.transactions]);
+export function revalidateDividends(userId: string): void {
+  updateTag(userTags.dividends(userId));
 }
 
-// Catálogo de assets (ratio, subyacente, sector/país): afecta concentración,
-// valor USD en vivo y ganancia real.
+// Catálogo de assets (ratio, subyacente, sector/país).
 export function revalidateAssets(): void {
-  revalidate([
-    PATHS.assets,
-    PATHS.dashboard,
-    PATHS.analysis,
-    PATHS.realGains,
-    PATHS.dataHub,
-  ]);
+  updateTag(marketTags.assets);
 }
 
-// CCL (ExchangeRate): página de historial y ganancia real (CCL histórico).
+// CCL (ExchangeRate).
 export function revalidateCcl(): void {
-  revalidate([PATHS.ccl, PATHS.realGains, PATHS.dataHub]);
+  updateTag(marketTags.ccl);
 }
 
-// Precios de mercado actuales (MarketPriceCache): valor USD en vivo y
-// valor actual del subyacente en ganancia real.
+// Precios de mercado actuales (MarketPriceCache).
 export function revalidateMarketPrices(): void {
-  revalidate([PATHS.dashboard, PATHS.realGains, PATHS.dataHub]);
+  updateTag(marketTags.marketPrices);
 }
 
-// Precios históricos de subyacentes (HistoricalPriceCache): sólo ganancia real.
+// Precios históricos de subyacentes (HistoricalPriceCache).
 export function revalidateHistoricalPrices(): void {
-  revalidate([PATHS.realGains, PATHS.dataHub]);
+  updateTag(marketTags.historicalPrices);
 }
 
 // Benchmarks históricos e índices macro (IPC/CER).
 export function revalidateBenchmarks(): void {
-  revalidate([PATHS.performance, PATHS.dataHub]);
+  updateTag(marketTags.benchmarks);
 }
 
-// Asignación objetivo de rebalanceo (página + alertas del dashboard).
-export function revalidateRebalance(): void {
-  revalidate([PATHS.rebalance, PATHS.dashboard, PATHS.dataHub]);
+// Asignación objetivo de rebalanceo.
+export function revalidateRebalance(userId: string): void {
+  updateTag(userTags.rebalance(userId));
 }
 
-// Hitos (página de configuración + widget del dashboard).
-export function revalidateMilestones(): void {
-  revalidate([PATHS.settings, PATHS.dashboard, PATHS.dataHub]);
+export function revalidateMilestones(userId: string): void {
+  updateTag(userTags.milestones(userId));
 }
 
-// Configuración de retiro (calculadora + tarjeta del dashboard).
-export function revalidateRetirement(): void {
-  revalidate([PATHS.retirement, PATHS.dashboard, PATHS.dataHub]);
+export function revalidateRetirement(userId: string): void {
+  updateTag(userTags.retirement(userId));
 }
 
-// Estado de onboarding/setup (wizard + checklist del dashboard y hub de datos).
-export function revalidateSetup(): void {
-  revalidate([PATHS.dashboard, PATHS.dataHub]);
+// Estado de onboarding (UserSetup).
+export function revalidateSetup(userId: string): void {
+  updateTag(userTags.setup(userId));
 }
 
-// Estrategia de inversión.
 export function revalidateStrategy(): void {
-  revalidate([PATHS.strategy]);
+  updateTag(marketTags.strategy);
 }

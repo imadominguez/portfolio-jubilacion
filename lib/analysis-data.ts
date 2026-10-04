@@ -1,5 +1,7 @@
+import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db";
 import { requireUserId } from "@/lib/auth-session";
+import { marketTags, userTags } from "@/lib/cache-tags";
 
 export type ConcentrationItem = {
   name: string;
@@ -15,7 +17,17 @@ export type ConcentrationData = {
 };
 
 export async function getConcentrationData(): Promise<ConcentrationData | null> {
-  const userId = await requireUserId();
+  return cachedConcentrationData(await requireUserId());
+}
+
+// No se exporta: recibe el userId ya resuelto de la sesión (ADR-0017).
+async function cachedConcentrationData(
+  userId: string
+): Promise<ConcentrationData | null> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(userTags.snapshots(userId), marketTags.assets);
+
   const snapshot = await db.portfolioSnapshot.findFirst({
     where: { userId },
     orderBy: { snapshotDate: "desc" },

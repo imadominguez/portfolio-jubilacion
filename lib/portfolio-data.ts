@@ -1,5 +1,11 @@
+import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db";
 import { requireUserId } from "@/lib/auth-session";
+import { userTags } from "@/lib/cache-tags";
+
+// Los getters exportados resuelven el usuario de la sesión y delegan en una
+// función cacheada no exportada que recibe solo el `userId`: así nadie puede
+// leer datos de otro usuario pasando otro id (ADR-0017).
 
 export type PositionRow = {
   ticker: string;
@@ -20,7 +26,14 @@ export type SnapshotData = {
 };
 
 export async function getLatestSnapshot(): Promise<SnapshotData | null> {
-  const userId = await requireUserId();
+  return cachedLatestSnapshot(await requireUserId());
+}
+
+async function cachedLatestSnapshot(userId: string): Promise<SnapshotData | null> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(userTags.snapshots(userId));
+
   const snapshot = await db.portfolioSnapshot.findFirst({
     where: { userId },
     orderBy: { snapshotDate: "desc" },
@@ -72,7 +85,17 @@ export type PreviousSnapshotData = {
 export async function getPreviousSnapshotFull(
   beforeDate: Date
 ): Promise<PreviousSnapshotData | null> {
-  const userId = await requireUserId();
+  return cachedPreviousSnapshotFull(await requireUserId(), beforeDate);
+}
+
+async function cachedPreviousSnapshotFull(
+  userId: string,
+  beforeDate: Date
+): Promise<PreviousSnapshotData | null> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(userTags.snapshots(userId));
+
   const snapshot = await db.portfolioSnapshot.findFirst({
     where: { snapshotDate: { lt: beforeDate }, userId },
     orderBy: { snapshotDate: "desc" },
@@ -113,7 +136,14 @@ export type SnapshotPoint = {
 };
 
 export async function getAllSnapshotPoints(): Promise<SnapshotPoint[]> {
-  const userId = await requireUserId();
+  return cachedAllSnapshotPoints(await requireUserId());
+}
+
+async function cachedAllSnapshotPoints(userId: string): Promise<SnapshotPoint[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(userTags.snapshots(userId));
+
   const snapshots = await db.portfolioSnapshot.findMany({
     where: { userId },
     orderBy: { snapshotDate: "asc" },

@@ -1,6 +1,8 @@
 "use server";
 
+import { cacheLife, cacheTag } from "next/cache";
 import { revalidateSetup } from "@/lib/revalidate";
+import { marketTags, userTags } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth-session";
 import { isAdminRole } from "@/lib/user-role";
@@ -20,7 +22,27 @@ export type SetupActionResult =
 
 export async function getSetupStatus(): Promise<SetupStatus> {
   const session = await requireAuth();
-  const userId = session.user.id;
+  return cachedSetupStatus(session.user.id, isAdminRole(session.user.role));
+}
+
+// No se exporta: recibe el usuario ya resuelto de la sesión (ADR-0017). El
+// checklist mira casi todos los dominios, de ahí la cantidad de tags.
+async function cachedSetupStatus(
+  userId: string,
+  canManageAssets: boolean
+): Promise<SetupStatus> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(
+    userTags.snapshots(userId),
+    userTags.trades(userId),
+    userTags.rebalance(userId),
+    userTags.retirement(userId),
+    userTags.setup(userId),
+    marketTags.assets,
+    marketTags.ccl,
+    marketTags.historicalPrices
+  );
 
   const [
     latestSnapshot,
@@ -67,7 +89,7 @@ export async function getSetupStatus(): Promise<SetupStatus> {
     stockHistoryCount,
     targetAllocationCount,
     hasRetirementSettings: retirementSettings !== null,
-    canManageAssets: isAdminRole(session.user.role),
+    canManageAssets,
     onboarding,
   });
 }
@@ -98,7 +120,7 @@ export async function completeOnboarding(): Promise<SetupActionResult> {
       onboardingCompletedAt: new Date(),
       onboardingDismissedAt: null,
     });
-    revalidateSetup();
+    revalidateSetup(session.user.id);
     return { success: true };
   } catch (err) {
     return {
@@ -114,7 +136,7 @@ export async function dismissOnboarding(): Promise<SetupActionResult> {
     await upsertSetup(session.user.id, {
       onboardingDismissedAt: new Date(),
     });
-    revalidateSetup();
+    revalidateSetup(session.user.id);
     return { success: true };
   } catch (err) {
     return {
@@ -128,7 +150,7 @@ export async function setOnboardingStep(step: string): Promise<SetupActionResult
   try {
     const session = await requireAuth();
     await upsertSetup(session.user.id, { lastStep: step });
-    revalidateSetup();
+    revalidateSetup(session.user.id);
     return { success: true };
   } catch (err) {
     return {
@@ -146,7 +168,7 @@ export async function restartOnboarding(): Promise<SetupActionResult> {
       onboardingDismissedAt: null,
       lastStep: null,
     });
-    revalidateSetup();
+    revalidateSetup(session.user.id);
     return { success: true };
   } catch (err) {
     return {

@@ -1,8 +1,10 @@
 "use server";
 
+import { cacheLife, cacheTag } from "next/cache";
 import { revalidateRetirement } from "@/lib/revalidate";
+import { userTags } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
-import { requireAuth } from "@/lib/auth-session";
+import { requireAuth, requireUserId } from "@/lib/auth-session";
 
 export type RetirementSettingsData = {
   currentAge: number;
@@ -20,9 +22,19 @@ export type RetirementSettingsResult =
 const SETTINGS_ID = "default";
 
 export async function getRetirementSettings(): Promise<RetirementSettingsData | null> {
-  const session = await requireAuth();
+  return cachedRetirementSettings(await requireUserId());
+}
+
+// No se exporta: recibe el userId ya resuelto de la sesión (ADR-0017).
+async function cachedRetirementSettings(
+  userId: string
+): Promise<RetirementSettingsData | null> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(userTags.retirement(userId));
+
   const settings = await db.retirementSettings.findFirst({
-    where: { userId: session.user.id },
+    where: { userId },
     orderBy: { createdAt: "asc" },
   });
 
@@ -83,7 +95,7 @@ export async function saveRetirementSettings(
       });
     }
 
-    revalidateRetirement();
+    revalidateRetirement(session.user.id);
     return { success: true };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error inesperado.";
