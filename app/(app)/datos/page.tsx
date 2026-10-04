@@ -14,6 +14,9 @@ import {
 } from "lucide-react";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SetupChecklist } from "@/components/setup/setup-checklist";
+import { SetupPanel } from "@/components/setup/setup-panel";
+import { getSession } from "@/lib/auth-session";
+import { isAdminRole } from "@/lib/user-role";
 import { ImportButton } from "@/components/snapshots/snapshots-client";
 import { ImportMovimientosButton } from "@/components/transactions/import-movements-button";
 import { CclUpdateButton } from "@/components/exchange-rate/ccl-update-button";
@@ -104,7 +107,8 @@ function PreferenceLink({
 }
 
 export default async function DataHubPage() {
-  const [setup, readiness, marketPrices, rates, ipcPoints, cerPoints] = await Promise.all([
+  const [session, setup, readiness, marketPrices, rates, ipcPoints, cerPoints] = await Promise.all([
+    getSession(),
     getSetupStatus(),
     getDataReadiness(),
     getMarketPrices(),
@@ -114,6 +118,7 @@ export default async function DataHubPage() {
   ]);
 
   const latestRate = rates.length > 0 ? rates[rates.length - 1] : null;
+  const isAdmin = isAdminRole(session?.user.role);
   const canUseHistoricals =
     readiness.hasSnapshot && readiness.hasTransactions;
 
@@ -135,7 +140,11 @@ export default async function DataHubPage() {
           </p>
         </section>
 
-        <SetupChecklist status={setup} />
+        {setup.allDone ? (
+          <SetupChecklist status={setup} />
+        ) : (
+          <SetupPanel status={setup} showWizard={false} />
+        )}
 
         <section className="flex flex-col gap-4">
           <h2 className="text-sm font-semibold text-foreground">
@@ -187,7 +196,9 @@ export default async function DataHubPage() {
               meta={
                 marketPrices.length > 0
                   ? `${marketPrices.length} precios en caché.`
-                  : "Sin precios cargados. Completá el subyacente en Assets."
+                  : isAdmin
+                    ? "Sin precios cargados. Completá el subyacente en Assets."
+                    : "Sin precios cargados. Requiere que el administrador complete los subyacentes."
               }
               action={<MarketPricesButton />}
             />
@@ -212,12 +223,20 @@ export default async function DataHubPage() {
           {canUseHistoricals ? (
             <RealGainsWizard readiness={readiness} />
           ) : (
-            <div className="rounded-xl border border-dashed border-border bg-muted/10 px-5 py-4 flex items-start gap-3">
-              <Database className="size-4 text-muted-foreground shrink-0 mt-0.5" />
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Para cargar el CCL y los precios históricos primero necesitás un
-                snapshot y transacciones registradas.
-              </p>
+            <div className="rounded-xl border border-dashed border-border bg-muted/10 px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="flex items-start gap-3 flex-1">
+                <Database className="size-4 text-muted-foreground shrink-0 mt-0.5" />
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {readiness.hasSnapshot
+                    ? "Para cargar el CCL y los precios históricos falta importar tus movimientos: con ellos sabemos desde qué fecha bajar los datos."
+                    : "Para cargar el CCL y los precios históricos primero necesitás un snapshot y tus movimientos."}
+                </p>
+              </div>
+              {readiness.hasSnapshot ? (
+                <ImportMovimientosButton />
+              ) : (
+                <ImportButton />
+              )}
             </div>
           )}
         </section>
@@ -239,12 +258,14 @@ export default async function DataHubPage() {
               description="Configurá tu plan y proyección de retiro."
               href="/retirement"
             />
-            <PreferenceLink
-              icon={Trophy}
-              title="Hitos"
-              description="Metas de valor en USD que querés celebrar."
-              href="/settings"
-            />
+            {isAdmin && (
+              <PreferenceLink
+                icon={Trophy}
+                title="Hitos"
+                description="Metas de valor en USD que querés celebrar."
+                href="/settings"
+              />
+            )}
             <PreferenceLink
               icon={LineChart}
               title="Benchmarks"

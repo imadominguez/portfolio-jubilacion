@@ -18,6 +18,7 @@ function baseInput(overrides: Partial<SetupInput> = {}): SetupInput {
     stockHistoryCount: 0,
     targetAllocationCount: 0,
     hasRetirementSettings: false,
+    canManageAssets: true,
     onboarding,
     ...overrides,
   };
@@ -83,6 +84,38 @@ describe("deriveSetupStatus", () => {
     expect(status.missingAssetTickers).toEqual(["AAPL"]);
     expect(status.steps.find((s) => s.id === "assets")?.done).toBe(false);
     expect(status.allRequiredDone).toBe(false);
+  });
+
+  it("para un USER el paso assets es informativo y no bloquea", () => {
+    const status = deriveSetupStatus(
+      baseInput({
+        canManageAssets: false,
+        hasSnapshot: true,
+        latestSnapshotTickers: ["AAPL"],
+      })
+    );
+    const assets = status.steps.find((s) => s.id === "assets");
+    expect(assets?.actionable).toBe(false);
+    expect(assets?.required).toBe(false);
+    expect(status.allRequiredDone).toBe(true);
+    expect(status.totalCount).toBe(4);
+    expect(status.missingAssetTickers).toEqual(["AAPL"]);
+  });
+
+  it("un USER puede llegar a allDone aunque falten assets", () => {
+    const status = deriveSetupStatus(
+      baseInput({
+        canManageAssets: false,
+        hasSnapshot: true,
+        latestSnapshotTickers: ["AAPL"],
+        transactionCount: 1,
+        cclHistoryCount: 1,
+        stockHistoryCount: 1,
+        targetAllocationCount: 1,
+      })
+    );
+    expect(status.allDone).toBe(true);
+    expect(status.completedCount).toBe(status.totalCount);
   });
 
   it("históricos requieren CCL y precios de acciones", () => {

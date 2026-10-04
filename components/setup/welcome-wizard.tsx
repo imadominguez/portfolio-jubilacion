@@ -12,6 +12,7 @@ import {
   FileSpreadsheet,
   Layers,
   Sparkles,
+  Target,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,8 +51,9 @@ const WIZARD_STEPS: WizardStep[] = [
     body: (
       <>
         Esta app hace seguimiento de tu cartera de CEDEARs de Cocos Capital a lo
-        largo del tiempo. Para que funcione, vas a cargar <strong>4 tipos de datos</strong>{" "}
-        —te guiamos paso a paso. Podés hacerlo ahora o más tarde.
+        largo del tiempo. Te guiamos para cargar tus datos en orden: con el{" "}
+        <strong>primer paso</strong> ya ves tu dashboard; el resto suma métricas.
+        Podés hacerlo ahora o más tarde.
       </>
     ),
   },
@@ -109,6 +111,19 @@ const WIZARD_STEPS: WizardStep[] = [
     action: { kind: "navigate", href: "/real-gains", label: "Cargar históricos" },
   },
   {
+    key: "preferences",
+    icon: Target,
+    title: "5 · Definí tus objetivos",
+    body: (
+      <>
+        La <strong>asignación objetivo</strong> por activo y tu plan de retiro.
+        Con eso el Rebalanceo y el Plan DCA te sugieren qué comprar cada mes.
+      </>
+    ),
+    setupId: "preferences",
+    action: { kind: "navigate", href: "/rebalance", label: "Configurar objetivos" },
+  },
+  {
     key: "finish",
     icon: Sparkles,
     title: "¡Listo!",
@@ -146,13 +161,17 @@ export function WelcomeWizard({
 
   const doneById = useMemo(() => {
     const map = new Map<SetupStepId, boolean>();
-    for (const step of status.steps) map.set(step.id, step.done);
+    for (const s of status.steps) map.set(s.id, s.done);
     return map;
   }, [status.steps]);
 
   const step = WIZARD_STEPS[index];
   const isLast = index === WIZARD_STEPS.length - 1;
   const Icon = step.icon;
+  const setupStep = step.setupId
+    ? status.steps.find((s) => s.id === step.setupId)
+    : undefined;
+  const isActionable = setupStep?.actionable ?? true;
 
   function goTo(next: number) {
     const clamped = Math.max(0, Math.min(WIZARD_STEPS.length - 1, next));
@@ -219,7 +238,7 @@ export function WelcomeWizard({
 
         <div className="px-6 py-5 flex flex-col gap-5">
           <div className="text-sm text-muted-foreground leading-relaxed">
-            {step.body}
+            {isActionable ? step.body : setupStep?.description}
           </div>
 
           {step.setupId && (
@@ -232,12 +251,14 @@ export function WelcomeWizard({
               <span className="text-xs text-muted-foreground">
                 {doneById.get(step.setupId)
                   ? "Este paso ya está completo."
-                  : "Todavía pendiente."}
+                  : isActionable
+                    ? "Todavía pendiente."
+                    : "Lo configura el administrador; no necesitás hacer nada."}
               </span>
             </div>
           )}
 
-          {step.action && (
+          {step.action && isActionable && (
             <Button
               onClick={handleAction}
               className="w-full gap-2"
@@ -273,7 +294,7 @@ export function WelcomeWizard({
                   disabled={pending}
                   className="text-xs text-muted-foreground"
                 >
-                  Omitir
+                  No mostrar más
                 </Button>
                 <Button
                   variant="ghost"

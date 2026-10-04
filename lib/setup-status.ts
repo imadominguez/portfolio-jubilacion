@@ -20,6 +20,12 @@ export type SetupStep = {
   /** Si es requerido, el checklist no se considera completo hasta cumplirlo. */
   required: boolean;
   done: boolean;
+  /**
+   * Si el usuario puede resolver el paso. Uno no accionable (Assets para un
+   * USER: el catálogo es global y sólo lo edita un ADMIN, ver ADR-0008) se
+   * muestra como informativo, sin CTA, y no entra en el conteo de progreso.
+   */
+  actionable: boolean;
   /** Ruta donde se resuelve el paso. */
   href: string;
   /** Texto del call to action cuando el paso está pendiente. */
@@ -61,6 +67,8 @@ export type SetupInput = {
   stockHistoryCount: number;
   targetAllocationCount: number;
   hasRetirementSettings: boolean;
+  /** Sólo un ADMIN puede editar el catálogo de Assets. */
+  canManageAssets: boolean;
   onboarding: OnboardingState;
 };
 
@@ -114,6 +122,7 @@ export function deriveSetupStatus(input: SetupInput): SetupStatus {
       description:
         "El CSV de Portfolio de Cocos Capital con el estado de tu cartera.",
       required: true,
+      actionable: true,
       done: input.hasSnapshot,
       href: "/",
       ctaLabel: "Importar snapshot",
@@ -121,9 +130,11 @@ export function deriveSetupStatus(input: SetupInput): SetupStatus {
     {
       id: "assets",
       label: "Completar los datos de tus activos",
-      description:
-        "Ratio CEDEAR, subyacente, sector y país para habilitar USD en vivo, Concentración y Ganancia Real.",
-      required: true,
+      description: input.canManageAssets
+        ? "Ratio CEDEAR, subyacente, sector y país para habilitar USD en vivo, Concentración y Ganancia Real."
+        : "El catálogo de activos lo mantiene el administrador. Hasta que lo complete, USD en vivo, Concentración y Ganancia Real pueden verse incompletos.",
+      required: input.canManageAssets,
+      actionable: input.canManageAssets,
       done: assetsDone,
       href: "/assets",
       ctaLabel: "Completar activos",
@@ -134,6 +145,7 @@ export function deriveSetupStatus(input: SetupInput): SetupStatus {
       description:
         "El CSV de Actividad de Cocos Capital. Habilita el precio promedio de compra (PPM) y el P&L.",
       required: false,
+      actionable: true,
       done: input.transactionCount > 0,
       href: "/transactions",
       ctaLabel: "Importar movimientos",
@@ -144,6 +156,7 @@ export function deriveSetupStatus(input: SetupInput): SetupStatus {
       description:
         "CCL y precios de acciones desde tu primera compra para calcular la Ganancia Real en USD.",
       required: false,
+      actionable: true,
       done: historicalsDone,
       href: "/real-gains",
       ctaLabel: "Cargar históricos",
@@ -154,21 +167,23 @@ export function deriveSetupStatus(input: SetupInput): SetupStatus {
       description:
         "Asignación objetivo por activo y parámetros de tu calculadora de jubilación.",
       required: false,
+      actionable: true,
       done: preferencesDone,
       href: "/rebalance",
       ctaLabel: "Configurar objetivos",
     },
   ];
 
-  const requiredSteps = steps.filter((s) => s.required);
-  const completedCount = steps.filter((s) => s.done).length;
+  const countable = steps.filter((s) => s.actionable);
+  const requiredSteps = countable.filter((s) => s.required);
+  const completedCount = countable.filter((s) => s.done).length;
 
   return {
     steps,
     completedCount,
-    totalCount: steps.length,
+    totalCount: countable.length,
     allRequiredDone: requiredSteps.every((s) => s.done),
-    allDone: steps.every((s) => s.done),
+    allDone: countable.every((s) => s.done),
     missingAssetTickers,
     onboarding: input.onboarding,
   };
