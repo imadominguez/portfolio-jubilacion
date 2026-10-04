@@ -13,7 +13,7 @@ const db = new PrismaClient({ adapter });
  * Empuja la estrategia compacta (`lib/default-strategy.ts`) a la base como una
  * nueva versión activa. Idempotente: si la activa ya coincide, no hace nada.
  *
- * Uso: npm run db:strategy
+ * Uso: pnpm db:strategy
  */
 async function main() {
   const content = ESTRATEGIA_DEFAULT.trim();

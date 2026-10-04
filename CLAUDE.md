@@ -8,26 +8,28 @@ Detailed docs live in `docs/` (Spanish): `arquitectura.md`, `modelo-de-datos.md`
 
 ## Commands
 
+**pnpm only** (`packageManager: pnpm@8.10.5`; there is no `package-lock.json`). Never run `npm install` or `npx`; add deps with `pnpm add` / `pnpm add -D` so `pnpm-lock.yaml` stays in sync (CI uses `--frozen-lockfile`).
+
 ```bash
-npm run dev                         # http://localhost:3000
-npm run lint                        # eslint
-npm test                            # vitest run (all **/*.test.ts)
-npx vitest run lib/cocos-movements.test.ts   # single test file
-npx vitest run -t "name of test"    # single test by name
-npm run build
-npx prisma generate                 # required after schema changes / fresh clone (client → app/generated/prisma)
-npx prisma migrate dev --name <x>   # schema changes
-npm run db:seed                     # seed strategy + promote SEED_ADMIN_EMAIL users to ADMIN
-npm run db:strategy                 # activate lib/default-strategy.ts as a new strategy version
+pnpm dev                                      # http://localhost:3000
+pnpm lint                                     # eslint
+pnpm test                                     # vitest run (all **/*.test.ts)
+pnpm vitest run lib/cocos-movements.test.ts   # single test file
+pnpm vitest run -t "name of test"             # single test by name
+pnpm build
+pnpm prisma generate                          # required after schema changes / fresh clone (client → app/generated/prisma)
+pnpm prisma migrate dev --name <x>            # schema changes
+pnpm db:seed                                  # seed strategy + promote SEED_ADMIN_EMAIL users to ADMIN
+pnpm db:strategy                              # activate lib/default-strategy.ts as a new strategy version
 ```
 
-CI (`.github/workflows/ci.yml`) runs: `npm install` → `prisma generate` → lint → test → build, with dummy `DATABASE_URL`/`BETTER_AUTH_SECRET`/`NEXT_PUBLIC_APP_URL`.
+CI (`.github/workflows/ci.yml`) runs: `pnpm install --frozen-lockfile` → `prisma generate` → lint → test → build, with dummy `DATABASE_URL`/`BETTER_AUTH_SECRET`/`NEXT_PUBLIC_APP_URL`.
 
 Tests are pure unit tests on `lib/` domain logic (node environment, no DB). `@` alias maps to repo root.
 
 Real account data is never committed. `__fixtures__/`, `docs/movimientos/*.csv` and `docs/portfolio_report/` hold real Cocos exports and are gitignored. Tests use synthetic CSVs; tests against the real files are skipped (`describe.skipIf`) when the files are missing, as in CI. `scripts/*` is gitignored except for explicit `!scripts/<name>` entries; add one for any script that `package.json` or the docs rely on.
 
-**Migrations:** never use `prisma migrate reset` (destroys real data). If drift appears, generate SQL with `npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script` and apply via `prisma db execute` + `prisma migrate resolve --applied`.
+**Migrations:** never use `prisma migrate reset` (destroys real data). If drift appears, generate SQL with `pnpm prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script` and apply via `prisma db execute` + `prisma migrate resolve --applied`.
 
 ## Architecture
 

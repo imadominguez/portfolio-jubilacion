@@ -15,7 +15,7 @@ Hasta septiembre de 2026 no había tests ni CI. Los cálculos que vivían mezcla
 - **La lógica de dominio vive en `lib/` como funciones puras**, sin Prisma, sin HTTP y sin auth: `cocos-movements`, `number-parsing`, `inflation`, `dca-planner`, `projections`, `setup-status`, `report-normalizer`.
 - **Excepción acotada:** los helpers de lectura `lib/portfolio-data.ts`, `lib/analysis-data.ts` y `lib/real-gains-data.ts` pueden usar Prisma (son lecturas transversales a varias páginas, no lógica de dominio).
 - **Tests con Vitest**, en entorno `node`, como `*.test.ts` al lado del módulo (`@` apunta a la raíz). No hay tests de integración contra la base ni de UI.
-- **CI en GitHub Actions** (`.github/workflows/ci.yml`): `npm install` → `prisma generate` → lint → test → build, con variables de entorno dummy (el build no consulta la base).
+- **CI en GitHub Actions** (`.github/workflows/ci.yml`): `pnpm install --frozen-lockfile` → `prisma generate` → lint → test → build, con variables de entorno dummy (el build no consulta la base).
 
 ## Alternativas
 
@@ -34,11 +34,12 @@ Hasta septiembre de 2026 no había tests ni CI. Los cálculos que vivían mezcla
 
 - Las Server Actions (validación, filtros por usuario, transacciones) no tienen tests: los errores de autorización no los detecta el CI.
 - Los datos reales no se versionan: los tests usan datos sintéticos, y los tests contra exportaciones reales (`__fixtures__/`, ignorado) se saltean con `describe.skipIf` cuando el archivo no está.
+
 **Reglas para el código**
 
 - Un cálculo nuevo va en `lib/<modulo>.ts` como función pura, con su `<modulo>.test.ts`.
 - No importar `lib/db.ts` desde un módulo de lógica pura; si hace falta leer datos, la action o el helper `*-data.ts` lee y le pasa los datos.
-- Antes de commitear: `npm run lint && npm test && npm run build` (el mismo orden que el CI).
+- Antes de commitear: `pnpm lint && pnpm test && pnpm build` (el mismo orden que el CI).
 - Nunca versionar fixtures con datos reales de la cuenta; usar datos sintéticos con el mismo formato.
 
 ## Referencias

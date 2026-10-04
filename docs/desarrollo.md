@@ -3,14 +3,15 @@
 ## Requisitos
 
 - Node.js 20+ (Next 16 / React 19).
+- **pnpm 8** (fijado en `packageManager` de `package.json`: `pnpm@8.10.5`). Con corepack: `corepack enable` y pnpm toma esa versión. El proyecto se maneja solo con pnpm: no usar `npm install` (no hay `package-lock.json`).
 - Una base PostgreSQL accesible.
 - Clave de Anthropic (solo para el reporte mensual con IA).
 
 ## Puesta en marcha
 
 ```bash
-# 1. Instalar dependencias (hay package-lock.json y pnpm-lock.yaml)
-npm install
+# 1. Instalar dependencias (respeta pnpm-lock.yaml)
+pnpm install
 
 # 2. Crear .env con las variables necesarias
 #    DATABASE_URL=postgresql://...
@@ -19,14 +20,14 @@ npm install
 #    SEED_ADMIN_EMAIL=tu@email.com    # opcional, para el seed
 
 # 3. Aplicar migraciones
-npx prisma migrate dev        # desarrollo (crea archivos de migración)
-npx prisma migrate deploy     # producción
+pnpm prisma migrate dev        # desarrollo (crea archivos de migración)
+pnpm prisma migrate deploy     # producción
 
 # 4. Seed de estrategia y promoción de admin
-npm run db:seed
+pnpm db:seed
 
 # 5. Levantar el servidor
-npm run dev                   # http://localhost:3000
+pnpm dev                   # http://localhost:3000
 ```
 
 El **registro público está cerrado por defecto**: `/register` redirige a `/login`. Para crear usuarios usá `scripts/seed-admin.mjs` o habilitá el alta con `ALLOW_PUBLIC_SIGNUP=true`. Los usuarios nuevos son `USER`; para acceder a las secciones de configuración hay que promoverlos a `ADMIN` (ver abajo).
@@ -43,10 +44,12 @@ El **registro público está cerrado por defecto**: `/register` redirige a `/log
 | `lint` | `eslint` | Lint. |
 | `test` | `vitest run` | Tests unitarios de la lógica pura de `lib/` (`*.test.ts`). |
 | `test:watch` | `vitest` | Tests en modo watch. |
-| `db:seed` | `npx tsx prisma/seed.ts` | Seed de estrategia + admins. |
-| `db:strategy` | `npx tsx scripts/refresh-strategy.ts` | Activa la estrategia compacta de `lib/default-strategy.ts` como nueva versión (idempotente). |
+| `db:seed` | `tsx prisma/seed.ts` | Seed de estrategia + admins. |
+| `db:strategy` | `tsx scripts/refresh-strategy.ts` | Activa la estrategia compacta de `lib/default-strategy.ts` como nueva versión (idempotente). |
 
-`prisma.config.ts` también define `migrations.seed = "npx tsx prisma/seed.ts"`, usado por `prisma db seed`.
+Se corren como `pnpm <script>` (`pnpm db:seed`). Los binarios locales también se invocan con pnpm: `pnpm prisma …`, `pnpm vitest …`, `pnpm exec tsx <archivo>`. `tsx` es devDependency (no depende de `npx`).
+
+`prisma.config.ts` también define `migrations.seed = "pnpm exec tsx prisma/seed.ts"`, usado por `prisma db seed`.
 
 ---
 
@@ -57,9 +60,9 @@ El **registro público está cerrado por defecto**: `/register` redirige a `/log
 - Comandos útiles:
 
 ```bash
-npx prisma studio     # explorar y editar datos
-npx prisma migrate dev --name <nombre>
-npx prisma generate
+pnpm prisma studio     # explorar y editar datos
+pnpm prisma migrate dev --name <nombre>
+pnpm prisma generate
 ```
 
 ### Historial de migraciones
@@ -69,7 +72,7 @@ La base de desarrollo tenía drift respecto de `prisma/migrations` (columnas `us
 - Se recreó `prisma/migrations/20260522160000_add_asset_kind/` con el DDL del enum `AssetKind` y la columna `assets.assetKind`.
 - La migración `20260920120000_add_movements_ledger` se generó con `prisma migrate diff` y se aplicó con `prisma migrate deploy`.
 
-Si en un entorno nuevo aparece drift, **no usar `prisma migrate reset`** (borra datos): generar el SQL con `npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script` y aplicar con `prisma db execute` + `prisma migrate resolve --applied`.
+Si en un entorno nuevo aparece drift, **no usar `prisma migrate reset`** (borra datos): generar el SQL con `pnpm prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script` y aplicar con `prisma db execute` + `prisma migrate resolve --applied`.
 
 ### Hacer admin a un usuario
 
@@ -81,7 +84,7 @@ UPDATE "user" SET role = 'ADMIN' WHERE email = 'tu-email@ejemplo.com';
 
 o con Prisma Studio. Alternativas de bootstrap:
 
-- `npm run db:seed` con `SEED_ADMIN_EMAIL` (solo promueve usuarios existentes).
+- `pnpm db:seed` con `SEED_ADMIN_EMAIL` (solo promueve usuarios existentes).
 - `node scripts/seed-admin.mjs` crea/setup del admin `admin@portfolio.com` con contraseña `Admin1234!` (hardcodeada; cambiar en producción) y asocia datos huérfanos.
 
 ---
@@ -127,17 +130,17 @@ Definidas en `.cursor/rules.md`:
 
 ```bash
 # desarrollo
-npm run dev
+pnpm dev
 
 # validar antes de commitear (mismo orden que el CI)
-npm run lint
-npm test                                        # o un archivo: npx vitest run lib/dca-planner.test.ts
-npm run build
+pnpm lint
+pnpm test                                        # o un archivo: pnpm vitest run lib/dca-planner.test.ts
+pnpm build
 
 # cambios de esquema
 # editar prisma/schema.prisma
-npx prisma migrate dev --name add_x
-npm run db:seed
+pnpm prisma migrate dev --name add_x
+pnpm db:seed
 ```
 
 ---
@@ -157,7 +160,7 @@ npm run db:seed
 - **Fixtures reales vs sintéticos:** `__fixtures__/` (CSV reales de la cuenta) está ignorado. `lib/cocos-movements.test.ts` usa un CSV sintético embebido que cubre cada tipo de operación; los tests contra los archivos reales son una regresión local que se saltea (`describe.skipIf`) cuando no están, como en CI.
 - **Scripts:** `scripts/*` está ignorado salvo las excepciones explícitas en `.gitignore`. Un script nuevo que se use desde `package.json` o la doc necesita su línea `!scripts/<nombre>`.
 - Las exportaciones reales de la cuenta en `docs/movimientos/*.csv` y `docs/portfolio_report/` están ignoradas: no versionarlas.
-- Hay `package-lock.json` y `pnpm-lock.yaml`; el CI usa npm.
+- **Gestor de paquetes: solo pnpm.** El CI instala con `pnpm install --frozen-lockfile`: si `package.json` cambia sin actualizar `pnpm-lock.yaml`, falla. Agregar dependencias siempre con `pnpm add` (o `pnpm add -D`).
 - `xlsx` y `@types/xlsx` siguen en `dependencies` pero ya no se importan en ningún archivo (quedaron de la importación XLSX que se eliminó).
 
 ### Seguridad
@@ -184,7 +187,8 @@ npm run db:seed
 > - Los tests ya no fallan en un checkout limpio: CSV sintético embebido + regresión con archivos reales salteada si faltan.
 > - Las actions de `strategy.ts` exigen rol ADMIN (`requireAdmin()` en `lib/auth-session.ts`, compartido con `assets.ts`) y `POST /api/analyze-portfolio` responde `403` a no-admins.
 > - El timeout del análisis se acota a 290 s para vencer antes de `maxDuration` (300 s).
-> - `scripts/refresh-strategy.ts` y `backfill-movements.ts` versionados (`npm run db:strategy` funciona en un clone nuevo); los CSV reales de `docs/` ignorados.
+> - `scripts/refresh-strategy.ts` y `backfill-movements.ts` versionados (`pnpm db:strategy` funciona en un clone nuevo); los CSV reales de `docs/` ignorados.
+> - El CI nunca había pasado: corría `npm install` sobre un `package-lock.json` abandonado (sin `vitest`) y npm cortaba por el peer `vitest@^2–4` de `better-auth`. Ahora todo se maneja con pnpm (`packageManager`, CI con `--frozen-lockfile`) y se eliminó `package-lock.json`.
 
 ---
 

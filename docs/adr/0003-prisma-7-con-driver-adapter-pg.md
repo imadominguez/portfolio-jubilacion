@@ -31,14 +31,14 @@ El dominio es relacional (snapshots → posiciones, usuario → transacciones �
 
 **Negativas / costos**
 
-- Hay que correr `npx prisma generate` después de clonar o cambiar el schema (el CI lo hace antes de lint/test/build).
+- Hay que correr `pnpm prisma generate` después de clonar o cambiar el schema (el CI lo hace antes de lint/test/build).
 - `rejectUnauthorized: false` acepta cualquier certificado del servidor de base de datos.
 - Hubo drift entre la base de desarrollo y las migraciones (columnas aplicadas a mano). Se reconcilió de forma no destructiva; **`prisma migrate reset` está prohibido** porque borra datos reales.
 
 **Reglas para el código**
 
 - Importar siempre `db` desde `lib/db.ts`; no crear otros `PrismaClient` en la app (el seed y los scripts son la excepción).
-- Cambios de schema: `npx prisma migrate dev --name <x>`. Ante drift, `prisma migrate diff` + `db execute` + `migrate resolve --applied`.
+- Cambios de schema: `pnpm prisma migrate dev --name <x>`. Ante drift, `prisma migrate diff` + `db execute` + `migrate resolve --applied`.
 
 ## Referencias
 

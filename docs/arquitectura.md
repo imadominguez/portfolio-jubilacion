@@ -108,7 +108,7 @@ prisma/
 scripts/                        (ignorado por .gitignore salvo los scripts listados abajo)
   seed-admin.mjs                Bootstrap de un admin (SQL directo + hash scrypt)
   add-user-id-columns.mjs       Script de migración puntual de columnas userId
-  refresh-strategy.ts           Activa lib/default-strategy.ts como nueva versión (npm run db:strategy)
+  refresh-strategy.ts           Activa lib/default-strategy.ts como nueva versión (pnpm db:strategy)
   backfill-movements.ts         Vincula transacciones legacy al libro de movimientos (one-shot)
 ```
 

@@ -24,7 +24,7 @@ La app usa Better Auth más Prisma: cada fila en la tabla **`user`** tiene **`ro
 
 Para dar rol administrador en producción/desarrollo, actualizá el registro manualmente:
 
-- Prisma Studio: `npx prisma studio`, editar `role` → `ADMIN`, o
+- Prisma Studio: `pnpm prisma studio`, editar `role` → `ADMIN`, o
 - SQL: `UPDATE "user" SET role = 'ADMIN' WHERE email = 'tu-email@ejemplo.com';`
 
 No uses variables de entorno con listas de emails para admins: la política debe vivir en la base de datos.
@@ -32,14 +32,14 @@ No uses variables de entorno con listas de emails para admins: la política debe
 ## Puesta en marcha
 
 ```bash
-npm install
+pnpm install
 # crear .env con DATABASE_URL (y ANTHROPIC_API_KEY para el reporte con IA)
-npx prisma generate
-npx prisma migrate deploy
-npm run db:seed
-npm run dev                 # http://localhost:3000
+pnpm prisma generate
+pnpm prisma migrate deploy
+pnpm db:seed
+pnpm dev                 # http://localhost:3000
 ```
 
-Antes de commitear: `npm run lint && npm test && npm run build` (lo mismo que corre el CI).
+Antes de commitear: `pnpm lint && pnpm test && pnpm build` (lo mismo que corre el CI).
 
 Variables de entorno, scripts, migraciones y deuda técnica conocida: [docs/desarrollo.md](./docs/desarrollo.md).

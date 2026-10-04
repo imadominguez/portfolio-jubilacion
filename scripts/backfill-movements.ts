@@ -1,7 +1,7 @@
 // Backfill: crea un Movement por cada Transaction legacy importada antes del
 // refactor (identificadas por notes = "Cocos #<nroTicket>") y las vincula.
 //
-// Uso: npx tsx scripts/backfill-movements.ts
+// Uso: pnpm exec tsx scripts/backfill-movements.ts
 import "dotenv/config";
 import { PrismaClient } from "../app/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
