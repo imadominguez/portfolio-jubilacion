@@ -237,7 +237,7 @@ if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
 
 - `app/globals.css`: Tailwind v4 vía `@import "tailwindcss"` (sin `tailwind.config.js`). Tokens de tema en OKLCH para light y `.dark`; primario azul eléctrico (ver `DESIGN.md`); `--radius: 0.75rem`.
 - Modo oscuro por clase: `@custom-variant dark (&:is(.dark *))`.
-- `app/layout.tsx` usa `ThemeProvider` de `next-themes` con `defaultTheme="dark"` y `enableSystem`, fuentes `Plus_Jakarta_Sans` (`--font-sans`) y `JetBrains_Mono` (`--font-mono`), y `<Toaster />` de Sonner.
+- `app/layout.tsx` usa `ThemeProvider` de `next-themes` con `defaultTheme="dark"` y `enableSystem`, fuentes Plus Jakarta Sans (`--font-plus-jakarta` → `--font-sans`) y JetBrains Mono (`--font-jetbrains-mono` → `--font-mono`), y `<Toaster />` de Sonner. Las fuentes son **self-hosted** con `next/font/local` (woff2 variables, subset latin, en `app/fonts/` con sus licencias OFL): `next/font/google` descarga de Google en cada build y falla de forma intermitente con Turbopack ([vercel/next.js#99114](https://github.com/vercel/next.js/issues/99114)).
 - Utilidades de animación: `animate-fade-up`, `animate-fade-in`, `animate-tour-card-in`, `animate-guide-stagger`, y `[data-tour-highlight="true"]` para resaltar targets del tour.
 
 ---

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
 import "./globals.css";
@@ -8,15 +8,24 @@ import "./globals.css";
 // See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
 export const instant = false;
 
-const plusJakartaSans = Plus_Jakarta_Sans({
+// Fuentes self-hosted (variables, subset latin, de Fontsource; licencias OFL en
+// app/fonts/). next/font/google descarga de Google en cada build y falla de forma
+// intermitente con Turbopack (vercel/next.js#99114).
+const plusJakartaSans = localFont({
+  src: "./fonts/plus-jakarta-sans-latin-wght-normal.woff2",
   variable: "--font-plus-jakarta",
-  subsets: ["latin"],
+  weight: "200 800",
+  display: "swap",
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const jetbrainsMono = localFont({
+  src: "./fonts/jetbrains-mono-latin-wght-normal.woff2",
   variable: "--font-jetbrains-mono",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: "100 800",
+  display: "swap",
+  // El fallback ajustado de next/font/local solo admite Arial o Times New Roman;
+  // para una monoespaciada se usa el stack ui-monospace de globals.css.
+  adjustFontFallback: false,
 });
 
 export const metadata: Metadata = {
