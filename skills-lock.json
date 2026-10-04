@@ -6,6 +6,12 @@
       "sourceType": "github",
       "computedHash": "9ab075b5061be2a5f299c10505667345cc1ec76e8de4120901cfd586643e776f"
     },
+    "designing-user-experience": {
+      "source": "osmontero/opencode-skills",
+      "sourceType": "github",
+      "skillPath": "skills/designing-user-experience/SKILL.md",
+      "computedHash": "78db0278c8f026786c1c4f3152958b41ccdda10cc6fc7f61f214124796da56fc"
+    },
     "frontend-design": {
       "source": "anthropics/skills",
       "sourceType": "github",
@@ -30,6 +36,18 @@
       "source": "shadcn/ui",
       "sourceType": "github",
       "computedHash": "b1cc1defe03f0e8f78652b7d20e4d4e6421babc2b45835d4f361afe684dc47a2"
+    },
+    "user-flow-mapping": {
+      "source": "seb1n/awesome-ai-agent-skills",
+      "sourceType": "github",
+      "skillPath": "design-and-ui-ux/user-flow-mapping/SKILL.md",
+      "computedHash": "126370c067677d0d14f66f24bfbf09137712ed1f2e4907f721a6125e86e563e2"
+    },
+    "ux-flows": {
+      "source": "ssheleg/super-ux",
+      "sourceType": "github",
+      "skillPath": "plugins/super-ux/skills/ux-flows/SKILL.md",
+      "computedHash": "0acddb6ddf04fa5ac7d82bdd6627e736f989e568b0f44217eb60f9349557456c"
     },
     "vercel-deploy": {
       "source": "supercent-io/skills-template",
