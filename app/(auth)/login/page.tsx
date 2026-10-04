@@ -1,8 +1,6 @@
-import { allowPublicSignup } from "@/lib/auth";
+import { Suspense } from "react";
+import { isPublicSignupEnabled } from "@/lib/auth";
 import { LoginForm } from "./login-form";
-
-// El flag ALLOW_PUBLIC_SIGNUP se evalúa por request (no en build).
-export const dynamic = "force-dynamic";
 
 // Sólo rutas internas: evita usar el login como open redirect.
 function safeNext(next: string | string[] | undefined): string {
@@ -13,11 +11,19 @@ function safeNext(next: string | string[] | undefined): string {
   return next;
 }
 
-export default async function LoginPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ next?: string | string[] }>;
-}) {
+type LoginSearchParams = Promise<{ next?: string | string[] }>;
+
+export default function LoginPage({ searchParams }: { searchParams: LoginSearchParams }) {
+  return (
+    <Suspense>
+      <Login searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+// searchParams es dato de request: el flag de registro se lee después, también
+// en request time.
+async function Login({ searchParams }: { searchParams: LoginSearchParams }) {
   const { next } = await searchParams;
-  return <LoginForm allowSignup={allowPublicSignup} redirectTo={safeNext(next)} />;
+  return <LoginForm allowSignup={isPublicSignupEnabled()} redirectTo={safeNext(next)} />;
 }

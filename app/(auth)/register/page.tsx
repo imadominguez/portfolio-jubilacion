@@ -1,12 +1,21 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { allowPublicSignup } from "@/lib/auth";
+import { connection } from "next/server";
+import { isPublicSignupEnabled } from "@/lib/auth";
 import { RegisterForm } from "./register-form";
 
-// El flag ALLOW_PUBLIC_SIGNUP se evalúa por request (no en build).
-export const dynamic = "force-dynamic";
-
 export default function RegisterPage() {
-  if (!allowPublicSignup) {
+  return (
+    <Suspense>
+      <RegisterGate />
+    </Suspense>
+  );
+}
+
+// ALLOW_PUBLIC_SIGNUP se evalúa por request, no en el build.
+async function RegisterGate() {
+  await connection();
+  if (!isPublicSignupEnabled()) {
     redirect("/login");
   }
   return <RegisterForm />;

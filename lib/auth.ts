@@ -6,6 +6,12 @@ import { db } from "./db";
 // se crean por seed/script. Habilitarlo explícitamente con ALLOW_PUBLIC_SIGNUP=true.
 export const allowPublicSignup = process.env.ALLOW_PUBLIC_SIGNUP === "true";
 
+// Para render: leer el flag en cada request (después de connection()), no al
+// importar el módulo, que durante el prerender ocurre en el build.
+export function isPublicSignupEnabled(): boolean {
+  return process.env.ALLOW_PUBLIC_SIGNUP === "true";
+}
+
 export const auth = betterAuth({
   database: prismaAdapter(db, {
     provider: "postgresql",
