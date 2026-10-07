@@ -139,11 +139,12 @@ Una PR por feature ([ADR-0017](./adr/0017-cache-components-partial-prerendering-
 |---|---|---|
 | #3 | Pre-paso: `cacheComponents` + `partialPrefetching`, codemod `instant = false`, fuentes self-hosted | Mergeada |
 | #4 | Layout `(app)`, sidebar (grupo admin en `<Suspense>`), Dashboard, `getSession()` con `'use cache: private'` | Mergeada |
-| #5 | Caché de datos por usuario/dominio (`lib/cache-tags.ts`) e invalidación con `updateTag` (`lib/revalidate.ts`) | Abierta, CI y Vercel en verde |
+| #5 | Caché de datos por usuario/dominio (`lib/cache-tags.ts`) e invalidación con `updateTag` (`lib/revalidate.ts`) | Mergeada |
+| — | `/guia`: solo quita el opt-out (componente cliente sin lecturas de request; se prerenderiza entera) | En curso |
 
-**Convertidos:** layout raíz, layout `(app)` y Dashboard (`/`). Todas las rutas ya son `◐` porque el layout no bloquea.
+**Convertidos:** layout raíz, layout `(app)`, Dashboard (`/`) y `/guia`. Todas las rutas ya son `◐` porque el layout no bloquea.
 
-**Pendientes** (todavía con `export const instant = false` + `// TODO: Cache Components adoption`): `/analysis`, `/assets`, `/ccl`, `/datos`, `/guia`, `/performance`, `/plan`, `/portfolio`, `/real-gains`, `/rebalance`, `/retirement`, `/settings`, `/snapshots`, `/snapshots/[id]`, `/strategy`, `/transactions`, `/login`, `/register`. Para listarlos: `grep -rl "instant = false" app`.
+**Pendientes** (todavía con `export const instant = false` + `// TODO: Cache Components adoption`): `/analysis`, `/assets`, `/ccl`, `/datos`, `/performance`, `/plan`, `/portfolio`, `/real-gains`, `/rebalance`, `/retirement`, `/settings`, `/snapshots`, `/snapshots/[id]`, `/strategy`, `/transactions`, `/login`, `/register`. Para listarlos: `grep -rl "instant = false" app`.
 
 **Cómo convertir una ruta** (mismo patrón que el Dashboard, `app/(app)/page.tsx`):
 
