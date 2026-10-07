@@ -1,20 +1,35 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { ArrowUpRight, ArrowDownRight, Activity } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { SiteHeader } from "@/components/layout/site-header";
 import { CCLChart } from "@/components/ccl/ccl-chart";
+import { CclSkeleton } from "@/components/ccl/ccl-skeleton";
 import { CclUpdateButton } from "@/components/exchange-rate/ccl-update-button";
 import { getAllExchangeRates } from "@/app/actions/exchange-rate";
 import { getAllSnapshotPoints } from "@/lib/portfolio-data";
 import { formatDateMedium, formatARS } from "@/lib/format";
 
-// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
-
 export const metadata: Metadata = { title: "Historial CCL" };
 
-export default async function CCLPage() {
+// El header entra al static shell; el historial y los snapshots del usuario se
+// leen en request time y se streamean detrás del skeleton.
+export default function CCLPage() {
+  return (
+    <div className="flex flex-col min-h-svh">
+      <SiteHeader
+        title="Historial CCL"
+        description="Contado con Liquidación"
+        actions={<CclUpdateButton />}
+      />
+      <Suspense fallback={<CclSkeleton />}>
+        <CclContent />
+      </Suspense>
+    </div>
+  );
+}
+
+async function CclContent() {
   const [rates, snapshots] = await Promise.all([
     getAllExchangeRates(),
     getAllSnapshotPoints(),
@@ -22,30 +37,26 @@ export default async function CCLPage() {
 
   if (rates.length === 0) {
     return (
-      <div className="flex flex-col min-h-svh">
-        <SiteHeader
-          title="Historial CCL"
-          description="Contado con Liquidación"
-        />
-        <main className="flex-1 flex items-center justify-center px-6 py-20">
-          <div className="flex flex-col items-center gap-3 text-center max-w-xs">
-            <Activity className="size-8 text-muted-foreground/40" />
-            <p className="text-sm font-medium text-foreground">
-              Sin datos de CCL
-            </p>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Actualizá el CCL para comenzar a registrar el historial. También
-              podés cargar el histórico completo desde el Centro de Datos.
-            </p>
-            <div className="pt-1 flex flex-wrap items-center justify-center gap-2">
-              <CclUpdateButton />
-            </div>
+      <main className="flex-1 flex items-center justify-center px-6 py-20">
+        <div className="flex flex-col items-center gap-3 text-center max-w-xs">
+          <Activity className="size-8 text-muted-foreground/40" />
+          <p className="text-sm font-medium text-foreground">
+            Sin datos de CCL
+          </p>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Actualizá el CCL para comenzar a registrar el historial. También
+            podés cargar el histórico completo desde el Centro de Datos.
+          </p>
+          <div className="pt-1 flex flex-wrap items-center justify-center gap-2">
+            <CclUpdateButton />
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
     );
   }
 
+  // Después de las lecturas de request: con Cache Components, la hora no puede
+  // leerse durante el prerender del shell.
   const now = new Date();
   const latest = rates[rates.length - 1];
   const cclNow = latest.ccl;
@@ -111,137 +122,129 @@ export default async function CCLPage() {
   ];
 
   return (
-    <div className="flex flex-col min-h-svh">
-      <SiteHeader
-        title="Historial CCL"
-        description="Contado con Liquidación"
-        actions={<CclUpdateButton />}
-      />
-
-      <main className="flex-1 px-6 py-10 flex flex-col gap-6 max-w-6xl w-full mx-auto">
-        {/* KPI row */}
-        <section className="animate-fade-up grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {kpis.map(({ label, value, sub, change }) => (
-            <div
-              key={label}
-              className="rounded-xl border border-border bg-card shadow-sm px-5 py-4 flex flex-col gap-3"
-            >
-              <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-semibold text-foreground">
-                  {label}
-                </span>
-                <span className="text-xs text-muted-foreground">{sub}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                {change !== null && change >= 0 && (
-                  <ArrowUpRight className="size-4 text-destructive shrink-0" />
-                )}
-                {change !== null && change < 0 && (
-                  <ArrowDownRight className="size-4 text-success shrink-0" />
-                )}
-                <span
-                  className={`text-xl font-bold font-mono tabular-nums leading-none ${
-                    change === null
-                      ? "text-foreground"
-                      : change >= 0
-                      ? "text-destructive"
-                      : "text-success"
-                  }`}
-                >
-                  {value}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="size-2 rounded-full shrink-0 bg-chart-1/50" />
-                <span className="text-xs text-muted-foreground">
-                  {label === "CCL Actual" ? "más reciente" : "del período"}
-                </span>
-              </div>
+    <main className="flex-1 px-6 py-10 flex flex-col gap-6 max-w-6xl w-full mx-auto">
+      {/* KPI row */}
+      <section className="animate-fade-up grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {kpis.map(({ label, value, sub, change }) => (
+          <div
+            key={label}
+            className="rounded-xl border border-border bg-card shadow-sm px-5 py-4 flex flex-col gap-3"
+          >
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm font-semibold text-foreground">
+                {label}
+              </span>
+              <span className="text-xs text-muted-foreground">{sub}</span>
             </div>
-          ))}
-        </section>
-
-        <Separator className="opacity-30" />
-
-        {/* Chart */}
-        <section
-          className="animate-fade-up flex flex-col gap-4"
-          style={{ animationDelay: "100ms" }}
-        >
-          <p className="text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
-            Evolución del CCL
-            {snapshots.length > 0 && " · Overlay Portfolio USD"}
-          </p>
-          <div className="rounded-xl border border-border bg-card shadow-sm p-5">
-            <CCLChart rates={rates} snapshots={snapshots} />
+            <div className="flex items-center gap-1.5">
+              {change !== null && change >= 0 && (
+                <ArrowUpRight className="size-4 text-destructive shrink-0" />
+              )}
+              {change !== null && change < 0 && (
+                <ArrowDownRight className="size-4 text-success shrink-0" />
+              )}
+              <span
+                className={`text-xl font-bold font-mono tabular-nums leading-none ${
+                  change === null
+                    ? "text-foreground"
+                    : change >= 0
+                    ? "text-destructive"
+                    : "text-success"
+                }`}
+              >
+                {value}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="size-2 rounded-full shrink-0 bg-chart-1/50" />
+              <span className="text-xs text-muted-foreground">
+                {label === "CCL Actual" ? "más reciente" : "del período"}
+              </span>
+            </div>
           </div>
-        </section>
+        ))}
+      </section>
 
-        <Separator className="opacity-30" />
+      <Separator className="opacity-30" />
 
-        {/* Timeline */}
-        <section
-          className="animate-fade-up flex flex-col gap-3"
-          style={{ animationDelay: "200ms" }}
-        >
-          <p className="text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
-            Registros recientes ({rates.length} total)
-          </p>
-          <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-            <div className="divide-y divide-border">
-              {[...rates]
-                .reverse()
-                .slice(0, 30)
-                .map((r, i, arr) => {
-                  const prev = arr[i + 1];
-                  const change = prev
-                    ? ((r.ccl - prev.ccl) / prev.ccl) * 100
-                    : null;
-                  const pos = change !== null && change >= 0;
+      {/* Chart */}
+      <section
+        className="animate-fade-up flex flex-col gap-4"
+        style={{ animationDelay: "100ms" }}
+      >
+        <p className="text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
+          Evolución del CCL
+          {snapshots.length > 0 && " · Overlay Portfolio USD"}
+        </p>
+        <div className="rounded-xl border border-border bg-card shadow-sm p-5">
+          <CCLChart rates={rates} snapshots={snapshots} />
+        </div>
+      </section>
 
-                  return (
-                    <div
-                      key={r.date instanceof Date ? r.date.toISOString() : String(r.date)}
-                      className="px-5 py-3 flex items-center justify-between gap-4 hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="size-2 rounded-full bg-chart-1/50 shrink-0" />
-                        <span className="text-sm font-mono text-foreground">
-                          {formatDateMedium(r.date)}
+      <Separator className="opacity-30" />
+
+      {/* Timeline */}
+      <section
+        className="animate-fade-up flex flex-col gap-3"
+        style={{ animationDelay: "200ms" }}
+      >
+        <p className="text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
+          Registros recientes ({rates.length} total)
+        </p>
+        <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+          <div className="divide-y divide-border">
+            {[...rates]
+              .reverse()
+              .slice(0, 30)
+              .map((r, i, arr) => {
+                const prev = arr[i + 1];
+                const change = prev
+                  ? ((r.ccl - prev.ccl) / prev.ccl) * 100
+                  : null;
+                const pos = change !== null && change >= 0;
+
+                return (
+                  <div
+                    key={r.date instanceof Date ? r.date.toISOString() : String(r.date)}
+                    className="px-5 py-3 flex items-center justify-between gap-4 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="size-2 rounded-full bg-chart-1/50 shrink-0" />
+                      <span className="text-sm font-mono text-foreground">
+                        {formatDateMedium(r.date)}
+                      </span>
+                      {r.source && (
+                        <span className="text-[10px] text-muted-foreground/60 hidden sm:inline">
+                          {r.source}
                         </span>
-                        {r.source && (
-                          <span className="text-[10px] text-muted-foreground/60 hidden sm:inline">
-                            {r.source}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span className="text-sm font-mono tabular-nums text-foreground">
-                          {formatARS(r.ccl)}
-                        </span>
-                        {change !== null && (
-                          <span
-                            className={`text-xs font-mono tabular-nums ${
-                              pos ? "text-destructive" : "text-success"
-                            }`}
-                          >
-                            {pos ? "+" : ""}
-                            {change.toFixed(2)}%
-                          </span>
-                        )}
-                      </div>
+                      )}
                     </div>
-                  );
-                })}
-            </div>
-            {rates.length > 30 && (
-              <div className="px-5 py-3 text-center text-xs text-muted-foreground border-t border-border">
-                Mostrando los últimos 30 registros de {rates.length} totales
-              </div>
-            )}
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm font-mono tabular-nums text-foreground">
+                        {formatARS(r.ccl)}
+                      </span>
+                      {change !== null && (
+                        <span
+                          className={`text-xs font-mono tabular-nums ${
+                            pos ? "text-destructive" : "text-success"
+                          }`}
+                        >
+                          {pos ? "+" : ""}
+                          {change.toFixed(2)}%
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
           </div>
-        </section>
-      </main>
-    </div>
+          {rates.length > 30 && (
+            <div className="px-5 py-3 text-center text-xs text-muted-foreground border-t border-border">
+              Mostrando los últimos 30 registros de {rates.length} totales
+            </div>
+          )}
+        </div>
+      </section>
+    </main>
   );
 }

@@ -1,6 +1,9 @@
 "use server";
 
+import { cacheLife, cacheTag } from "next/cache";
+import { connection } from "next/server";
 import { revalidateCcl } from "@/lib/revalidate";
+import { marketTags } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
 
 export type ExchangeRateResult =
@@ -69,6 +72,20 @@ export async function fetchAndSaveCCL(): Promise<ExchangeRateResult> {
 export async function getAllExchangeRates(): Promise<
   { date: Date; ccl: number; source: string | null }[]
 > {
+  // Sin datos de request, Next la ejecutaría en el build contra la base (que en
+  // CI no existe) y congelaría el historial en el shell del deploy.
+  await connection();
+  return cachedAllExchangeRates();
+}
+
+// Datos globales: el CCL solo cambia con el refresco manual (ADR-0006).
+async function cachedAllExchangeRates(): Promise<
+  { date: Date; ccl: number; source: string | null }[]
+> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(marketTags.ccl);
+
   const rates = await db.exchangeRate.findMany({
     orderBy: { date: "asc" },
   });

@@ -24,7 +24,7 @@ Las lecturas se cachean con `'use cache'` + `cacheLife("hours")` + `cacheTag` ([
 
 Los helpers usan `updateTag`: la siguiente lectura (incluso dentro de la misma action) espera datos frescos, y además se vacía el caché del router en el cliente, así que no hace falta `revalidatePath`. `updateTag` solo funciona en Server Actions; en un Route Handler usar `revalidateTag(tag, "max")`.
 
-Lecturas cacheadas hoy (las del Dashboard): `getLatestSnapshot`, `getPreviousSnapshotFull`, `getAllSnapshotPoints`, `getConcentrationData`, `calculateRealGains`, `calculatePPM`, `getMarketPrices`, `getTotalDividendsUsd`, `getMilestones`, `getRetirementSettings`, `getRebalanceData` y `getSetupStatus`. Al cachear una lectura nueva, sumá un tag por cada dominio que lee; al agregar una escritura, llamá al helper de su dominio.
+Lecturas cacheadas hoy: las del Dashboard (`getLatestSnapshot`, `getPreviousSnapshotFull`, `getAllSnapshotPoints`, `getConcentrationData`, `calculateRealGains`, `calculatePPM`, `getMarketPrices`, `getTotalDividendsUsd`, `getMilestones`, `getRetirementSettings`, `getRebalanceData` y `getSetupStatus`) y `getAllExchangeRates` (tag `ccl`). Al cachear una lectura nueva, sumá un tag por cada dominio que lee; al agregar una escritura, llamá al helper de su dominio.
 
 Autorización: las actions que leen/escriben datos de usuario llaman a `requireAuth()`/`requireUserId()` (lanzan si no hay sesión) y filtran por `userId`, **incluidos los borrados** (`deleteMany({ where: { id, userId } })`, que devuelve "no encontrado" si el registro es ajeno). Las actions sobre datos administrados (`assets.ts`, `strategy.ts`) llaman a `requireAdmin()`. Las de refresco de datos de mercado (exchange-rate, benchmarks, precios) **no** llaman a `requireAuth`: dependen solo de que el proxy exija sesión.
 
@@ -138,7 +138,7 @@ Datos globales, **sin `requireAuth`**.
 |---|---|
 | `fetchAndSaveCCL()` | Obtiene el CCL actual de dolarapi.com, hace upsert por fecha. |
 | `fetchHistoricalCCL(from, to?)` | Descarga la serie de argentinadatos.com y hace upsert del rango, reportando `saved`/`skipped`. |
-| `getAllExchangeRates()` | Todo el historial ordenado asc. |
+| `getAllExchangeRates()` | Todo el historial ordenado asc. Cacheado con el tag `ccl` (`await connection()` antes, por ser global). |
 | `getExchangeRateForDate(dateStr)` | CCL exacto de una fecha (usado para autocompletar al importar). |
 
 ---
