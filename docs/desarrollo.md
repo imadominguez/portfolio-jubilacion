@@ -144,9 +144,9 @@ Una PR por feature ([ADR-0017](./adr/0017-cache-components-partial-prerendering-
 | #7 | `/ccl`: header en el shell, contenido en `<Suspense>` con `CclSkeleton`; `getAllExchangeRates` cacheado con el tag `ccl` | Mergeada |
 | #8 | `/portfolio` (sin lecturas en el servidor), `/login` y `/register` con `AuthCardSkeleton` como fallback | Mergeada |
 
-**Convertidos:** layout raíz, layout `(app)`, Dashboard (`/`), `/guia`, `/ccl`, `/portfolio`, `/login` y `/register` (estas dos con `AuthCardSkeleton` como fallback). Todas las rutas ya son `◐` porque el layout no bloquea.
+**Convertidos:** layout raíz, layout `(app)`, Dashboard (`/`), `/guia`, `/ccl`, `/portfolio`, `/login`, `/register` (estas dos con `AuthCardSkeleton` como fallback), `/snapshots`, `/settings`, `/retirement` y `/analysis`. Todas las rutas ya son `◐` porque el layout no bloquea.
 
-**Pendientes** (todavía con `export const instant = false` + `// TODO: Cache Components adoption`): `/analysis`, `/assets`, `/datos`, `/performance`, `/plan`, `/real-gains`, `/rebalance`, `/retirement`, `/settings`, `/snapshots`, `/snapshots/[id]`, `/strategy`, `/transactions`. Para listarlos: `grep -rl "instant = false" app`.
+**Pendientes** (todavía con `export const instant = false` + `// TODO: Cache Components adoption`): `/assets`, `/datos`, `/performance`, `/plan`, `/real-gains`, `/rebalance`, `/snapshots/[id]`, `/strategy`, `/transactions`. Para listarlos: `grep -rl "instant = false" app`.
 
 **Cómo convertir una ruta** (mismo patrón que el Dashboard, `app/(app)/page.tsx`):
 
