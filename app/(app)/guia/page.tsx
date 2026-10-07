@@ -14,7 +14,7 @@ export default function GuiaPage() {
         description="Cómo descargar CSV desde Cocos Capital"
       />
 
-      <main className="flex-1 px-6 py-10 max-w-5xl w-full mx-auto">
+      <main className="flex-1 px-4 py-6 sm:px-6 sm:py-10 max-w-5xl w-full mx-auto">
         <CocosGuide />
       </main>
     </div>

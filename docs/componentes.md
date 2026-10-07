@@ -96,7 +96,8 @@ Organizados por dominio. Los componentes de `components/ui/` son primitivas shad
 | `market/market-prices-button.tsx` | CC | Actualiza precios de mercado (`fetchAndSaveMarketPrices`); reporta fallos. En `/datos` y `/assets`. |
 | `assets/asset-dialog.tsx` | CC | Diálogo crear/editar CEDEAR (en edición no permite cambiar ticker). |
 | `assets/assets-table-client.tsx` | CC | Tabla del catálogo con alta/edición/eliminación y confirmación. |
-| `guide/cocos-guide.tsx` | CC | Guía visual de descarga de CSV + `RestartTourButton`. Secciones con ids `tour-guide-snapshots` y `tour-guide-transacciones`. |
+| `guide/cocos-guide.tsx` | CC | Guía de descarga de CSV: mapa Portfolio→Snapshots / Actividad→Transacciones y una sección por archivo cuyos pasos (botones) eligen la pantalla del esquema. `RestartTourButton`. Secciones con ids `tour-guide-snapshots` y `tour-guide-transacciones`. |
+| `guide/cocos-mockup.tsx` | CC | `CocosMockup`: esquema de celular (menú, pantalla, panel de descarga) con el elemento a tocar resaltado; lo desconocido de Cocos va como bloque neutro. |
 
 ---
 
