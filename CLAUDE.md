@@ -44,12 +44,14 @@ Cocos CSV / dolarapi / argentinadatos / Yahoo / Anthropic
 
 **Next.js 16.3 with Cache Components enabled** (`cacheComponents: true` ⇒ Partial Prerendering). This is not the Next.js of your training data: read the version-accurate docs in `node_modules/next/dist/docs/` before writing Next code (start with `01-app/02-guides/migrating-to-cache-components.md` and `authentication-with-cache-components.md`). Rules and rationale are in ADR-0017. The Next.js MCP (`next-devtools`, `.mcp.json`) exposes dev-server errors and Cache Components insights via `get_errors` while `pnpm dev` runs; instant-navigation insights only show there or in the dev overlay, not in `pnpm build`.
 
-Cache Components adoption is **incremental**: routes still marked `export const instant = false` + `// TODO: Cache Components adoption` are unconverted. To convert one, remove both, then:
+Cache Components adoption is **complete**: no route uses `export const instant = false`; don't add it without a documented reason. Every page is synchronous: `SiteHeader` and static copy go into the static shell, data reads go into an async component inside `<Suspense>` whose fallback is a skeleton shared with the route's `loading.tsx` (`components/<domain>/*-skeleton.tsx`). Rules:
 - Never await session/`cookies()`/`headers()`/`params`/`searchParams` at the top of a layout or page; move the read into an async component inside `<Suspense>`.
 - Never read `cookies()`/`headers()` inside plain `'use cache'`; resolve the user outside and pass only `userId` to an unexported `'use cache'` function with `cacheLife` + `cacheTag(\`<domain>:${userId}\`)`, or use `'use cache: private'`.
 - `new Date()` / `Date.now()` / `Math.random()` during render must come after request data or `await connection()` inside `<Suspense>`.
 - Route segment configs `dynamic`, `revalidate`, `fetchCache`, `dynamicParams`, `runtime` are not allowed (build error).
-- State persists across navigations (`<Activity>`): forms/dialogs may need explicit resets.
+- State persists across navigations (`<Activity>`): forms/dialogs may need explicit resets, and a client that copies props into `useState` needs a `key` derived from the data (see `MilestonesClient`, `StrategyEditor`).
+- A `loading.tsx` wraps every route below its folder and its fallback lands in each of their static shells: keep route-specific loadings in their own segment or route group (the Dashboard's lives in `app/(app)/(dashboard)/`). To see what a route's shell contains, `pnpm build` and inspect `.next/server/app/<route>.html`.
+- If the `next-devtools` MCP client fails to connect, the same tools are served by the dev server at `POST /_next/mcp` (JSON-RPC, `Accept: application/json, text/event-stream`).
 
 Layering rules:
 - **Pages are RSC** that fetch data and pass props to `"use client"` components (data reads behind `<Suspense>`, see above). No client-side data store for server data.

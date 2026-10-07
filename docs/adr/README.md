@@ -45,4 +45,4 @@ Se escribieron **retrospectivamente** el 2026-10-04 para documentar decisiones y
 | [0014](./0014-estado-de-onboarding-derivado-de-los-datos.md) | Estado de onboarding derivado de los datos | Aceptado |
 | [0015](./0015-inflacion-como-indice-acumulado-en-benchmarkpoint.md) | Inflación (IPC) como índice acumulado en `BenchmarkPoint` | Aceptado |
 | [0016](./0016-logica-pura-en-lib-testeada-con-vitest.md) | Lógica pura en `lib/` testeada con Vitest | Aceptado |
-| [0017](./0017-cache-components-partial-prerendering-y-prefetching.md) | Cache Components, Partial Prerendering y Partial Prefetching (adopción incremental) | Aceptado |
+| [0017](./0017-cache-components-partial-prerendering-y-prefetching.md) | Cache Components, Partial Prerendering y Partial Prefetching | Aceptado (adopción completa) |

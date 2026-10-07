@@ -9,7 +9,7 @@ Organizados por dominio. Los componentes de `components/ui/` son primitivas shad
 | Componente | Tipo | Descripción |
 |---|---|---|
 | `layout/app-sidebar.tsx` — `AppSidebar` | CC | Sidebar colapsable con cuatro grupos: **Principal** (`NAV_MAIN`: Dashboard, Snapshots, Historial CCL, Performance), **Análisis** (`NAV_ANALYSIS`: Análisis, Ganancia Real, Rebalanceo, Plan DCA, Jubilación), **Datos** (`NAV_DATA`: Centro de Datos, Transacciones, Guía Cocos) y **Configuración** (`NAV_CONFIG`: Assets, Estrategia, Configuración, Reporte mensual), que llega como slot `adminNav` (lo resuelve `layout/admin-nav.tsx` — `AdminNav`, SC — según el rol, detrás de `<Suspense>`). Item activo por `pathname.startsWith(href)` (excepto `/`); `usePathname()` va detrás de un `<Suspense>` por grupo, cuyo fallback dibuja los mismos links sin activo (en rutas con params dinámicos se suspende durante el prerender). Logout vía `signOut()`. Expone ids de tour: `tour-nav-snapshots`, `tour-nav-guia`, `tour-nav-transacciones`. |
-| `layout/site-header.tsx` — `SiteHeader` | SC | Header sticky con `SidebarTrigger`, título, descripción, `actions` a la derecha, `CommandMenu` y `ThemeToggle`. |
+| `layout/site-header.tsx` — `SiteHeader` | SC | Header sticky con `SidebarTrigger`, título, descripción (`ReactNode`: puede streamearse en su propio `<Suspense>`, como la fecha en `/snapshots/[id]`), `actions` a la derecha, `CommandMenu` y `ThemeToggle`. Va en el static shell de cada página. |
 | `layout/command-menu.tsx` — `CommandMenu` | CC | Buscador global (⌘K / Ctrl+K) con `cmdk` (`CommandDialog`). Navega a las secciones principales, de análisis y de datos. |
 | `theme-toggle.tsx` / `theme-provider.tsx` | CC | Toggle claro/oscuro y wrapper de `next-themes` (dark por defecto). |
 
@@ -73,9 +73,9 @@ Organizados por dominio. Los componentes de `components/ui/` son primitivas shad
 | Componente | Tipo | Descripción |
 |---|---|---|
 | `transactions-client.tsx` | CC | Tabs Transacciones / PPM / P&L Realizado / Dividendos / **Movimientos**. El tab de Movimientos tiene sub-vistas "Todos" y "Fondos FCI" (aporta/rescata/neto por fondo). Eliminación con `AlertDialog`; fechas en `timeZone: "UTC"`. |
-| `transaction-form.tsx` | CC | Diálogo para registrar BUY/SELL (`createTransaction`). |
-| `dividend-form.tsx` | CC | Diálogo para registrar dividendos (`createDividend`, USD por defecto). |
-| `import-movements-button.tsx` | CC | Importación de movimientos de Cocos. Parsea el CSV en el cliente (`parseMovementCsv`) y muestra una previsualización **agrupada por categoría** con checkboxes por grupo y por fila (todo seleccionado por defecto). Avisos para tipos no reconocidos y trades sin ticker. Al confirmar llama a `importMovements`. `id="tour-import-movimientos"`. |
+| `transaction-form.tsx` | CC | Diálogo para registrar BUY/SELL (`createTransaction`). En mobile el botón muestra solo el ícono. |
+| `dividend-form.tsx` | CC | Diálogo para registrar dividendos (`createDividend`, USD por defecto). Prop `compact`: solo ícono por debajo de `2xl` (header de `/transactions`). |
+| `import-movements-button.tsx` | CC | Importación de movimientos de Cocos. Prop `compact` (header de `/transactions`): solo ícono por debajo de `2xl`, sin el link a la guía y con el aviso de error flotando. Parsea el CSV en el cliente (`parseMovementCsv`) y muestra una previsualización **agrupada por categoría** con checkboxes por grupo y por fila (todo seleccionado por defecto). Avisos para tipos no reconocidos y trades sin ticker. Al confirmar llama a `importMovements`. `id="tour-import-movimientos"`. |
 
 ---
 
@@ -85,9 +85,9 @@ Organizados por dominio. Los componentes de `components/ui/` son primitivas shad
 |---|---|---|
 | `rebalance/rebalance-client.tsx` | CC | `rebalanceData`, `targets`, `totalPct`. Tabla ordenable, acciones sugeridas (Comprar/Vender/Mantener), alta/baja de objetivos y badge de total (alerta si se aleja de 100%). |
 | `retirement/retirement-client.tsx` | CC | `initialSettings`, `currentPortfolioUsd`, `historicalCagr`. Tabs Calculadora / Proyección / Monte Carlo; cálculos memoizados con `JSON.stringify(inputs)`; tasa anual `min(cagr/100, 0.30)` o `0.07`. |
-| `strategy/strategy-editor.tsx` | CC | `active`, `history`. Editor del system prompt con versionado (guardar nueva versión / restaurar versión anterior). |
-| `settings/milestones-client.tsx` | CC | `initialMilestones`, `currentPortfolioUsd`. Alta/baja de hitos y progreso al próximo. |
-| `real-gains/real-gains-wizard.tsx` | CC | `readiness`. Wizard de 2 pasos: backfill de CCL histórico y de precios históricos de subyacentes. |
+| `strategy/strategy-editor.tsx` | CC | `active`, `history`. Editor del system prompt con versionado (guardar nueva versión / restaurar versión anterior). Copia el contenido a su estado: la página le pasa `key` = id de la versión activa. |
+| `settings/milestones-client.tsx` | CC | `initialMilestones`, `currentPortfolioUsd`. Alta/baja de hitos y progreso al próximo. Copia la lista a su estado: la página le pasa un `key` derivado de los hitos. |
+| `real-gains/real-gains-wizard.tsx` | CC | `readiness`. Wizard de 2 pasos: backfill de CCL histórico y de precios históricos de subyacentes. Tras cada carga hace `router.refresh()`; el aviso de éxito solo aparece después de una carga hecha en esa visita. |
 | `real-gains/real-gains-update-button.tsx` | CC | Actualiza CCL histórico y precios de acciones en paralelo (`Promise.all`). |
 | `real-gains/kpi-card.tsx`, `breakdown-bar.tsx`, `positions-table.tsx`, `methodology-note.tsx` | SC | Bloques de `/real-gains`: KPIs, barra de desglose apreciación vs impacto CCL, tabla por posición con cobertura de datos y nota metodológica. Reciben `RealGainsSummary`. |
 | `market/indices-update-button.tsx` | CC | Actualiza IPC y CER/UVA juntos (`fetchAndSaveAllIndices`). Se usa en `/datos`; en `/performance`, `InflationChart` descarga cada índice por separado. |
@@ -96,8 +96,29 @@ Organizados por dominio. Los componentes de `components/ui/` son primitivas shad
 | `market/market-prices-button.tsx` | CC | Actualiza precios de mercado (`fetchAndSaveMarketPrices`); reporta fallos. En `/datos` y `/assets`. |
 | `assets/asset-dialog.tsx` | CC | Diálogo crear/editar CEDEAR (en edición no permite cambiar ticker). |
 | `assets/assets-table-client.tsx` | CC | Tabla del catálogo con alta/edición/eliminación y confirmación. |
+| `export/csv-export-button.tsx` | CC | Abre una ruta de exportación CSV. Prop `compact`: solo ícono por debajo de `2xl`. |
 | `guide/cocos-guide.tsx` | CC | Guía de descarga de CSV: mapa Portfolio→Snapshots / Actividad→Transacciones y una sección por archivo cuyos pasos (botones) eligen la pantalla del esquema. `RestartTourButton`. Secciones con ids `tour-guide-snapshots` y `tour-guide-transacciones`. |
 | `guide/cocos-mockup.tsx` | CC | `CocosMockup`: esquema de celular (menú, pantalla, panel de descarga) con el elemento a tocar resaltado; lo desconocido de Cocos va como bloque neutro. |
+
+---
+
+## Skeletons (fallbacks de `<Suspense>`)
+
+Cada página pone sus lecturas dentro de `<Suspense>` con un skeleton que también usa su `loading.tsx`, así el fallback de la navegación y el del streaming son el mismo (ADR-0017).
+
+| Componente | Ruta |
+|---|---|
+| `dashboard/dashboard-skeleton.tsx` — `DashboardSkeleton` | `/` |
+| `snapshots/snapshots-skeleton.tsx`, `snapshots/snapshot-detail-skeleton.tsx` | `/snapshots`, `/snapshots/[id]` |
+| `ccl/ccl-skeleton.tsx` | `/ccl` |
+| `performance/performance-skeleton.tsx` | `/performance` |
+| `analysis/analysis-skeleton.tsx` | `/analysis` |
+| `real-gains/real-gains-skeleton.tsx` | `/real-gains` |
+| `rebalance/rebalance-skeleton.tsx`, `plan/plan-skeleton.tsx` | `/rebalance`, `/plan` |
+| `retirement/retirement-skeleton.tsx` | `/retirement` |
+| `transactions/transactions-skeleton.tsx` | `/transactions` |
+| `assets/assets-skeleton.tsx`, `strategy/strategy-skeleton.tsx`, `settings/milestones-skeleton.tsx` | `/assets`, `/strategy`, `/settings` |
+| `auth/auth-card-skeleton.tsx` — `AuthCardSkeleton` | `/login`, `/register` (mismo fondo y tarjeta que los formularios) |
 
 ---
 

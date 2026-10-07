@@ -39,7 +39,7 @@ frame too. -->
 - **Figma library:** none
 - **Tokens in code:** `app/globals.css` (Tailwind v4 + variables shadcn)
 - **Component source:** `components/ui/` (shadcn), `components/<dominio>/`
-- **Assets:** `public/` (capturas de la Guía Cocos)
+- **Assets:** `public/` (la Guía Cocos usa esquemas dibujados en `components/guide/cocos-mockup.tsx`, sin capturas)
 
 ## Web surfaces
 - **Web surfaces:** no

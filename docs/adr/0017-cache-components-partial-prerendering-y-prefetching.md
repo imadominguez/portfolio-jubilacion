@@ -1,6 +1,6 @@
 # ADR-0017: Cache Components, Partial Prerendering y Partial Prefetching
 
-- **Estado:** Aceptado (adopción incremental en curso)
+- **Estado:** Aceptado (adopción completa el 2026-10-07)
 - **Fecha:** 2026-10-04
 - **Relacionados:** reemplaza a ADR-0010; ADR-0002, ADR-0006, ADR-0008, ADR-0009
 
@@ -65,3 +65,10 @@ Next.js 16 ofrece **Cache Components** (`cacheComponents: true`), que trae **Par
 - `next.config.ts`; guías en `node_modules/next/dist/docs/01-app/02-guides/`: `migrating-to-cache-components.md`, `authentication-with-cache-components.md`, `instant-navigation.md`, `adopting-partial-prefetching.md`.
 - Skills oficiales: `next-cache-components-adoption`, `next-partial-prefetching-adoption`, `next-dev-loop` (repo `vercel/next.js`, carpeta `skills/`).
 - MCP: `.mcp.json` (`next-devtools-mcp`).
+
+## Seguimiento
+
+- **2026-10-07 — Adopción completa.** PRs #3 a #15: ninguna ruta conserva `instant = false`. `partialPrefetching` está activo desde el pre-paso (#3) y `/snapshots/[id]` usa `<Link prefetch={true}>` desde el listado (punto 6). El detalle por PR está en `docs/desarrollo.md`.
+- **`loading.tsx` y el static shell (#20).** Un `loading.tsx` envuelve a todas las rutas de su carpeta y su fallback queda en el shell de cada una. El del Dashboard estaba en `app/(app)/` y aparecía primero en todas las rutas; pasó al grupo `app/(app)/(dashboard)/`. Como cada ruta tiene su `loading.tsx`, la validación de navegación instantánea en dev casi nunca avisa: el shell se revisa en el HTML del build (`.next/server/app/<ruta>.html`).
+- **`<Activity>` en la práctica.** Los clientes que copian props a su estado necesitan un `key` derivado de los datos (`MilestonesClient`, `StrategyEditor`). Las copias ocultas de páginas anteriores quedan en el DOM, lo que importa en pruebas automatizadas.
+- **Hooks de URL en providers globales.** Un `usePathname()` fuera de `<Suspense>` en el layout (el adaptador de `nextstepjs`) bloqueaba el shell de las rutas con params. Se reemplazó por un adaptador que lee la ruta de un store y la actualiza desde un componente dentro de `<Suspense>` (#15).
