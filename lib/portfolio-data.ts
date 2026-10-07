@@ -167,12 +167,7 @@ async function cachedAllSnapshotPoints(userId: string): Promise<SnapshotPoint[]>
   }));
 }
 
-// Lectura con ownership de un snapshot puntual y sus posiciones. Se usa en el
-// detalle y en las rutas de exportación para no exponer snapshots ajenos.
-export async function getSnapshotById(
-  id: string,
-  userId: string
-): Promise<{
+export type SnapshotDetail = {
   id: string;
   snapshotDate: Date;
   totalValueArs: number;
@@ -180,7 +175,28 @@ export async function getSnapshotById(
   ccl: number | null;
   sourceFile: string | null;
   positions: PositionRow[];
-} | null> {
+};
+
+// Lectura con ownership de un snapshot puntual y sus posiciones. Se usa en el
+// detalle y en las rutas de exportación para no exponer snapshots ajenos. El
+// llamador pasa el userId de su propia sesión (este archivo no es "use server").
+export async function getSnapshotById(
+  id: string,
+  userId: string
+): Promise<SnapshotDetail | null> {
+  return cachedSnapshotById(id, userId);
+}
+
+// Cacheada por (id, userId): permite que <Link prefetch={true}> resuelva el
+// detalle antes del click (ADR-0017, punto 6).
+async function cachedSnapshotById(
+  id: string,
+  userId: string
+): Promise<SnapshotDetail | null> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(userTags.snapshots(userId));
+
   const snapshot = await db.portfolioSnapshot.findFirst({
     where: { id, userId },
     include: {

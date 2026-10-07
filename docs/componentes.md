@@ -107,11 +107,12 @@ Sistema de tour de primer uso basado en `nextstepjs`, activo solo en el Dashboar
 
 | Archivo | Rol |
 |---|---|
-| `components/onboarding/onboarding-provider.tsx` | Configura `NextStep` con `onboardingSteps`, la card custom y los sincronizadores. El tour ya **no se auto-inicia**: es una ayuda contextual opcional. |
+| `components/onboarding/onboarding-provider.tsx` | Configura `NextStep` con `onboardingSteps`, la card custom, los sincronizadores y `useTourNavigationAdapter`. El tour ya **no se auto-inicia**: es una ayuda contextual opcional. |
+| `components/onboarding/tour-navigation-adapter.tsx` | Adaptador de navegación de `NextStep` que no llama a `usePathname()` en el render (lo haría fuera de `<Suspense>` y bloquearía el static shell de rutas con params como `/snapshots/[id]`). La ruta sale de un store con `useSyncExternalStore`; `PathnameReporter`, dentro de su propio `<Suspense>`, avisa cada navegación. |
 | `components/onboarding/onboarding-card.tsx` | Card del tour: barra de progreso, pasos, botones Omitir / Anterior / Siguiente-Finalizar. |
 | `components/onboarding/tour-highlight-sync.tsx` | Marca el elemento activo con `data-tour-highlight`. |
 | `components/onboarding/tour-position-sync.tsx` | Re-ancla spotlight/card en scroll y resize (nextstepjs no escucha scroll). |
-| `components/onboarding/tour-scroll-sync.tsx` | Hace scroll al target del paso en el sidebar o en la guía. |
+| `components/onboarding/tour-scroll-sync.tsx` | Hace scroll al target del paso en el sidebar o en la guía. Lee `usePathname()`, así que va dentro de `<Suspense>`. |
 | `lib/onboarding/steps.tsx` | Define `PRIMER_USO_TOUR` con 6 pasos que recorren `/` y `/guia`. |
 | `lib/onboarding/tour-targets.ts` | Índices de pasos, selectores del sidebar y helpers de scroll. |
 

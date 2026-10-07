@@ -150,9 +150,9 @@ Una PR por feature ([ADR-0017](./adr/0017-cache-components-partial-prerendering-
 | #13 | `/real-gains` (botón del header en su propio `<Suspense>`) y `/datos` (Suspense finos por sección/tarjeta); `getDataReadiness` cacheado | Mergeada |
 | #14 | `/assets` (`getAssetCatalog`, tag `assets`) y `/strategy` (tag `strategy`), con `requireAdmin()` fuera del caché; `key` en `StrategyEditor` | Mergeada |
 
-**Convertidos:** layout raíz, layout `(app)`, Dashboard (`/`), `/guia`, `/ccl`, `/portfolio`, `/login`, `/register` (estas dos con `AuthCardSkeleton` como fallback), `/snapshots`, `/settings`, `/retirement`, `/analysis`, `/plan`, `/rebalance`, `/transactions`, `/performance`, `/real-gains`, `/datos`, `/assets` y `/strategy`. Todas las rutas ya son `◐` porque el layout no bloquea.
+**Convertidos:** layout raíz, layout `(app)`, Dashboard (`/`), `/guia`, `/ccl`, `/portfolio`, `/login`, `/register` (estas dos con `AuthCardSkeleton` como fallback), `/snapshots`, `/settings`, `/retirement`, `/analysis`, `/plan`, `/rebalance`, `/transactions`, `/performance`, `/real-gains`, `/datos`, `/assets`, `/strategy` y `/snapshots/[id]` (con `prefetch={true}` desde el listado). Todas las rutas ya son `◐` porque el layout no bloquea.
 
-**Pendientes** (todavía con `export const instant = false` + `// TODO: Cache Components adoption`): `/snapshots/[id]`. Para listarlos: `grep -rl "instant = false" app`.
+**Pendientes:** ninguna. Todas las rutas quitaron `export const instant = false`; `grep -rl "instant = false" app` no devuelve nada.
 
 **Cómo convertir una ruta** (mismo patrón que el Dashboard, `app/(app)/page.tsx`):
 

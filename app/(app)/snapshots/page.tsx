@@ -78,6 +78,9 @@ async function SnapshotsContent() {
                   <Link
                     key={s.id}
                     href={`/snapshots/${s.id}`}
+                    // El detalle depende de params y está cacheado por id: el
+                    // prefetch lo resuelve antes del click (ADR-0017, punto 6).
+                    prefetch={true}
                     className="px-5 py-4 flex items-center justify-between gap-4 hover:bg-muted/50 transition-colors group"
                   >
                     <div className="flex items-center gap-4 min-w-0">
