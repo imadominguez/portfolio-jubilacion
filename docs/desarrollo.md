@@ -142,6 +142,7 @@ Una PR por feature ([ADR-0017](./adr/0017-cache-components-partial-prerendering-
 | #5 | Caché de datos por usuario/dominio (`lib/cache-tags.ts`) e invalidación con `updateTag` (`lib/revalidate.ts`) | Mergeada |
 | #6 | `/guia`: quita el opt-out (componente cliente sin lecturas de request; se prerenderiza entera), rediseño responsive de la guía y fix del cliente de auth en otro puerto | Mergeada |
 | #7 | `/ccl`: header en el shell, contenido en `<Suspense>` con `CclSkeleton`; `getAllExchangeRates` cacheado con el tag `ccl` | Mergeada |
+| #8 | `/portfolio` (sin lecturas en el servidor), `/login` y `/register` con `AuthCardSkeleton` como fallback | Mergeada |
 
 **Convertidos:** layout raíz, layout `(app)`, Dashboard (`/`), `/guia`, `/ccl`, `/portfolio`, `/login` y `/register` (estas dos con `AuthCardSkeleton` como fallback). Todas las rutas ya son `◐` porque el layout no bloquea.
 
