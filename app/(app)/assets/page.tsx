@@ -1,50 +1,20 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { SiteHeader } from "@/components/layout/site-header";
 import { AssetsTableClient } from "@/components/assets/assets-table-client";
 import { AssetsQuickSetup } from "@/components/assets/assets-quick-setup";
+import { AssetsSkeleton } from "@/components/assets/assets-skeleton";
 import { ImportButton } from "@/components/snapshots/snapshots-client";
 import { CclUpdateButton } from "@/components/exchange-rate/ccl-update-button";
 import { MarketPricesButton } from "@/components/market/market-prices-button";
 import { getSetupStatus } from "@/app/actions/setup";
-import { db } from "@/lib/db";
-
-// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
+import { getAssetCatalog } from "@/app/actions/assets";
 
 export const metadata: Metadata = { title: "Assets" };
 
-export default async function AssetsPage() {
-  const [assets, setup] = await Promise.all([
-    db.asset.findMany({
-      orderBy: { ticker: "asc" },
-      select: {
-        id: true,
-        ticker: true,
-        instrumentName: true,
-        cedearRatio: true,
-        description: true,
-        sector: true,
-        industry: true,
-        country: true,
-        underlyingTicker: true,
-      },
-    }),
-    getSetupStatus(),
-  ]);
-
-  const serialized = assets.map((a) => ({
-    id: a.id,
-    ticker: a.ticker,
-    instrumentName: a.instrumentName,
-    cedearRatio: Number(a.cedearRatio),
-    description: a.description,
-    sector: a.sector,
-    industry: a.industry,
-    country: a.country,
-    underlyingTicker: a.underlyingTicker,
-  }));
-
+// El header (con sus acciones) y la explicación entran al static shell; el
+// catálogo y los tickers pendientes se leen en request time detrás del skeleton.
+export default function AssetsPage() {
   return (
     <div className="flex flex-col min-h-svh">
       <SiteHeader
@@ -71,10 +41,21 @@ export default async function AssetsPage() {
           </p>
         </div>
 
-        <AssetsQuickSetup missingTickers={setup.missingAssetTickers} />
-
-        <AssetsTableClient assets={serialized} />
+        <Suspense fallback={<AssetsSkeleton />}>
+          <AssetsCatalog />
+        </Suspense>
       </main>
     </div>
+  );
+}
+
+async function AssetsCatalog() {
+  const [assets, setup] = await Promise.all([getAssetCatalog(), getSetupStatus()]);
+
+  return (
+    <>
+      <AssetsQuickSetup missingTickers={setup.missingAssetTickers} />
+      <AssetsTableClient assets={assets} />
+    </>
   );
 }

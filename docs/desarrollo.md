@@ -149,9 +149,9 @@ Una PR por feature ([ADR-0017](./adr/0017-cache-components-partial-prerendering-
 | #12 | `/performance`; `getBenchmarkPoints` (y `getIndexPoints`, que delega) cacheado con el tag `benchmarks` | Mergeada |
 | #13 | `/real-gains` (botón del header en su propio `<Suspense>`) y `/datos` (Suspense finos por sección/tarjeta); `getDataReadiness` cacheado | Mergeada |
 
-**Convertidos:** layout raíz, layout `(app)`, Dashboard (`/`), `/guia`, `/ccl`, `/portfolio`, `/login`, `/register` (estas dos con `AuthCardSkeleton` como fallback), `/snapshots`, `/settings`, `/retirement`, `/analysis`, `/plan`, `/rebalance`, `/transactions`, `/performance`, `/real-gains` y `/datos`. Todas las rutas ya son `◐` porque el layout no bloquea.
+**Convertidos:** layout raíz, layout `(app)`, Dashboard (`/`), `/guia`, `/ccl`, `/portfolio`, `/login`, `/register` (estas dos con `AuthCardSkeleton` como fallback), `/snapshots`, `/settings`, `/retirement`, `/analysis`, `/plan`, `/rebalance`, `/transactions`, `/performance`, `/real-gains`, `/datos`, `/assets` y `/strategy`. Todas las rutas ya son `◐` porque el layout no bloquea.
 
-**Pendientes** (todavía con `export const instant = false` + `// TODO: Cache Components adoption`): `/assets`, `/snapshots/[id]`, `/strategy`. Para listarlos: `grep -rl "instant = false" app`.
+**Pendientes** (todavía con `export const instant = false` + `// TODO: Cache Components adoption`): `/snapshots/[id]`. Para listarlos: `grep -rl "instant = false" app`.
 
 **Cómo convertir una ruta** (mismo patrón que el Dashboard, `app/(app)/page.tsx`):
 
