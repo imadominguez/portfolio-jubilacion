@@ -2,10 +2,6 @@ import type { Metadata } from "next";
 import { SiteHeader } from "@/components/layout/site-header";
 import { CocosGuide } from "@/components/guide/cocos-guide";
 
-// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
-
 export const metadata: Metadata = {
   title: "Guía Cocos",
 };
@@ -18,7 +14,7 @@ export default function GuiaPage() {
         description="Cómo descargar CSV desde Cocos Capital"
       />
 
-      <main className="flex-1 px-6 py-10 max-w-5xl w-full mx-auto">
+      <main className="flex-1 px-4 py-6 sm:px-6 sm:py-10 max-w-5xl w-full mx-auto">
         <CocosGuide />
       </main>
     </div>

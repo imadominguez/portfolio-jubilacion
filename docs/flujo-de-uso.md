@@ -26,7 +26,7 @@ El **checklist "Puesta en marcha"** (dashboard y `/datos`) muestra qué falta. E
 
 ## Flujo mensual recomendado
 
-> **Guía visual en la app:** la sección [Guía Cocos](/guia) explica con capturas de pantalla dónde descargar cada archivo en Cocos Capital.
+> **Guía visual en la app:** la sección [Guía Cocos](/guia) explica con esquemas de las pantallas de Cocos dónde descargar cada archivo en Cocos Capital.
 
 ### 1. Exportar CSV desde Cocos Capital
 

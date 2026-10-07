@@ -179,10 +179,10 @@ Metadata raíz (`app/layout.tsx`): `title` por defecto `"Portfolio Jubilación"`
 
 ## `/guia` — Guía Cocos
 
-- **Archivo:** `app/(app)/guia/page.tsx` (server component **síncrono**, delega a cliente).
+- **Archivo:** `app/(app)/guia/page.tsx` (server component **síncrono**, delega a cliente). Sin lecturas de request: con Cache Components se prerenderiza entera en el static shell.
 - **Datos:** ninguna.
-- **Propósito:** explicar con capturas cómo descargar el CSV de **Portfolio** (snapshots) y de **Actividad** (movimientos) desde Cocos. Es destino de anclas (`/guia#snapshots`, `/guia#transacciones`) y contiene los targets del tour de onboarding.
-- **Componentes:** `SiteHeader`, `CocosGuide` (+ `RestartTourButton`).
+- **Propósito:** explicar con esquemas interactivos (cada paso resalta qué tocar) cómo descargar el CSV de **Portfolio** (snapshots) y de **Actividad** (movimientos) desde Cocos. Es destino de anclas (`/guia#snapshots`, `/guia#transacciones`) y contiene los targets del tour de onboarding.
+- **Componentes:** `SiteHeader`, `CocosGuide` (mapa de rutas Portfolio/Actividad, `GuideSection` con pasos que manejan `CocosMockup`, + `RestartTourButton`).
 
 ---
 

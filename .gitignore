@@ -40,6 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Skills
+.claude/*
+
 #Scripts
 # Scripts sueltos quedan fuera de git; los que usa package.json o la doc se versionan.
 scripts/*

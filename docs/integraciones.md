@@ -28,7 +28,7 @@ Fuente primaria del estado del portafolio. No hay API: se descargan archivos CSV
 
 - Se sube desde `/portfolio` y se envía a Anthropic para el análisis mensual.
 
-Guía visual y capturas: `components/guide/cocos-guide.tsx` (ruta `/guia`), con imágenes en `public/guides/cocos/`.
+Guía visual: `components/guide/cocos-guide.tsx` (ruta `/guia`), con esquemas de las pantallas de Cocos dibujados en `components/guide/cocos-mockup.tsx` (sin capturas: siguen el tema y no exponen datos de una cuenta).
 
 ---
 
