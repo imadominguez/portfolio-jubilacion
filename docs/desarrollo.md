@@ -146,10 +146,11 @@ Una PR por feature ([ADR-0017](./adr/0017-cache-components-partial-prerendering-
 | #9 | `/snapshots`, `/settings`, `/retirement`, `/analysis` (lecturas ya cacheadas); `key` en `MilestonesClient` por `<Activity>` | Mergeada |
 | #10 | `/plan` y `/rebalance`; `getTargetAllocations` cacheado con el tag `rebalance:<userId>` | Mergeada |
 | #11 | `/transactions`; `getAllTransactions`, `getRealizedPnl`, `getMovements` (tag `trades`) y `getAllDividends` (tag `dividends`) cacheados | Mergeada |
+| #12 | `/performance`; `getBenchmarkPoints` (y `getIndexPoints`, que delega) cacheado con el tag `benchmarks` | Mergeada |
 
-**Convertidos:** layout raíz, layout `(app)`, Dashboard (`/`), `/guia`, `/ccl`, `/portfolio`, `/login`, `/register` (estas dos con `AuthCardSkeleton` como fallback), `/snapshots`, `/settings`, `/retirement`, `/analysis`, `/plan`, `/rebalance` y `/transactions`. Todas las rutas ya son `◐` porque el layout no bloquea.
+**Convertidos:** layout raíz, layout `(app)`, Dashboard (`/`), `/guia`, `/ccl`, `/portfolio`, `/login`, `/register` (estas dos con `AuthCardSkeleton` como fallback), `/snapshots`, `/settings`, `/retirement`, `/analysis`, `/plan`, `/rebalance`, `/transactions` y `/performance`. Todas las rutas ya son `◐` porque el layout no bloquea.
 
-**Pendientes** (todavía con `export const instant = false` + `// TODO: Cache Components adoption`): `/assets`, `/datos`, `/performance`, `/real-gains`, `/snapshots/[id]`, `/strategy`. Para listarlos: `grep -rl "instant = false" app`.
+**Pendientes** (todavía con `export const instant = false` + `// TODO: Cache Components adoption`): `/assets`, `/datos`, `/real-gains`, `/snapshots/[id]`, `/strategy`. Para listarlos: `grep -rl "instant = false" app`.
 
 **Cómo convertir una ruta** (mismo patrón que el Dashboard, `app/(app)/page.tsx`):
 

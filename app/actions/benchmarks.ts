@@ -1,6 +1,9 @@
 "use server";
 
+import { cacheLife, cacheTag } from "next/cache";
+import { connection } from "next/server";
 import { revalidateBenchmarks } from "@/lib/revalidate";
+import { marketTags } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
 import { getHistorical } from "@/lib/yahoo-finance-client";
 import { BENCHMARKS, type BenchmarkId } from "@/lib/benchmarks-config";
@@ -54,6 +57,22 @@ export async function getBenchmarkPoints(
   benchmarkId: string,
   fromDate?: Date
 ): Promise<BenchmarkPoint[]> {
+  // Sin datos de request, Next la ejecutaría en el build contra la base (que en
+  // CI no existe) y congelaría la serie en el shell del deploy.
+  await connection();
+  return cachedBenchmarkPoints(benchmarkId, fromDate);
+}
+
+// Datos globales: las series solo cambian con el refresco manual (ADR-0006).
+// benchmarkId y fromDate forman parte de la clave del caché.
+async function cachedBenchmarkPoints(
+  benchmarkId: string,
+  fromDate?: Date
+): Promise<BenchmarkPoint[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(marketTags.benchmarks);
+
   const points = await db.benchmarkPoint.findMany({
     where: {
       benchmarkId,
