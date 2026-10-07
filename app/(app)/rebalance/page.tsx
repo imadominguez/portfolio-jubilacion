@@ -1,25 +1,18 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { SiteHeader } from "@/components/layout/site-header";
 import { RebalanceClient } from "@/components/rebalance/rebalance-client";
+import { RebalanceSkeleton } from "@/components/rebalance/rebalance-skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ImportButton } from "@/components/snapshots/snapshots-client";
 import { getRebalanceData, getTargetAllocations } from "@/app/actions/rebalance";
 import { Scale } from "lucide-react";
 
-// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
-
 export const metadata: Metadata = { title: "Rebalanceo" };
 
-export default async function RebalancePage() {
-  const [rebalanceData, targets] = await Promise.all([
-    getRebalanceData(),
-    getTargetAllocations(),
-  ]);
-
-  const totalPct = targets.reduce((sum, t) => sum + t.targetPct, 0);
-
+// El header y la explicación entran al static shell; la asignación real y los
+// objetivos se leen en request time detrás del skeleton.
+export default function RebalancePage() {
   return (
     <div className="flex flex-col min-h-svh">
       <SiteHeader
@@ -39,21 +32,38 @@ export default async function RebalancePage() {
           </p>
         </div>
 
-        {rebalanceData.length === 0 && targets.length === 0 ? (
-          <EmptyState
-            icon={Scale}
-            title="Sin datos para rebalancear"
-            description="Importá tu primer snapshot para que la app conozca tus posiciones. Después definí el porcentaje objetivo de cada ticker."
-            action={<ImportButton />}
-          />
-        ) : (
-          <RebalanceClient
-            rebalanceData={rebalanceData}
-            targets={targets}
-            totalPct={totalPct}
-          />
-        )}
+        <Suspense fallback={<RebalanceSkeleton />}>
+          <Rebalance />
+        </Suspense>
       </main>
     </div>
+  );
+}
+
+async function Rebalance() {
+  const [rebalanceData, targets] = await Promise.all([
+    getRebalanceData(),
+    getTargetAllocations(),
+  ]);
+
+  if (rebalanceData.length === 0 && targets.length === 0) {
+    return (
+      <EmptyState
+        icon={Scale}
+        title="Sin datos para rebalancear"
+        description="Importá tu primer snapshot para que la app conozca tus posiciones. Después definí el porcentaje objetivo de cada ticker."
+        action={<ImportButton />}
+      />
+    );
+  }
+
+  const totalPct = targets.reduce((sum, t) => sum + t.targetPct, 0);
+
+  return (
+    <RebalanceClient
+      rebalanceData={rebalanceData}
+      targets={targets}
+      totalPct={totalPct}
+    />
   );
 }

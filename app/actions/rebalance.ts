@@ -27,9 +27,17 @@ export type TargetAllocationResult =
   | { success: false; error: string };
 
 export async function getTargetAllocations(): Promise<TargetAllocationRow[]> {
-  const session = await requireAuth();
+  return cachedTargetAllocations(await requireUserId());
+}
+
+// No se exporta: recibe el userId ya resuelto de la sesión (ADR-0017).
+async function cachedTargetAllocations(userId: string): Promise<TargetAllocationRow[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(userTags.rebalance(userId));
+
   const rows = await db.targetAllocation.findMany({
-    where: { userId: session.user.id },
+    where: { userId },
     orderBy: { ticker: "asc" },
   });
   return rows.map((r) => ({
