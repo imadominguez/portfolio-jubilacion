@@ -1,23 +1,16 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { SiteHeader } from "@/components/layout/site-header";
 import { MilestonesClient } from "@/components/settings/milestones-client";
+import { MilestonesSkeleton } from "@/components/settings/milestones-skeleton";
 import { getMilestones } from "@/app/actions/milestones";
 import { getLatestSnapshot } from "@/lib/portfolio-data";
 
-// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
-
 export const metadata: Metadata = { title: "Configuración" };
 
-export default async function SettingsPage() {
-  const [milestones, snapshot] = await Promise.all([
-    getMilestones(),
-    getLatestSnapshot(),
-  ]);
-
-  const currentPortfolioUsd = snapshot?.totalValueUsd ?? null;
-
+// El header y la explicación entran al static shell; los hitos del usuario se
+// leen en request time y se streamean detrás del skeleton.
+export default function SettingsPage() {
   return (
     <div className="flex flex-col min-h-svh">
       <SiteHeader title="Configuración" description="Hitos y preferencias" />
@@ -33,11 +26,32 @@ export default async function SettingsPage() {
           </p>
         </section>
 
-        <MilestonesClient
-          initialMilestones={milestones}
-          currentPortfolioUsd={currentPortfolioUsd}
-        />
+        <Suspense fallback={<MilestonesSkeleton />}>
+          <Milestones />
+        </Suspense>
       </main>
     </div>
+  );
+}
+
+async function Milestones() {
+  const [milestones, snapshot] = await Promise.all([
+    getMilestones(),
+    getLatestSnapshot(),
+  ]);
+
+  // MilestonesClient copia los hitos a su estado una sola vez y <Activity> lo
+  // conserva entre navegaciones: el key lo vuelve a montar cuando un import
+  // marca un hito como alcanzado o cambia la lista.
+  const dataKey = milestones
+    .map((m) => `${m.id}:${m.reached ? 1 : 0}`)
+    .join("|");
+
+  return (
+    <MilestonesClient
+      key={dataKey}
+      initialMilestones={milestones}
+      currentPortfolioUsd={snapshot?.totalValueUsd ?? null}
+    />
   );
 }
