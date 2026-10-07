@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { RefreshCw, Database, TrendingUp, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { fetchHistoricalCCL } from "@/app/actions/exchange-rate";
@@ -12,6 +13,7 @@ interface RealGainsWizardProps {
 }
 
 export function RealGainsWizard({ readiness }: RealGainsWizardProps) {
+  const router = useRouter();
   const [loadingCcl, setLoadingCcl] = useState(false);
   const [loadingStocks, setLoadingStocks] = useState(false);
   const [cclDone, setCclDone] = useState(false);
@@ -32,6 +34,7 @@ export function RealGainsWizard({ readiness }: RealGainsWizardProps) {
           `CCL histórico cargado: ${result.saved} fechas nuevas${result.skipped > 0 ? `, ${result.skipped} ya existían` : ""}.`
         );
         setCclDone(true);
+        router.refresh();
       } else {
         toast.error(result.error);
       }
@@ -50,6 +53,7 @@ export function RealGainsWizard({ readiness }: RealGainsWizardProps) {
           `Precios históricos cargados: ${totalSaved} registros para ${result.results.length} tickers.`
         );
         setStocksDone(true);
+        router.refresh();
       } else {
         toast.error(result.error);
       }
@@ -58,7 +62,8 @@ export function RealGainsWizard({ readiness }: RealGainsWizardProps) {
     }
   }
 
-  const allDone = hasCcl && hasStocks;
+  // El aviso confirma una carga hecha en esta visita; si los datos ya estaban, sobra.
+  const justLoaded = (cclDone || stocksDone) && hasCcl && hasStocks;
 
   return (
     <div className="flex flex-col gap-6 animate-fade-up">
@@ -183,11 +188,11 @@ export function RealGainsWizard({ readiness }: RealGainsWizardProps) {
         </div>
       </div>
 
-      {allDone && (
+      {justLoaded && (
         <div className="rounded-xl border border-success/30 bg-success/5 px-5 py-4 flex items-center gap-3">
           <CheckCircle2 className="size-4 text-success shrink-0" />
           <p className="text-sm text-success">
-            Datos cargados. Recargá la página para ver el análisis completo de ganancia real.
+            Datos históricos actualizados. El análisis de ganancia real ya los usa.
           </p>
         </div>
       )}
