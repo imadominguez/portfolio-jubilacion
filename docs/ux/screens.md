@@ -14,7 +14,7 @@ frame too. -->
 |----|----------|-----------|-------|--------|----------|
 | SCR-01 | Login | FLW-01 | — | built | app/(auth)/login/login-form.tsx |
 | SCR-02 | Registro | FLW-01 | — | built | app/(auth)/register/register-form.tsx |
-| SCR-03 | Dashboard | FLW-01, 02, 03, 06 | — | built | app/(app)/page.tsx |
+| SCR-03 | Dashboard | FLW-01, 02, 03, 06 | — | built | app/(app)/(dashboard)/page.tsx |
 | SCR-04 | Wizard de bienvenida | FLW-02 | — | built | components/setup/welcome-wizard.tsx |
 | SCR-05 | Importar snapshot (sheet) | FLW-02, 03 | — | built | components/snapshots/import-csv-sheet.tsx |
 | SCR-06 | Snapshots (lista) | FLW-03 | — | built | app/(app)/snapshots/page.tsx |

@@ -8,7 +8,7 @@ Metadata raíz (`app/layout.tsx`): `title` por defecto `"Portfolio Jubilación"`
 
 ## `/` — Dashboard
 
-- **Archivo:** `app/(app)/page.tsx` (server component async).
+- **Archivo:** `app/(app)/(dashboard)/page.tsx` (server component async).
 - **Propósito:** pantalla principal con el estado del **snapshot más reciente**.
 - **Datos (en dos fases):**
   1. `Promise.all([getLatestSnapshot(), getSetupStatus()])`. Si no hay snapshot, corta acá y muestra `SetupPanel` + `EmptyDashboard` sin consultar el resto.
