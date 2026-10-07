@@ -5,7 +5,7 @@ import { CommandMenu } from "@/components/layout/command-menu";
 
 interface SiteHeaderProps {
   title: string;
-  description?: string;
+  description?: React.ReactNode;
   actions?: React.ReactNode;
 }
 

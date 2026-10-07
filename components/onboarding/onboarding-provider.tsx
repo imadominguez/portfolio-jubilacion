@@ -1,10 +1,15 @@
 "use client";
 
+import { Suspense } from "react";
 import { NextStep, NextStepProvider } from "nextstepjs";
 import { OnboardingCard } from "@/components/onboarding/onboarding-card";
 import { TourHighlightSync } from "@/components/onboarding/tour-highlight-sync";
 import { TourPositionSync } from "@/components/onboarding/tour-position-sync";
 import { TourScrollSync } from "@/components/onboarding/tour-scroll-sync";
+import {
+  PathnameReporter,
+  useTourNavigationAdapter,
+} from "@/components/onboarding/tour-navigation-adapter";
 import { onboardingSteps } from "@/lib/onboarding/steps";
 import { nudgeTourPosition } from "@/lib/onboarding/tour-targets";
 
@@ -40,9 +45,15 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
         scrollToTop={false}
         overlayZIndex={50}
         shadowOpacity="0.55"
+        navigationAdapter={useTourNavigationAdapter}
       >
+        {/* Leen usePathname(): van en <Suspense> para no bloquear el static
+            shell de rutas con params (ver tour-navigation-adapter.tsx). */}
+        <Suspense fallback={null}>
+          <PathnameReporter />
+          <TourScrollSync />
+        </Suspense>
         <TourPositionSync />
-        <TourScrollSync />
         <TourHighlightSync />
         {children}
       </NextStep>

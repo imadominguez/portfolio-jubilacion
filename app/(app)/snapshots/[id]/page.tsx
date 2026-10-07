@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -9,48 +10,83 @@ import { HoldingsTable } from "@/components/dashboard/holdings-table";
 import { AllocationPanel } from "@/components/dashboard/allocation-panel";
 import { ExportButtons } from "@/components/export/export-buttons";
 import { DeleteSnapshotButton } from "@/components/snapshots/delete-snapshot-button";
+import { SnapshotDetailSkeleton } from "@/components/snapshots/snapshot-detail-skeleton";
 import { getSnapshotById } from "@/lib/portfolio-data";
 import { requireUserId } from "@/lib/auth-session";
-import { db } from "@/lib/db";
 import { formatARS, formatUSD, formatDateMedium } from "@/lib/format";
 
-// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
+type SnapshotParams = Promise<{ id: string }>;
 
+// params y la sesión son datos de request: se resuelven dentro de cada límite de
+// <Suspense>. La lectura está cacheada por (id, userId), así que las tres partes
+// de la página (fecha del header, acciones y detalle) comparten una consulta.
+async function loadSnapshot(params: SnapshotParams) {
+  const { id } = await params;
+  const snapshot = await getSnapshotById(id, await requireUserId());
+  return { id, snapshot };
+}
+
+function formatSnapshotDate(date: Date): string {
+  return new Intl.DateTimeFormat("es-AR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(date));
+}
+
+// La página ya difiere contenido al request (todo depende de params), así que
+// la metadata se streamea con el resto (ver generateMetadata con Cache Components).
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: SnapshotParams;
 }): Promise<Metadata> {
-  const { id } = await params;
-  const userId = await requireUserId();
-  const snapshot = await db.portfolioSnapshot.findFirst({
-    where: { id, userId },
-    select: { snapshotDate: true },
-  });
+  const { snapshot } = await loadSnapshot(params);
   if (!snapshot) return { title: "Snapshot no encontrado" };
   return { title: `Snapshot ${formatDateMedium(snapshot.snapshotDate)}` };
 }
 
-export default async function SnapshotDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const userId = await requireUserId();
+// El header entra al static shell; la fecha, las acciones y el detalle se
+// streamean detrás de sus propios límites.
+export default function SnapshotDetailPage({ params }: { params: SnapshotParams }) {
+  return (
+    <div className="flex flex-col min-h-svh">
+      <SiteHeader
+        title="Snapshot"
+        description={
+          <Suspense fallback={null}>
+            <HeaderDate params={params} />
+          </Suspense>
+        }
+        actions={
+          <Suspense fallback={null}>
+            <HeaderActions params={params} />
+          </Suspense>
+        }
+      />
+      <Suspense fallback={<SnapshotDetailSkeleton />}>
+        <SnapshotDetailContent params={params} />
+      </Suspense>
+    </div>
+  );
+}
 
-  const snapshot = await getSnapshotById(id, userId);
+async function HeaderDate({ params }: { params: SnapshotParams }) {
+  const { snapshot } = await loadSnapshot(params);
+  return snapshot ? formatSnapshotDate(snapshot.snapshotDate) : null;
+}
+
+async function HeaderActions({ params }: { params: SnapshotParams }) {
+  const { id, snapshot } = await loadSnapshot(params);
+  return snapshot ? <ExportButtons snapshotId={id} /> : null;
+}
+
+async function SnapshotDetailContent({ params }: { params: SnapshotParams }) {
+  const { id, snapshot } = await loadSnapshot(params);
 
   if (!snapshot) notFound();
 
-  const snapshotDate = new Date(snapshot.snapshotDate);
-  const formattedDate = new Intl.DateTimeFormat("es-AR", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  }).format(snapshotDate);
+  const formattedDate = formatSnapshotDate(snapshot.snapshotDate);
 
   const positions = snapshot.positions;
 
@@ -83,86 +119,78 @@ export default async function SnapshotDetailPage({
   ];
 
   return (
-    <div className="flex flex-col min-h-svh">
-      <SiteHeader
-        title="Snapshot"
-        description={formattedDate}
-        actions={<ExportButtons snapshotId={id} />}
-      />
+    <main className="flex-1 px-6 py-10 flex flex-col gap-10 max-w-6xl w-full mx-auto">
+      {/* Back + date header */}
+      <section className="animate-fade-up flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-2">
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
+            className="w-fit -ml-2 gap-2 text-muted-foreground hover:text-foreground text-xs"
+          >
+            <Link href="/snapshots">
+              <ArrowLeft className="size-3.5" data-icon="inline-start" />
+              Volver a snapshots
+            </Link>
+          </Button>
+          <DeleteSnapshotButton
+            snapshotId={id}
+            formattedDate={formattedDate}
+            positionCount={positions.length}
+          />
+        </div>
 
-      <main className="flex-1 px-6 py-10 flex flex-col gap-10 max-w-6xl w-full mx-auto">
-        {/* Back + date header */}
-        <section className="animate-fade-up flex flex-col gap-4">
-          <div className="flex items-center justify-between gap-2">
-            <Button
-              asChild
-              variant="ghost"
-              size="sm"
-              className="w-fit -ml-2 gap-2 text-muted-foreground hover:text-foreground text-xs"
-            >
-              <Link href="/snapshots">
-                <ArrowLeft className="size-3.5" data-icon="inline-start" />
-                Volver a snapshots
-              </Link>
-            </Button>
-            <DeleteSnapshotButton
-              snapshotId={id}
-              formattedDate={formattedDate}
-              positionCount={positions.length}
-            />
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
-              Snapshot del
+        <div className="flex flex-col gap-1">
+          <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
+            Snapshot del
+          </p>
+          <p className="text-4xl sm:text-5xl font-mono font-light tabular-nums tracking-tight text-foreground">
+            {formattedDate}
+          </p>
+          {snapshot.sourceFile && (
+            <p className="text-xs text-muted-foreground font-mono mt-1">
+              Archivo: {snapshot.sourceFile}
             </p>
-            <p className="text-4xl sm:text-5xl font-mono font-light tabular-nums tracking-tight text-foreground">
-              {formattedDate}
-            </p>
-            {snapshot.sourceFile && (
-              <p className="text-xs text-muted-foreground font-mono mt-1">
-                Archivo: {snapshot.sourceFile}
-              </p>
-            )}
-          </div>
-        </section>
+          )}
+        </div>
+      </section>
 
-        {/* KPI strip */}
-        <section
-          className="animate-fade-up grid grid-cols-2 gap-3 sm:grid-cols-4"
-          style={{ animationDelay: "60ms" }}
-        >
-          {kpis.map(({ label, value }) => (
-            <div
-              key={label}
-              className="rounded-xl border border-border bg-card shadow-sm px-5 py-4 flex flex-col gap-2"
-            >
-              <span className="text-sm font-semibold text-foreground">
-                {label}
-              </span>
-              <span className="text-xl font-bold font-mono tabular-nums text-foreground leading-none">
-                {value}
-              </span>
-              <div className="flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-success/50 shrink-0" />
-                <span className="text-xs text-muted-foreground">snapshot</span>
-              </div>
+      {/* KPI strip */}
+      <section
+        className="animate-fade-up grid grid-cols-2 gap-3 sm:grid-cols-4"
+        style={{ animationDelay: "60ms" }}
+      >
+        {kpis.map(({ label, value }) => (
+          <div
+            key={label}
+            className="rounded-xl border border-border bg-card shadow-sm px-5 py-4 flex flex-col gap-2"
+          >
+            <span className="text-sm font-semibold text-foreground">
+              {label}
+            </span>
+            <span className="text-xl font-bold font-mono tabular-nums text-foreground leading-none">
+              {value}
+            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="size-2 rounded-full bg-success/50 shrink-0" />
+              <span className="text-xs text-muted-foreground">snapshot</span>
             </div>
-          ))}
-        </section>
-
-        <Separator className="opacity-30" />
-
-        {/* Main content */}
-        <section className="grid gap-8 lg:grid-cols-5">
-          <div className="lg:col-span-2">
-            <AllocationPanel positions={positions} totalArs={totalArs} />
           </div>
-          <div className="lg:col-span-3">
-            <HoldingsTable positions={positions} />
-          </div>
-        </section>
-      </main>
-    </div>
+        ))}
+      </section>
+
+      <Separator className="opacity-30" />
+
+      {/* Main content */}
+      <section className="grid gap-8 lg:grid-cols-5">
+        <div className="lg:col-span-2">
+          <AllocationPanel positions={positions} totalArs={totalArs} />
+        </div>
+        <div className="lg:col-span-3">
+          <HoldingsTable positions={positions} />
+        </div>
+      </section>
+    </main>
   );
 }
