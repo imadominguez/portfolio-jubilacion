@@ -58,9 +58,16 @@ export function TransactionForm() {
 
   return (
     <>
-      <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => setOpen(true)}>
+      <Button
+        size="sm"
+        variant="outline"
+        className="gap-1.5 text-xs"
+        onClick={() => setOpen(true)}
+        aria-label="Nueva transacción"
+      >
         <Plus className="size-3" />
-        Nueva transacción
+        {/* En mobile el header no tiene lugar para el texto junto al título. */}
+        <span className="hidden sm:inline">Nueva transacción</span>
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
