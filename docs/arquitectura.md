@@ -158,7 +158,7 @@ betterAuth({
 
 - `input: false` impide que el cliente envíe `role` en el registro → **no hay escalada de privilegios desde el front**.
 - **Registro cerrado por defecto:** `allowPublicSignup = process.env.ALLOW_PUBLIC_SIGNUP === "true"`. Si es `false`, Better Auth rechaza el alta y `/register` redirige a `/login`. Las páginas de auth son `force-dynamic` para que el flag se evalúe por request y no en build.
-- El cliente (`lib/auth-client.ts`) usa `inferAdditionalFields<Auth>()` para tipar `session.user.role` y `baseURL` = `NEXT_PUBLIC_APP_URL` (fallback `http://localhost:3000`).
+- El cliente (`lib/auth-client.ts`) usa `inferAdditionalFields<Auth>()` para tipar `session.user.role` y `baseURL` = `NEXT_PUBLIC_APP_URL` (sin definir, usa el origen de la página: funciona en cualquier puerto).
 
 ### Helpers server-side (`lib/auth-session.ts`)
 
@@ -205,7 +205,7 @@ Flujo:
 | Variable | Obligatoria | Uso |
 |---|---|---|
 | `DATABASE_URL` | Sí | Conexión PostgreSQL en `lib/db.ts`, `prisma.config.ts`, `prisma/seed.ts` y scripts. |
-| `NEXT_PUBLIC_APP_URL` | Recomendada | `baseURL` de Better Auth client. Fallback `http://localhost:3000`. |
+| `NEXT_PUBLIC_APP_URL` | Recomendada | `baseURL` de Better Auth client. Sin definir, usa el origen de la página. |
 | `BETTER_AUTH_SECRET` / `BETTER_AUTH_URL` | Producción | Convención de Better Auth (no referenciadas explícitamente en el código). |
 | `ANTHROPIC_API_KEY` | Para `/portfolio` | Header `x-api-key` del análisis con Claude. |
 | `ANTHROPIC_MODEL` / `ANTHROPIC_EFFORT` / `ANTHROPIC_TIMEOUT_MS` | Opcional | Config del análisis (modelo, effort, timeout). Ver [integraciones.md](./integraciones.md). |

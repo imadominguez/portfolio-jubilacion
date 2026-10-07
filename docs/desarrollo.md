@@ -94,7 +94,7 @@ o con Prisma Studio. Alternativas de bootstrap:
 | Variable | Requerida | Descripción |
 |---|---|---|
 | `DATABASE_URL` | Sí | Conexión PostgreSQL. |
-| `NEXT_PUBLIC_APP_URL` | Recomendada | Base URL del cliente Better Auth (fallback `http://localhost:3000`). |
+| `NEXT_PUBLIC_APP_URL` | Recomendada | Base URL del cliente Better Auth (sin definir, usa el origen de la página). |
 | `BETTER_AUTH_SECRET` | Producción | Secreto de firma de sesiones (convención Better Auth). |
 | `BETTER_AUTH_URL` | Producción | URL base del server de auth. |
 | `ANTHROPIC_API_KEY` | Para `/portfolio` | Análisis con Claude. |
