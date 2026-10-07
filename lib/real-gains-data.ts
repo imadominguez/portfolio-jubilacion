@@ -123,7 +123,23 @@ function findNearest<T extends { date: Date }>(
 // ---------------------------------------------------------------------------
 
 export async function getDataReadiness(): Promise<DataReadiness> {
-  const userId = await requireUserId();
+  return cachedDataReadiness(await requireUserId());
+}
+
+// No se exporta: recibe el userId ya resuelto de la sesión (ADR-0017). Un tag
+// por dominio leído; importMovements la vuelve a leer después de updateTag, así
+// que el resultado post-import sale fresco.
+async function cachedDataReadiness(userId: string): Promise<DataReadiness> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(
+    userTags.snapshots(userId),
+    userTags.trades(userId),
+    marketTags.assets,
+    marketTags.ccl,
+    marketTags.historicalPrices
+  );
+
   const [snapshot, transactionCount, firstBuy, cclAgg, priceAgg, buys, assets] =
     await Promise.all([
       db.portfolioSnapshot.findFirst({ where: { userId }, select: { id: true } }),
