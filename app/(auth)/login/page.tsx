@@ -1,10 +1,7 @@
 import { Suspense } from "react";
+import { AuthCardSkeleton } from "@/components/auth/auth-card-skeleton";
 import { isPublicSignupEnabled } from "@/lib/auth";
 import { LoginForm } from "./login-form";
-
-// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
 
 // Sólo rutas internas: evita usar el login como open redirect.
 function safeNext(next: string | string[] | undefined): string {
@@ -19,7 +16,7 @@ type LoginSearchParams = Promise<{ next?: string | string[] }>;
 
 export default function LoginPage({ searchParams }: { searchParams: LoginSearchParams }) {
   return (
-    <Suspense>
+    <Suspense fallback={<AuthCardSkeleton />}>
       <Login searchParams={searchParams} />
     </Suspense>
   );
