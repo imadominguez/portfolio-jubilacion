@@ -123,50 +123,48 @@ Definidas en `.cursor/rules.md`:
 - **Datos de usuario:** toda lectura/borrado filtra por `userId` (`requireUserId()`); después de mutar, invalidar con los helpers de `lib/revalidate.ts` (`updateTag` del dominio, ver [server-actions.md](./server-actions.md)).
 - **Lógica nueva** (cálculos, parsers): función pura en `lib/` + `*.test.ts` al lado.
 - **Decisiones de arquitectura:** si un cambio contradice o reemplaza algo registrado en [`adr/`](./adr/README.md), agregar un ADR nuevo (y marcar el anterior como *Reemplazado*) en lugar de editar el viejo.
-- **Cache Components** (Next 16.3, [ADR-0017](./adr/0017-cache-components-partial-prerendering-y-prefetching.md)): la sesión, `cookies()`, `headers()`, `params` y `searchParams` se leen dentro de un componente envuelto en `<Suspense>`, nunca en el top-level de un layout o página. Los datos se cachean con `'use cache'` + `cacheLife` + `cacheTag`. Las rutas que todavía tienen `export const instant = false` con `// TODO: Cache Components adoption` están pendientes de convertir.
+- **Cache Components** (Next 16.3, [ADR-0017](./adr/0017-cache-components-partial-prerendering-y-prefetching.md)): la sesión, `cookies()`, `headers()`, `params` y `searchParams` se leen dentro de un componente envuelto en `<Suspense>`, nunca en el top-level de un layout o página. Los datos se cachean con `'use cache'` + `cacheLife` + `cacheTag`. Ninguna ruta usa `export const instant = false`; no agregarlo salvo una razón documentada.
 
 ### Cache Components y el MCP de Next.js
 
 - La documentación de la versión instalada está en `node_modules/next/dist/docs/` (usar esa, no la de memoria).
 - Validación: `pnpm build` muestra los errores que bloquean el build y la tabla de rutas (`◐` = Partial Prerender, `ƒ` = dinámica). Las validaciones de **navegación instantánea** aparecen solo en dev (overlay y log de `pnpm dev`). Para depurar un prerender: `pnpm exec next build --debug-prerender`.
-- MCP oficial (`.mcp.json`, `next-devtools-mcp`): con `pnpm dev` corriendo, el agente consulta `get_errors`, `get_routes`, `get_page_metadata`, etc. Hay que aprobar el servidor del proyecto la primera vez que se abre Claude Code.
+- **Qué entra en el static shell** de una ruta: después de `pnpm build`, revisar `.next/server/app/<ruta>.html`. Lo que está antes del primer `<!--$?--><template id="B:…">` es lo que se pinta primero; el contenido diferido llega en `<div hidden id="S:…">`.
+- **`loading.tsx`** envuelve a todas las rutas que cuelgan de su carpeta y su fallback queda en el static shell de cada una. Por eso el del Dashboard vive en el grupo `app/(app)/(dashboard)/` y no en `app/(app)/`. Como cada ruta tiene `loading.tsx`, la validación de navegación instantánea casi nunca avisa: para juzgar el shell, mirar el HTML del build.
+- **MCP oficial** (`.mcp.json`, `next-devtools-mcp`): con `pnpm dev` corriendo, el agente consulta `get_errors`, `get_routes`, `get_page_metadata`, `get_compilation_issues`, etc. Hay que aprobar el servidor del proyecto la primera vez que se abre Claude Code. Si el cliente no conecta (con `pnpm dlx` la descarga puede superar el timeout de 30 s), el mismo MCP está en el dev server: `POST http://localhost:<puerto>/_next/mcp` con JSON-RPC (`{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"get_errors","arguments":{}}}` y `Accept: application/json, text/event-stream`).
 
-### Estado de la adopción de Cache Components (al 2026-10-04)
+### Estado de la adopción de Cache Components
 
-Una PR por feature ([ADR-0017](./adr/0017-cache-components-partial-prerendering-y-prefetching.md)):
+Adopción completa (2026-10-07), una PR por feature ([ADR-0017](./adr/0017-cache-components-partial-prerendering-y-prefetching.md)):
 
-| PR | Contenido | Estado |
-|---|---|---|
-| #3 | Pre-paso: `cacheComponents` + `partialPrefetching`, codemod `instant = false`, fuentes self-hosted | Mergeada |
-| #4 | Layout `(app)`, sidebar (grupo admin en `<Suspense>`), Dashboard, `getSession()` con `'use cache: private'` | Mergeada |
-| #5 | Caché de datos por usuario/dominio (`lib/cache-tags.ts`) e invalidación con `updateTag` (`lib/revalidate.ts`) | Mergeada |
-| #6 | `/guia`: quita el opt-out (componente cliente sin lecturas de request; se prerenderiza entera), rediseño responsive de la guía y fix del cliente de auth en otro puerto | Mergeada |
-| #7 | `/ccl`: header en el shell, contenido en `<Suspense>` con `CclSkeleton`; `getAllExchangeRates` cacheado con el tag `ccl` | Mergeada |
-| #8 | `/portfolio` (sin lecturas en el servidor), `/login` y `/register` con `AuthCardSkeleton` como fallback | Mergeada |
-| #9 | `/snapshots`, `/settings`, `/retirement`, `/analysis` (lecturas ya cacheadas); `key` en `MilestonesClient` por `<Activity>` | Mergeada |
-| #10 | `/plan` y `/rebalance`; `getTargetAllocations` cacheado con el tag `rebalance:<userId>` | Mergeada |
-| #11 | `/transactions`; `getAllTransactions`, `getRealizedPnl`, `getMovements` (tag `trades`) y `getAllDividends` (tag `dividends`) cacheados | Mergeada |
-| #12 | `/performance`; `getBenchmarkPoints` (y `getIndexPoints`, que delega) cacheado con el tag `benchmarks` | Mergeada |
-| #13 | `/real-gains` (botón del header en su propio `<Suspense>`) y `/datos` (Suspense finos por sección/tarjeta); `getDataReadiness` cacheado | Mergeada |
-| #14 | `/assets` (`getAssetCatalog`, tag `assets`) y `/strategy` (tag `strategy`), con `requireAdmin()` fuera del caché; `key` en `StrategyEditor` | Mergeada |
-| #15 | `/snapshots/[id]` (`getSnapshotById` cacheado, `prefetch={true}` desde el listado) y adaptador de navegación del tour sin `usePathname()` en el render | Mergeada |
+| PR | Contenido |
+|---|---|
+| #3 | Pre-paso: `cacheComponents` + `partialPrefetching`, codemod `instant = false`, fuentes self-hosted |
+| #4 | Layout `(app)`, sidebar (grupo admin en `<Suspense>`), Dashboard, `getSession()` con `'use cache: private'` |
+| #5 | Caché de datos por usuario/dominio (`lib/cache-tags.ts`) e invalidación con `updateTag` (`lib/revalidate.ts`) |
+| #6 | `/guia`: quita el opt-out (se prerenderiza entera), rediseño responsive de la guía y fix del cliente de auth en otro puerto |
+| #7 | `/ccl`; `getAllExchangeRates` cacheado con el tag `ccl` |
+| #8 | `/portfolio` (sin lecturas en el servidor), `/login` y `/register` con `AuthCardSkeleton` como fallback |
+| #9 | `/snapshots`, `/settings`, `/retirement`, `/analysis` (lecturas ya cacheadas); `key` en `MilestonesClient` por `<Activity>` |
+| #10 | `/plan` y `/rebalance`; `getTargetAllocations` cacheado con el tag `rebalance:<userId>` |
+| #11 | `/transactions`; `getAllTransactions`, `getRealizedPnl`, `getMovements` (tag `trades`) y `getAllDividends` (tag `dividends`) cacheados |
+| #12 | `/performance`; `getBenchmarkPoints` (y `getIndexPoints`, que delega) cacheado con el tag `benchmarks` |
+| #13 | `/real-gains` (botón del header en su propio `<Suspense>`) y `/datos` (Suspense finos por sección/tarjeta); `getDataReadiness` cacheado |
+| #14 | `/assets` (`getAssetCatalog`, tag `assets`) y `/strategy` (tag `strategy`), con `requireAdmin()` fuera del caché; `key` en `StrategyEditor` |
+| #15 | `/snapshots/[id]` (`getSnapshotById` cacheado, `prefetch={true}` desde el listado) y adaptador de navegación del tour sin `usePathname()` en el render |
+| #20 | Dashboard en el grupo `(dashboard)`: su skeleton deja de aparecer en el shell de las demás rutas (−9 a −15 KB por ruta) |
 
-**Convertidos:** layout raíz, layout `(app)`, Dashboard (`/`), `/guia`, `/ccl`, `/portfolio`, `/login`, `/register` (estas dos con `AuthCardSkeleton` como fallback), `/snapshots`, `/settings`, `/retirement`, `/analysis`, `/plan`, `/rebalance`, `/transactions`, `/performance`, `/real-gains`, `/datos`, `/assets`, `/strategy` y `/snapshots/[id]` (con `prefetch={true}` desde el listado). Todas las rutas ya son `◐` porque el layout no bloquea.
+**Cómo agregar una ruta nueva** (mismo patrón que el resto, p. ej. `app/(app)/ccl/page.tsx`):
 
-**Pendientes:** ninguna. Todas las rutas quitaron `export const instant = false`; `grep -rl "instant = false" app` no devuelve nada.
+1. La página es síncrona: el `SiteHeader` (y el texto estático) queda en la página y va al shell; las lecturas van en un componente async dentro de `<Suspense>`, con un skeleton en `components/<dominio>/*-skeleton.tsx` que también usa su `loading.tsx`. Si el header depende de datos (acciones o descripción), esa parte va en su propio `<Suspense>`.
+2. Cada lectura nueva se cachea: getter exportado que resuelve el usuario (o el rol) + función no exportada con `'use cache'`, `cacheLife("hours")` y un tag por dominio leído. Las globales sin datos de request llevan `await connection()` antes. Ver la tabla de tags en [server-actions.md](./server-actions.md).
+3. Cada escritura llama al helper de su dominio en `lib/revalidate.ts` (agregarlo si no existe).
+4. Si un cliente copia props a su estado (`useState(initial…)`), `<Activity>` lo conserva entre navegaciones: darle un `key` derivado de los datos.
+5. Validar: `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm test`, `pnpm build` (también con las variables falsas del CI), el HTML del shell en `.next/server/app/` y la ruta en dev con el MCP (`get_errors`).
 
-**Cómo convertir una ruta** (mismo patrón que el Dashboard, `app/(app)/(dashboard)/page.tsx`):
+**Si una escritura no se refleja al instante:** revisar que la action llame al helper de `lib/revalidate.ts` del dominio que escribe y que la lectura cacheada declare ese tag.
 
-1. Quitar `instant = false` y su TODO. El `SiteHeader` queda en la página (va al shell) y las lecturas pasan a un componente async dentro de `<Suspense>` con el skeleton de su `loading.tsx` como fallback (extraerlo a un componente compartido, como `DashboardSkeleton`).
-2. Cachear las lecturas que use y todavía no lo estén: getter exportado + función no exportada con `'use cache'`, `cacheLife("hours")` y un tag por dominio leído. Las globales sin datos de request llevan `await connection()` antes. Ver la tabla de tags en [server-actions.md](./server-actions.md).
-3. Si una escritura toca un dominio sin helper, agregarlo en `lib/revalidate.ts`.
-4. Validar: `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm test`, `pnpm build` (también con las variables falsas del CI) y recorrer la ruta en dev con el MCP (`get_errors`). Para `/snapshots/[id]` evaluar `<Link prefetch={true}>` (ADR-0017, punto 6).
-
-**`loading.tsx` y el static shell:** un `loading.tsx` envuelve a todas las rutas que cuelgan de su carpeta, y su fallback queda en el static shell de cada una. Por eso el del Dashboard vive en el grupo `app/(app)/(dashboard)/` y no en `app/(app)/`. Para ver qué entra en el shell de una ruta: `pnpm build` y revisar `.next/server/app/<ruta>.html`.
-
-**Para validar en el navegador** con `agent-browser`: perfil de vault `portfolio` (`agent-browser auth login portfolio`). El vault no completa el email: cargarlo a mano en `input[type=email]`. Nunca leer el HTML ni los valores de un formulario de login completo (expondría la contraseña).
-
-**No probado todavía:** las escrituras con el caché nuevo (importar snapshot, cargar transacción). En la próxima carga real, confirmar que el Dashboard se actualiza al instante.
+**Para validar en el navegador** con `agent-browser`: el proyecto suele correr en el puerto 3001 (otro proyecto ocupa el 3000); perfil de vault `portfolio-3001` (`agent-browser auth login portfolio-3001`; el perfil `portfolio` es del 3000). El vault no completa el email: cargarlo a mano en `input[type=email]`. Nunca leer el HTML ni los valores de un formulario de login completo (expondría la contraseña). Con `<Activity>` quedan copias ocultas de páginas anteriores en el DOM: en clicks por JavaScript, filtrar elementos visibles (`offsetParent !== null`).
 
 ---
 

@@ -42,6 +42,7 @@ El catálogo es **global (compartido)**: lectura para todos, **escritura sólo A
 
 | Función | Comportamiento |
 |---|---|
+| `getAssetCatalog()` | Catálogo completo para `/assets` (ordenado por ticker, `cedearRatio` como `Number`). Exige ADMIN; la lectura se cachea con el tag `assets` (el chequeo de rol queda fuera del caché). |
 | `createAsset(data)` | Valida ticker no vacío y `cedearRatio > 0`; normaliza ticker/subyacente a mayúsculas. Error amigable si el ticker ya existe. `revalidateAssets()`. |
 | `updateAsset(id, data)` | Actualiza solo campos definidos; **no permite cambiar `ticker`**. |
 | `deleteAsset(id)` | Elimina por id (el catálogo es global; la protección es el rol ADMIN). |
@@ -208,8 +209,8 @@ Datos globales, **solo ADMIN**: todas las funciones llaman a `requireAdmin()` (`
 
 | Función | Comportamiento |
 |---|---|
-| `getActiveStrategy()` | Estrategia con `isActive = true`. Lanza si el usuario no es ADMIN. |
-| `getStrategyHistory()` | Todas las versiones por fecha desc. Lanza si el usuario no es ADMIN. |
+| `getActiveStrategy()` | Estrategia con `isActive = true`. Lanza si el usuario no es ADMIN; la lectura se cachea con el tag `strategy`. |
+| `getStrategyHistory()` | Todas las versiones por fecha desc. Lanza si el usuario no es ADMIN; la lectura se cachea con el tag `strategy`. |
 | `saveNewVersion(content, title)` | `{ ok: false, error }` si no es ADMIN. Valida contenido/título; en transacción desactiva la actual y crea la versión `N+1` activa. |
 | `restoreVersion(id)` | `{ ok: false, error }` si no es ADMIN. En transacción desactiva todas y activa la indicada. |
 

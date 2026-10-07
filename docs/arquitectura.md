@@ -26,13 +26,14 @@ app/
   layout.tsx                    Layout raíz: fuentes, ThemeProvider (dark por defecto), Toaster
   globals.css                   Tailwind v4 + tokens de tema (OKLCH), animaciones, estilos de tour
   (auth)/
-    login/                      page.tsx (server, dinámico) + login-form.tsx (client)
+    login/                      page.tsx (lee searchParams dentro de <Suspense>) + login-form.tsx (client)
     register/                   page.tsx redirige a /login salvo ALLOW_PUBLIC_SIGNUP=true + register-form.tsx
     error.tsx                   Error boundary de auth
   (app)/                        Zona autenticada con sidebar
     layout.tsx                  Síncrono (static shell): Onboarding/Tooltip/Sidebar; el grupo admin va en <Suspense>
     error.tsx / not-found.tsx   Error boundary y 404 compartidos; cada ruta tiene su loading.tsx
-    page.tsx                    Dashboard
+    (dashboard)/                Grupo solo para que su loading.tsx aplique únicamente a /
+      page.tsx + loading.tsx    Dashboard (/)
     plan/                       Plan DCA determinista del mes
     performance/                CAGR, drawdown, benchmarks
     ccl/                        Historial CCL
@@ -131,7 +132,7 @@ Anthropic ──┘   (app/actions/)   └── API routes (PDF/CSV/IA)
 
 Reglas de la arquitectura (ver `.cursor/rules.md`):
 
-- **RSC pages** (`app/(app)/**/page.tsx`) hacen el fetch de datos en el servidor y los pasan como props a componentes cliente.
+- **RSC pages** (`app/(app)/**/page.tsx`) son síncronas: header y contenido estático van al static shell, y las lecturas van en un componente async dentro de `<Suspense>` que pasa los datos como props a componentes cliente. Las lecturas se cachean con `'use cache'` y un tag por dominio (ver [server-actions.md](./server-actions.md) y [ADR-0017](./adr/0017-cache-components-partial-prerendering-y-prefetching.md)).
 - **`lib/` sin Prisma** salvo los helpers de lectura permitidos: `portfolio-data.ts`, `analysis-data.ts`, `real-gains-data.ts`.
 - **Toda mutación** pasa por Server Actions que devuelven uniones discriminadas `{ success: true, ... } | { success: false, error }`.
 - **API routes** solo para binarios (PDF/CSV/HTML) y la integración con IA. Además del proxy, cada ruta valida la sesión (`401` si falta) y filtra por `userId` (un snapshot ajeno responde `404`).
@@ -157,7 +158,7 @@ betterAuth({
 ```
 
 - `input: false` impide que el cliente envíe `role` en el registro → **no hay escalada de privilegios desde el front**.
-- **Registro cerrado por defecto:** `allowPublicSignup = process.env.ALLOW_PUBLIC_SIGNUP === "true"`. Si es `false`, Better Auth rechaza el alta y `/register` redirige a `/login`. Las páginas de auth son `force-dynamic` para que el flag se evalúe por request y no en build.
+- **Registro cerrado por defecto:** `allowPublicSignup = process.env.ALLOW_PUBLIC_SIGNUP === "true"`. Si es `false`, Better Auth rechaza el alta y `/register` redirige a `/login`. El flag se lee por request dentro de `<Suspense>` (después de `searchParams` en `/login` y de `await connection()` en `/register`), así no se congela en el build; `isPublicSignupEnabled()` lo lee en cada llamada.
 - El cliente (`lib/auth-client.ts`) usa `inferAdditionalFields<Auth>()` para tipar `session.user.role` y `baseURL` = `NEXT_PUBLIC_APP_URL` (sin definir, usa el origen de la página: funciona en cualquier puerto).
 
 ### Helpers server-side (`lib/auth-session.ts`)
