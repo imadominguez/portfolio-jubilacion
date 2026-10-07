@@ -143,6 +143,7 @@ Una PR por feature ([ADR-0017](./adr/0017-cache-components-partial-prerendering-
 | #6 | `/guia`: quita el opt-out (componente cliente sin lecturas de request; se prerenderiza entera), rediseño responsive de la guía y fix del cliente de auth en otro puerto | Mergeada |
 | #7 | `/ccl`: header en el shell, contenido en `<Suspense>` con `CclSkeleton`; `getAllExchangeRates` cacheado con el tag `ccl` | Mergeada |
 | #8 | `/portfolio` (sin lecturas en el servidor), `/login` y `/register` con `AuthCardSkeleton` como fallback | Mergeada |
+| #9 | `/snapshots`, `/settings`, `/retirement`, `/analysis` (lecturas ya cacheadas); `key` en `MilestonesClient` por `<Activity>` | Mergeada |
 
 **Convertidos:** layout raíz, layout `(app)`, Dashboard (`/`), `/guia`, `/ccl`, `/portfolio`, `/login`, `/register` (estas dos con `AuthCardSkeleton` como fallback), `/snapshots`, `/settings`, `/retirement` y `/analysis`. Todas las rutas ya son `◐` porque el layout no bloquea.
 
