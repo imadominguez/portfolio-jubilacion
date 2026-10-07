@@ -1,20 +1,18 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { SiteHeader } from "@/components/layout/site-header";
 import { StrategyEditor } from "@/components/strategy/strategy-editor";
+import { StrategySkeleton } from "@/components/strategy/strategy-skeleton";
 import { getActiveStrategy, getStrategyHistory } from "@/app/actions/strategy";
-
-// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
 
 export const metadata: Metadata = {
   title: "Estrategia de inversión",
   description: "Gestioná el system prompt de la estrategia de inversión en CEDEARs.",
 };
 
-export default async function StrategyPage() {
-  const [active, history] = await Promise.all([getActiveStrategy(), getStrategyHistory()]);
-
+// El header y la explicación entran al static shell; la estrategia se lee en
+// request time (después del chequeo de ADMIN) detrás del skeleton.
+export default function StrategyPage() {
   return (
     <div className="flex flex-col min-h-svh">
       <SiteHeader
@@ -31,8 +29,18 @@ export default async function StrategyPage() {
             prompt al generar el reporte mensual con Claude.
           </p>
         </div>
-        <StrategyEditor active={active} history={history} />
+        <Suspense fallback={<StrategySkeleton />}>
+          <Strategy />
+        </Suspense>
       </main>
     </div>
   );
+}
+
+async function Strategy() {
+  const [active, history] = await Promise.all([getActiveStrategy(), getStrategyHistory()]);
+  // StrategyEditor copia el contenido activo a su estado y <Activity> lo
+  // conserva entre navegaciones: el key lo vuelve a montar si la versión activa
+  // cambió por fuera (otra pestaña, pnpm db:strategy).
+  return <StrategyEditor key={active?.id ?? "sin-estrategia"} active={active} history={history} />;
 }

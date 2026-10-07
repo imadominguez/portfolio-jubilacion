@@ -1,9 +1,11 @@
 "use server";
 
+import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db";
 import type { InvestmentStrategy } from "@/app/generated/prisma/client";
 import { requireAdmin } from "@/lib/auth-session";
 import { revalidateStrategy } from "@/lib/revalidate";
+import { marketTags } from "@/lib/cache-tags";
 
 // La estrategia es global (system prompt del análisis IA): leerla y cambiarla
 // es exclusivo de ADMIN. /api/analyze-portfolio lee la activa directo de la DB.
@@ -19,13 +21,29 @@ async function adminGuard(): Promise<StrategyError | null> {
   }
 }
 
+// El chequeo de rol queda fuera del caché (lee la sesión en cada request); la
+// lectura cacheada es global y no se exporta (ADR-0017).
 export async function getActiveStrategy(): Promise<InvestmentStrategy | null> {
   await requireAdmin();
+  return cachedActiveStrategy();
+}
+
+async function cachedActiveStrategy(): Promise<InvestmentStrategy | null> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(marketTags.strategy);
   return db.investmentStrategy.findFirst({ where: { isActive: true } });
 }
 
 export async function getStrategyHistory(): Promise<InvestmentStrategy[]> {
   await requireAdmin();
+  return cachedStrategyHistory();
+}
+
+async function cachedStrategyHistory(): Promise<InvestmentStrategy[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(marketTags.strategy);
   return db.investmentStrategy.findMany({
     orderBy: { createdAt: "desc" },
   });

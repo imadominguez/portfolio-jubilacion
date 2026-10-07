@@ -1,6 +1,8 @@
 "use server";
 
+import { cacheLife, cacheTag } from "next/cache";
 import { revalidateAssets } from "@/lib/revalidate";
+import { marketTags } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth-session";
 
@@ -19,7 +21,48 @@ export type AssetResult =
   | { success: true }
   | { success: false; error: string };
 
+export type AssetCatalogRow = {
+  id: string;
+  ticker: string;
+  instrumentName: string | null;
+  cedearRatio: number;
+  description: string | null;
+  sector: string | null;
+  industry: string | null;
+  country: string | null;
+  underlyingTicker: string | null;
+};
+
 // El catálogo de assets es global (compartido). Sólo un ADMIN puede mutarlo.
+
+// Catálogo completo para la página de Assets. El chequeo de rol queda fuera del
+// caché (lee la sesión en cada request); la lectura cacheada no se exporta.
+export async function getAssetCatalog(): Promise<AssetCatalogRow[]> {
+  await requireAdmin();
+  return cachedAssetCatalog();
+}
+
+async function cachedAssetCatalog(): Promise<AssetCatalogRow[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(marketTags.assets);
+
+  const assets = await db.asset.findMany({
+    orderBy: { ticker: "asc" },
+    select: {
+      id: true,
+      ticker: true,
+      instrumentName: true,
+      cedearRatio: true,
+      description: true,
+      sector: true,
+      industry: true,
+      country: true,
+      underlyingTicker: true,
+    },
+  });
+  return assets.map((a) => ({ ...a, cedearRatio: Number(a.cedearRatio) }));
+}
 
 export async function createAsset(data: AssetFormData): Promise<AssetResult> {
   try {
