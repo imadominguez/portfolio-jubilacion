@@ -28,9 +28,9 @@ export default function TransactionsPage() {
         description="Operaciones, PPM y dividendos"
         actions={
           <div className="flex items-center gap-1.5">
-            <CsvExportButton href="/api/export/transactions" label="Exportar CSV" />
-            <ImportMovimientosButton />
-            <DividendForm />
+            <CsvExportButton href="/api/export/transactions" label="Exportar CSV" compact />
+            <ImportMovimientosButton compact />
+            <DividendForm compact />
             <TransactionForm />
           </div>
         }

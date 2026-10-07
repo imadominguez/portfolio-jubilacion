@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Upload, ArrowUpRight, ArrowDownRight, AlertTriangle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -53,7 +54,10 @@ type ParsedState = {
   warnings: string[];
 };
 
-export function ImportMovimientosButton() {
+// compact: para headers con varias acciones. Solo el ícono por debajo de 2xl, sin
+// el link a la guía (la página ya lo tiene) y con el aviso de error flotando para
+// no agrandar el header.
+export function ImportMovimientosButton({ compact = false }: { compact?: boolean } = {}) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
@@ -187,7 +191,7 @@ export function ImportMovimientosButton() {
         onChange={handleFileChange}
       />
 
-      <div className="flex flex-col items-end gap-1">
+      <div className={cn("flex flex-col items-end gap-1", compact && "relative")}>
         <Button
           id="tour-import-movimientos"
           size="sm"
@@ -195,20 +199,27 @@ export function ImportMovimientosButton() {
           className="gap-1.5 text-xs"
           disabled={isParsing}
           onClick={() => fileInputRef.current?.click()}
+          aria-label={compact ? "Importar CSV Cocos" : undefined}
+          title={compact ? "Importar CSV Cocos" : undefined}
         >
           {isParsing ? <Spinner className="size-3" /> : <Upload className="size-3" />}
-          Importar CSV Cocos
+          <span className={compact ? "hidden 2xl:inline" : undefined}>Importar CSV Cocos</span>
         </Button>
-        <Link
-          href="/guia#transacciones"
-          className="text-[11px] text-primary underline-offset-4 hover:underline"
-        >
-          ¿Cómo descargo movimientos desde Cocos?
-        </Link>
+        {!compact && (
+          <Link
+            href="/guia#transacciones"
+            className="text-[11px] text-primary underline-offset-4 hover:underline"
+          >
+            ¿Cómo descargo movimientos desde Cocos?
+          </Link>
+        )}
         {parseError && (
           <div
             role="alert"
-            className="mt-1 max-w-xs flex items-start gap-2 rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-left"
+            className={cn(
+              "mt-1 max-w-xs flex items-start gap-2 rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-left",
+              compact && "absolute right-0 top-full z-20 w-72 bg-popover shadow-lg"
+            )}
           >
             <AlertTriangle className="size-3.5 text-destructive shrink-0 mt-0.5" />
             <p className="text-[11px] text-muted-foreground leading-relaxed flex-1">

@@ -25,7 +25,8 @@ import { Spinner } from "@/components/ui/spinner";
 import { createDividend } from "@/app/actions/dividends";
 import type { Currency } from "@/app/generated/prisma/client";
 
-export function DividendForm() {
+// compact: para headers con varias acciones, solo el ícono por debajo de 2xl.
+export function DividendForm({ compact = false }: { compact?: boolean } = {}) {
   const [open, setOpen] = useState(false);
   const [currency, setCurrency] = useState<Currency>("USD");
   const [isPending, startTransition] = useTransition();
@@ -54,9 +55,16 @@ export function DividendForm() {
 
   return (
     <>
-      <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => setOpen(true)}>
+      <Button
+        size="sm"
+        variant="outline"
+        className="gap-1.5 text-xs"
+        onClick={() => setOpen(true)}
+        aria-label={compact ? "Registrar dividendo" : undefined}
+        title={compact ? "Registrar dividendo" : undefined}
+      >
         <DollarSign className="size-3" />
-        Registrar dividendo
+        <span className={compact ? "hidden 2xl:inline" : undefined}>Registrar dividendo</span>
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
