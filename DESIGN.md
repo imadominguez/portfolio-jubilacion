@@ -227,6 +227,6 @@ Acento azul `#1d4ed8` sobre fondo claro, consistente con `--primary` light.
 - [x] `concentration-charts.tsx` y charts: solo `--color-chart-*`.
 - [x] `export/portfolio-pdf.tsx` + HTML `/api/export/snapshot`: acento azul.
 - [x] Auth (`login`, `register`) rediseñados.
-- [x] `app/(app)/loading.tsx`: unificado con `SiteHeader` y `noise-bg` definido.
+- [x] `app/(app)/(dashboard)/loading.tsx` (antes `app/(app)/loading.tsx`): unificado con `SiteHeader` y `noise-bg` definido.
 - [x] Accesibilidad: `color-scheme` por tema, `::selection`, `prefers-reduced-motion`.
 - [x] `pnpm build` OK. `pnpm lint` sin errores nuevos (los restantes son preexistentes).

@@ -155,12 +155,14 @@ Una PR por feature ([ADR-0017](./adr/0017-cache-components-partial-prerendering-
 
 **Pendientes:** ninguna. Todas las rutas quitaron `export const instant = false`; `grep -rl "instant = false" app` no devuelve nada.
 
-**Cómo convertir una ruta** (mismo patrón que el Dashboard, `app/(app)/page.tsx`):
+**Cómo convertir una ruta** (mismo patrón que el Dashboard, `app/(app)/(dashboard)/page.tsx`):
 
 1. Quitar `instant = false` y su TODO. El `SiteHeader` queda en la página (va al shell) y las lecturas pasan a un componente async dentro de `<Suspense>` con el skeleton de su `loading.tsx` como fallback (extraerlo a un componente compartido, como `DashboardSkeleton`).
 2. Cachear las lecturas que use y todavía no lo estén: getter exportado + función no exportada con `'use cache'`, `cacheLife("hours")` y un tag por dominio leído. Las globales sin datos de request llevan `await connection()` antes. Ver la tabla de tags en [server-actions.md](./server-actions.md).
 3. Si una escritura toca un dominio sin helper, agregarlo en `lib/revalidate.ts`.
 4. Validar: `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm test`, `pnpm build` (también con las variables falsas del CI) y recorrer la ruta en dev con el MCP (`get_errors`). Para `/snapshots/[id]` evaluar `<Link prefetch={true}>` (ADR-0017, punto 6).
+
+**`loading.tsx` y el static shell:** un `loading.tsx` envuelve a todas las rutas que cuelgan de su carpeta, y su fallback queda en el static shell de cada una. Por eso el del Dashboard vive en el grupo `app/(app)/(dashboard)/` y no en `app/(app)/`. Para ver qué entra en el shell de una ruta: `pnpm build` y revisar `.next/server/app/<ruta>.html`.
 
 **Para validar en el navegador** con `agent-browser`: perfil de vault `portfolio` (`agent-browser auth login portfolio`). El vault no completa el email: cargarlo a mano en `input[type=email]`. Nunca leer el HTML ni los valores de un formulario de login completo (expondría la contraseña).
 
