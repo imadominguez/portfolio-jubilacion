@@ -32,6 +32,7 @@ import { getSetupStatus } from "@/app/actions/setup";
 import { calculateRetirementGoal } from "@/lib/projections";
 import { SetupPanel } from "@/components/setup/setup-panel";
 import { formatDateMedium } from "@/lib/format";
+import { pctChange } from "@/lib/snapshot-returns";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -96,7 +97,7 @@ async function DashboardContent() {
 
   if (previous) {
     gainArs = snapshot.totalValueArs - previous.totalValueArs;
-    gainPct = (gainArs / previous.totalValueArs) * 100;
+    gainPct = pctChange(snapshot.totalValueArs, previous.totalValueArs);
     previousPositions = previous.positions;
   }
 

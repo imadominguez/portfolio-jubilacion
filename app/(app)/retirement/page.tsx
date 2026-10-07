@@ -5,13 +5,9 @@ import { RetirementClient } from "@/components/retirement/retirement-client";
 import { RetirementSkeleton } from "@/components/retirement/retirement-skeleton";
 import { getRetirementSettings } from "@/app/actions/retirement";
 import { getAllSnapshotPoints } from "@/lib/portfolio-data";
+import { cagrPct } from "@/lib/snapshot-returns";
 
 export const metadata: Metadata = { title: "Planificación de jubilación" };
-
-function calcCAGR(first: number, last: number, years: number): number {
-  if (years <= 0 || first <= 0) return 0;
-  return (Math.pow(last / first, 1 / years) - 1) * 100;
-}
 
 // El header y la explicación entran al static shell; la configuración y los
 // snapshots del usuario se leen en request time y se streamean detrás del skeleton.
@@ -60,7 +56,7 @@ async function Retirement() {
       (new Date(last.snapshotDate).getTime() - new Date(first.snapshotDate).getTime()) /
       (1000 * 60 * 60 * 24);
     const yearsDiff = daysDiff / 365;
-    historicalCagr = calcCAGR(first.totalValueUsd!, last.totalValueUsd!, yearsDiff);
+    historicalCagr = cagrPct(first.totalValueUsd!, last.totalValueUsd!, yearsDiff) ?? 0;
   }
 
   return (
