@@ -40,11 +40,11 @@ export const onboardingSteps: Tour[] = [
       },
       {
         icon: "📖",
-        title: "Guía completa con capturas",
+        title: "Guía paso a paso",
         content: (
           <>
-            En <strong>Guía Cocos</strong> encontrás los pasos detallados con screenshots
-            de la app de Cocos Capital para descargar cada archivo correctamente.
+            En <strong>Guía Cocos</strong> encontrás los pasos para descargar cada archivo,
+            con un esquema de la app de Cocos Capital que marca qué tocar en cada paso.
           </>
         ),
         selector: "#tour-nav-guia",
