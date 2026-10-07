@@ -94,6 +94,11 @@ Luego se descuenta la cantidad y el costo del estado del ticker. Se ordena por f
 
 ## Performance histórica (`app/(app)/performance/page.tsx`)
 
+Las fórmulas viven en `lib/snapshot-returns.ts` (con tests). Un snapshot puede valer $0 (p. ej. el primer export de una cuenta recién abierta) y es inmutable, así que no se corrige el dato: se evita usarlo como base.
+
+- **Sin base positiva no hay porcentaje.** `pctChange` y `cagrPct` devuelven `null` y la UI muestra "—" (antes salía `+Infinity%` o un CAGR de 0%).
+- **La serie de rendimiento arranca en el primer snapshot con valor** (`performanceSeries`). De ahí salen el CAGR, el rendimiento del año, el drawdown, la fecha desde la que se piden benchmarks e índices, y los gráficos normalizados (benchmarks e inflación). El gráfico de evolución y la tabla de registros siguen mostrando todos los snapshots.
+
 ### CAGR
 
 ```

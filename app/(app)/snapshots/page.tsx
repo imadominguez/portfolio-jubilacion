@@ -9,6 +9,7 @@ import { SnapshotsSkeleton } from "@/components/snapshots/snapshots-skeleton";
 import { ImportButton } from "@/components/snapshots/snapshots-client";
 import { getAllSnapshotPoints } from "@/lib/portfolio-data";
 import { formatARS, formatUSD } from "@/lib/format";
+import { pctChange } from "@/lib/snapshot-returns";
 
 export const metadata: Metadata = { title: "Snapshots" };
 
@@ -66,12 +67,7 @@ async function SnapshotsContent() {
             <div className="divide-y divide-border">
               {sorted.map((s, i) => {
                 const prev = snapshots[snapshots.length - 2 - i];
-                const change =
-                  prev
-                    ? ((s.totalValueArs - prev.totalValueArs) /
-                        prev.totalValueArs) *
-                      100
-                    : null;
+                const change = prev ? pctChange(s.totalValueArs, prev.totalValueArs) : null;
                 const isPos = change !== null && change >= 0;
 
                 return (

@@ -14,23 +14,12 @@ import { getIndexPoints } from "@/app/actions/indices";
 import type { BenchmarkId, IndexBenchmarkId } from "@/lib/benchmarks-config";
 import { annualize, indexChangePct, realReturnPct } from "@/lib/inflation";
 import { formatARS } from "@/lib/format";
+import { cagrPct, maxDrawdownPct, pctChange, performanceSeries } from "@/lib/snapshot-returns";
 
 export const metadata: Metadata = { title: "Performance" };
 
-function calcCAGR(first: number, last: number, years: number): number {
-  if (years <= 0 || first <= 0) return 0;
-  return (Math.pow(last / first, 1 / years) - 1) * 100;
-}
-
-function calcMaxDrawdown(points: number[]): number {
-  let maxDrawdown = 0;
-  let peak = points[0] ?? 0;
-  for (const p of points) {
-    if (p > peak) peak = p;
-    const dd = peak > 0 ? (peak - p) / peak : 0;
-    if (dd > maxDrawdown) maxDrawdown = dd;
-  }
-  return maxDrawdown * 100;
+function fmtSignedPct(value: number | null): string {
+  return value === null ? "—" : `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
 }
 
 // El header entra al static shell; snapshots, benchmarks e índices se leen en
@@ -48,9 +37,13 @@ export default function PerformancePage() {
 
 async function PerformanceContent() {
   const snapshots = await getAllSnapshotPoints();
+  // Las métricas de rendimiento y los gráficos normalizados arrancan en el
+  // primer snapshot con valor: un snapshot de $0 no sirve de base (lib/snapshot-returns).
+  const series = performanceSeries(snapshots);
+  const seriesStart = series[0] ?? snapshots[0];
 
   const benchmarkIds: BenchmarkId[] = ["sp500", "merval", "nasdaq"];
-  const fromDate = snapshots.length > 0 ? new Date(snapshots[0].snapshotDate) : undefined;
+  const fromDate = seriesStart ? new Date(seriesStart.snapshotDate) : undefined;
 
   const benchmarkResults = await Promise.all(
     benchmarkIds.map((id) => getBenchmarkPoints(id, fromDate))
@@ -84,7 +77,7 @@ async function PerformanceContent() {
     );
   }
 
-  const first = snapshots[0];
+  const first = seriesStart;
   const last = snapshots[snapshots.length - 1];
 
   // Después de las lecturas de request: con Cache Components, la hora no puede
@@ -93,23 +86,21 @@ async function PerformanceContent() {
 
   // Base del año: último snapshot del año anterior, o el primero disponible si todo es del año en curso
   const yearBase =
-    [...snapshots].reverse().find((s) => s.snapshotDate.getFullYear() < currentYear) ??
-    snapshots.find((s) => s.snapshotDate.getFullYear() === currentYear) ??
+    [...series].reverse().find((s) => s.snapshotDate.getFullYear() < currentYear) ??
+    series.find((s) => s.snapshotDate.getFullYear() === currentYear) ??
     first;
 
   const yearGainArs = last.totalValueArs - yearBase.totalValueArs;
-  const yearGainPct =
-    yearBase.totalValueArs > 0
-      ? (yearGainArs / yearBase.totalValueArs) * 100
-      : 0;
+  const yearGainPct = pctChange(last.totalValueArs, yearBase.totalValueArs);
 
   const daysDiff =
     (last.snapshotDate.getTime() - first.snapshotDate.getTime()) /
     (1000 * 60 * 60 * 24);
   const yearsDiff = daysDiff / 365;
 
-  const cagr = calcCAGR(first.totalValueArs, last.totalValueArs, yearsDiff);
-  const maxDD = calcMaxDrawdown(snapshots.map((s) => s.totalValueArs));
+  const cagr =
+    yearsDiff >= 0.1 ? cagrPct(first.totalValueArs, last.totalValueArs, yearsDiff) : null;
+  const maxDD = maxDrawdownPct(series.map((s) => s.totalValueArs));
 
   // Inflación del período (IPC; fallback CER) y rendimiento real.
   const toValues = (pts: { date: Date | string; normalizedValue: number | null }[]) =>
@@ -126,29 +117,26 @@ async function PerformanceContent() {
   const inflationAnnual =
     inflationPct !== null ? annualize(inflationPct, yearsDiff) : null;
   const realCagr =
-    inflationAnnual !== null && yearsDiff >= 0.1
+    inflationAnnual !== null && cagr !== null
       ? realReturnPct(cagr, inflationAnnual)
       : null;
 
   const kpis = [
     {
       label: `Rendimiento ${currentYear}`,
-      value: `${yearGainPct >= 0 ? "+" : ""}${yearGainPct.toFixed(2)}%`,
-      sub: `${yearGainPct >= 0 ? "+" : ""}${formatARS(yearGainArs)}`,
-      accent: yearGainPct >= 0,
+      value: fmtSignedPct(yearGainPct),
+      sub: `${yearGainArs >= 0 ? "+" : ""}${formatARS(yearGainArs)}`,
+      accent: yearGainPct !== null ? yearGainPct >= 0 : null,
     },
     {
       label: "CAGR",
-      value: yearsDiff >= 0.1 ? `${cagr >= 0 ? "+" : ""}${cagr.toFixed(2)}%` : "—",
+      value: fmtSignedPct(cagr),
       sub: "Tasa anual compuesta",
-      accent: cagr >= 0,
+      accent: cagr !== null ? cagr >= 0 : null,
     },
     {
       label: "CAGR real",
-      value:
-        realCagr !== null
-          ? `${realCagr >= 0 ? "+" : ""}${realCagr.toFixed(2)}%`
-          : "—",
+      value: fmtSignedPct(realCagr),
       sub:
         inflationPct !== null
           ? `vs inflación ${inflationPct >= 0 ? "+" : ""}${inflationPct.toFixed(1)}%`
@@ -237,7 +225,7 @@ async function PerformanceContent() {
           </p>
           <div className="rounded-xl border border-border bg-card shadow-sm p-5">
             <BenchmarkOverlayChart
-              snapshots={snapshots}
+              snapshots={series}
               initialBenchmarks={initialBenchmarks}
             />
           </div>
@@ -248,7 +236,7 @@ async function PerformanceContent() {
             Rendimiento real vs inflación
           </p>
           <div className="rounded-xl border border-border bg-card shadow-sm p-5">
-            <InflationChart snapshots={snapshots} initialIndices={initialIndices} />
+            <InflationChart snapshots={series} initialIndices={initialIndices} />
           </div>
         </div>
       </section>
@@ -265,9 +253,7 @@ async function PerformanceContent() {
           <div className="divide-y divide-border">
             {[...snapshots].reverse().map((s, i) => {
               const prev = snapshots[snapshots.length - 2 - i];
-              const change = prev
-                ? ((s.totalValueArs - prev.totalValueArs) / prev.totalValueArs) * 100
-                : null;
+              const change = prev ? pctChange(s.totalValueArs, prev.totalValueArs) : null;
               const pos = change !== null && change >= 0;
 
               return (
