@@ -1,9 +1,11 @@
 "use server";
 
+import { cacheLife, cacheTag } from "next/cache";
 import { revalidateTrades } from "@/lib/revalidate";
+import { userTags } from "@/lib/cache-tags";
 import { getDataReadiness } from "@/lib/real-gains-data";
 import { db } from "@/lib/db";
-import { requireAuth } from "@/lib/auth-session";
+import { requireAuth, requireUserId } from "@/lib/auth-session";
 import {
   isTradeCategory,
   type MovementCategory,
@@ -221,10 +223,22 @@ export async function importMovements(
 // ---------------------------------------------------------------------------
 
 export async function getMovements(categories?: MovementCategory[]): Promise<MovementRow[]> {
-  const session = await requireAuth();
+  return cachedMovements(await requireUserId(), categories);
+}
+
+// No se exporta: recibe el userId ya resuelto de la sesión (ADR-0017). Las
+// categorías forman parte de la clave del caché.
+async function cachedMovements(
+  userId: string,
+  categories?: MovementCategory[]
+): Promise<MovementRow[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(userTags.trades(userId));
+
   const movements = await db.movement.findMany({
     where: {
-      userId: session.user.id,
+      userId,
       ...(categories && categories.length > 0 ? { category: { in: categories } } : {}),
     },
     orderBy: { date: "desc" },
