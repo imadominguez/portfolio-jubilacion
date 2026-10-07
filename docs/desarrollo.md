@@ -149,6 +149,7 @@ Una PR por feature ([ADR-0017](./adr/0017-cache-components-partial-prerendering-
 | #12 | `/performance`; `getBenchmarkPoints` (y `getIndexPoints`, que delega) cacheado con el tag `benchmarks` | Mergeada |
 | #13 | `/real-gains` (botón del header en su propio `<Suspense>`) y `/datos` (Suspense finos por sección/tarjeta); `getDataReadiness` cacheado | Mergeada |
 | #14 | `/assets` (`getAssetCatalog`, tag `assets`) y `/strategy` (tag `strategy`), con `requireAdmin()` fuera del caché; `key` en `StrategyEditor` | Mergeada |
+| #15 | `/snapshots/[id]` (`getSnapshotById` cacheado, `prefetch={true}` desde el listado) y adaptador de navegación del tour sin `usePathname()` en el render | Mergeada |
 
 **Convertidos:** layout raíz, layout `(app)`, Dashboard (`/`), `/guia`, `/ccl`, `/portfolio`, `/login`, `/register` (estas dos con `AuthCardSkeleton` como fallback), `/snapshots`, `/settings`, `/retirement`, `/analysis`, `/plan`, `/rebalance`, `/transactions`, `/performance`, `/real-gains`, `/datos`, `/assets`, `/strategy` y `/snapshots/[id]` (con `prefetch={true}` desde el listado). Todas las rutas ya son `◐` porque el layout no bloquea.
 
