@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/layout/site-header";
 import { TransactionsClient } from "@/components/transactions/transactions-client";
+import { TransactionsSkeleton } from "@/components/transactions/transactions-skeleton";
 import { TransactionForm } from "@/components/transactions/transaction-form";
 import { DividendForm } from "@/components/transactions/dividend-form";
 import { CsvExportButton } from "@/components/export/csv-export-button";
@@ -14,21 +16,11 @@ import {
 import { getAllDividends } from "@/app/actions/dividends";
 import { getMovements } from "@/app/actions/import-movements";
 
-// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
-
 export const metadata: Metadata = { title: "Transacciones" };
 
-export default async function TransactionsPage() {
-  const [transactions, ppmData, realizedPnl, dividends, movements] = await Promise.all([
-    getAllTransactions(),
-    calculatePPM(),
-    getRealizedPnl(),
-    getAllDividends(),
-    getMovements(),
-  ]);
-
+// El header (con sus acciones) y la explicación entran al static shell; las
+// operaciones del usuario se leen en request time detrás del skeleton.
+export default function TransactionsPage() {
   return (
     <div className="flex flex-col min-h-svh">
       <SiteHeader
@@ -61,14 +53,30 @@ export default async function TransactionsPage() {
           </p>
         </div>
 
-        <TransactionsClient
-          transactions={transactions}
-          ppmData={ppmData}
-          realizedPnl={realizedPnl}
-          dividends={dividends}
-          movements={movements}
-        />
+        <Suspense fallback={<TransactionsSkeleton />}>
+          <Transactions />
+        </Suspense>
       </main>
     </div>
+  );
+}
+
+async function Transactions() {
+  const [transactions, ppmData, realizedPnl, dividends, movements] = await Promise.all([
+    getAllTransactions(),
+    calculatePPM(),
+    getRealizedPnl(),
+    getAllDividends(),
+    getMovements(),
+  ]);
+
+  return (
+    <TransactionsClient
+      transactions={transactions}
+      ppmData={ppmData}
+      realizedPnl={realizedPnl}
+      dividends={dividends}
+      movements={movements}
+    />
   );
 }

@@ -85,9 +85,17 @@ export async function deleteTransaction(id: string): Promise<{ success: boolean;
 }
 
 export async function getAllTransactions(): Promise<TransactionRow[]> {
-  const session = await requireAuth();
+  return cachedAllTransactions(await requireUserId());
+}
+
+// No se exporta: recibe el userId ya resuelto de la sesión (ADR-0017).
+async function cachedAllTransactions(userId: string): Promise<TransactionRow[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(userTags.trades(userId));
+
   const txs = await db.transaction.findMany({
-    where: { userId: session.user.id },
+    where: { userId },
     orderBy: { date: "desc" },
   });
 
@@ -182,8 +190,15 @@ export type RealizedPnlRow = {
 };
 
 export async function getRealizedPnl(): Promise<RealizedPnlRow[]> {
-  const session = await requireAuth();
-  const userId = session.user.id;
+  return cachedRealizedPnl(await requireUserId());
+}
+
+// No se exporta: recibe el userId ya resuelto de la sesión (ADR-0017).
+async function cachedRealizedPnl(userId: string): Promise<RealizedPnlRow[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(userTags.trades(userId));
+
   const sells = await db.transaction.findMany({
     where: { type: "SELL", userId },
     orderBy: { date: "asc" },

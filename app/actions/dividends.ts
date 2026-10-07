@@ -73,9 +73,17 @@ export async function deleteDividend(id: string): Promise<{ success: boolean; er
 }
 
 export async function getAllDividends(): Promise<DividendRow[]> {
-  const session = await requireAuth();
+  return cachedAllDividends(await requireUserId());
+}
+
+// No se exporta: recibe el userId ya resuelto de la sesión (ADR-0017).
+async function cachedAllDividends(userId: string): Promise<DividendRow[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(userTags.dividends(userId));
+
   const divs = await db.dividend.findMany({
-    where: { userId: session.user.id },
+    where: { userId },
     orderBy: { date: "desc" },
   });
 
