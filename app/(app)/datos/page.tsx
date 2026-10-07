@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -13,6 +14,7 @@ import {
   Upload,
 } from "lucide-react";
 import { SiteHeader } from "@/components/layout/site-header";
+import { Skeleton } from "@/components/ui/skeleton";
 import { SetupChecklist } from "@/components/setup/setup-checklist";
 import { SetupPanel } from "@/components/setup/setup-panel";
 import { getSession } from "@/lib/auth-session";
@@ -29,9 +31,6 @@ import { getMarketPrices } from "@/app/actions/market-prices";
 import { getAllExchangeRates } from "@/app/actions/exchange-rate";
 import { getIndexPoints } from "@/app/actions/indices";
 
-// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
 
 export const metadata: Metadata = { title: "Centro de Datos" };
 
@@ -110,22 +109,11 @@ function PreferenceLink({
   );
 }
 
-export default async function DataHubPage() {
-  const [session, setup, readiness, marketPrices, rates, ipcPoints, cerPoints] = await Promise.all([
-    getSession(),
-    getSetupStatus(),
-    getDataReadiness(),
-    getMarketPrices(),
-    getAllExchangeRates(),
-    getIndexPoints("inflacion"),
-    getIndexPoints("cer"),
-  ]);
-
-  const latestRate = rates.length > 0 ? rates[rates.length - 1] : null;
-  const isAdmin = isAdminRole(session?.user.role);
-  const canUseHistoricals =
-    readiness.hasSnapshot && readiness.hasTransactions;
-
+// Casi todo el Centro de Datos es estático (títulos, descripciones, botones de
+// importar/actualizar) y entra al static shell. Solo se streamea lo que depende
+// del usuario o de la base: el checklist, el dato de cada tarjeta de la sección
+// 2, los históricos y el link de Hitos (según el rol).
+export default function DataHubPage() {
   return (
     <div className="flex flex-col min-h-svh">
       <SiteHeader
@@ -144,11 +132,9 @@ export default async function DataHubPage() {
           </p>
         </section>
 
-        {setup.allDone ? (
-          <SetupChecklist status={setup} />
-        ) : (
-          <SetupPanel status={setup} showWizard={false} />
-        )}
+        <Suspense fallback={<Skeleton className="h-28 w-full rounded-xl" />}>
+          <SetupSection />
+        </Suspense>
 
         <section className="flex flex-col gap-4">
           <h2 className="text-sm font-semibold text-foreground">
@@ -180,16 +166,9 @@ export default async function DataHubPage() {
               title="Tipo de cambio CCL"
               description="Se usa para convertir tu portfolio a dólares."
               meta={
-                latestRate ? (
-                  <>
-                    Último: <span className="font-mono text-foreground">
-                      ${Number(latestRate.ccl).toLocaleString("es-AR")}
-                    </span>{" "}
-                    · {fmtDate(latestRate.date)}
-                  </>
-                ) : (
-                  "Sin registros de CCL."
-                )
+                <Suspense fallback={<MetaSkeleton />}>
+                  <CclMeta />
+                </Suspense>
               }
               action={<CclUpdateButton />}
             />
@@ -198,11 +177,9 @@ export default async function DataHubPage() {
               title="Precios de mercado"
               description="Precios USD de tus subyacentes desde Yahoo Finance."
               meta={
-                marketPrices.length > 0
-                  ? `${marketPrices.length} precios en caché.`
-                  : isAdmin
-                    ? "Sin precios cargados. Completá el subyacente en Assets."
-                    : "Sin precios cargados. Requiere que el administrador complete los subyacentes."
+                <Suspense fallback={<MetaSkeleton />}>
+                  <MarketPricesMeta />
+                </Suspense>
               }
               action={<MarketPricesButton />}
             />
@@ -211,9 +188,9 @@ export default async function DataHubPage() {
               title="Inflación y CER"
               description="Índices macro (IPC y CER/UVA) para medir el rendimiento real."
               meta={
-                ipcPoints.length > 0 || cerPoints.length > 0
-                  ? `IPC: ${ipcPoints.length} puntos · CER: ${cerPoints.length} puntos.`
-                  : "Sin índices cargados."
+                <Suspense fallback={<MetaSkeleton />}>
+                  <IndicesMeta />
+                </Suspense>
               }
               action={<IndicesUpdateButton />}
             />
@@ -224,25 +201,9 @@ export default async function DataHubPage() {
           <h2 className="text-sm font-semibold text-foreground">
             3 · Datos históricos
           </h2>
-          {canUseHistoricals ? (
-            <RealGainsWizard readiness={readiness} />
-          ) : (
-            <div className="rounded-xl border border-dashed border-border bg-muted/10 px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
-              <div className="flex items-start gap-3 flex-1">
-                <Database className="size-4 text-muted-foreground shrink-0 mt-0.5" />
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  {readiness.hasSnapshot
-                    ? "Para cargar el CCL y los precios históricos falta importar tus movimientos: con ellos sabemos desde qué fecha bajar los datos."
-                    : "Para cargar el CCL y los precios históricos primero necesitás un snapshot y tus movimientos."}
-                </p>
-              </div>
-              {readiness.hasSnapshot ? (
-                <ImportMovimientosButton />
-              ) : (
-                <ImportButton />
-              )}
-            </div>
-          )}
+          <Suspense fallback={<Skeleton className="h-24 w-full rounded-xl" />}>
+            <HistoricalSection />
+          </Suspense>
         </section>
 
         <section className="flex flex-col gap-4">
@@ -262,14 +223,9 @@ export default async function DataHubPage() {
               description="Configurá tu plan y proyección de retiro."
               href="/retirement"
             />
-            {isAdmin && (
-              <PreferenceLink
-                icon={Trophy}
-                title="Hitos"
-                description="Metas de valor en USD que querés celebrar."
-                href="/settings"
-              />
-            )}
+            <Suspense fallback={null}>
+              <MilestonesLink />
+            </Suspense>
             <PreferenceLink
               icon={LineChart}
               title="Benchmarks"
@@ -280,5 +236,88 @@ export default async function DataHubPage() {
         </section>
       </main>
     </div>
+  );
+}
+
+function MetaSkeleton() {
+  return <Skeleton className="h-3 w-40" />;
+}
+
+async function SetupSection() {
+  const setup = await getSetupStatus();
+  return setup.allDone ? (
+    <SetupChecklist status={setup} />
+  ) : (
+    <SetupPanel status={setup} showWizard={false} />
+  );
+}
+
+async function CclMeta() {
+  const rates = await getAllExchangeRates();
+  const latestRate = rates.length > 0 ? rates[rates.length - 1] : null;
+  if (!latestRate) return <>Sin registros de CCL.</>;
+  return (
+    <>
+      Último: <span className="font-mono text-foreground">
+        ${Number(latestRate.ccl).toLocaleString("es-AR")}
+      </span>{" "}
+      · {fmtDate(latestRate.date)}
+    </>
+  );
+}
+
+async function MarketPricesMeta() {
+  const [session, marketPrices] = await Promise.all([getSession(), getMarketPrices()]);
+  if (marketPrices.length > 0) return <>{marketPrices.length} precios en caché.</>;
+  return isAdminRole(session?.user.role) ? (
+    <>Sin precios cargados. Completá el subyacente en Assets.</>
+  ) : (
+    <>Sin precios cargados. Requiere que el administrador complete los subyacentes.</>
+  );
+}
+
+async function IndicesMeta() {
+  const [ipcPoints, cerPoints] = await Promise.all([
+    getIndexPoints("inflacion"),
+    getIndexPoints("cer"),
+  ]);
+  if (ipcPoints.length === 0 && cerPoints.length === 0) return <>Sin índices cargados.</>;
+  return (
+    <>
+      IPC: {ipcPoints.length} puntos · CER: {cerPoints.length} puntos.
+    </>
+  );
+}
+
+async function HistoricalSection() {
+  const readiness = await getDataReadiness();
+  if (readiness.hasSnapshot && readiness.hasTransactions) {
+    return <RealGainsWizard readiness={readiness} />;
+  }
+  return (
+    <div className="rounded-xl border border-dashed border-border bg-muted/10 px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
+      <div className="flex items-start gap-3 flex-1">
+        <Database className="size-4 text-muted-foreground shrink-0 mt-0.5" />
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          {readiness.hasSnapshot
+            ? "Para cargar el CCL y los precios históricos falta importar tus movimientos: con ellos sabemos desde qué fecha bajar los datos."
+            : "Para cargar el CCL y los precios históricos primero necesitás un snapshot y tus movimientos."}
+        </p>
+      </div>
+      {readiness.hasSnapshot ? <ImportMovimientosButton /> : <ImportButton />}
+    </div>
+  );
+}
+
+async function MilestonesLink() {
+  const session = await getSession();
+  if (!isAdminRole(session?.user.role)) return null;
+  return (
+    <PreferenceLink
+      icon={Trophy}
+      title="Hitos"
+      description="Metas de valor en USD que querés celebrar."
+      href="/settings"
+    />
   );
 }
