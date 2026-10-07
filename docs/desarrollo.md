@@ -146,6 +146,7 @@ Una PR por feature ([ADR-0017](./adr/0017-cache-components-partial-prerendering-
 | #9 | `/snapshots`, `/settings`, `/retirement`, `/analysis` (lecturas ya cacheadas); `key` en `MilestonesClient` por `<Activity>` | Mergeada |
 | #10 | `/plan` y `/rebalance`; `getTargetAllocations` cacheado con el tag `rebalance:<userId>` | Mergeada |
 | #11 | `/transactions`; `getAllTransactions`, `getRealizedPnl`, `getMovements` (tag `trades`) y `getAllDividends` (tag `dividends`) cacheados | Mergeada |
+| #12 | `/performance`; `getBenchmarkPoints` (y `getIndexPoints`, que delega) cacheado con el tag `benchmarks` | Mergeada |
 
 **Convertidos:** layout raíz, layout `(app)`, Dashboard (`/`), `/guia`, `/ccl`, `/portfolio`, `/login`, `/register` (estas dos con `AuthCardSkeleton` como fallback), `/snapshots`, `/settings`, `/retirement`, `/analysis`, `/plan`, `/rebalance`, `/transactions` y `/performance`. Todas las rutas ya son `◐` porque el layout no bloquea.
 
