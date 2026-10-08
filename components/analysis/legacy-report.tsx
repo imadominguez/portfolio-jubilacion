@@ -1,15 +1,13 @@
-"use client";
-
-import { useState, useCallback, useEffect, useRef } from "react";
-import { useDropzone } from "react-dropzone";
+// Visor de los reportes con el formato anterior (plan de aporte con asignaciones).
+// Solo se usa para mostrarlos en el historial: los reportes nuevos son de
+// oportunidades (components/analysis/opportunity-report.tsx, ADR-0018).
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
   TrendingUp, TrendingDown, AlertTriangle, Info, Zap,
-  Upload, FileText, DollarSign, Calendar, ArrowRight,
-  Loader2, CheckCircle2, XCircle, MinusCircle, PlusCircle, AlertCircle,
+  FileText, DollarSign, Calendar, ArrowRight,
+  CheckCircle2, XCircle, MinusCircle, PlusCircle, AlertCircle,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -79,11 +77,6 @@ export interface ReportePortafolio {
 const formatARS = (n: number) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n);
 const formatUSD = (n: number) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
 
-function formatElapsed(totalSeconds: number): string {
-  const m = Math.floor(totalSeconds / 60);
-  const s = totalSeconds % 60;
-  return `${m}:${s.toString().padStart(2, "0")}`;
-}
 
 const estadoConfig = {
   infrapon: { label: "Infraponderada", color: "bg-warning/10 text-warning", icon: TrendingDown },
@@ -116,26 +109,6 @@ const alertaConfig = {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function DropZone({ onFile, file }: { onFile: (f: File) => void; file: File | null }) {
-  const onDrop = useCallback((accepted: File[]) => { if (accepted[0]) onFile(accepted[0]); }, [onFile]);
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop, accept: { "application/pdf": [".pdf"] }, maxFiles: 1,
-  });
-  return (
-    <div {...getRootProps()} className={`relative border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-all
-      ${isDragActive ? "border-primary bg-primary/5 scale-[1.01]" : "border-border hover:border-primary/40 hover:bg-muted/20"}`}>
-      <input {...getInputProps()} />
-      <div className="flex flex-col items-center gap-3">
-        {file ? (
-          <><FileText className="w-9 h-9 text-primary" /><div><p className="font-medium text-sm">{file.name}</p><p className="text-xs text-muted-foreground mt-1">Clic para cambiar</p></div></>
-        ) : (
-          <><Upload className={`w-9 h-9 transition-colors ${isDragActive ? "text-primary" : "text-muted-foreground"}`} />
-            <div><p className="font-medium text-sm">{isDragActive ? "Soltá el PDF acá" : "Arrastrá el PDF de Cocos Capital"}</p><p className="text-xs text-muted-foreground mt-1">o hacé clic para seleccionarlo</p></div></>
-        )}
-      </div>
-    </div>
-  );
-}
 
 function MetricCard({ label, value, sub, icon: Icon }: { label: string; value: string; sub?: string; icon: React.ElementType }) {
   return (
@@ -392,136 +365,3 @@ export function ReporteDisplay({ reporte, footer }: { reporte: ReportePortafolio
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-const STORAGE_KEY = "portfolio_reporte_cache";
-
-export function PortfolioAnalyzer() {
-  const [file, setFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [reporte, setReporte] = useState<ReportePortafolio | null>(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? (JSON.parse(raw) as ReportePortafolio) : null;
-    } catch { return null; }
-  });
-  const [fromCache, setFromCache] = useState<boolean>(() => {
-    try { return !!localStorage.getItem(STORAGE_KEY); } catch { return false; }
-  });
-  const [error, setError] = useState<string | null>(null);
-
-  const [elapsed, setElapsed] = useState(0);
-  const abortRef = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    if (!loading) return;
-    const id = setInterval(() => setElapsed((s) => s + 1), 1000);
-    return () => clearInterval(id);
-  }, [loading]);
-
-  const saveReporte = (r: ReportePortafolio) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(r));
-    setReporte(r);
-    setFromCache(false);
-  };
-
-  const clearCache = () => {
-    localStorage.removeItem(STORAGE_KEY);
-    setReporte(null);
-    setFromCache(false);
-    setFile(null);
-    setError(null);
-  };
-
-  const handleAnalyze = async () => {
-    if (!file) return;
-    setElapsed(0);
-    setLoading(true); setError(null);
-    const controller = new AbortController();
-    abortRef.current = controller;
-    try {
-      const formData = new FormData();
-      formData.append("portfolio_pdf", file);
-      const res = await fetch("/api/analyze-portfolio", {
-        method: "POST",
-        body: formData,
-        signal: controller.signal,
-      });
-      const json = await res.json();
-      if (!res.ok || json.error) throw new Error(json.error || "Error al analizar.");
-      saveReporte(json);
-    } catch (e: unknown) {
-      if (controller.signal.aborted) {
-        setError("Análisis cancelado.");
-      } else {
-        setError(e instanceof Error ? e.message : "Error inesperado.");
-      }
-    } finally {
-      abortRef.current = null;
-      setLoading(false);
-    }
-  };
-
-  const handleCancel = () => {
-    abortRef.current?.abort();
-  };
-
-  return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Reporte mensual de portafolio</h1>
-        <p className="text-muted-foreground text-sm mt-1">Subí el snapshot de Cocos Capital y Claude analiza tu cartera al día de hoy.</p>
-      </div>
-
-      <Card>
-        <CardContent className="pt-6 space-y-4">
-          <DropZone onFile={setFile} file={file} />
-          <div className="flex gap-2">
-            <Button onClick={handleAnalyze} disabled={!file || loading} className="flex-1" size="lg">
-              {loading
-                ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Analizando… {formatElapsed(elapsed)}</>
-                : <><Zap className="w-4 h-4 mr-2" />Generar reporte del mes</>}
-            </Button>
-            {loading && (
-              <Button onClick={handleCancel} variant="outline" size="lg">
-                Cancelar
-              </Button>
-            )}
-          </div>
-          {loading && (
-            <p className="text-center text-xs text-muted-foreground">
-              Buscando precios y noticias en la web y analizando tu cartera. Puede tardar entre 1 y 5 minutos.
-            </p>
-          )}
-          {error && (
-            <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 px-4 py-3 rounded-lg border border-destructive/30">
-              <AlertCircle className="w-4 h-4 shrink-0" />{error}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {reporte && (
-        <>
-          {fromCache && (
-            <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-lg border border-warning/30 bg-warning/10 text-sm">
-              <div className="flex items-center gap-2 text-warning">
-                <AlertTriangle className="w-4 h-4 shrink-0" />
-                <span>Mostrando el último reporte guardado ({reporte.fecha_reporte}). Subí un nuevo PDF para actualizar.</span>
-              </div>
-              <Button variant="outline" size="sm" onClick={clearCache} className="shrink-0 border-warning/40 text-warning hover:bg-warning/20">
-                Nuevo análisis
-              </Button>
-            </div>
-          )}
-          <ReporteDisplay
-            reporte={reporte}
-            footer={!fromCache && (
-              <Button variant="ghost" size="sm" onClick={clearCache} className="text-xs text-muted-foreground hover:text-foreground">
-                Limpiar y hacer nuevo análisis
-              </Button>
-            )}
-          />
-        </>
-      )}
-    </div>
-  );
-}

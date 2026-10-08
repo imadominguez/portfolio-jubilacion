@@ -11,7 +11,7 @@
 | ORM / DB | Prisma `7.4` + PostgreSQL, driver adapter `@prisma/adapter-pg` |
 | Mutaciones | Server Actions (`app/actions/`) |
 | Export | `@react-pdf/renderer` `4.5`, CSV/HTML generados en API routes |
-| IA | Anthropic API (`claude-sonnet-5`, configurable con `ANTHROPIC_MODEL`) con `web_search` |
+| IA | Anthropic API con el SDK oficial (`claude-sonnet-5-5`, configurable con `ANTHROPIC_MODEL`) y structured outputs |
 | Onboarding | `nextstepjs` `2.2` (transpilado en `next.config.ts`) |
 | Otros | `date-fns`, `xlsx`, `react-dropzone`, `react-day-picker`, `sonner`, `next-themes`, `lucide-react`, `motion`, `cmdk`, `vaul` |
 
@@ -46,13 +46,13 @@ app/
     assets/                     Catálogo de CEDEARs           (ADMIN)
     strategy/                   System prompt versionado       (ADMIN)
     settings/                   Hitos                          (ADMIN)
-    portfolio/                  Reporte mensual con IA         (ADMIN)
+    portfolio/                  Oportunidades por acción (IA)  (ADMIN)
     guia/                       Guía Cocos
     datos/                      Centro de Datos (hub de importación)
   actions/                      Server Actions (una por dominio)
   api/
     auth/[...all]/              Handler catch-all de Better Auth
-    analyze-portfolio/          POST: análisis del PDF con Claude
+    analyze-portfolio/          POST: reporte de oportunidades con Claude
     export/
       pdf/[snapshotId]/         PDF server-side
       snapshot/[id]/            CSV (format=csv) o HTML imprimible
@@ -63,7 +63,7 @@ components/
   dashboard/                    Hero, KpiStrip, AnalysisTools, HoldingsTable, AllocationPanel, PerformersPanel, MilestoneWidget, chart widget, empty
   performance/                  PerformanceChart, BenchmarkOverlayChart, InflationChart
   plan/                         DcaPlannerClient
-  analysis/                     ConcentrationCharts, PortfolioAnalyzer, ReportHistorial
+  analysis/                     ConcentrationCharts, OpportunityAnalyzer, OpportunityReportDisplay, ReportHistorial, legacy-report
   assets/                       AssetDialog, AssetsTableClient
   snapshots/                    ImportCsvSheet, ImportButton
   transactions/                 TransactionsClient, TransactionForm, DividendForm, ImportMovimientosButton
@@ -95,7 +95,9 @@ lib/
   projections.ts                Cálculos puros de jubilación (sin Prisma)
   inflation.ts                  Índice acumulado de IPC, anualización y rendimiento real
   dca-planner.ts                Plan DCA determinista (water-filling sobre el gap)
-  report-normalizer.ts          extractJson + normalizarReporte del análisis con IA
+  opportunity-signals.ts        Señales de precio y filtro de noticias del reporte de oportunidades
+  opportunity-report.ts         Esquema de salida, entrada compacta y costo por modelo del reporte
+  http.ts                       fetchWithTimeout para las APIs externas
   default-strategy.ts           Estrategia por defecto (system prompt) para seed/refresh
   setup-status.ts               Derivación pura del estado de onboarding/setup
   glossary.ts                   Definiciones de términos financieros (tooltips)

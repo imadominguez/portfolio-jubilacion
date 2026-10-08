@@ -24,10 +24,6 @@ Fuente primaria del estado del portafolio. No hay API: se descargan archivos CSV
 - Parseado por `parseMovementCsv` (`lib/cocos-movements.ts`, puro: corre en el cliente para la previsualización) y persistido por `importMovements` (`app/actions/import-movements.ts`) de forma idempotente por `nroTicket`.
 - Análisis detallado del formato: [`movimientos/analisis-csv-movimientos.md`](./movimientos/analisis-csv-movimientos.md).
 
-### C) PDF de tenencia
-
-- Se sube desde `/portfolio` y se envía a Anthropic para el análisis mensual.
-
 Guía visual: `components/guide/cocos-guide.tsx` (ruta `/guia`), con esquemas de las pantallas de Cocos dibujados en `components/guide/cocos-mockup.tsx` (sin capturas: siguen el tema y no exponen datos de una cuenta).
 
 ---
@@ -84,6 +80,7 @@ Cliente propio en `lib/yahoo-finance-client.ts` (no usa `yahoo-finance2`). Imple
 |---|---|---|
 | `getQuotes(symbols)` | `/v7/finance/quote?symbols=...&crumb=...` | Precio actual; `regularMarketPrice ?? ask ?? bid`. |
 | `getHistorical(symbol, from, to)` | `/v8/finance/chart/:symbol?interval=1d&period1=...&period2=...` | Cierres diarios. |
+| `getNews(symbol, count)` | `/v1/finance/search?q=...&newsCount=...` (sin cookie ni crumb) | Titulares recientes con fecha, medio y tickers relacionados. El filtro de relevancia es `selectNews` (`lib/opportunity-signals.ts`). |
 
 `getHistorical` filtra velas sin `close` o `≤ 0` y normaliza la fecha a medianoche UTC (`setUTCHours(0,0,0,0)`) para coincidir con `@db.Date`.
 
@@ -94,6 +91,7 @@ Cliente propio en `lib/yahoo-finance-client.ts` (no usa `yahoo-finance2`). Imple
 | `market-prices.ts` | `getQuotes` | `MarketPriceCache` (upsert por ticker subyacente, USD) |
 | `historical-prices.ts` | `getHistorical` | `HistoricalPriceCache` (upsert `ticker`+`date`) |
 | `benchmarks.ts` | `getHistorical` | `BenchmarkPoint` (upsert `benchmarkId`+`date`) |
+| `api/analyze-portfolio` | `getHistorical`, `getNews` | No persiste: son la entrada del reporte de oportunidades (ADR-0018). |
 
 - El histórico de subyacentes se pide desde la primera compra (o −365 días si no hay) hasta hoy.
 - Los tickers subyacentes provienen del campo `Asset.underlyingTicker`.
@@ -104,22 +102,21 @@ Todas las llamadas a Yahoo, dolarapi y argentinadatos usan `fetchWithTimeout` (`
 
 ---
 
-## 5. Anthropic (Claude) — análisis mensual
+## 5. Anthropic (Claude) — reporte de oportunidades
 
-- Endpoint: `POST https://api.anthropic.com/v1/messages` con **streaming** (`stream: true`).
-- Variables de entorno: `ANTHROPIC_API_KEY` (obligatoria), `ANTHROPIC_MODEL` (default `claude-sonnet-5`), `ANTHROPIC_EFFORT` (default `low`: `low|medium|high|max`), `ANTHROPIC_TIMEOUT_MS` (default y máximo `290000`, por debajo de `maxDuration`).
-- Modelo: `process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5"`, `max_tokens: 32000`, `output_config: { effort: process.env.ANTHROPIC_EFFORT ?? "low" }`.
-- El `effort` controla cuánto "piensa" Sonnet 5 (thinking adaptativo). Bajarlo reduce tokens de salida, costo y evita cortes por `max_tokens`.
-- El route lee el uso de tokens del stream (input / cache_write / cache_read / output) y calcula el **costo estimado en USD** con los precios de Sonnet 5 (input $2/MTok, output $10/MTok, cache write 1.25×, cache read 0.1×). Lo devuelve en el header `x-estimated-cost-usd`. Los precios están hardcodeados en el route: si cambiás `ANTHROPIC_MODEL`, el costo estimado deja de ser exacto.
-- `maxDuration = 300` s en el route; el timeout propio se acota a 290 s para devolver un `504` claro antes de que la plataforma corte (ver [api-y-exportacion.md](./api-y-exportacion.md#errores)).
-- Se llama con `fetch` directo, sin el SDK de Anthropic ([ADR-0011](./adr/0011-analisis-mensual-con-claude-y-estrategia-versionada.md)).
-- Tool: `web_search_20250305` (`web_search`, `max_uses: 12`) para consultar CCL, precios y noticias.
-- `system` = contenido de la `InvestmentStrategy` activa (editable y versionada en `/strategy`).
-- Entrada: el PDF de tenencia de Cocos en base64 + instrucciones.
-- La respuesta se lee como SSE y se acumulan los `text_delta`; se parsea el JSON del mensaje.
-- Salida: JSON normalizado que se guarda en `PortfolioReport` y se muestra en `/portfolio`.
+Decisión y motivos: [ADR-0018](./adr/0018-reporte-de-oportunidades-con-datos-preparados-por-la-app.md).
 
-Detalle completo en [api-y-exportacion.md](./api-y-exportacion.md#post-apianalyze-portfolio--análisis-con-ia).
+- **SDK oficial** `@anthropic-ai/sdk` (`client.beta.messages.parse`), sin streaming: la respuesta es corta.
+- Variables de entorno: `ANTHROPIC_API_KEY` (obligatoria), `ANTHROPIC_MODEL` (default `claude-sonnet-5-5`), `ANTHROPIC_EFFORT` (default `low`: `low|medium|high|xhigh|max`), `ANTHROPIC_TIMEOUT_MS` (default y máximo `290000`, por debajo de `maxDuration`).
+- **Entrada:** la app prepara los datos (precios de Yahoo, titulares de noticias de Yahoo, precio promedio de compra) y le pasa a Claude un texto compacto por acción (~3.000 tokens para 14 acciones). Claude **no** busca en la web.
+- **Salida:** structured output con `OpportunityAnalysisSchema` (`lib/opportunity-report.ts`): señal `compra` / `mantener` / `venta` por acción, con confianza y una lectura corta de precio, noticias, motivo y riesgos. La respuesta siempre valida contra el esquema.
+- `system` = contenido de la `InvestmentStrategy` activa (editable y versionada en `/strategy`): define solo el **criterio**; el formato lo fija el esquema.
+- Thinking adaptativo con el `effort` configurado, y `fallbacks: "default"` (beta `server-side-fallback-2026-07-01`): si el modelo rechaza por sus clasificadores de seguridad, la API reintenta en otro modelo. Solo se mandan a los modelos que los aceptan.
+- **Costo:** `estimateCostUsd(response.model, usage)` usa los precios del modelo que respondió (`MODEL_PRICING`; `null` si no está). Se guarda en el reporte (`uso`) y se muestra al pie. Estimado con Sonnet 5.5: ~US$ 0,035–0,07 por reporte.
+- `maxDuration = 300` s en el route; el timeout propio se acota a 290 s para devolver un `504` claro antes de que la plataforma corte.
+- Salida guardada en `PortfolioReport` (`version: 2`) y mostrada en `/portfolio`.
+
+Detalle completo en [api-y-exportacion.md](./api-y-exportacion.md#post-apianalyze-portfolio--reporte-de-oportunidades-con-ia).
 
 ---
 
@@ -128,12 +125,12 @@ Detalle completo en [api-y-exportacion.md](./api-y-exportacion.md#post-apianalyz
 | Fuente | Dato | Actualización | Cache |
 |---|---|---|---|
 | Cocos Capital (CSV) | Posiciones y movimientos | Manual (importación) | DB (`portfolio_snapshots`, `movements`, `transactions`) |
-| Cocos Capital (PDF) | Tenencia para IA | Manual (upload) | DB (`portfolio_reports`) |
 | dolarapi.com | CCL actual | Manual (botón) | `exchange_rates` |
 | argentinadatos.com | CCL histórico | Manual (wizard/backfill) | `exchange_rates` |
 | argentinadatos.com | Inflación (IPC) y CER/UVA | Manual (botón en `/datos` o carga on-demand en `/performance`) | `benchmark_points` |
 | Yahoo Finance | Precios actuales e históricos | Manual (botones) | `market_price_cache`, `historical_price_cache`, `benchmark_points` |
-| Anthropic | Análisis mensual | Manual (upload PDF) | `portfolio_reports` |
+| Yahoo Finance | Titulares de noticias por acción | Al generar el reporte | No se guardan (solo en el reporte) |
+| Anthropic | Reporte de oportunidades | Manual (botón en `/portfolio`) | `portfolio_reports` |
 
 Variables de entorno relacionadas: `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `ANTHROPIC_EFFORT`, `ANTHROPIC_TIMEOUT_MS`, `DATABASE_URL` (ver [arquitectura.md](./arquitectura.md#variables-de-entorno)).
 

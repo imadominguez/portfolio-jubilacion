@@ -5,7 +5,7 @@
 - Node.js 20+ (Next 16 / React 19).
 - **pnpm 8** (fijado en `packageManager` de `package.json`: `pnpm@8.10.5`). Con corepack: `corepack enable` y pnpm toma esa versión. El proyecto se maneja solo con pnpm: no usar `npm install` (no hay `package-lock.json`).
 - Una base PostgreSQL accesible.
-- Clave de Anthropic (solo para el reporte mensual con IA).
+- Clave de Anthropic (solo para el reporte de oportunidades con IA en `/portfolio`).
 
 ## Puesta en marcha
 
@@ -98,7 +98,7 @@ o con Prisma Studio. Alternativas de bootstrap:
 | `BETTER_AUTH_SECRET` | Producción | Secreto de firma de sesiones (convención Better Auth). |
 | `BETTER_AUTH_URL` | Producción | URL base del server de auth. |
 | `ANTHROPIC_API_KEY` | Para `/portfolio` | Análisis con Claude. |
-| `ANTHROPIC_MODEL` | Opcional | Modelo Claude (default `claude-sonnet-5`). |
+| `ANTHROPIC_MODEL` | Opcional | Modelo Claude (default `claude-sonnet-5-5`). El costo se calcula con los precios de `MODEL_PRICING` (`lib/opportunity-report.ts`): un modelo que no esté ahí informa costo nulo. |
 | `ANTHROPIC_EFFORT` | Opcional | Nivel de razonamiento `low\|medium\|high\|max` (default `low`). |
 | `ANTHROPIC_TIMEOUT_MS` | Opcional | Timeout del análisis en ms (default y máximo `290000`, por debajo de `maxDuration`). |
 | `SEED_ADMIN_EMAIL` | Opcional | Emails (coma-separados) a promover en el seed. |
@@ -210,10 +210,6 @@ pnpm db:seed
 - Las actions de refresco de mercado (`exchange-rate`, `market-prices`, `historical-prices`, `benchmarks`, `indices`) no validan sesión dentro de la action (dependen del proxy); solo escriben caches globales de datos públicos.
 - `scripts/seed-admin.mjs` tiene la contraseña `Admin1234!` hardcodeada.
 
-### Integraciones
-
-- Los precios de Sonnet 5 para el costo estimado están hardcodeados en el route; cambiar `ANTHROPIC_MODEL` hace que el costo informado sea incorrecto.
-
 ### Código
 
 - **`getPreviousSnapshot` y `getSnapshotCount`** (`lib/portfolio-data.ts`) no tienen consumidores.
@@ -234,6 +230,7 @@ pnpm db:seed
 > - El CI nunca había pasado: corría `npm install` sobre un `package-lock.json` abandonado (sin `vitest`) y npm cortaba por el peer `vitest@^2–4` de `better-auth`. Ahora todo se maneja con pnpm (`packageManager`, CI con `--frozen-lockfile`) y se eliminó `package-lock.json`.
 > - Las llamadas a Yahoo Finance, dolarapi y argentinadatos tienen timeout (`fetchWithTimeout`, `lib/http.ts`, 15 s) y el cliente de Yahoo renueva la sesión y reintenta una vez ante 401/403.
 > - `getMilestones` es solo lectura: los hitos por defecto se crean al importar el primer snapshot (antes se creaban dentro de la lectura cacheada y volvían si el usuario los borraba todos).
+> - El reporte con IA dejó de usar precios fijos de Sonnet 5: el costo se calcula con el modelo que respondió y se guarda en cada reporte, que ahora cuesta ~US$ 0,035–0,07 (ADR-0018).
 
 ---
 

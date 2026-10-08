@@ -169,3 +169,41 @@ export async function getHistorical(
 
   return rows;
 }
+
+// ---------------------------------------------------------------------------
+// getNews — titulares recientes de un símbolo (búsqueda pública de Yahoo, sin
+// cookie ni crumb). Devuelve los ítems crudos; el filtrado de relevancia está
+// en lib/opportunity-signals.ts (selectNews).
+// ---------------------------------------------------------------------------
+
+export async function getNews(
+  symbol: string,
+  count = 10
+): Promise<Array<{ title: string; publisher: string; publishedAt: Date; relatedTickers: string[] }>> {
+  const url =
+    `${BASE}/v1/finance/search?q=${encodeURIComponent(symbol)}` +
+    `&newsCount=${count}&quotesCount=0`;
+  const res = await fetchWithTimeout(url, {
+    service: SERVICE,
+    headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
+  });
+  if (!res.ok) {
+    throw new Error(`Yahoo Finance noticias/${symbol} falló con status ${res.status}.`);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const data: any = await res.json();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (data?.news ?? []).flatMap((n: any) =>
+    typeof n?.title === "string" && typeof n?.providerPublishTime === "number"
+      ? [
+          {
+            title: n.title,
+            publisher: typeof n.publisher === "string" ? n.publisher : "",
+            publishedAt: new Date(n.providerPublishTime * 1000),
+            relatedTickers: Array.isArray(n.relatedTickers) ? n.relatedTickers : [],
+          },
+        ]
+      : []
+  );
+}

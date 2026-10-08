@@ -1,6 +1,6 @@
 # Portfolio Jubilación
 
-Dashboard privado para seguir un portafolio de largo plazo de **CEDEARs** operados en **Cocos Capital**: snapshots inmutables importados desde CSV, PPM y P&L, performance contra benchmarks e inflación, ganancia real en USD vs impacto del CCL, rebalanceo, plan DCA mensual, proyección de jubilación y un reporte mensual con IA.
+Dashboard privado para seguir un portafolio de largo plazo de **CEDEARs** operados en **Cocos Capital**: snapshots inmutables importados desde CSV, PPM y P&L, performance contra benchmarks e inflación, ganancia real en USD vs impacto del CCL, rebalanceo, plan DCA mensual, proyección de jubilación y un reporte con IA que marca, acción por acción, oportunidades de compra o venta según precio y noticias.
 
 Next.js 16 (App Router) · React 19 · Prisma 7 + PostgreSQL · Better Auth · shadcn/ui + Tailwind v4.
 
@@ -20,7 +20,7 @@ La documentación técnica y funcional completa está en [`docs/`](./docs/README
 La app usa Better Auth más Prisma: cada fila en la tabla **`user`** tiene **`role`** de tipo **`UserRole`** (`USER` o **`ADMIN`**). Por defecto los registros nuevos son **`USER`**. El **registro público está cerrado** (la app es privada): para crear usuarios usá `scripts/seed-admin.mjs` o habilitá el alta con `ALLOW_PUBLIC_SIGNUP=true`.
 
 - **Usuario `USER`:** acceso a todo el contenido habitual de portafolio; **no** ve la sección «Configuración» del sidebar y no puede entrar por URL directa a `/assets`, `/strategy`, `/settings` ni `/portfolio` (`proxy.ts` redirecciona a `/`).
-- **Usuario `ADMIN`:** ve configuración — assets, estrategia, preferencias de app y reporte mensual.
+- **Usuario `ADMIN`:** ve configuración — assets, estrategia, preferencias de app y el reporte de oportunidades con IA.
 
 Para dar rol administrador en producción/desarrollo, actualizá el registro manualmente:
 

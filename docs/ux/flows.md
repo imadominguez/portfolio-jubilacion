@@ -177,8 +177,8 @@ flowchart TD
   U --> RB
 ```
 
-### FLW-07: Reporte mensual con IA (admin) `inferred`
-- **Flow:** subir CSV → Analizar (1–5 min, con aviso y cancelar) → reporte + historial.
+### FLW-07: Reporte de oportunidades con IA (admin) `inferred`
+- **Flow:** Generar reporte (usa el último snapshot; segundos, con cancelar) → señal compra / mantener / venta por acción + historial.
 
 ### FLW-08: Mantenimiento admin `inferred`
 - **Flow:** Assets (CRUD con confirmación) · Estrategia (nueva versión / restaurar: el editor se alinea solo con la versión restaurada) · Configuración (hitos: borrar con Deshacer, borrado a los 8 s).

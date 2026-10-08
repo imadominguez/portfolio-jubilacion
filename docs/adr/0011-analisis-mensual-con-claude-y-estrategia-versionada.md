@@ -1,6 +1,6 @@
 # ADR-0011: Análisis mensual con Claude y estrategia versionada como system prompt
 
-- **Estado:** Aceptado
+- **Estado:** Reemplazado por [ADR-0018](./0018-reporte-de-oportunidades-con-datos-preparados-por-la-app.md)
 - **Fecha:** 2026-05-09; endurecido el 2026-09-28 (registrado retrospectivamente el 2026-10-04)
 - **Relacionados:** ADR-0002, ADR-0006, ADR-0013
 

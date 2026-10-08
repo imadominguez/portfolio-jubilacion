@@ -8,7 +8,7 @@ Organizados por dominio. Los componentes de `components/ui/` son primitivas shad
 
 | Componente | Tipo | Descripción |
 |---|---|---|
-| `layout/app-sidebar.tsx` — `AppSidebar` | CC | Sidebar colapsable con cuatro grupos: **Principal** (`NAV_MAIN`: Dashboard, Snapshots, Historial CCL, Performance), **Análisis** (`NAV_ANALYSIS`: Análisis, Ganancia Real, Rebalanceo, Plan DCA, Jubilación), **Datos** (`NAV_DATA`: Centro de Datos, Transacciones, Guía Cocos) y **Configuración** (`NAV_CONFIG`: Assets, Estrategia, Configuración, Reporte mensual), que llega como slot `adminNav` (lo resuelve `layout/admin-nav.tsx` — `AdminNav`, SC — según el rol, detrás de `<Suspense>`). Item activo por `pathname.startsWith(href)` (excepto `/`); `usePathname()` va detrás de un `<Suspense>` por grupo, cuyo fallback dibuja los mismos links sin activo (en rutas con params dinámicos se suspende durante el prerender). Logout vía `signOut()`. Expone ids de tour: `tour-nav-snapshots`, `tour-nav-guia`, `tour-nav-transacciones`. |
+| `layout/app-sidebar.tsx` — `AppSidebar` | CC | Sidebar colapsable con cuatro grupos: **Principal** (`NAV_MAIN`: Dashboard, Snapshots, Historial CCL, Performance), **Análisis** (`NAV_ANALYSIS`: Análisis, Ganancia Real, Rebalanceo, Plan DCA, Jubilación), **Datos** (`NAV_DATA`: Centro de Datos, Transacciones, Guía Cocos) y **Configuración** (`NAV_CONFIG`: Assets, Estrategia, Configuración, Oportunidades), que llega como slot `adminNav` (lo resuelve `layout/admin-nav.tsx` — `AdminNav`, SC — según el rol, detrás de `<Suspense>`). Item activo por `pathname.startsWith(href)` (excepto `/`); `usePathname()` va detrás de un `<Suspense>` por grupo, cuyo fallback dibuja los mismos links sin activo (en rutas con params dinámicos se suspende durante el prerender). Logout vía `signOut()`. Expone ids de tour: `tour-nav-snapshots`, `tour-nav-guia`, `tour-nav-transacciones`. |
 | `layout/site-header.tsx` — `SiteHeader` | SC | Header sticky con `SidebarTrigger`, título, descripción (`ReactNode`: puede streamearse en su propio `<Suspense>`, como la fecha en `/snapshots/[id]`), `actions` a la derecha, `CommandMenu` y `ThemeToggle`. Va en el static shell de cada página. |
 | `layout/command-menu.tsx` — `CommandMenu` | CC | Buscador global (⌘K / Ctrl+K) con `cmdk` (`CommandDialog`). Navega a las secciones principales, de análisis y de datos. |
 | `theme-toggle.tsx` / `theme-provider.tsx` | CC | Toggle claro/oscuro y wrapper de `next-themes` (dark por defecto). |
@@ -54,8 +54,10 @@ Organizados por dominio. Los componentes de `components/ui/` son primitivas shad
 | Componente | Tipo | Descripción |
 |---|---|---|
 | `concentration-charts.tsx` | CC | `data`. Tabs Sector / País / Industria con donuts y leyenda (top 8); nota de monto sin clasificar. |
-| `portfolio-analizer.tsx` | CC | `PortfolioAnalyzer`: drag & drop de PDF → `POST /api/analyze-portfolio`, render del reporte y caché en `localStorage`. También exporta `ReporteDisplay` y los tipos `ReportePortafolio`. |
-| `report-historial.tsx` | CC | Lista reportes (`listReports`) y muestra el seleccionado (`getReport`). |
+| `opportunity-analyzer.tsx` | CC | `OpportunityAnalyzer`: botón "Generar reporte" → `POST /api/analyze-portfolio` (sin cuerpo: usa el último snapshot), con cancelación y el último reporte en `localStorage` (leído con `useSyncExternalStore`). |
+| `opportunity-report.tsx` | SC | `OpportunityReportDisplay`: resumen, conteo por señal, acciones agrupadas (compra / venta / mantener) con precio, noticias, motivo, riesgos y confianza, y al pie modelo, tokens y costo. |
+| `legacy-report.tsx` | SC | `ReporteDisplay` y el tipo `ReportePortafolio`: visor de los reportes del formato anterior (plan de aporte con asignaciones), solo para el historial. |
+| `report-historial.tsx` | CC | Lista reportes (`listReports`) y muestra el seleccionado (`getReport`) con `OpportunityReportDisplay` si es `version: 2`, o con `ReporteDisplay` si es del formato anterior. |
 
 ---
 

@@ -4,45 +4,42 @@ La app evita API routes salvo para (a) binarios/formatos de archivo y (b) la int
 
 ---
 
-## `POST /api/analyze-portfolio` — Análisis con IA
+## `POST /api/analyze-portfolio` — Reporte de oportunidades con IA
 
-**Archivo:** `app/api/analyze-portfolio/route.ts` · `runtime = "nodejs"` · `maxDuration = 300` (segundos).
+**Archivo:** `app/api/analyze-portfolio/route.ts` · runtime Node.js (default) · `maxDuration = 300` (segundos). Decisión y motivos: [ADR-0018](./adr/0018-reporte-de-oportunidades-con-datos-preparados-por-la-app.md).
+
+Sin cuerpo: analiza el **último snapshot importado** del usuario. La app prepara los datos y Claude solo devuelve una señal por acción.
 
 ### Flujo
 
-1. `getSession()`; sin sesión → `401` `"No autenticado"`. Si el rol no es ADMIN → `403` (mismo criterio que la página `/portfolio`: cada análisis tiene costo).
-2. Lee la estrategia activa: `db.investmentStrategy.findFirst({ where: { isActive: true } })`. Si no hay → `500` con `"No hay estrategia de inversión activa configurada. Configurala en /strategy."`.
-3. Lee `multipart/form-data`; el archivo va en el campo **`portfolio_pdf`**. Si falta → `400` `"No se recibió ningún archivo."`.
-4. Convierte el PDF a base64.
-5. Arma un `AbortController` que corta la llamada por **timeout** o si el **cliente cancela** el request (`request.signal`). El timeout es `ANTHROPIC_TIMEOUT_MS`, acotado a `TIMEOUT_CAP_MS = 290000` (default y máximo) para que venza siempre antes que `maxDuration`.
-6. Llama a la API de Anthropic con `fetch` directo (sin SDK):
+1. `getSession()`; sin sesión → `401` `"No autenticado"`. Si el rol no es ADMIN → `403` (cada análisis tiene costo).
+2. Lee la estrategia activa (`InvestmentStrategy` con `isActive`), que es el system prompt con el **criterio** de inversión. Si no hay → `500`.
+3. En paralelo: `getLatestSnapshot()`, `calculatePPM()` (precio promedio de compra en ARS) y `getAssetCatalog()` (subyacente de cada CEDEAR). Sin snapshot → `400`.
+4. Por cada posición con subyacente, de a 4 en paralelo:
+   - `getHistorical(subyacente, último año)` → `priceSignals` (`lib/opportunity-signals.ts`): variación de 1, 3 y 12 meses y distancia al máximo y mínimo de 52 semanas.
+   - `getNews(subyacente)` → `selectNews`: titulares de los últimos 30 días cuyo ticker principal es la acción o que la nombran en el título, sin duplicados, hasta 5.
+   - Una posición sin subyacente o con error de Yahoo queda en `posiciones_sin_datos` y no corta el reporte. Si ninguna tiene datos → `502`.
+5. `buildAnalysisInput` (`lib/opportunity-report.ts`) arma un texto compacto por acción (~3.000 tokens para 14 acciones).
+6. Llama a Claude con el SDK oficial:
 
-```
-POST https://api.anthropic.com/v1/messages
-headers:
-  x-api-key: process.env.ANTHROPIC_API_KEY
-  anthropic-version: 2023-06-01
-body:
-  model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5"
-  max_tokens: 32000
-  stream: true
-  output_config: { effort: process.env.ANTHROPIC_EFFORT ?? "low" }
-  system: <InvestmentStrategy.content>              // system prompt versionado
-  tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 12 }]
-  messages: [{ role: "user", content: [
-    { type: "document", source: { type: "base64", media_type: "application/pdf", data } },
-    { type: "text", text: <instrucciones> }
-  ]}]
+```ts
+client.beta.messages.parse({
+  model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5-5",
+  max_tokens: 16000,
+  system: <InvestmentStrategy.content>,
+  messages: [{ role: "user", content: <entrada compacta> }],
+  output_config: { format: betaZodOutputFormat(OpportunityAnalysisSchema), effort: ANTHROPIC_EFFORT ?? "low" },
+  thinking: { type: "adaptive" },
+  betas: ["server-side-fallback-2026-07-01"],
+  fallbacks: "default",
+}, { signal: request.signal })
 ```
 
-El prompt de usuario indica que el PDF es la fuente de verdad del estado presente y pide buscar en la web: CCL actual, precio USD y variación mensual de cada ticker relevante, y noticias/catalizadores. Exige responder **solo el objeto JSON**, sin markdown.
-
-7. Lee el stream SSE: acumula los `text_delta`, guarda `stop_reason` y el uso de tokens (`message_start` / `message_delta`). Un evento `error` del stream lanza.
-8. Calcula el **costo estimado en USD** con los precios de Sonnet 5 (input $2/MTok, output $10/MTok, cache write $2.5/MTok, cache read $0.2/MTok).
-9. `extractJson(rawText)` (`lib/report-normalizer.ts`) quita fences de markdown y recorta el objeto JSON balanceado (ignorando llaves dentro de strings); luego `JSON.parse`.
-10. **`normalizarReporte`** (`lib/report-normalizer.ts`, testeado) coerciona y sanea el JSON: valida enums (`estado`, `accion`, `tipo` de alerta, `sesgo`) con mapas de alias, coerciona números, reestructura `posiciones` y `alertas`, garantiza `instruccion_mes`, `no_invertir`, totales y campos raíz. Soporta el esquema legacy `verificacion_suma` en la raíz moviéndolo a `instruccion_mes`.
-11. Persiste con `db.portfolioReport.create({ data: { fechaReporte, rawText, normalizedJson, userId } })`. Un fallo de guardado se loguea y **no** aborta la respuesta.
-12. Devuelve `200` con el JSON normalizado y el header **`x-estimated-cost-usd`**.
+   `thinking`, `effort` y `fallbacks` solo se mandan a los modelos que los aceptan (Sonnet 5.5, Opus 5.5, Opus 5, Fable 5.1). El cliente usa `timeout = ANTHROPIC_TIMEOUT_MS` (acotado a `TIMEOUT_CAP_MS = 290000`) y `maxRetries: 1`.
+7. La respuesta valida contra `OpportunityAnalysisSchema` (structured output): `resumen` y, por acción, `senal` (`compra` / `mantener` / `venta`), `confianza` (`alta` / `media` / `baja`), `precio`, `noticias`, `motivo` y `riesgos`.
+8. Calcula el costo con `estimateCostUsd(response.model, usage)`: precios del modelo que respondió (`MODEL_PRICING`), `null` si no está en la tabla.
+9. Guarda en `PortfolioReport` (`fechaReporte`, `rawText` = JSON de la respuesta, `normalizedJson` = el reporte con `version: 2`, `snapshot_fecha`, `posiciones_sin_datos` y `uso`). Un fallo al guardar se loguea y **no** aborta la respuesta.
+10. Devuelve `200` con el reporte.
 
 ### Errores
 
@@ -51,20 +48,21 @@ El prompt de usuario indica que el PDF es la fuente de verdad del estado present
 | Sin sesión | `401` |
 | Usuario sin rol ADMIN | `403` |
 | Sin estrategia activa | `500` |
-| Sin archivo | `400` |
-| Anthropic responde con error HTTP | `500` `"Error al llamar a la API de Claude (modelo <m>): <detalle>"` |
-| Anthropic no devuelve stream | `500` |
-| Respuesta sin texto | `500`; si `stop_reason = max_tokens`, mensaje específico sugiriendo subir `max_tokens` o achicar la estrategia |
-| JSON inválido | `500` + `stop_reason` + `raw` (primeros 4000 caracteres); mensaje específico si se cortó por `max_tokens` |
+| Sin snapshot importado | `400` |
+| Ninguna posición con precios | `502` |
+| Claude declina (`stop_reason: "refusal"`, después del fallback) | `502` |
+| Respuesta cortada por `max_tokens` o sin el formato esperado | `500` + `stop_reason` |
 | Timeout (`ANTHROPIC_TIMEOUT_MS`) | `504` |
 | Cancelado por el cliente | `499` |
+| Rate limit de la API de Claude | `429` |
+| Otro error de la API de Claude | `500` `"Error al llamar a la API de Claude: <detalle>"` |
 | Excepción general | `500` `"Error interno del servidor."` |
 
-> **Límites de tiempo:** `maxDuration = 300` s es el tope de la función en Vercel. El timeout propio se acota a 290 s (`TIMEOUT_CAP_MS`) para que corte antes y el cliente reciba el `504` descriptivo; un `ANTHROPIC_TIMEOUT_MS` mayor se ignora. Si se sube `maxDuration` (según el plan de Vercel), subir `TIMEOUT_CAP_MS` en el mismo cambio.
+> **Límites de tiempo:** `maxDuration = 300` s es el tope de la función en Vercel. El timeout propio se acota a 290 s (`TIMEOUT_CAP_MS`) para que corte antes y el cliente reciba el `504` descriptivo. En la práctica el reporte tarda segundos de Yahoo más una sola respuesta del modelo.
 
 ### Consumidor
 
-`components/analysis/portfolio-analizer.tsx` (`PortfolioAnalyzer`, client): arrastra un PDF (react-dropzone, `maxFiles: 1`), hace `fetch("/api/analyze-portfolio", { method: "POST", body: formData, signal })` con la cookie de sesión y permite **cancelar** (aborta el `AbortController`, lo que corta también la llamada a Anthropic). Cachea el último resultado en `localStorage` (`portfolio_reporte_cache`). `ReportHistorial` lista reportes previos del usuario vía las actions `listReports`/`getReport`.
+`components/analysis/opportunity-analyzer.tsx` (`OpportunityAnalyzer`, client): botón "Generar reporte", `fetch("/api/analyze-portfolio", { method: "POST", signal })` y **Cancelar** (aborta también la llamada a Claude). Guarda el último reporte en `localStorage` (`portfolio_reporte_oportunidades`) y lo muestra con `OpportunityReportDisplay`. `ReportHistorial` lista los reportes previos (`listReports` / `getReport`) y muestra cada uno con su visor: `OpportunityReportDisplay` si es `version: 2`, o `ReporteDisplay` (`legacy-report.tsx`) para los del formato anterior.
 
 ---
 
