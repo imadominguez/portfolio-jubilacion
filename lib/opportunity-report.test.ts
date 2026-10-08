@@ -4,6 +4,7 @@ import {
   buildAnalysisInput,
   estimateCostUsd,
   isOpportunityReport,
+  modelRequestOptions,
   type PositionInput,
 } from "./opportunity-report";
 
@@ -82,5 +83,35 @@ describe("OpportunityAnalysisSchema / isOpportunityReport", () => {
     expect(isOpportunityReport({ version: 2 })).toBe(true);
     expect(isOpportunityReport({ fecha_reporte: "2026-09-01", posiciones: [] })).toBe(false);
     expect(isOpportunityReport(null)).toBe(false);
+  });
+});
+
+describe("modelRequestOptions", () => {
+  it("Sonnet 5.5: thinking adaptativo, effort y fallbacks", () => {
+    const o = modelRequestOptions("claude-sonnet-5-5", "low");
+    expect(o.thinking).toEqual({ type: "adaptive" });
+    expect(o.effort).toBe("low");
+    expect(o.fallbacks).toEqual({ betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" });
+  });
+
+  it("Sonnet 5: effort y thinking, pero sin fallbacks", () => {
+    const o = modelRequestOptions("claude-sonnet-5", "low");
+    expect(o.effort).toBe("low");
+    expect(o.thinking).toEqual({ type: "adaptive" });
+    expect(o.fallbacks).toBeUndefined();
+  });
+
+  it("Haiku 4.5: ninguno de los tres", () => {
+    expect(modelRequestOptions("claude-haiku-4-5", "low")).toEqual({
+      thinking: undefined,
+      effort: undefined,
+      fallbacks: undefined,
+    });
+  });
+
+  it("acepta un sufijo de fecha pero no confunde modelos con prefijo común", () => {
+    expect(modelRequestOptions("claude-opus-5-5-20261001", "medium").fallbacks).toBeDefined();
+    expect(modelRequestOptions("claude-sonnet-5-20260601", "low").fallbacks).toBeUndefined();
+    expect(modelRequestOptions("claude-sonnet-5-9", "low").effort).toBeUndefined();
   });
 });

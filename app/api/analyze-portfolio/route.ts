@@ -13,6 +13,8 @@ import {
   OpportunityAnalysisSchema,
   buildAnalysisInput,
   estimateCostUsd,
+  modelRequestOptions,
+  type Effort,
   type OpportunityReport,
   type PositionInput,
 } from "@/lib/opportunity-report";
@@ -27,9 +29,6 @@ export const maxDuration = 300;
 // mata la función y el cliente no recibe el 504 descriptivo. Mantener < maxDuration.
 const TIMEOUT_CAP_MS = 290_000;
 const DEFAULT_MODEL = "claude-sonnet-5-5";
-// Modelos que aceptan `fallbacks: "default"` (reintento server-side si el modelo
-// rechaza por sus clasificadores de seguridad) y thinking adaptativo.
-const FALLBACK_MODELS = new Set(["claude-sonnet-5-5", "claude-opus-5-5", "claude-opus-5", "claude-fable-5-1"]);
 // Pedidos a Yahoo en paralelo, sin saturar la API.
 const YAHOO_CONCURRENCY = 4;
 const HISTORY_DAYS = 370;
@@ -134,8 +133,9 @@ export async function POST(request: NextRequest) {
     const effectiveTimeout =
       Number.isFinite(timeoutMs) && timeoutMs > 0 ? Math.min(timeoutMs, TIMEOUT_CAP_MS) : TIMEOUT_CAP_MS;
     const model = process.env.ANTHROPIC_MODEL ?? DEFAULT_MODEL;
-    const effort = (process.env.ANTHROPIC_EFFORT ?? "low") as "low" | "medium" | "high" | "xhigh" | "max";
-    const advanced = FALLBACK_MODELS.has(model);
+    const effort = (process.env.ANTHROPIC_EFFORT ?? "low") as Effort;
+    // Solo los parámetros que acepta el modelo elegido (un 400 si no).
+    const opts = modelRequestOptions(model, effort);
 
     const client = new Anthropic({ timeout: effectiveTimeout, maxRetries: 1 });
     const response = await client.beta.messages.parse(
@@ -146,15 +146,10 @@ export async function POST(request: NextRequest) {
         messages: [{ role: "user", content: buildAnalysisInput(positions, snapshot.snapshotDate) }],
         output_config: {
           format: betaZodOutputFormat(OpportunityAnalysisSchema),
-          ...(advanced ? { effort } : {}),
+          ...(opts.effort ? { effort: opts.effort } : {}),
         },
-        ...(advanced
-          ? {
-              thinking: { type: "adaptive" as const },
-              betas: ["server-side-fallback-2026-07-01"],
-              fallbacks: "default" as const,
-            }
-          : {}),
+        ...(opts.thinking ? { thinking: opts.thinking } : {}),
+        ...(opts.fallbacks ?? {}),
       },
       // Si el usuario cancela el análisis, se corta también la llamada a Claude.
       { signal: request.signal },

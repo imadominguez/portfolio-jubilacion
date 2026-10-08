@@ -35,7 +35,7 @@ client.beta.messages.parse({
 }, { signal: request.signal })
 ```
 
-   `thinking`, `effort` y `fallbacks` solo se mandan a los modelos que los aceptan (Sonnet 5.5, Opus 5.5, Opus 5, Fable 5.1). El cliente usa `timeout = ANTHROPIC_TIMEOUT_MS` (acotado a `TIMEOUT_CAP_MS = 290000`) y `maxRetries: 1`.
+   Cada parámetro se manda solo a los modelos que lo aceptan (`modelRequestOptions`, en `lib/opportunity-report.ts`): `thinking` y `effort` a las familias 4.6 en adelante (incluido `claude-sonnet-5`); `fallbacks` solo a Sonnet 5.5, Opus 5.5, Opus 5 y Fable 5.1. Con Haiku 4.5 no se manda ninguno. El cliente usa `timeout = ANTHROPIC_TIMEOUT_MS` (acotado a `TIMEOUT_CAP_MS = 290000`) y `maxRetries: 1`.
 7. La respuesta valida contra `OpportunityAnalysisSchema` (structured output): `resumen` y, por acción, `senal` (`compra` / `mantener` / `venta`), `confianza` (`alta` / `media` / `baja`), `precio`, `noticias`, `motivo` y `riesgos`.
 8. Calcula el costo con `estimateCostUsd(response.model, usage)`: precios del modelo que respondió (`MODEL_PRICING`), `null` si no está en la tabla.
 9. Guarda en `PortfolioReport` (`fechaReporte`, `rawText` = JSON de la respuesta, `normalizedJson` = el reporte con `version: 2`, `snapshot_fecha`, `posiciones_sin_datos` y `uso`). Un fallo al guardar se loguea y **no** aborta la respuesta.
