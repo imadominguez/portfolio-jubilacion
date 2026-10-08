@@ -173,7 +173,7 @@ Metadata raíz (`app/layout.tsx`): `title` por defecto `"Portfolio Jubilación"`
 ## `/settings` — Configuración **(ADMIN)**
 
 - **Archivo:** `app/(app)/settings/page.tsx`.
-- **Datos:** `getMilestones()` (la primera lectura crea los hitos por defecto) y `getLatestSnapshot()`.
+- **Datos:** `getMilestones()` (solo lectura; los hitos por defecto se crean al importar el primer snapshot) y `getLatestSnapshot()`.
 - **Propósito:** crear/eliminar **hitos** de valor en USD; se verifican automáticamente al importar un snapshot y se marca `reachedAt`.
 - **Componentes:** `SiteHeader`, `MilestonesClient` (con `key` derivado de los hitos: copia la lista a su estado y `<Activity>` la conservaba vieja tras un import).
 
