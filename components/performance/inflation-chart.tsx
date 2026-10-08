@@ -27,6 +27,9 @@ interface IndexPointProp {
 
 interface InflationChartProps {
   snapshots: SnapshotPoint[];
+  // Índice base 100 del portfolio sin aportes (TWR), alineado con `snapshots`.
+  // Sin él se normaliza el valor, que sube con cada compra (ADR-0019).
+  portfolioIndex?: Array<number | null>;
   initialIndices: Record<IndexBenchmarkId, IndexPointProp[]>;
 }
 
@@ -44,7 +47,7 @@ type Row = {
   cer?: number;
 };
 
-export function InflationChart({ snapshots, initialIndices }: InflationChartProps) {
+export function InflationChart({ snapshots, portfolioIndex, initialIndices }: InflationChartProps) {
   const [indices, setIndices] =
     useState<Record<IndexBenchmarkId, IndexPointProp[]>>(initialIndices);
   const [active, setActive] = useState<Set<IndexBenchmarkId>>(
@@ -96,10 +99,15 @@ export function InflationChart({ snapshots, initialIndices }: InflationChartProp
 
   // Eje temporal = unión de fechas de snapshots + índices activos, con forward-fill.
   const snapshotByTs = new Map<number, number>();
-  for (const s of snapshots) {
+  snapshots.forEach((s, i) => {
     const ts = new Date(s.snapshotDate).getTime();
-    snapshotByTs.set(ts, firstValue > 0 ? (s.totalValueArs / firstValue) * 100 : 100);
-  }
+    const level = portfolioIndex
+      ? portfolioIndex[i]
+      : firstValue > 0
+        ? (s.totalValueArs / firstValue) * 100
+        : 100;
+    if (level !== null && level !== undefined) snapshotByTs.set(ts, level);
+  });
 
   const indexByTs = new Map<IndexBenchmarkId, Map<number, number>>();
   for (const id of active) {

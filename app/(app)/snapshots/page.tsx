@@ -7,9 +7,9 @@ import { Suspense } from "react";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SnapshotsSkeleton } from "@/components/snapshots/snapshots-skeleton";
 import { ImportButton } from "@/components/snapshots/snapshots-client";
-import { getAllSnapshotPoints } from "@/lib/portfolio-data";
+import { getAllSnapshotPoints, getHoldingsFlows } from "@/lib/portfolio-data";
 import { formatARS, formatUSD } from "@/lib/format";
-import { pctChange } from "@/lib/snapshot-returns";
+import { periodReturns } from "@/lib/flow-returns";
 
 export const metadata: Metadata = { title: "Snapshots" };
 
@@ -27,7 +27,14 @@ export default function SnapshotsPage() {
 }
 
 async function SnapshotsContent() {
-  const snapshots = await getAllSnapshotPoints();
+  const [snapshots, flows] = await Promise.all([getAllSnapshotPoints(), getHoldingsFlows()]);
+  // Rendimiento de cada período sin contar compras, ventas ni FCI (ADR-0019).
+  const returnByEnd = new Map(
+    periodReturns(
+      snapshots.map((s) => ({ date: s.snapshotDate, value: s.totalValueArs })),
+      flows.flowsArs,
+    ).map((p) => [p.end.getTime(), p.returnPct]),
+  );
   const sorted = [...snapshots].reverse();
 
   return (
@@ -63,11 +70,14 @@ async function SnapshotsContent() {
           <p className="text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
             Registros
           </p>
+          <p className="text-xs text-muted-foreground">
+            El porcentaje es el rendimiento de cada período, sin contar compras, ventas ni
+            movimientos del FCI.
+          </p>
           <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
             <div className="divide-y divide-border">
-              {sorted.map((s, i) => {
-                const prev = snapshots[snapshots.length - 2 - i];
-                const change = prev ? pctChange(s.totalValueArs, prev.totalValueArs) : null;
+              {sorted.map((s) => {
+                const change = returnByEnd.get(s.snapshotDate.getTime()) ?? null;
                 const isPos = change !== null && change >= 0;
 
                 return (

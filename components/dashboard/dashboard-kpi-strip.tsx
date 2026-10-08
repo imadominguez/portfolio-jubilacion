@@ -60,7 +60,7 @@ export function DashboardKpiStrip({
   if (gainPct !== null) {
     kpis.push({
       label: "Rendimiento",
-      sub: "vs snapshot anterior",
+      sub: "vs snapshot anterior, sin aportes",
       value: `${isPositive ? "+" : ""}${gainPct.toFixed(2)}%`,
       status: "vs anterior",
       accent: isPositive,

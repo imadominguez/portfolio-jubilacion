@@ -36,8 +36,8 @@ Organizados por dominio. Los componentes de `components/ui/` son primitivas shad
 | Componente | Tipo | Descripción |
 |---|---|---|
 | `performance-chart.tsx` | CC | `snapshots`. Línea de evolución con toggle ARS/USD (USD = `totalValueUsd` o `totalValueArs / ccl`). Usa `ChartContainer`. |
-| `benchmark-overlay-chart.tsx` | CC | `snapshots`, `initialBenchmarks`. Normaliza a base 100 y superpone S&P 500 / Merval / NASDAQ; carga datos on-demand con `fetchAndSaveBenchmark` + `getBenchmarkPoints` dentro de `useTransition`. |
-| `inflation-chart.tsx` | CC | `snapshots`, `initialIndices`. Portfolio en ARS vs IPC acumulado y CER/UVA, base 100; escala logarítmica por defecto; descarga los índices on-demand (`fetchAndSaveInflation` / `fetchAndSaveCer` + `getIndexPoints`). |
+| `benchmark-overlay-chart.tsx` | CC | `snapshots`, `initialBenchmarks`, `portfolioIndex` opcional (índice TWR sin aportes; sin él normaliza el valor). Normaliza a base 100 y superpone S&P 500 / Merval / NASDAQ; carga datos on-demand con `fetchAndSaveBenchmark` + `getBenchmarkPoints` dentro de `useTransition`. |
+| `inflation-chart.tsx` | CC | `snapshots`, `initialIndices`, `portfolioIndex` opcional (como en el de benchmarks). Portfolio en ARS vs IPC acumulado y CER/UVA, base 100; escala logarítmica por defecto; descarga los índices on-demand (`fetchAndSaveInflation` / `fetchAndSaveCer` + `getIndexPoints`). |
 
 ---
 
@@ -86,7 +86,7 @@ Organizados por dominio. Los componentes de `components/ui/` son primitivas shad
 | Componente | Tipo | Descripción |
 |---|---|---|
 | `rebalance/rebalance-client.tsx` | CC | `rebalanceData`, `targets`, `totalPct`. Tabla ordenable, acciones sugeridas (Comprar/Vender/Mantener), alta/baja de objetivos y badge de total (alerta si se aleja de 100%). |
-| `retirement/retirement-client.tsx` | CC | `initialSettings`, `currentPortfolioUsd`, `historicalCagr`. Tabs Calculadora / Proyección / Monte Carlo; cálculos memoizados con `JSON.stringify(inputs)`; tasa anual `min(cagr/100, 0.30)` o `0.07`. |
+| `retirement/retirement-client.tsx` | CC | `initialSettings`, `currentPortfolioUsd`, `historicalCagr`. Tabs Calculadora / Proyección / Monte Carlo; cálculos memoizados con `JSON.stringify(inputs)`; tasa anual `min(historicalCagr/100, 0.30)` o `0.07`; `historicalCagr` es la TIR histórica en USD. |
 | `strategy/strategy-editor.tsx` | CC | `active`, `history`. Editor del system prompt con versionado (guardar nueva versión / restaurar versión anterior). Copia el contenido a su estado: la página le pasa `key` = id de la versión activa. |
 | `settings/milestones-client.tsx` | CC | `initialMilestones`, `currentPortfolioUsd`. Alta/baja de hitos y progreso al próximo. Copia la lista a su estado: la página le pasa un `key` derivado de los hitos. |
 | `real-gains/real-gains-wizard.tsx` | CC | `readiness`. Wizard de 2 pasos: backfill de CCL histórico y de precios históricos de subyacentes. Tras cada carga hace `router.refresh()`; el aviso de éxito solo aparece después de una carga hecha en esa visita. |

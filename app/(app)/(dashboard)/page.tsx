@@ -7,6 +7,7 @@ import {
   getLatestSnapshot,
   getPreviousSnapshotFull,
   getAllSnapshotPoints,
+  getHoldingsFlows,
   type PositionRow,
 } from "@/lib/portfolio-data";
 import { DashboardHero } from "@/components/dashboard/dashboard-hero";
@@ -32,7 +33,7 @@ import { getSetupStatus } from "@/app/actions/setup";
 import { calculateRetirementGoal } from "@/lib/projections";
 import { SetupPanel } from "@/components/setup/setup-panel";
 import { formatDateMedium } from "@/lib/format";
-import { pctChange } from "@/lib/snapshot-returns";
+import { modifiedDietz, netContributions } from "@/lib/flow-returns";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -78,6 +79,7 @@ async function DashboardContent() {
     rebalanceData,
     concentrationData,
     previous,
+    holdingsFlows,
   ] = await Promise.all([
     calculatePPM(),
     getMarketPrices(),
@@ -89,6 +91,7 @@ async function DashboardContent() {
     getRebalanceData(),
     getConcentrationData(),
     getPreviousSnapshotFull(snapshot.snapshotDate),
+    getHoldingsFlows(),
   ]);
 
   let gainArs: number | null = null;
@@ -96,8 +99,16 @@ async function DashboardContent() {
   let previousPositions: PositionRow[] = [];
 
   if (previous) {
-    gainArs = snapshot.totalValueArs - previous.totalValueArs;
-    gainPct = pctChange(snapshot.totalValueArs, previous.totalValueArs);
+    // Sin contar compras, ventas ni movimientos del FCI del período (ADR-0019):
+    // la diferencia de valor sola mezcla aportes con rendimiento.
+    const start = { date: previous.snapshotDate, value: previous.totalValueArs };
+    const end = { date: snapshot.snapshotDate, value: snapshot.totalValueArs };
+    const periodFlows = holdingsFlows.flowsArs.filter(
+      (f) => f.date > previous.snapshotDate && f.date <= snapshot.snapshotDate,
+    );
+    gainArs =
+      end.value - start.value - netContributions(holdingsFlows.flowsArs, start.date, end.date);
+    gainPct = modifiedDietz(start, end, periodFlows);
     previousPositions = previous.positions;
   }
 

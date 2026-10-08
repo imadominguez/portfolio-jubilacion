@@ -68,7 +68,7 @@ export function RetirementClient({
   const inputs = {
     ...settings,
     currentPortfolioUsd: currentPortfolioUsd ?? 0,
-    // Cap at 30% to avoid Monte Carlo explosion when historical CAGR is unrealistically high
+    // Cap at 30% to avoid Monte Carlo explosion when the historical return is unrealistically high
     // (e.g. short measurement window or lucky streak) — 7% default follows US long-run equity avg
     annualReturnRate: historicalCagr > 0 ? Math.min(historicalCagr / 100, 0.30) : 0.07,
   };
@@ -264,7 +264,7 @@ export function RetirementClient({
         <div className="mt-3 pt-3 border-t border-border flex items-center gap-2">
           <span className="text-[10px] text-muted-foreground">
             Retorno anual usado: {(inputs.annualReturnRate * 100).toFixed(2)}%
-            {historicalCagr > 0 ? " (CAGR histórico del portfolio)" : " (estimado)"}
+            {historicalCagr > 0 ? " (TIR histórica en USD, sin aportes)" : " (estimado)"}
           </span>
           {currentPortfolioUsd && (
             <span className="text-[10px] text-muted-foreground">

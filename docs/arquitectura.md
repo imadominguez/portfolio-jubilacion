@@ -35,7 +35,7 @@ app/
     (dashboard)/                Grupo solo para que su loading.tsx aplique únicamente a /
       page.tsx + loading.tsx    Dashboard (/)
     plan/                       Plan DCA determinista del mes
-    performance/                CAGR, drawdown, benchmarks
+    performance/                TIR, TWR, drawdown, benchmarks
     ccl/                        Historial CCL
     snapshots/                  Listado + [id] detalle
     analysis/                   Concentración
@@ -96,6 +96,7 @@ lib/
   inflation.ts                  Índice acumulado de IPC, anualización y rendimiento real
   dca-planner.ts                Plan DCA determinista (water-filling sobre el gap)
   snapshot-returns.ts           Variación %, CAGR, drawdown y serie de rendimiento (sin base $0)
+  flow-returns.ts               Rendimiento sin aportes: flujos de las tenencias, Dietz, TWR y TIR
   opportunity-signals.ts        Señales de precio y filtro de noticias del reporte de oportunidades
   opportunity-report.ts         Esquema de salida, entrada compacta y costo por modelo del reporte
   http.ts                       fetchWithTimeout para las APIs externas

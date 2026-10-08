@@ -103,10 +103,10 @@ Una vez importado el snapshot, estas son las secciones principales (el detalle d
 - Mientras falten datos, el checklist de **puesta en marcha**
 
 #### Performance (`/performance`)
-- Rendimiento del año, CAGR nominal y **CAGR real** (descontando inflación), máximo drawdown
+- Rendimiento del año, **TIR anual** y **TIR real** (descontando inflación), máximo drawdown, todos sin contar aportes
 - Gráfico de evolución con toggle ARS / USD
 - Comparación contra S&P 500, Merval y NASDAQ, y contra IPC y CER/UVA
-- Timeline de todos los snapshots con la variación porcentual entre cada uno
+- Timeline de todos los snapshots con el rendimiento de cada período
 
 #### Análisis y planificación
 - **Análisis** (`/analysis`): concentración por sector, país e industria
@@ -117,7 +117,7 @@ Una vez importado el snapshot, estas son las secciones principales (el detalle d
 
 #### Snapshots (`/snapshots`)
 - Lista cronológica de todos los snapshots importados
-- Para cada snapshot: fecha, valor ARS, valor USD, CCL, cantidad de posiciones y variación vs el anterior
+- Para cada snapshot: fecha, valor ARS, valor USD, CCL, cantidad de posiciones y rendimiento del período (sin aportes)
 - Click en cualquier snapshot para ver su detalle completo
 
 #### Snapshot detalle (`/snapshots/[id]`)

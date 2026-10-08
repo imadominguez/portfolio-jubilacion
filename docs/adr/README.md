@@ -47,3 +47,4 @@ Se escribieron **retrospectivamente** el 2026-10-04 para documentar decisiones y
 | [0016](./0016-logica-pura-en-lib-testeada-con-vitest.md) | Lógica pura en `lib/` testeada con Vitest | Aceptado |
 | [0017](./0017-cache-components-partial-prerendering-y-prefetching.md) | Cache Components, Partial Prerendering y Partial Prefetching | Aceptado (adopción completa) |
 | [0018](./0018-reporte-de-oportunidades-con-datos-preparados-por-la-app.md) | Reporte de oportunidades por acción con datos preparados por la app | Aceptado |
+| [0019](./0019-rendimiento-sin-aportes-con-flujos-del-libro-de-movimientos.md) | Rendimiento sin aportes, con los flujos del libro de movimientos | Aceptado |
