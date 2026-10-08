@@ -5,15 +5,17 @@ import { History, ChevronRight, Loader2, FileX } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { ReporteDisplay } from "@/components/analysis/portfolio-analizer";
+import { ReporteDisplay } from "@/components/analysis/legacy-report";
+import { OpportunityReportDisplay } from "@/components/analysis/opportunity-report";
+import { isOpportunityReport, type OpportunityReport } from "@/lib/opportunity-report";
 import { listReports, getReport } from "@/app/actions/reports";
 import type { ReportListItem } from "@/app/actions/reports";
-import type { ReportePortafolio } from "@/components/analysis/portfolio-analizer";
+import type { ReportePortafolio } from "@/components/analysis/legacy-report";
 
 export function ReportHistorial() {
   const [reports, setReports] = useState<ReportListItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [reporte, setReporte] = useState<ReportePortafolio | null>(null);
+  const [reporte, setReporte] = useState<OpportunityReport | ReportePortafolio | null>(null);
   const [loadingList, setLoadingList] = useState(true);
   const [isPending, startTransition] = useTransition();
 
@@ -94,7 +96,11 @@ export function ReportHistorial() {
           )}
 
           {!isPending && reporte !== null && (
-            <ReporteDisplay reporte={reporte} />
+            isOpportunityReport(reporte) ? (
+              <OpportunityReportDisplay reporte={reporte} />
+            ) : (
+              <ReporteDisplay reporte={reporte} />
+            )
           )}
         </div>
       )}

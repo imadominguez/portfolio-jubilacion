@@ -42,14 +42,14 @@ Metadata raíz (`app/layout.tsx`): `title` por defecto `"Portfolio Jubilación"`
 
 ---
 
-## `/portfolio` — Reporte mensual con IA **(ADMIN)**
+## `/portfolio` — Oportunidades con IA **(ADMIN)**
 
 - **Archivo:** `app/(app)/portfolio/page.tsx` (síncrona, sin lecturas en el servidor: entra entera al static shell).
-- **Propósito:** analizar la tenencia en PDF de Cocos con Claude y mostrar el historial de reportes.
-- **Datos:** no hace fetch; el cliente llama a `POST /api/analyze-portfolio` (`PortfolioAnalyzer`) y a las actions `listReports()` / `getReport(id)` (`ReportHistorial`).
-- **Componentes:** `PortfolioAnalyzer`, `ReportHistorial`.
-- **Metadata:** `title: "Reporte mensual | Portafolio de jubilación"`.
-- **Nota:** no usa `SiteHeader` (excepción a la convención de UI). El análisis puede tardar minutos: el cliente permite cancelarlo.
+- **Propósito:** revisar cada acción del último snapshot (precio y titulares de noticias) y decir si es oportunidad de **compra**, **mantener** o **venta** ([ADR-0018](./adr/0018-reporte-de-oportunidades-con-datos-preparados-por-la-app.md)). No habla de porcentajes de tenencia: el reparto del aporte está en `/plan`.
+- **Datos:** no hace fetch en el servidor; el cliente llama a `POST /api/analyze-portfolio` (`OpportunityAnalyzer`) y a las actions `listReports()` / `getReport(id)` (`ReportHistorial`).
+- **Componentes:** `OpportunityAnalyzer`, `OpportunityReportDisplay`, `ReportHistorial` (muestra los reportes anteriores con `ReporteDisplay`, de `legacy-report.tsx`).
+- **Metadata:** `title: "Oportunidades"`.
+- **Nota:** no usa `SiteHeader` (excepción a la convención de UI). Requiere un snapshot importado; las acciones sin subyacente en Yahoo quedan fuera del análisis.
 
 ---
 
@@ -219,7 +219,7 @@ Ambas redirigen a `/` si ya hay sesión (proxy). El cliente de Better Auth (`lib
 | `/assets` | Sí | `getAssetCatalog` | **Sí** | Configuración |
 | `/strategy` | Sí | actions strategy | **Sí** | Configuración |
 | `/settings` | Sí | milestones + snapshot | **Sí** | Configuración |
-| `/portfolio` | No | API IA + actions reports | **Sí** | Configuración |
+| `/portfolio` | No | API de oportunidades (IA) + actions reports | **Sí** | Configuración |
 | `/login`, `/register` | Solo request (`searchParams`, flag) | Better Auth client | No | — |
 
 > Único redirect/error propio de página: `notFound()` en `/snapshots/[id]` (y la redirección de `/register` cuando el registro está cerrado). El resto de la protección es del proxy. Los errores no controlados caen en `app/(app)/error.tsx`.

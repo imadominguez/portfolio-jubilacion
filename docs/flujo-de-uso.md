@@ -153,9 +153,9 @@ Cocos Capital
      │
      ├── CSV de Portfolio ──► PortfolioSnapshot (inmutable) ──► Positions
      │
-     ├── CSV de Actividad ──► Movement (libro) ──► Transaction (solo compras/ventas) ──► PPM, P&L
-     │
-     └── PDF de tenencia  ──► Claude + web search ──► PortfolioReport
+     └── CSV de Actividad ──► Movement (libro) ──► Transaction (solo compras/ventas) ──► PPM, P&L
+
+Último snapshot + PPM + precios y titulares de Yahoo ──► Claude ──► PortfolioReport (oportunidades)
 
 dolarapi / argentinadatos / Yahoo ──► caches en DB (CCL, precios, benchmarks, IPC/CER)
                                             │

@@ -283,7 +283,7 @@ La pantalla muestra KPIs, una barra de desglose (apreciación vs impacto CCL), u
 | Fuente | Datos obtenidos | Actualización |
 |---|---|---|
 | **Cocos Capital (CSV)** | Posiciones del portfolio (snapshot) y movimientos de la cuenta | Manual, al importar |
-| **Cocos Capital (PDF)** | Tenencia para el reporte mensual con IA | Manual, en `/portfolio` |
+| **Yahoo Finance (titulares)** | Noticias por acción para el reporte de oportunidades con IA | Al generar el reporte en `/portfolio` (no se guardan aparte) |
 | **dolarapi.com** | CCL actual | Manual (botón en `/datos`, `/ccl` o `/assets`) |
 | **argentinadatos.com** | CCL histórico, IPC y CER/UVA | Manual (`/datos`, wizard de ganancia real, `/performance`) |
 | **Yahoo Finance** | Precios actuales e históricos de subyacentes en USD y benchmarks | Manual (botón en `/datos` o `/assets`; benchmarks on-demand en `/performance`) |

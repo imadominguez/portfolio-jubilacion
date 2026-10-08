@@ -216,14 +216,14 @@ Datos globales, **solo ADMIN**: todas las funciones llaman a `requireAdmin()` (`
 
 ---
 
-## `reports.ts` — Reportes mensuales
+## `reports.ts` — Reportes con IA
 
 Por usuario: ambas funciones usan `requireUserId()` y filtran por `userId`. Los reportes se crean en `POST /api/analyze-portfolio`, no en una action.
 
 | Función | Comportamiento |
 |---|---|
 | `listReports()` | Lista `id` + label (`fechaReporte — hora`) del usuario por fecha desc. |
-| `getReport(id)` | `findFirst({ id, userId })`; devuelve `normalizedJson` casteado a `ReportePortafolio` o `null`. |
+| `getReport(id)` | `findFirst({ id, userId })`; devuelve `normalizedJson` tal cual: un reporte de oportunidades (`version: 2`, `OpportunityReport`) o uno del formato anterior (`ReportePortafolio`), o `null`. |
 
 ---
 

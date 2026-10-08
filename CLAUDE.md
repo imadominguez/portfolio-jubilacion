@@ -89,7 +89,7 @@ Import pipeline: the Cocos movements CSV is parsed and categorized by `lib/cocos
 
 ## Environment
 
-`DATABASE_URL` (required), `NEXT_PUBLIC_APP_URL`, `BETTER_AUTH_SECRET`/`BETTER_AUTH_URL` (prod), `ANTHROPIC_API_KEY` (+ optional `ANTHROPIC_MODEL`, `ANTHROPIC_EFFORT`, `ANTHROPIC_TIMEOUT_MS`) for the monthly AI report at `/portfolio` (`app/api/analyze-portfolio/route.ts`), `SEED_ADMIN_EMAIL`, `ALLOW_PUBLIC_SIGNUP`.
+`DATABASE_URL` (required), `NEXT_PUBLIC_APP_URL`, `BETTER_AUTH_SECRET`/`BETTER_AUTH_URL` (prod), `ANTHROPIC_API_KEY` (+ optional `ANTHROPIC_MODEL`, `ANTHROPIC_EFFORT`, `ANTHROPIC_TIMEOUT_MS`) for the AI opportunities report at `/portfolio` (`app/api/analyze-portfolio/route.ts`, ADR-0018: the app prepares prices and news, Claude only judges; `@anthropic-ai/sdk` with structured outputs, default model `claude-sonnet-5-5`), `SEED_ADMIN_EMAIL`, `ALLOW_PUBLIC_SIGNUP`.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

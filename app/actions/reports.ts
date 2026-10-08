@@ -2,7 +2,8 @@
 
 import { db } from "@/lib/db";
 import { requireUserId } from "@/lib/auth-session";
-import type { ReportePortafolio } from "@/components/analysis/portfolio-analizer";
+import type { ReportePortafolio } from "@/components/analysis/legacy-report";
+import type { OpportunityReport } from "@/lib/opportunity-report";
 
 export interface ReportListItem {
   id: string;
@@ -22,9 +23,11 @@ export async function listReports(): Promise<ReportListItem[]> {
   }));
 }
 
-export async function getReport(id: string): Promise<ReportePortafolio | null> {
+// Devuelve el JSON guardado tal cual: un reporte de oportunidades (`version: 2`)
+// o uno del formato anterior, que el historial muestra con su propio visor.
+export async function getReport(id: string): Promise<OpportunityReport | ReportePortafolio | null> {
   const userId = await requireUserId();
   const row = await db.portfolioReport.findFirst({ where: { id, userId } });
   if (!row) return null;
-  return row.normalizedJson as unknown as ReportePortafolio;
+  return row.normalizedJson as unknown as OpportunityReport | ReportePortafolio;
 }

@@ -71,7 +71,7 @@ const NAV_CONFIG: NavItem[] = [
   { label: "Assets", href: "/assets", icon: Layers },
   { label: "Estrategia", href: "/strategy", icon: BookOpen },
   { label: "Configuración", href: "/settings", icon: Settings },
-  { label: "Reporte mensual", href: "/portfolio", icon: FileText },
+  { label: "Oportunidades", href: "/portfolio", icon: FileText },
 ];
 
 type AppSidebarProps = {

@@ -111,7 +111,7 @@ lib/
 | `/assets` | (ADMIN) CEDEAR catalog (ratio, sector, industry, country, underlying ticker), inline editing |
 | `/strategy` | (ADMIN) Versioned investment strategy = system prompt of the AI analysis |
 | `/settings` | (ADMIN) Milestone management (USD targets, reached status) |
-| `/portfolio` | (ADMIN) Monthly AI report from the Cocos holdings PDF (Claude + web search) and report history |
+| `/portfolio` | (ADMIN) AI opportunities report: buy / hold / sell per holding from prices and news headlines prepared by the app (ADR-0018), plus report history |
 
 ---
 

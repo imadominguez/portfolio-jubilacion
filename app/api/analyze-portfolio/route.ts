@@ -1,10 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
+import Anthropic from "@anthropic-ai/sdk";
+import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth-session";
 import { isAdminRole } from "@/lib/user-role";
-import { extractJson, normalizarReporte } from "@/lib/report-normalizer";
+import { getLatestSnapshot } from "@/lib/portfolio-data";
+import { calculatePPM } from "@/app/actions/transactions";
+import { getAssetCatalog } from "@/app/actions/assets";
+import { getHistorical, getNews } from "@/lib/yahoo-finance-client";
+import { priceSignals, selectNews } from "@/lib/opportunity-signals";
+import {
+  OpportunityAnalysisSchema,
+  buildAnalysisInput,
+  estimateCostUsd,
+  type OpportunityReport,
+  type PositionInput,
+} from "@/lib/opportunity-report";
 
-// El análisis con web_search + thinking puede tardar varios minutos: streaming + límite alto.
+// Reporte de oportunidades (ADR-0018): la app junta precios (Yahoo) y titulares
+// de noticias por acción, y Claude solo decide compra / mantener / venta.
 // Corre en el runtime de Node.js (el default; Cache Components no admite el
 // export `runtime`).
 export const maxDuration = 300;
@@ -12,54 +26,32 @@ export const maxDuration = 300;
 // El timeout propio tiene que vencer antes que maxDuration: si no, la plataforma
 // mata la función y el cliente no recibe el 504 descriptivo. Mantener < maxDuration.
 const TIMEOUT_CAP_MS = 290_000;
+const DEFAULT_MODEL = "claude-sonnet-5-5";
+// Modelos que aceptan `fallbacks: "default"` (reintento server-side si el modelo
+// rechaza por sus clasificadores de seguridad) y thinking adaptativo.
+const FALLBACK_MODELS = new Set(["claude-sonnet-5-5", "claude-opus-5-5", "claude-opus-5", "claude-fable-5-1"]);
+// Pedidos a Yahoo en paralelo, sin saturar la API.
+const YAHOO_CONCURRENCY = 4;
+const HISTORY_DAYS = 370;
 
-// Precios Sonnet 5 (USD por millón de tokens): input $2, output $10.
-// Cache write = 1.25× input ($2.5), cache read = 0.1× input ($0.2).
-const PRICE_INPUT = 2 / 1_000_000;
-const PRICE_OUTPUT = 10 / 1_000_000;
-const PRICE_CACHE_WRITE = 2.5 / 1_000_000;
-const PRICE_CACHE_READ = 0.2 / 1_000_000;
-
-function estimateCostUsd(t: {
-  inputTokens: number;
-  cacheCreationTokens: number;
-  cacheReadTokens: number;
-  outputTokens: number;
-}): number {
-  return (
-    t.inputTokens * PRICE_INPUT +
-    t.cacheCreationTokens * PRICE_CACHE_WRITE +
-    t.cacheReadTokens * PRICE_CACHE_READ +
-    t.outputTokens * PRICE_OUTPUT
-  );
+async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let next = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (next < items.length) {
+      const i = next++;
+      results[i] = await fn(items[i]);
+    }
+  });
+  await Promise.all(workers);
+  return results;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-async function guardarRespuesta(
-  rawText: string,
-  reporte: Record<string, unknown>,
-  userId: string,
-) {
-  try {
-    await db.portfolioReport.create({
-      data: {
-        fechaReporte: (reporte.fecha_reporte as string) ?? new Date().toISOString(),
-        rawText,
-        normalizedJson: reporte as Parameters<
-          typeof db.portfolioReport.create
-        >[0]["data"]["normalizedJson"],
-        userId,
-      },
-    });
-  } catch (err) {
-    console.error("No se pudo guardar el reporte en DB:", err);
-  }
+function fechaHoy(): string {
+  return new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date());
 }
 
 export async function POST(request: NextRequest) {
-  let abortedByTimeout = false;
-  let abortedByClient = false;
   try {
     const session = await getSession();
     if (!session) {
@@ -77,258 +69,175 @@ export async function POST(request: NextRequest) {
     const strategy = await db.investmentStrategy.findFirst({ where: { isActive: true } });
     if (!strategy) {
       return NextResponse.json(
-        {
-          error:
-            "No hay estrategia de inversión activa configurada. Configurala en /strategy.",
-        },
+        { error: "No hay estrategia activa configurada. Configurala en /strategy." },
         { status: 500 },
       );
     }
 
-    const formData = await request.formData();
-    const file = formData.get("portfolio_pdf") as File;
-
-    if (!file) {
+    const [snapshot, ppm, assets] = await Promise.all([
+      getLatestSnapshot(),
+      calculatePPM(),
+      getAssetCatalog(),
+    ]);
+    if (!snapshot || snapshot.positions.length === 0) {
       return NextResponse.json(
-        { error: "No se recibió ningún archivo." },
+        { error: "No hay snapshots importados. Importá tu tenencia desde Snapshots o el Dashboard." },
         { status: 400 },
       );
     }
 
-    const arrayBuffer = await file.arrayBuffer();
-    const base64 = Buffer.from(arrayBuffer).toString("base64");
+    const underlyingByTicker = new Map(assets.map((a) => [a.ticker, a.underlyingTicker]));
+    const avgPriceByTicker = new Map(
+      ppm.filter((p) => p.currency === "ARS").map((p) => [p.ticker, p.avgPrice]),
+    );
+    const from = new Date(Date.now() - HISTORY_DAYS * 24 * 60 * 60 * 1000);
 
-    const controller = new AbortController();
+    // Precio y noticias por posición; una acción que falla no tumba el reporte.
+    const gathered = await mapLimit(snapshot.positions, YAHOO_CONCURRENCY, async (pos) => {
+      const underlying = underlyingByTicker.get(pos.ticker);
+      if (!underlying) return { ticker: pos.ticker, input: null };
+      try {
+        const [history, news] = await Promise.all([
+          getHistorical(underlying, from),
+          getNews(underlying).catch(() => []),
+        ]);
+        const signals = priceSignals(history);
+        if (!signals) return { ticker: pos.ticker, input: null };
+        const input: PositionInput = {
+          ticker: pos.ticker,
+          underlying,
+          companyName: pos.instrumentName,
+          priceArs: pos.price,
+          avgPriceArs: avgPriceByTicker.get(pos.ticker) ?? null,
+          signals,
+          news: selectNews(news, underlying, { companyName: pos.instrumentName }),
+        };
+        return { ticker: pos.ticker, input };
+      } catch {
+        return { ticker: pos.ticker, input: null };
+      }
+    });
+
+    const positions = gathered.flatMap((g) => (g.input ? [g.input] : []));
+    const sinDatos = gathered.filter((g) => !g.input).map((g) => g.ticker);
+    if (positions.length === 0) {
+      return NextResponse.json(
+        {
+          error:
+            "No se pudieron obtener precios para ninguna posición. Revisá que los assets tengan subyacente cargado o probá de nuevo en unos minutos.",
+        },
+        { status: 502 },
+      );
+    }
+
     const timeoutMs = Number(process.env.ANTHROPIC_TIMEOUT_MS ?? TIMEOUT_CAP_MS);
     const effectiveTimeout =
-      Number.isFinite(timeoutMs) && timeoutMs > 0
-        ? Math.min(timeoutMs, TIMEOUT_CAP_MS)
-        : TIMEOUT_CAP_MS;
-    const timeout = setTimeout(() => {
-      abortedByTimeout = true;
-      controller.abort();
-    }, effectiveTimeout);
+      Number.isFinite(timeoutMs) && timeoutMs > 0 ? Math.min(timeoutMs, TIMEOUT_CAP_MS) : TIMEOUT_CAP_MS;
+    const model = process.env.ANTHROPIC_MODEL ?? DEFAULT_MODEL;
+    const effort = (process.env.ANTHROPIC_EFFORT ?? "low") as "low" | "medium" | "high" | "xhigh" | "max";
+    const advanced = FALLBACK_MODELS.has(model);
 
-    // Si el cliente cancela el análisis, abortamos también la llamada a Anthropic.
-    const onClientAbort = () => {
-      abortedByClient = true;
-      controller.abort();
+    const client = new Anthropic({ timeout: effectiveTimeout, maxRetries: 1 });
+    const response = await client.beta.messages.parse(
+      {
+        model,
+        max_tokens: 16000,
+        system: strategy.content,
+        messages: [{ role: "user", content: buildAnalysisInput(positions, snapshot.snapshotDate) }],
+        output_config: {
+          format: betaZodOutputFormat(OpportunityAnalysisSchema),
+          ...(advanced ? { effort } : {}),
+        },
+        ...(advanced
+          ? {
+              thinking: { type: "adaptive" as const },
+              betas: ["server-side-fallback-2026-07-01"],
+              fallbacks: "default" as const,
+            }
+          : {}),
+      },
+      // Si el usuario cancela el análisis, se corta también la llamada a Claude.
+      { signal: request.signal },
+    );
+
+    if (response.stop_reason === "refusal") {
+      return NextResponse.json(
+        { error: "Claude declinó generar el análisis. Probá de nuevo más tarde." },
+        { status: 502 },
+      );
+    }
+    if (response.stop_reason === "max_tokens" || !response.parsed_output) {
+      return NextResponse.json(
+        {
+          error:
+            response.stop_reason === "max_tokens"
+              ? "La respuesta se cortó por el límite de tokens. Probá con menos posiciones o un effort más bajo."
+              : "La respuesta de Claude no tuvo el formato esperado.",
+          stop_reason: response.stop_reason,
+        },
+        { status: 500 },
+      );
+    }
+
+    const usage = {
+      inputTokens: response.usage.input_tokens,
+      outputTokens: response.usage.output_tokens,
+      cacheCreationTokens: response.usage.cache_creation_input_tokens ?? 0,
+      cacheReadTokens: response.usage.cache_read_input_tokens ?? 0,
     };
-    request.signal.addEventListener("abort", onClientAbort);
+    const reporte: OpportunityReport = {
+      version: 2,
+      ...response.parsed_output,
+      fecha_reporte: fechaHoy(),
+      snapshot_fecha: snapshot.snapshotDate.toISOString().slice(0, 10),
+      posiciones_sin_datos: sinDatos,
+      uso: { model: response.model, ...usage, costUsd: estimateCostUsd(response.model, usage) },
+    };
 
-    let response: Response;
     try {
-      response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": process.env.ANTHROPIC_API_KEY!,
-          "anthropic-version": "2023-06-01",
+      await db.portfolioReport.create({
+        data: {
+          fechaReporte: reporte.fecha_reporte,
+          rawText: JSON.stringify(response.parsed_output),
+          normalizedJson: reporte as unknown as Parameters<
+            typeof db.portfolioReport.create
+          >[0]["data"]["normalizedJson"],
+          userId,
         },
-        signal: controller.signal,
-        body: JSON.stringify({
-          model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5",
-          max_tokens: 32000,
-          stream: true,
-          output_config: { effort: process.env.ANTHROPIC_EFFORT ?? "low" },
-          system: strategy.content,
-          tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 12 }],
-          messages: [
-            {
-              role: "user",
-              content: [
-                {
-                  type: "document",
-                  source: { type: "base64", media_type: "application/pdf", data: base64 },
-                },
-                {
-                  type: "text",
-                  text: `Analizá este PDF de mi tenencia en Cocos Capital.
-El PDF contiene el estado actual del portafolio: posiciones reales, cantidades, precios en ARS y pesos actuales. Usá esos datos como fuente de verdad del estado presente — no uses el system prompt como reflejo del estado actual.
-La estrategia objetivo y el formato exacto del JSON están en el system prompt — seguí ese esquema al pie de la letra.
-
-Buscá en la web antes de responder: (1) CCL actual de hoy, (2) precio en USD y variación mensual de cada ticker relevante del portafolio, (3) noticias o catalizadores recientes cuando afecten alguna posición.
-
-Generá únicamente el JSON del reporte mensual según las instrucciones del system.
-No agregues markdown, explicaciones ni bloques \`\`\` — solo el objeto JSON.`,
-                },
-              ],
-            },
-          ],
-        }),
       });
-    } catch (e) {
-      clearTimeout(timeout);
-      throw e;
+    } catch (err) {
+      // El reporte ya se generó (y se pagó): se devuelve aunque no se pueda guardar.
+      console.error("No se pudo guardar el reporte en DB:", err);
     }
 
-    if (!response.ok) {
-      const err = await response.text();
-      console.error("Anthropic API error:", err);
-      let detail = "";
-      try {
-        detail =
-          (JSON.parse(err) as { error?: { message?: string } }).error?.message ?? "";
-      } catch {
-        detail = err.slice(0, 200);
-      }
-      const model = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5";
-      return NextResponse.json(
-        {
-          error: `Error al llamar a la API de Claude (modelo ${model})${detail ? `: ${detail}` : "."}`,
-        },
-        { status: 500 },
-      );
-    }
-
-    // Leer el stream SSE de Anthropic y acumular el texto del mensaje.
-    let rawText = "";
-    let stopReason: string | undefined;
-    let inputTokens = 0;
-    let cacheCreationTokens = 0;
-    let cacheReadTokens = 0;
-    let outputTokens: number | undefined;
-
-    const reader = response.body?.getReader();
-    if (!reader) {
-      clearTimeout(timeout);
-      return NextResponse.json(
-        { error: "Anthropic no devolvió un stream de respuesta." },
-        { status: 500 },
-      );
-    }
-
-    const decoder = new TextDecoder();
-    let buffer = "";
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
-        for (const line of lines) {
-          if (!line.startsWith("data:")) continue;
-          const payload = line.slice(5).trim();
-          if (!payload || payload === "[DONE]") continue;
-          let evt: {
-            type?: string;
-            content_block?: { type?: string };
-            delta?: { type?: string; text?: string; stop_reason?: string };
-            message?: {
-              usage?: {
-                input_tokens?: number;
-                cache_creation_input_tokens?: number;
-                cache_read_input_tokens?: number;
-                output_tokens?: number;
-                output_tokens_details?: { thinking_tokens?: number };
-              };
-            };
-            usage?: {
-              output_tokens?: number;
-              output_tokens_details?: { thinking_tokens?: number };
-            };
-            error?: { message?: string };
-          };
-          try {
-            evt = JSON.parse(payload);
-          } catch {
-            continue;
-          }
-          if (evt.type === "message_start") {
-            const u = evt.message?.usage;
-            if (u) {
-              inputTokens = u.input_tokens ?? 0;
-              cacheCreationTokens = u.cache_creation_input_tokens ?? 0;
-              cacheReadTokens = u.cache_read_input_tokens ?? 0;
-            }
-          } else if (evt.type === "content_block_delta") {
-            if (evt.delta?.type === "text_delta" && typeof evt.delta.text === "string") {
-              rawText += evt.delta.text;
-            }
-          } else if (evt.type === "message_delta") {
-            if (evt.delta?.stop_reason) stopReason = evt.delta.stop_reason;
-            if (evt.usage?.output_tokens !== undefined)
-              outputTokens = evt.usage.output_tokens;
-          } else if (evt.type === "error") {
-            throw new Error(evt.error?.message ?? "Error de streaming de Anthropic");
-          }
-        }
-      }
-    } finally {
-      clearTimeout(timeout);
-      reader.releaseLock();
-    }
-    rawText = rawText.trim();
-
-    const costUsd = estimateCostUsd({
-      inputTokens,
-      cacheCreationTokens,
-      cacheReadTokens,
-      outputTokens: outputTokens ?? 0,
-    });
-
-    if (!rawText) {
-      console.error("Claude no devolvió texto. stop_reason:", stopReason);
-      return NextResponse.json(
-        {
-          error:
-            stopReason === "max_tokens"
-              ? "Claude agotó el límite de tokens antes de responder. Subí max_tokens o achicá la estrategia."
-              : "Claude no devolvió texto en la respuesta.",
-          stop_reason: stopReason,
-        },
-        { status: 500 },
-      );
-    }
-
-    let parsed: Record<string, unknown>;
-    try {
-      const clean = extractJson(rawText);
-      parsed = JSON.parse(clean) as Record<string, unknown>;
-    } catch {
-      console.error(
-        "No se pudo parsear JSON. stop_reason:",
-        stopReason,
-        "rawText (primeros 2000):",
-        rawText.slice(0, 2000),
-      );
-      return NextResponse.json(
-        {
-          error:
-            stopReason === "max_tokens"
-              ? "La respuesta de Claude se cortó por el límite de tokens (max_tokens) y quedó un JSON incompleto. Subí max_tokens o achicá la estrategia."
-              : "La respuesta de Claude no fue JSON válido.",
-          stop_reason: stopReason,
-          raw: rawText.slice(0, 4000),
-        },
-        { status: 500 },
-      );
-    }
-
-    const normalizado = normalizarReporte(parsed);
-    await guardarRespuesta(rawText, normalizado, userId);
-
-    return NextResponse.json(normalizado, {
-      headers: { "x-estimated-cost-usd": costUsd.toFixed(6) },
-    });
+    return NextResponse.json(reporte);
   } catch (error) {
-    console.error("Error en analyze-portfolio:", error);
-    if (abortedByTimeout) {
+    if (error instanceof Anthropic.APIUserAbortError) {
+      return NextResponse.json({ error: "Análisis cancelado por el usuario." }, { status: 499 });
+    }
+    if (error instanceof Anthropic.APIConnectionTimeoutError) {
       return NextResponse.json(
         {
           error:
-            "El análisis superó el tiempo máximo configurado (ANTHROPIC_TIMEOUT_MS) y se canceló. Probá de nuevo o subí el límite.",
+            "El análisis superó el tiempo máximo configurado (ANTHROPIC_TIMEOUT_MS) y se canceló. Probá de nuevo.",
         },
         { status: 504 },
       );
     }
-    if (abortedByClient) {
+    if (error instanceof Anthropic.RateLimitError) {
       return NextResponse.json(
-        { error: "Análisis cancelado por el usuario." },
-        { status: 499 },
+        { error: "La API de Claude está limitando pedidos. Esperá un minuto y probá de nuevo." },
+        { status: 429 },
       );
     }
+    if (error instanceof Anthropic.APIError) {
+      console.error("Anthropic API error:", error.status, error.message);
+      return NextResponse.json(
+        { error: `Error al llamar a la API de Claude: ${error.message}` },
+        { status: 500 },
+      );
+    }
+    console.error("Error en analyze-portfolio:", error);
     return NextResponse.json({ error: "Error interno del servidor." }, { status: 500 });
   }
 }

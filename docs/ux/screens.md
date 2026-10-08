@@ -30,7 +30,7 @@ frame too. -->
 | SCR-16 | Centro de Datos | FLW-02, 03, 04, 05 | — | built | app/(app)/datos/page.tsx |
 | SCR-17 | Jubilación | FLW-06 | — | built | app/(app)/retirement/page.tsx |
 | SCR-18 | Guía Cocos | FLW-02, 03 | — | built | app/(app)/guia/page.tsx |
-| SCR-19 | Reporte mensual IA (admin) | FLW-07 | — | built | app/(app)/portfolio/page.tsx |
+| SCR-19 | Oportunidades IA (admin) | FLW-07 | — | built | app/(app)/portfolio/page.tsx |
 | SCR-20 | Estrategia (admin) | FLW-08 | — | built | app/(app)/strategy/page.tsx |
 | SCR-21 | Configuración / hitos (admin) | FLW-08 | — | built | app/(app)/settings/page.tsx |
 

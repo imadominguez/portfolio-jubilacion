@@ -19,7 +19,7 @@ Un tracker privado (multiusuario con autenticación: cada usuario ve solo sus da
 5. Proyecta la **jubilación** (capital necesario, proyección y Monte Carlo).
 6. Analiza **concentración** por sector/país/industria y permite **rebalanceo** contra objetivos.
 7. Genera el **plan DCA determinista** del mes (qué comprar y cuánto) sin depender de la IA.
-8. Genera **reportes mensuales con IA** (Claude + web search) a partir del PDF de tenencia de Cocos.
+8. Genera un **reporte de oportunidades con IA**: revisa precio y titulares de noticias de cada acción y dice si es momento de comprar, mantener o vender.
 
 ---
 
@@ -50,9 +50,9 @@ Un tracker privado (multiusuario con autenticación: cada usuario ve solo sus da
 - **Auth:** Better Auth (email + password) con campo `role` (`USER` / `ADMIN`).
 - **Base de datos:** PostgreSQL + Prisma 7 (driver adapter `@prisma/adapter-pg`; cliente generado en `app/generated/prisma`).
 - **Mutaciones:** Server Actions (`app/actions/`). API routes solo para binarios (PDF/CSV/HTML) y el análisis con IA.
-- **IA:** Anthropic Claude (`claude-sonnet-5`, configurable con `ANTHROPIC_MODEL`) con tool de web search.
+- **IA:** Anthropic Claude (`claude-sonnet-5-5`, configurable con `ANTHROPIC_MODEL`) con el SDK oficial y structured outputs; la app le prepara precios y noticias ([ADR-0018](./adr/0018-reporte-de-oportunidades-con-datos-preparados-por-la-app.md)).
 - **Exportación:** `@react-pdf/renderer` (PDF server-side), CSV y HTML imprimible.
-- **Fuentes externas:** Cocos Capital (CSV), dolarapi.com (CCL actual), argentinadatos.com (CCL histórico), Yahoo Finance (precios actuales/históricos).
+- **Fuentes externas:** Cocos Capital (CSV), dolarapi.com (CCL actual), argentinadatos.com (CCL histórico), Yahoo Finance (precios actuales/históricos y titulares de noticias).
 
 ### Conceptos clave
 

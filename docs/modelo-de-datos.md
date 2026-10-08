@@ -221,9 +221,9 @@ Estrategia de inversión **versionada e inmutable**; solo una activa.
 
 ### `PortfolioReport` → `portfolio_reports`
 
-Reporte mensual generado por Claude.
+Reporte generado por Claude.
 
-`id`, `fechaReporte String`, `rawText String` (texto crudo del modelo), `normalizedJson Json` (JSON normalizado), `createdAt`, `userId?`/`user?`. Índice por `createdAt`.
+`id`, `fechaReporte String`, `rawText String` (respuesta del modelo), `normalizedJson Json` (reporte completo), `createdAt`, `userId?`/`user?`. Índice por `createdAt`. Desde ADR-0018 `normalizedJson` guarda el reporte de oportunidades con `version: 2` (señal por acción, `snapshot_fecha`, `posiciones_sin_datos` y `uso`: modelo, tokens y costo); los reportes anteriores, sin `version`, tienen el formato de asignaciones.
 
 ### `UserSetup` → `user_setup`
 
