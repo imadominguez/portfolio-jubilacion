@@ -20,6 +20,7 @@ import {
   BookOpen,
   Database,
   HelpCircle,
+  Receipt,
   Wallet,
   type LucideIcon,
 } from "lucide-react";
@@ -59,6 +60,7 @@ const NAV_ANALYSIS: NavItem[] = [
   { label: "Rebalanceo", href: "/rebalance", icon: Scale },
   { label: "Plan DCA", href: "/plan", icon: Wallet },
   { label: "Jubilación", href: "/retirement", icon: Target },
+  { label: "Impuestos", href: "/impuestos", icon: Receipt },
 ];
 
 const NAV_DATA: NavItem[] = [

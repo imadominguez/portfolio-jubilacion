@@ -103,7 +103,7 @@ async function cachedAllTransactions(userId: string): Promise<TransactionRow[]> 
     id: t.id,
     ticker: t.ticker,
     type: t.type,
-    quantity: Number(t.quantity),
+    quantity: Math.abs(Number(t.quantity)),
     price: Number(t.price),
     currency: t.currency,
     fee: t.fee ? Number(t.fee) : null,
@@ -161,8 +161,10 @@ async function cachedPPM(userId: string): Promise<PpmRow[]> {
   for (const sell of sells) {
     const entry = byTicker.get(sell.ticker);
     if (entry) {
-      entry.totalQty = Math.max(0, entry.totalQty - Number(sell.quantity));
-      const ppm = entry.totalQty > 0 ? entry.totalCost / (entry.totalQty + Number(sell.quantity)) : 0;
+      // Las ventas importadas antes de normalizar el signo tienen cantidad negativa.
+      const soldQty = Math.abs(Number(sell.quantity));
+      entry.totalQty = Math.max(0, entry.totalQty - soldQty);
+      const ppm = entry.totalQty > 0 ? entry.totalCost / (entry.totalQty + soldQty) : 0;
       entry.totalCost = ppm * entry.totalQty;
     }
   }
@@ -232,7 +234,7 @@ async function cachedRealizedPnl(userId: string): Promise<RealizedPnlRow[]> {
     if (!entry || entry.qty <= 0) continue;
 
     const avgBuyPrice = entry.qty > 0 ? entry.totalCost / entry.qty : 0;
-    const soldQty = Number(sell.quantity);
+    const soldQty = Math.abs(Number(sell.quantity));
     const sellPrice = Number(sell.price);
     const pnl = (sellPrice - avgBuyPrice) * soldQty;
     const pnlPct = avgBuyPrice > 0 ? ((sellPrice - avgBuyPrice) / avgBuyPrice) * 100 : 0;

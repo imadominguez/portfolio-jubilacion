@@ -90,6 +90,8 @@ pnlPct      = ((sellPrice − avgBuyPrice) / avgBuyPrice) × 100
 
 Luego se descuenta la cantidad y el costo del estado del ticker. Se ordena por fecha descendente.
 
+Las ventas importadas antes de normalizar el signo tienen cantidad negativa (así las exporta Cocos): `calculatePPM`, `getRealizedPnl`, `getAllTransactions` y el CSV de transacciones usan el valor absoluto.
+
 ---
 
 ## Performance histórica (`app/(app)/performance/page.tsx`)
@@ -432,6 +434,46 @@ costo = (entrada × p_entrada + salida × p_salida + cache_write × p_cache_writ
 ```
 
 Con los precios (USD por millón de tokens) del **modelo que respondió**, de la tabla `MODEL_PRICING`. Si el modelo no está en la tabla, el costo es `null` (no se informa uno equivocado). Medición de referencia: 14 acciones, 6.222 tokens de entrada y 5.314 de salida con `claude-sonnet-5` sin `effort` → US$ 0,0656.
+
+---
+
+## Reporte para impuestos (`lib/tax-report.ts`)
+
+Junta los datos para la declaración anual; no aplica reglas impositivas (exenciones, tipo de cambio BNA, fuente). Las fechas son medianoche UTC, así que el año sale de `getUTCFullYear()`.
+
+### Tenencia al cierre
+
+`lastSnapshotPerYear` toma el último snapshot de cada año; `daysBeforeYearEnd` mide cuántos días le faltan al 31/12 (la UI avisa con más de 7). Valuación = `positionValue` de cada posición, en ARS como la exporta Cocos.
+
+### Ventas (`salesForYear`)
+
+Costo promedio ponderado **por ticker**, recorriendo todas las operaciones desde la primera (una venta de este año consume compras de años anteriores). Con la misma fecha, primero las compras.
+
+```
+bruto     = |grossAmount del movimiento de Cocos|   (si no hay movimiento: cantidad × precio)
+compra:   costo[moneda] += bruto + comisión;  cantidad += q
+venta:    cubierto   = mín(q, cantidad)
+          costoVendido[m] = costo[m] × cubierto / cantidad      (por moneda)
+          ingresoNeto = bruto − comisión
+          resultado   = ingresoNeto − costoVendido                (solo si el costo está todo en la moneda de la venta)
+```
+
+- Se usa el **bruto del movimiento** porque en bonos y ONs el precio de Cocos es cada 100 nominales: cantidad × precio da 100 veces el monto.
+- Las ventas importadas traen la **cantidad negativa**: se toma el valor absoluto (la importación nueva ya la guarda positiva).
+- **Compra y venta en distinta moneda** (p. ej. ON comprada en pesos y vendida en dólares para hacer dólar MEP): `resultado = null`. Convertir el costo pide elegir un tipo de cambio, y eso queda para la declaración. Si el costo mezcla las dos monedas, también `costo = null`.
+- `missingBuys`: se vendió más de lo comprado; esa diferencia no tiene costo y el resultado está inflado.
+
+A diferencia de `getRealizedPnl`, incluye las comisiones de compra y de venta.
+
+### Dividendos (`dividendsForYear`)
+
+| Movimiento | Monto | Gastos (ARS) |
+|---|---|---|
+| Instrumento "Dólar …" (CEDEARs, en especie) | `quantity` en USD | `−total` (el total son solo los gastos en pesos) |
+| Resto (p. ej. VALO, "Peso argentino") | `grossAmount` en la moneda del movimiento | `grossAmount − total` |
+| `Dividend` cargado a mano | `amount` | 0 |
+
+Se omiten los de monto 0. Cocos no informa de qué CEDEAR viene cada dividendo en dólares.
 
 ---
 

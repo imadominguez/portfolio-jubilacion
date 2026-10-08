@@ -215,7 +215,9 @@ pnpm db:seed
 - **`getPreviousSnapshot` y `getSnapshotCount`** (`lib/portfolio-data.ts`) no tienen consumidores.
 - **Tolerancias documentadas vs código:** el `missingReason` de ganancia real (`lib/real-gains-data.ts`) dice "±3 días" para el precio histórico, pero `PRICE_TOLERANCE_DAYS = 5`.
 - **Monte Carlo** usa volatilidad mensual fija (4%) independiente de los inputs.
-- Los CSV exportados no incluyen BOM UTF-8; las rutas de export no tienen `try/catch` alrededor de la DB.
+- Los CSV exportados (salvo el de impuestos) no incluyen BOM UTF-8; las rutas de export de snapshot y transacciones no tienen `try/catch` alrededor de la DB.
+- **Bonos y ONs:** Cocos da el precio cada 100 nominales, así que el listado de transacciones y `calculatePPM` calculan cantidad × precio 100 veces más grande. El reporte de impuestos usa el bruto del movimiento; el resto todavía no.
+- **Ventas con cantidad negativa:** las importadas antes de normalizar el signo se leen con `Math.abs`; se podrían corregir en la base con un `UPDATE` sobre `transactions` (type `SELL`, quantity < 0).
 - `/portfolio` no usa `SiteHeader` (excepción a la convención de UI).
 - **Sin tests end-to-end.** La guía de Next sugiere un test `instant()` (`@next/playwright`) por ruta para que el static shell no se degrade sin que nadie lo note.
 - `checkAndUpdateMilestones` es una Server Action exportada que recibe el valor en USD desde el llamador: un usuario logueado podría invocarla con un valor arbitrario y marcar sus propios hitos como alcanzados (solo afecta sus datos).

@@ -21,7 +21,7 @@ export async function GET(_req: NextRequest) {
       new Date(tx.date).toISOString().split("T")[0],
       tx.type,
       tx.ticker,
-      Number(tx.quantity),
+      Math.abs(Number(tx.quantity)),
       Number(tx.price),
       tx.currency,
       tx.fee ? Number(tx.fee) : "",

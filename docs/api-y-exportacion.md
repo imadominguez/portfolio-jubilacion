@@ -100,6 +100,17 @@ El documento (`components/export/portfolio-pdf.tsx`) usa A4, fuente Inter (regis
 
 ---
 
+## `GET /api/export/impuestos?anio=AAAA` — CSV del reporte para impuestos
+
+**Archivo:** `app/api/export/impuestos/route.ts`
+
+- `requireUserId()` (`401`); `anio` no entero → `400`.
+- `getTaxData()` (filtra por el usuario de la sesión) → `buildTaxReport` → `taxReportCsv` (`lib/tax-report.ts`).
+- Tres secciones (tenencia al cierre, ventas, dividendos) separadas por una línea vacía. Pensado para Excel en español: BOM UTF-8, separador `;`, coma decimal y fechas `AAAA-MM-DD`.
+- Errores de la DB → `500` con JSON. `Content-Disposition: attachment; filename="impuestos-<AAAA>.csv"`.
+
+---
+
 ## Componentes de exportación
 
 | Componente | Tipo | Función |
@@ -118,6 +129,7 @@ El documento (`components/export/portfolio-pdf.tsx`) usa A4, fuente Inter (regis
 | `/api/export/pdf/[snapshotId]` | GET | PDF (attachment) | Sesión + ownership |
 | `/api/export/snapshot/[id]` | GET | CSV o HTML imprimible | Sesión + ownership |
 | `/api/export/transactions` | GET | CSV | Sesión + ownership |
+| `/api/export/impuestos?anio=` | GET | CSV (BOM, `;`) | Sesión + ownership |
 | `/api/auth/[...all]` | GET/POST | Endpoints Better Auth | Público |
 
-> **Pendientes conocidos:** los CSV no incluyen BOM UTF-8 (Excel puede mostrar mal los acentos) y las rutas de export no envuelven las consultas a la DB en `try/catch` (un error de DB responde el 500 genérico de Next).
+> **Pendientes conocidos:** salvo el de impuestos, los CSV no incluyen BOM UTF-8 (Excel puede mostrar mal los acentos) y las rutas de export no envuelven las consultas a la DB en `try/catch` (un error de DB responde el 500 genérico de Next).

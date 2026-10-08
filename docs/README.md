@@ -19,7 +19,8 @@ Un tracker privado (multiusuario con autenticación: cada usuario ve solo sus da
 5. Proyecta la **jubilación** (capital necesario, proyección y Monte Carlo).
 6. Analiza **concentración** por sector/país/industria y permite **rebalanceo** contra objetivos.
 7. Genera el **plan DCA determinista** del mes (qué comprar y cuánto) sin depender de la IA.
-8. Genera un **reporte de oportunidades con IA**: revisa precio y titulares de noticias de cada acción y dice si es momento de comprar, mantener o vender.
+8. Junta los datos para la **declaración anual**: tenencia al cierre, resultado de las ventas y dividendos cobrados (`/impuestos`).
+9. Genera un **reporte de oportunidades con IA**: revisa precio y titulares de noticias de cada acción y dice si es momento de comprar, mantener o vender.
 
 ---
 
