@@ -43,6 +43,7 @@ app/
     transactions/               Compras/ventas, PPM, dividendos
     retirement/                 Calculadora de retiro + Monte Carlo
     real-gains/                 Ganancia real USD vs impacto CCL
+    impuestos/                  Tenencia al cierre, ventas y dividendos del año
     assets/                     Catálogo de CEDEARs           (ADMIN)
     strategy/                   System prompt versionado       (ADMIN)
     settings/                   Hitos                          (ADMIN)
@@ -57,6 +58,7 @@ app/
       pdf/[snapshotId]/         PDF server-side
       snapshot/[id]/            CSV (format=csv) o HTML imprimible
       transactions/             CSV de transacciones
+      impuestos/                CSV del reporte para impuestos (?anio=)
   generated/prisma/             Cliente Prisma generado (no editar a mano)
 components/
   layout/                       AppSidebar, SiteHeader, CommandMenu
@@ -87,6 +89,8 @@ lib/
   portfolio-data.ts             Lecturas de snapshots (Prisma, read-only)
   analysis-data.ts              Concentración (Prisma, read-only)
   real-gains-data.ts            Ganancia real USD (Prisma, read-only)
+  tax-report-data.ts            Datos del reporte para impuestos (Prisma, read-only)
+  tax-report.ts                 Tenencia al cierre, resultado de ventas, dividendos y CSV (puro)
   cocos-movements.ts            Parser puro de movimientos de Cocos + categorización (corre en cliente y servidor)
   number-parsing.ts             Parseo de números en formato es-AR / Cocos
   format.ts                     Formateadores Intl (ARS/USD/fechas) compartidos
@@ -137,7 +141,7 @@ Anthropic ──┘   (app/actions/)   └── API routes (PDF/CSV/IA)
 Reglas de la arquitectura (ver `.cursor/rules.md`):
 
 - **RSC pages** (`app/(app)/**/page.tsx`) son síncronas: header y contenido estático van al static shell, y las lecturas van en un componente async dentro de `<Suspense>` que pasa los datos como props a componentes cliente. Las lecturas se cachean con `'use cache'` y un tag por dominio (ver [server-actions.md](./server-actions.md) y [ADR-0017](./adr/0017-cache-components-partial-prerendering-y-prefetching.md)).
-- **`lib/` sin Prisma** salvo los helpers de lectura permitidos: `portfolio-data.ts`, `analysis-data.ts`, `real-gains-data.ts`.
+- **`lib/` sin Prisma** salvo los helpers de lectura permitidos: `portfolio-data.ts`, `analysis-data.ts`, `real-gains-data.ts`, `tax-report-data.ts`.
 - **Toda mutación** pasa por Server Actions que devuelven uniones discriminadas `{ success: true, ... } | { success: false, error }`.
 - **API routes** solo para binarios (PDF/CSV/HTML) y la integración con IA. Además del proxy, cada ruta valida la sesión (`401` si falta) y filtra por `userId` (un snapshot ajeno responde `404`).
 - **Aislamiento por usuario:** los datos del portafolio se leen y borran siempre con `where: { ..., userId }` (`requireUserId()`); los datos de mercado son globales. Ver [ADR-0008](./adr/0008-aislamiento-por-usuario-y-datos-de-mercado-globales.md).

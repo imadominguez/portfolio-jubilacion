@@ -114,6 +114,7 @@ Una vez importado el snapshot, estas son las secciones principales (el detalle d
 - **Rebalanceo** (`/rebalance`): pesos objetivo por ticker y desvío actual
 - **Plan DCA** (`/plan`): cómo repartir el aporte del mes según los objetivos
 - **Jubilación** (`/retirement`): capital necesario, proyección y Monte Carlo
+- **Impuestos** (`/impuestos`): para la declaración de un año, la tenencia al 31/12, las ventas con su resultado y los dividendos cobrados, con descarga en CSV
 
 #### Snapshots (`/snapshots`)
 - Lista cronológica de todos los snapshots importados
@@ -177,6 +178,7 @@ dolarapi / argentinadatos / Yahoo ──► caches en DB (CCL, precios, benchmar
 |---|---|
 | **Mensual** | Exportar e importar un snapshot nuevo y el CSV de movimientos del mes; actualizar CCL y precios en `/datos`; revisar el Plan DCA; generar el reporte de oportunidades en `/portfolio` (ADMIN) |
 | **Semestral** | Revisar la página de Performance para evaluar el crecimiento del portfolio |
+| **Anual (enero)** | Importar el snapshot del 31/12 y los movimientos del año, y descargar el CSV de `/impuestos` para la declaración |
 | **Cuando cambia un ratio** | Actualizar el ratio CEDEAR correspondiente en la sección Assets |
 
 ---

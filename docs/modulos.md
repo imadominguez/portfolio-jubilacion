@@ -134,6 +134,20 @@ Metadata raíz (`app/layout.tsx`): `title` por defecto `"Portfolio Jubilación"`
 
 ---
 
+## `/impuestos` — Reporte para impuestos
+
+- **Archivo:** `app/(app)/impuestos/page.tsx`.
+- **Datos:** `getTaxData()` (`lib/tax-report-data.ts`, tags `snapshots`, `trades` y `dividends` del usuario) y `searchParams.anio`, ambos dentro de `<Suspense>`. Sin `anio` válido muestra el último año cerrado con datos (`defaultTaxYear`).
+- **Muestra, para el año elegido:**
+  - **Tenencia al cierre** (Bienes Personales): posiciones del último snapshot del año. Avisa si ese snapshot está a más de 7 días del 31/12 o si no hay ninguno. No incluye el efectivo de la cuenta.
+  - **Ventas** (Ganancias): ingreso neto, costo promedio con comisiones y resultado (`salesForYear`). Avisa si una venta supera las compras registradas o si se compró en otra moneda (sin resultado).
+  - **Dividendos cobrados:** del libro de movimientos más los cargados a mano (`dividendsForYear`), con totales por moneda.
+  - Selector de año (links `?anio=`) y botón **Descargar CSV** (`/api/export/impuestos?anio=`).
+- **Componentes:** `SiteHeader`, `TaxReportView`, `TaxReportSkeleton`, `EmptyState` (sin datos).
+- No es asesoramiento impositivo: no aplica exenciones ni convierte monedas (tipo de cambio BNA, etc.); eso queda para la declaración.
+
+---
+
 ## `/transactions` — Transacciones
 
 - **Archivo:** `app/(app)/transactions/page.tsx`.
@@ -214,6 +228,7 @@ Ambas redirigen a `/` si ya hay sesión (proxy). El cliente de Better Auth (`lib
 | `/rebalance` | Sí | actions rebalance | No | Análisis |
 | `/plan` | Sí | snapshot + objetivos + precios | No | Análisis |
 | `/retirement` | Sí | settings + snapshots | No | Análisis |
+| `/impuestos` | Sí (+ `searchParams`) | snapshots + transacciones + dividendos | No | Análisis |
 | `/datos` | Sí (por tarjeta) | setup + readiness + precios/CCL/índices | No | Datos |
 | `/transactions` | Sí | actions transactions/dividends/movements | No | Datos |
 | `/guia` | No | — | No | Datos |

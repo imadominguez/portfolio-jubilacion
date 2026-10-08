@@ -178,7 +178,8 @@ export async function importMovements(
           return {
             ticker: row.ticker!,
             type: row.category === "TRADE_BUY" ? ("BUY" as const) : ("SELL" as const),
-            quantity: row.quantity!,
+            // Cocos exporta las ventas con cantidad negativa; el tipo ya da el sentido.
+            quantity: row.quantity!.abs(),
             price: row.price!,
             currency: row.currency as Currency,
             fee: tradeFee(source) > 0 ? tradeFee(source) : null,
