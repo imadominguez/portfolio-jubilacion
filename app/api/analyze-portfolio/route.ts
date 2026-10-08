@@ -18,6 +18,7 @@ import {
   type OpportunityReport,
   type PositionInput,
 } from "@/lib/opportunity-report";
+import { mapLimit } from "@/lib/map-limit";
 
 // Reporte de oportunidades (ADR-0018): la app junta precios (Yahoo) y titulares
 // de noticias por acción, y Claude solo decide compra / mantener / venta.
@@ -32,19 +33,6 @@ const DEFAULT_MODEL = "claude-sonnet-5-5";
 // Pedidos a Yahoo en paralelo, sin saturar la API.
 const YAHOO_CONCURRENCY = 4;
 const HISTORY_DAYS = 370;
-
-async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
-  const results = new Array<R>(items.length);
-  let next = 0;
-  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
-    while (next < items.length) {
-      const i = next++;
-      results[i] = await fn(items[i]);
-    }
-  });
-  await Promise.all(workers);
-  return results;
-}
 
 function fechaHoy(): string {
   return new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date());

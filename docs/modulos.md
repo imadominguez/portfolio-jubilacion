@@ -149,6 +149,15 @@ Metadata raíz (`app/layout.tsx`): `title` por defecto `"Portfolio Jubilación"`
 
 ---
 
+## `/alertas` — Alertas por mail
+
+- **Archivo:** `app/(app)/alertas/page.tsx`. Decisión y motivos: [ADR-0020](./adr/0020-alertas-por-mail-con-cron-y-gmail-smtp.md).
+- **Datos (dentro de `<Suspense>`):** `requireAuth()` (email de destino) y `getAlertsPageData()` (`app/actions/alerts.ts`, tag `alerts:<userId>`): configuración y las últimas 20 alertas enviadas. `isMailerConfigured()` decide si avisa que faltan `GMAIL_USER` / `GMAIL_APP_PASSWORD`.
+- **Muestra:** explicación de las dos alertas (caídas y carga del mes), formulario `AlertSettingsForm` (activar, % de caída desde el máximo de 52 semanas, % de caída en 5 ruedas, día del recordatorio) con **Mandar mail de prueba** y **Revisar ahora**, e historial de lo enviado.
+- **Revisión diaria:** la hace el cron (`/api/cron/alerts`), no la página.
+
+---
+
 ## `/transactions` — Transacciones
 
 - **Archivo:** `app/(app)/transactions/page.tsx`.
@@ -231,6 +240,7 @@ Ambas redirigen a `/` si ya hay sesión (proxy). El cliente de Better Auth (`lib
 | `/retirement` | Sí | settings + snapshots | No | Análisis |
 | `/impuestos` | Sí (+ `searchParams`) | snapshots + transacciones + dividendos | No | Análisis |
 | `/datos` | Sí (por tarjeta) | setup + readiness + precios/CCL/índices | No | Datos |
+| `/alertas` | Sí | configuración e historial de alertas | No | Datos |
 | `/transactions` | Sí | actions transactions/dividends/movements | No | Datos |
 | `/guia` | No | — | No | Datos |
 | `/assets` | Sí | `getAssetCatalog` | **Sí** | Configuración |

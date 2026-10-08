@@ -20,6 +20,7 @@ enum MovementCategory {
   DIVIDEND DIVIDEND_IN_KIND
   CONVERSION OTHER
 }
+enum AlertKind        { PRICE_DROP REMINDER }
 ```
 
 - `AssetKind` clasifica el catálogo (`CEDEAR`, `FCI`, `OTHER`).
@@ -237,6 +238,23 @@ Metadata de presentación del onboarding (1:1 con `User`). La completitud de cad
 | `lastStep` | `String?` | Paso para reanudar. |
 | `createdAt` / `updatedAt` | `DateTime` | |
 
+### `AlertSettings` → `alert_settings`
+
+Configuración de las alertas por mail (1:1 con `User`, ADR-0020).
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `userId` | `String @id` (FK a `User`, `onDelete: Cascade`) | Relación 1:1. |
+| `enabled` | `Boolean @default(false)` | El cron solo revisa a los usuarios activos. |
+| `dropFromHighPct` | `Decimal(5,2) @default(15)` | Caída desde el máximo de 52 semanas, en %. |
+| `weeklyDropPct` | `Decimal(5,2) @default(8)` | Caída en 5 ruedas, en %. |
+| `reminderDay` | `Int @default(5)` | Día del mes desde el que se recuerda cargar el anterior. |
+| `updatedAt` | `DateTime @updatedAt` | |
+
+### `AlertLog` → `alert_logs`
+
+Alertas enviadas, para no repetirlas todos los días: `id`, `userId` (FK, `onDelete: Cascade`), `kind AlertKind`, `key` (ticker o `AAAA-MM` del mes a cargar), `value Decimal(8,2)?` (caída desde el máximo al avisar, solo `PRICE_DROP`), `sentAt`. Índice `[userId, kind, key, sentAt]`.
+
 ---
 
 ## Relaciones (resumen)
@@ -251,6 +269,8 @@ User 1─* MilestoneAlert
 User 1─* RetirementSettings
 User 1─* PortfolioReport
 User 1─1 UserSetup
+User 1─1 AlertSettings
+User 1─* AlertLog
 User 1─* Session  /  Account
 
 Asset (independiente, referencia por ticker)
@@ -279,6 +299,7 @@ Ubicación: `prisma/migrations/`.
 | `20260920120000_add_movements_ledger` | Enum `MovementCategory`, tabla `movements` y `transactions.movementId`. |
 | `20260920130000_target_allocation_per_user` | `TargetAllocation`: unique pasa de `ticker` a `[userId, ticker]`. |
 | `20260921120000_add_user_setup` | Tabla `user_setup` (onboarding por usuario). |
+| `20261009120000_add_alerts` | Enum `AlertKind`, tablas `alert_settings` y `alert_logs`. |
 
 Comandos (ver [desarrollo.md](./desarrollo.md)):
 

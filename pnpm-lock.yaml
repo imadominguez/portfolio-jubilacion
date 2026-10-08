@@ -62,6 +62,9 @@ dependencies:
   nextstepjs:
     specifier: ^2.2.0
     version: 2.3.0(motion@12.43.0)(next@16.3.8)(react-dom@19.2.3)(react@19.2.3)
+  nodemailer:
+    specifier: ^10.0.16
+    version: 10.0.16
   pg:
     specifier: ^8.20.0
     version: 8.23.0
@@ -112,6 +115,9 @@ devDependencies:
   '@types/node':
     specifier: ^20
     version: 20.19.43
+  '@types/nodemailer':
+    specifier: ^8.0.2
+    version: 8.0.2
   '@types/pg':
     specifier: ^8.18.0
     version: 8.23.1
@@ -3644,6 +3650,12 @@ packages:
     resolution: {integrity: sha512-6oYBAi5ikg4Pl+kGsoYtawUMBT2zZMCvPNF7pVLnHZfd1zf38DRiWn/gT01RYCdUqkv7Fhr+C9ot4/tb+2sVvA==}
     dependencies:
       undici-types: 6.21.0
+
+  /@types/nodemailer@8.0.2:
+    resolution: {integrity: sha512-c7M5ox8p0nEOfbJ2E9Qcmt8/QCu/VzsiAhzBiZbvky2PhKZDHpKB3sQHBM5MEZNkCfBOaS6S9//AGPRTNB7IaA==}
+    dependencies:
+      '@types/node': 20.19.43
+    dev: true
 
   /@types/pg@8.23.1:
     resolution: {integrity: sha512-fKVHpikPdg4GKks3JuLEhvwSyvwzF23hnabPy6DD8ljVbC7+6J5dQzdv4arV6jqq57djnMgs1HKBxX4P8aBI3A==}
@@ -7358,6 +7370,11 @@ packages:
   /node-releases@2.0.56:
     resolution: {integrity: sha512-x0InOIyzgdk+eyaWaRJFH5snEtiImgBgblZ2CyPrLmqqcuMQkEvcDPHbzqbD8eDsSeJbVOjn+crzyzHaM4D+/A==}
     engines: {node: '>=18'}
+
+  /nodemailer@10.0.16:
+    resolution: {integrity: sha512-VL9xKErxN+el77o8eBOuYKUPMyEx7F9hfnDCuiUKJRp9v3wnWMOudYgP/SWbwSHy8rUL4cylobuXtki1LpQS7A==}
+    engines: {node: '>=20.0.0'}
+    dev: false
 
   /normalize-svg-path@1.1.0:
     resolution: {integrity: sha512-r9KHKG2UUeB5LoTouwDzBy2VxXlHsiM6fyLQvnJa0S5hrhzqElH/CH7TUGhT1fVvIYBIKf3OpY4YJ4CK+iaqHg==}

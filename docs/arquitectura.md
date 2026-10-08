@@ -44,6 +44,7 @@ app/
     retirement/                 Calculadora de retiro + Monte Carlo
     real-gains/                 Ganancia real USD vs impacto CCL
     impuestos/                  Tenencia al cierre, ventas y dividendos del año
+    alertas/                    Configuración e historial de alertas por mail
     assets/                     Catálogo de CEDEARs           (ADMIN)
     strategy/                   System prompt versionado       (ADMIN)
     settings/                   Hitos                          (ADMIN)
@@ -59,6 +60,7 @@ app/
       snapshot/[id]/            CSV (format=csv) o HTML imprimible
       transactions/             CSV de transacciones
       impuestos/                CSV del reporte para impuestos (?anio=)
+    cron/alerts/                GET: alertas diarias (Vercel Cron, CRON_SECRET)
   generated/prisma/             Cliente Prisma generado (no editar a mano)
 components/
   layout/                       AppSidebar, SiteHeader, CommandMenu
@@ -91,6 +93,10 @@ lib/
   real-gains-data.ts            Ganancia real USD (Prisma, read-only)
   tax-report-data.ts            Datos del reporte para impuestos (Prisma, read-only)
   tax-report.ts                 Tenencia al cierre, resultado de ventas, dividendos y CSV (puro)
+  alerts.ts                     Reglas de las alertas por mail y contenido del mail (puro)
+  alerts-runner.ts              Corre las alertas: datos del usuario + Yahoo + envío + AlertLog
+  mailer.ts                     Envío por Gmail SMTP (nodemailer)
+  map-limit.ts                  Promise.all con concurrencia acotada
   cocos-movements.ts            Parser puro de movimientos de Cocos + categorización (corre en cliente y servidor)
   number-parsing.ts             Parseo de números en formato es-AR / Cocos
   format.ts                     Formateadores Intl (ARS/USD/fechas) compartidos
@@ -141,7 +147,7 @@ Anthropic ──┘   (app/actions/)   └── API routes (PDF/CSV/IA)
 Reglas de la arquitectura (ver `.cursor/rules.md`):
 
 - **RSC pages** (`app/(app)/**/page.tsx`) son síncronas: header y contenido estático van al static shell, y las lecturas van en un componente async dentro de `<Suspense>` que pasa los datos como props a componentes cliente. Las lecturas se cachean con `'use cache'` y un tag por dominio (ver [server-actions.md](./server-actions.md) y [ADR-0017](./adr/0017-cache-components-partial-prerendering-y-prefetching.md)).
-- **`lib/` sin Prisma** salvo los helpers de lectura permitidos: `portfolio-data.ts`, `analysis-data.ts`, `real-gains-data.ts`, `tax-report-data.ts`.
+- **`lib/` sin Prisma** salvo los helpers de lectura permitidos: `portfolio-data.ts`, `analysis-data.ts`, `real-gains-data.ts`, `tax-report-data.ts`, y `alerts-runner.ts` (que además escribe `AlertLog`).
 - **Toda mutación** pasa por Server Actions que devuelven uniones discriminadas `{ success: true, ... } | { success: false, error }`.
 - **API routes** solo para binarios (PDF/CSV/HTML) y la integración con IA. Además del proxy, cada ruta valida la sesión (`401` si falta) y filtra por `userId` (un snapshot ajeno responde `404`).
 - **Aislamiento por usuario:** los datos del portafolio se leen y borran siempre con `where: { ..., userId }` (`requireUserId()`); los datos de mercado son globales. Ver [ADR-0008](./adr/0008-aislamiento-por-usuario-y-datos-de-mercado-globales.md).
@@ -194,7 +200,7 @@ export function isAdminRole(role?: string | null): boolean { return role === "AD
 Next.js 16 renombró `middleware.ts` a `proxy.ts`. Corre siempre en **runtime Node.js** (el export `runtime` ya no se permite) y su función exportada se llama `proxy`. Config con `export const config` (matcher `/((?!_next/static|_next/image|favicon.ico).*)`).
 
 Flujo:
-1. Deja pasar sin control: `/api/auth*` (`isAuthRoute`) y assets estáticos.
+1. Deja pasar sin control: `/api/auth*` (`isAuthRoute`), assets estáticos y `/api/cron/*` (`isCronRoute`: el route valida `CRON_SECRET`, ADR-0020).
 2. Lee sesión con `auth.api.getSession({ headers: request.headers })`.
 3. **Sin sesión** y ruta ≠ `/login` ni `/register` → `redirect("/login")`.
 4. **Con sesión** en `/login` o `/register` → `redirect("/")`.
@@ -220,6 +226,8 @@ Flujo:
 | `ANTHROPIC_MODEL` / `ANTHROPIC_EFFORT` / `ANTHROPIC_TIMEOUT_MS` | Opcional | Config del análisis (modelo, effort, timeout). Ver [integraciones.md](./integraciones.md). |
 | `SEED_ADMIN_EMAIL` | Opcional | Lista separada por comas de emails existentes a promover a ADMIN en `prisma/seed.ts`. |
 | `ALLOW_PUBLIC_SIGNUP` | Opcional | `true` habilita el registro público (por defecto cerrado). |
+| `GMAIL_USER` / `GMAIL_APP_PASSWORD` | Para las alertas | Envío de mails por Gmail SMTP (`lib/mailer.ts`, ADR-0020). |
+| `CRON_SECRET` | Producción | Autoriza al cron de Vercel en `/api/cron/alerts`. |
 | `NODE_ENV` | Auto | Guard del singleton de Prisma. |
 
 > No hay `.env` ni `.env.example` versionados en el repositorio.

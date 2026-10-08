@@ -56,3 +56,11 @@ export const MovementCategory = {
 } as const
 
 export type MovementCategory = (typeof MovementCategory)[keyof typeof MovementCategory]
+
+
+export const AlertKind = {
+  PRICE_DROP: 'PRICE_DROP',
+  REMINDER: 'REMINDER'
+} as const
+
+export type AlertKind = (typeof AlertKind)[keyof typeof AlertKind]

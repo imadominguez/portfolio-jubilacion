@@ -70,7 +70,9 @@ export const ModelName = {
   UserSetup: 'UserSetup',
   InvestmentStrategy: 'InvestmentStrategy',
   PortfolioReport: 'PortfolioReport',
-  Movement: 'Movement'
+  Movement: 'Movement',
+  AlertSettings: 'AlertSettings',
+  AlertLog: 'AlertLog'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -375,6 +377,30 @@ export const MovementScalarFieldEnum = {
 } as const
 
 export type MovementScalarFieldEnum = (typeof MovementScalarFieldEnum)[keyof typeof MovementScalarFieldEnum]
+
+
+export const AlertSettingsScalarFieldEnum = {
+  userId: 'userId',
+  enabled: 'enabled',
+  dropFromHighPct: 'dropFromHighPct',
+  weeklyDropPct: 'weeklyDropPct',
+  reminderDay: 'reminderDay',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AlertSettingsScalarFieldEnum = (typeof AlertSettingsScalarFieldEnum)[keyof typeof AlertSettingsScalarFieldEnum]
+
+
+export const AlertLogScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  kind: 'kind',
+  key: 'key',
+  value: 'value',
+  sentAt: 'sentAt'
+} as const
+
+export type AlertLogScalarFieldEnum = (typeof AlertLogScalarFieldEnum)[keyof typeof AlertLogScalarFieldEnum]
 
 
 export const SortOrder = {

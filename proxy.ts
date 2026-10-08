@@ -26,7 +26,10 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/favicon") ||
     pathname.startsWith("/public");
 
-  if (isAuthRoute || isStaticAsset) {
+  // El cron no tiene sesión: el route valida CRON_SECRET (ADR-0020).
+  const isCronRoute = pathname.startsWith("/api/cron/");
+
+  if (isAuthRoute || isStaticAsset || isCronRoute) {
     return NextResponse.next();
   }
 

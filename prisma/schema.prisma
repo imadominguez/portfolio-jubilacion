@@ -77,6 +77,8 @@ model User {
   portfolioReports   PortfolioReport[]
   movements          Movement[]
   setup              UserSetup?
+  alertSettings      AlertSettings?
+  alertLogs          AlertLog[]
 
   @@map("user")
 }
@@ -502,3 +504,46 @@ model Movement {
   @@map("movements")
 }
 
+
+// ---------------------------------------------------------------------------
+// Alertas por mail (ADR-0020)
+//
+// Un cron diario revisa caídas de precio de las acciones del último snapshot y
+// si falta cargar los datos del mes, y manda un mail por usuario. AlertLog
+// registra lo enviado para no repetir la misma alerta todos los días.
+// ---------------------------------------------------------------------------
+
+enum AlertKind {
+  PRICE_DROP
+  REMINDER
+}
+
+model AlertSettings {
+  userId          String   @id
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enabled         Boolean  @default(false)
+  // Caída desde el máximo de 52 semanas, en %.
+  dropFromHighPct Decimal  @default(15) @db.Decimal(5, 2)
+  // Caída en las últimas 5 ruedas, en %.
+  weeklyDropPct   Decimal  @default(8) @db.Decimal(5, 2)
+  // Día del mes desde el que se recuerda cargar el mes anterior.
+  reminderDay     Int      @default(5)
+  updatedAt       DateTime @updatedAt
+
+  @@map("alert_settings")
+}
+
+model AlertLog {
+  id     String    @id @default(cuid())
+  userId String
+  user   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind   AlertKind
+  // Ticker (caída) o "AAAA-MM" del mes que falta cargar (recordatorio).
+  key    String
+  // Caída desde el máximo de 52 semanas al avisar, en % (solo PRICE_DROP).
+  value  Decimal?  @db.Decimal(8, 2)
+  sentAt DateTime  @default(now())
+
+  @@index([userId, kind, key, sentAt])
+  @@map("alert_logs")
+}

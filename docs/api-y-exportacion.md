@@ -1,6 +1,6 @@
 # API routes y exportación
 
-La app evita API routes salvo para (a) binarios/formatos de archivo y (b) la integración con IA ([ADR-0002](./adr/0002-rsc-y-server-actions-api-routes-solo-para-binarios-e-ia.md)). Todas las rutas `/api/*` (excepto `/api/auth`) pasan por el proxy, que exige sesión. Además, **cada ruta valida la sesión por su cuenta** (`401` si falta) y **filtra por `userId`**, de modo que un id ajeno responde `404` ([ADR-0008](./adr/0008-aislamiento-por-usuario-y-datos-de-mercado-globales.md)).
+La app evita API routes salvo para (a) binarios/formatos de archivo, (b) la integración con IA ([ADR-0002](./adr/0002-rsc-y-server-actions-api-routes-solo-para-binarios-e-ia.md)) y (c) el cron de alertas ([ADR-0020](./adr/0020-alertas-por-mail-con-cron-y-gmail-smtp.md)). Todas las rutas `/api/*` (excepto `/api/auth` y `/api/cron`, que valida `CRON_SECRET`) pasan por el proxy, que exige sesión. Además, **cada ruta valida la sesión por su cuenta** (`401` si falta) y **filtra por `userId`**, de modo que un id ajeno responde `404` ([ADR-0008](./adr/0008-aislamiento-por-usuario-y-datos-de-mercado-globales.md)).
 
 ---
 
@@ -111,6 +111,16 @@ El documento (`components/export/portfolio-pdf.tsx`) usa A4, fuente Inter (regis
 
 ---
 
+## `GET /api/cron/alerts` — Alertas diarias
+
+**Archivo:** `app/api/cron/alerts/route.ts` · `maxDuration = 300`. Decisión: [ADR-0020](./adr/0020-alertas-por-mail-con-cron-y-gmail-smtp.md).
+
+- Lo llama Vercel Cron (`vercel.json`, `0 12 * * *` = 9:00 en Argentina) con `Authorization: Bearer <CRON_SECRET>`. Sin el header correcto (o sin `CRON_SECRET` configurado) → `401`. El proxy no le pide sesión.
+- `runAllAlerts()` (`lib/alerts-runner.ts`) recorre los usuarios con `AlertSettings.enabled`; un usuario que falla no corta al resto.
+- Responde solo conteos: `{ users, failed, mailsSent, drops, reminders }`. Error inesperado → `500`.
+
+---
+
 ## Componentes de exportación
 
 | Componente | Tipo | Función |
@@ -130,6 +140,7 @@ El documento (`components/export/portfolio-pdf.tsx`) usa A4, fuente Inter (regis
 | `/api/export/snapshot/[id]` | GET | CSV o HTML imprimible | Sesión + ownership |
 | `/api/export/transactions` | GET | CSV | Sesión + ownership |
 | `/api/export/impuestos?anio=` | GET | CSV (BOM, `;`) | Sesión + ownership |
+| `/api/cron/alerts` | GET | JSON con conteos | `CRON_SECRET` (sin sesión) |
 | `/api/auth/[...all]` | GET/POST | Endpoints Better Auth | Público |
 
 > **Pendientes conocidos:** salvo el de impuestos, los CSV no incluyen BOM UTF-8 (Excel puede mostrar mal los acentos) y las rutas de export no envuelven las consultas a la DB en `try/catch` (un error de DB responde el 500 genérico de Next).

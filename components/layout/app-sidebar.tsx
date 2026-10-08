@@ -16,6 +16,7 @@ import {
   DollarSign,
   LogOut,
   Activity,
+  Bell,
   FileText,
   BookOpen,
   Database,
@@ -65,6 +66,7 @@ const NAV_ANALYSIS: NavItem[] = [
 
 const NAV_DATA: NavItem[] = [
   { label: "Centro de Datos", href: "/datos", icon: Database },
+  { label: "Alertas", href: "/alertas", icon: Bell },
   { label: "Transacciones", href: "/transactions", icon: ArrowLeftRight },
   { label: "Guía Cocos", href: "/guia", icon: HelpCircle },
 ];
