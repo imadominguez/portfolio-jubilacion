@@ -1,7 +1,8 @@
 import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db";
 import { requireUserId } from "@/lib/auth-session";
-import { userTags } from "@/lib/cache-tags";
+import { marketTags, userTags } from "@/lib/cache-tags";
+import { flowsFromMovements, type CashFlow } from "@/lib/flow-returns";
 
 // Los getters exportados resuelven el usuario de la sesión y delegan en una
 // función cacheada no exportada que recibe solo el `userId`: así nadie puede
@@ -78,6 +79,7 @@ export async function getPreviousSnapshot(
 }
 
 export type PreviousSnapshotData = {
+  snapshotDate: Date;
   totalValueArs: number;
   positions: PositionRow[];
 };
@@ -109,6 +111,7 @@ async function cachedPreviousSnapshotFull(
   if (!snapshot) return null;
 
   return {
+    snapshotDate: snapshot.snapshotDate,
     totalValueArs: Number(snapshot.totalValueArs),
     positions: snapshot.positions.map((p) => ({
       ticker: p.ticker,
@@ -221,5 +224,70 @@ async function cachedSnapshotById(
       positionValue: Number(p.positionValue),
       allocationPct: Number(p.allocationPct) * 100,
     })),
+  };
+}
+
+// ─── Flujos de las tenencias (rendimiento sin aportes) ────────────────────────
+
+export type HoldingsFlows = {
+  // Compras, ventas, FCI y dividendos en ARS (USD convertidos al CCL de su fecha).
+  flowsArs: CashFlow[];
+  // Los mismos flujos en USD (ARS divididos por el CCL de su fecha).
+  flowsUsd: CashFlow[];
+  // Último movimiento importado: los períodos posteriores no tienen flujos.
+  lastMovementDate: Date | null;
+  // Movimientos que no se pudieron convertir por falta de CCL.
+  sinCcl: number;
+};
+
+export async function getHoldingsFlows(): Promise<HoldingsFlows> {
+  return cachedHoldingsFlows(await requireUserId());
+}
+
+async function cachedHoldingsFlows(userId: string): Promise<HoldingsFlows> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(userTags.trades(userId), marketTags.ccl);
+
+  const [movements, rates] = await Promise.all([
+    db.movement.findMany({
+      where: { userId },
+      orderBy: { date: "asc" },
+      select: { date: true, category: true, currency: true, total: true, instrument: true },
+    }),
+    db.exchangeRate.findMany({ orderBy: { date: "asc" }, select: { date: true, ccl: true } }),
+  ]);
+
+  // CCL del día o el último anterior (los fines de semana no tienen cotización).
+  const cclAt = (date: Date): number | null => {
+    let lo = 0;
+    let hi = rates.length - 1;
+    let found: number | null = null;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      if (rates[mid].date.getTime() <= date.getTime()) {
+        found = Number(rates[mid].ccl);
+        lo = mid + 1;
+      } else {
+        hi = mid - 1;
+      }
+    }
+    return found;
+  };
+
+  const { flows: flowsArs, sinCcl } = flowsFromMovements(
+    movements.map((m) => ({ ...m, total: Number(m.total) })),
+    cclAt
+  );
+  const flowsUsd = flowsArs.flatMap((f) => {
+    const ccl = cclAt(f.date);
+    return ccl ? [{ date: f.date, amount: f.amount / ccl }] : [];
+  });
+
+  return {
+    flowsArs,
+    flowsUsd,
+    lastMovementDate: movements.length > 0 ? movements[movements.length - 1].date : null,
+    sinCcl,
   };
 }

@@ -28,6 +28,9 @@ interface BenchmarkPoint {
 
 interface BenchmarkOverlayChartProps {
   snapshots: SnapshotPoint[];
+  // Índice base 100 del portfolio sin aportes (TWR), alineado con `snapshots`.
+  // Sin él se normaliza el valor, que sube con cada compra (ADR-0019).
+  portfolioIndex?: Array<number | null>;
   initialBenchmarks: Record<string, BenchmarkPoint[]>;
 }
 
@@ -40,6 +43,7 @@ const chartConfig = {
 
 export function BenchmarkOverlayChart({
   snapshots,
+  portfolioIndex,
   initialBenchmarks,
 }: BenchmarkOverlayChartProps) {
   const [benchmarkData, setBenchmarkData] = useState(initialBenchmarks);
@@ -50,11 +54,15 @@ export function BenchmarkOverlayChart({
 
   const firstValue = snapshots[0].totalValueArs;
 
-  const normalizedSnapshots = snapshots.map((s) => ({
-    date: formatDateShort(s.snapshotDate),
-    rawDate: new Date(s.snapshotDate),
-    portfolio: firstValue > 0 ? (s.totalValueArs / firstValue) * 100 : 100,
-  }));
+  const normalizedSnapshots = snapshots.flatMap((s, i) => {
+    const portfolio = portfolioIndex
+      ? portfolioIndex[i]
+      : firstValue > 0
+        ? (s.totalValueArs / firstValue) * 100
+        : 100;
+    if (portfolio === null || portfolio === undefined) return [];
+    return [{ date: formatDateShort(s.snapshotDate), rawDate: new Date(s.snapshotDate), portfolio }];
+  });
 
   const buildChartData = () => {
     const dateToRow = new Map<string, Record<string, number>>();

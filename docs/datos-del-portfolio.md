@@ -20,7 +20,7 @@ Punto de entrada principal. Muestra el estado actual del portfolio basado en el 
 
 | KPI | Cálculo |
 |---|---|
-| **Rendimiento vs snapshot anterior** | `(valorARS_actual - valorARS_anterior) / valorARS_anterior × 100` en %. |
+| **Rendimiento vs snapshot anterior** | Rendimiento del período sin contar compras, ventas ni movimientos del FCI (Dietz modificado, [logica-financiera.md](./logica-financiera.md#rendimiento-de-un-período-dietz-modificado)). El monto es `valor_actual − valor_anterior − aportes netos`. |
 | **P&L no realizado (ARS)** | `Σ (precio_actual - PPM) × cantidad` para todas las posiciones con PPM disponible. Refleja ganancia/pérdida latente respecto al precio promedio de compra. |
 | **Dividendos cobrados (USD)** | Suma acumulada de todos los dividendos registrados en moneda USD. |
 | **Posiciones activas** | Cantidad de CEDEARs distintos en el snapshot actual. |
@@ -65,12 +65,14 @@ Análisis del historial completo usando todos los snapshots importados.
 
 ### KPIs de performance
 
+Todas las métricas descuentan los aportes: el valor del portfolio sube con cada compra o suscripción al FCI aunque el mercado no se mueva (ADR-0019). Por eso necesitan los movimientos importados hasta la fecha del último snapshot; si faltan, la página lo avisa.
+
 | KPI | Cálculo |
 |---|---|
-| **Rendimiento del año (%)** | `(valorARS_último - valorARS_base_año) / valorARS_base_año × 100`. Base: último snapshot del año anterior, o el primero disponible. Muestra "—" si la base vale $0. |
-| **CAGR** (Tasa anual compuesta) | `(valorFinal / valorInicial)^(1/años) - 1`. Calculado en ARS desde el **primer snapshot con valor** (un snapshot de $0, como el primer export de una cuenta nueva, no sirve de base) hasta el último. |
-| **CAGR real** | CAGR nominal descontando la inflación anualizada del período (IPC): `(1 + CAGR) / (1 + inflación) - 1`. Requiere haber cargado el IPC. |
-| **Máx. Drawdown** | Mayor caída porcentual desde un pico: `max((peak - value) / peak)` desde el primer snapshot con valor. |
+| **Rendimiento del año (%)** | Rendimiento encadenado (TWR) desde la base del año, sin contar aportes. Base: último snapshot del año anterior, o el primero disponible. Debajo, la ganancia en pesos: `valor_último − valor_base − aportes netos`. |
+| **TIR anual** | Tasa anual que iguala el valor inicial, los flujos de las tenencias (compras, ventas, FCI, dividendos) y el valor final (XIRR). Calculada en ARS desde el **primer snapshot con valor** (un snapshot de $0, como el primer export de una cuenta nueva, no sirve de base) hasta el último. |
+| **TIR real** | TIR descontando la inflación anualizada del período (IPC): `(1 + TIR) / (1 + inflación) - 1`. Requiere haber cargado el IPC. |
+| **Máx. Drawdown** | Mayor caída porcentual desde un pico del índice sin aportes: `max((peak - value) / peak)`. |
 | **Snapshots importados** | Cantidad total de registros históricos disponibles. |
 
 ### Gráfico de evolución
@@ -79,18 +81,18 @@ Serie temporal del valor del portfolio con toggle ARS/USD.
 
 ### Comparación vs benchmarks
 
-Rendimiento normalizado del portfolio vs S&P 500 (`^GSPC`), Merval (`^MERV`) y NASDAQ (`^IXIC`). Los datos históricos se obtienen de Yahoo Finance y se almacenan en la tabla `BenchmarkPoint`. La base 100 es el primer snapshot con valor (un snapshot de $0 no sirve de base).
+Rendimiento del portfolio sin aportes (índice TWR base 100) vs S&P 500 (`^GSPC`), Merval (`^MERV`) y NASDAQ (`^IXIC`). Los datos históricos se obtienen de Yahoo Finance y se almacenan en la tabla `BenchmarkPoint`. La base 100 es el primer snapshot con valor (un snapshot de $0 no sirve de base).
 
 ### Comparación vs inflación
 
-Portfolio en ARS frente al **IPC acumulado** y al **CER/UVA** (argentinadatos.com), todos en base 100 desde el primer snapshot con valor. Escala logarítmica por defecto. Responde a la pregunta "¿le gané a la inflación en pesos?". Detalle del cálculo en [logica-financiera.md](./logica-financiera.md#inflación-y-rendimiento-real-libinflationts-appactionsindicests).
+Rendimiento del portfolio en ARS sin aportes frente al **IPC acumulado** y al **CER/UVA** (argentinadatos.com), todos en base 100 desde el primer snapshot con valor. Escala logarítmica por defecto. Responde a la pregunta "¿le gané a la inflación en pesos?". Detalle del cálculo en [logica-financiera.md](./logica-financiera.md#inflación-y-rendimiento-real-libinflationts-appactionsindicests).
 
 ### Timeline de snapshots
 
 Lista cronológica de todos los snapshots importados con:
 - Fecha
 - Valor total ARS
-- Variación porcentual vs el snapshot anterior (vacía si el anterior vale $0)
+- Rendimiento del período vs el snapshot anterior, sin contar aportes (vacío si no hay base positiva)
 
 ---
 
@@ -154,9 +156,9 @@ Calculadora de planificación para el retiro.
 | Output | Cálculo |
 |---|---|
 | **Capital necesario para jubilarse** | `gastos_mensuales × 12 / tasa_retiro` ajustado por inflación |
-| **Proyección del portfolio** | Crecimiento proyectado del capital actual asumiendo una tasa de retorno (configurable o basada en el CAGR histórico de la app) |
+| **Proyección del portfolio** | Crecimiento proyectado del capital actual asumiendo una tasa de retorno (configurable o basada en la TIR histórica en USD) |
 | **Años para alcanzar la meta** | Estimación en base a la proyección |
-| **CAGR histórico** | Calculado automáticamente desde los snapshots con valor en USD (> 0): `(último_USD / primero_USD)^(1/años) - 1` |
+| **TIR histórica en USD** | Calculada automáticamente desde los snapshots con valor en USD (> 0) y los flujos de las tenencias pasados a USD con el CCL de su fecha (XIRR). No cuenta los aportes como rendimiento. |
 
 ---
 
@@ -303,6 +305,7 @@ Detalle técnico en [integraciones.md](./integraciones.md).
 | **P&L latente / no realizado** | Ganancia o pérdida sobre posiciones que todavía se tienen (no se vendieron). |
 | **P&L realizado** | Ganancia o pérdida efectivamente concretada al vender una posición. |
 | **Snapshot** | Fotografía inmutable del estado del portfolio en una fecha específica, importada desde el CSV de Cocos Capital. |
-| **CAGR** | Compound Annual Growth Rate. Tasa de crecimiento anual compuesta. |
+| **TIR** | Tasa interna de retorno. Rendimiento anual de lo invertido, teniendo en cuenta cuándo entró y salió cada peso. |
+| **TWR** | Time-weighted return. Rendimiento encadenado de cada período, sin el efecto de los aportes; es lo que se compara contra benchmarks. |
 | **Drawdown** | Caída porcentual desde un máximo histórico. El máx. drawdown es la mayor caída registrada. |
 | **Benchmark** | Índice de referencia contra el que se compara el rendimiento (S&P 500, Merval, NASDAQ). |

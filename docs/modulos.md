@@ -25,8 +25,9 @@ Metadata raíz (`app/layout.tsx`): `title` por defecto `"Portfolio Jubilación"`
   - `getRebalanceData()` — `app/actions/rebalance.ts`
   - `getConcentrationData()` — `lib/analysis-data.ts`
   - `getPreviousSnapshotFull(snapshot.snapshotDate)`
+  - `getHoldingsFlows()` — `lib/portfolio-data.ts`
   - Luego, en el servidor: `calculateRetirementGoal({ ..., annualReturnRate: 0.1 })` — `lib/projections.ts`
-- **KPIs:** valor total ARS/USD, rendimiento vs snapshot anterior (`pctChange` de `lib/snapshot-returns.ts`: "—" si el anterior vale $0), P&L no realizado (precio snapshot vs PPM en ARS), dividendos USD, posiciones activas, CCL.
+- **KPIs:** valor total ARS/USD, rendimiento vs snapshot anterior sin aportes (`modifiedDietz` y `netContributions` de `lib/flow-returns.ts`: "—" sin base positiva), P&L no realizado (precio snapshot vs PPM en ARS), dividendos USD, posiciones activas, CCL.
 - **Componentes:** `SiteHeader` (título "Dashboard", acción `<ImportButton/>`), `SetupPanel` (wizard + checklist de puesta en marcha), `DashboardHero`, `DashboardKpiStrip`, `PortfolioChartWidget`, `AnalysisTools` (tarjetas resumen de Ganancia Real, Jubilación, Rebalanceo y Concentración con link a cada módulo), `PerformersPanel` (si hay previo), `AllocationPanel`, `HoldingsTable` (con `ppmData` y `marketPrices`), `MilestoneWidget`.
 - **Estado vacío:** `SetupPanel` + `EmptyDashboard` con CTA de importación.
 
@@ -56,9 +57,9 @@ Metadata raíz (`app/layout.tsx`): `title` por defecto `"Portfolio Jubilación"`
 ## `/performance` — Performance
 
 - **Archivo:** `app/(app)/performance/page.tsx`.
-- **Datos:** `getAllSnapshotPoints()`, `getBenchmarkPoints(id, fromDate)` para `sp500`, `merval`, `nasdaq` y `getIndexPoints(id, fromDate)` para `inflacion` y `cer`. Las métricas y los gráficos normalizados usan la serie desde el **primer snapshot con valor** (`performanceSeries`, [logica-financiera.md](./logica-financiera.md)); de ahí sale también `fromDate`.
-- **KPIs:** rendimiento del año (base = último snapshot del año anterior o el primero del año), **CAGR**, **CAGR real** (nominal deflactado por inflación), **máx. drawdown**, cantidad de snapshots. Sin base positiva muestran "—".
-- **Componentes:** `SiteHeader`, `PerformanceChart` (toggle ARS/USD, todos los snapshots), `BenchmarkOverlayChart` (normaliza a base 100 y carga benchmarks on-demand), `InflationChart` (portfolio vs IPC/CER, escala log por defecto, carga on-demand) y la tabla de registros importados.
+- **Datos:** `getAllSnapshotPoints()`, `getHoldingsFlows()`, `getBenchmarkPoints(id, fromDate)` para `sp500`, `merval`, `nasdaq` y `getIndexPoints(id, fromDate)` para `inflacion` y `cer`. Las métricas y los gráficos normalizados usan la serie desde el **primer snapshot con valor** (`performanceSeries`, [logica-financiera.md](./logica-financiera.md)); de ahí sale también `fromDate`.
+- **KPIs:** rendimiento del año (TWR; base = último snapshot del año anterior o el primero del año), **TIR anual**, **TIR real** (deflactada por inflación), **máx. drawdown** sobre el índice TWR. Todos sin contar aportes (`lib/flow-returns.ts`, ADR-0019); sin base positiva muestran "—". Si el último movimiento importado es anterior al último snapshot, un aviso pide importar el CSV de Actividad.
+- **Componentes:** `SiteHeader`, `PerformanceChart` (toggle ARS/USD, todos los snapshots), `BenchmarkOverlayChart` (portfolio como índice TWR base 100 vs benchmarks, carga on-demand), `InflationChart` (índice TWR vs IPC/CER, escala log por defecto, carga on-demand) y la tabla de registros con el rendimiento de cada período.
 - **Estado vacío:** mensaje con `TrendingUp` + `ImportButton`.
 
 ---
@@ -76,8 +77,8 @@ Metadata raíz (`app/layout.tsx`): `title` por defecto `"Portfolio Jubilación"`
 ## `/snapshots` — Listado de snapshots
 
 - **Archivo:** `app/(app)/snapshots/page.tsx`.
-- **Datos:** `getAllSnapshotPoints()` (se invierte para mostrar el más reciente primero).
-- **Muestra:** fecha, valor ARS, valor USD, CCL, cantidad de posiciones y variación % vs anterior (`pctChange`: sin badge si el anterior vale $0); enlace a `/snapshots/[id]` con `prefetch={true}`, que resuelve el detalle antes del click (ADR-0017, punto 6).
+- **Datos:** `getAllSnapshotPoints()` (se invierte para mostrar el más reciente primero) y `getHoldingsFlows()`.
+- **Muestra:** fecha, valor ARS, valor USD, CCL, cantidad de posiciones y rendimiento % del período sin aportes (`periodReturns`: sin badge si no hay base positiva); enlace a `/snapshots/[id]` con `prefetch={true}`, que resuelve el detalle antes del click (ADR-0017, punto 6).
 - **Componentes:** `SiteHeader` (+`ImportButton`), `Badge`, `Separator`, links.
 
 ---
@@ -127,7 +128,7 @@ Metadata raíz (`app/layout.tsx`): `title` por defecto `"Portfolio Jubilación"`
 ## `/retirement` — Planificación de jubilación
 
 - **Archivo:** `app/(app)/retirement/page.tsx`.
-- **Datos:** `getRetirementSettings()`, `getAllSnapshotPoints()`; `currentPortfolioUsd` del último snapshot con `totalValueUsd`; `historicalCagr` con `cagrPct` (`lib/snapshot-returns.ts`) sobre los snapshots con USD > 0 (requiere ≥2).
+- **Datos:** `getRetirementSettings()`, `getAllSnapshotPoints()`, `getHoldingsFlows()`; `currentPortfolioUsd` del último snapshot con `totalValueUsd`; `historicalCagr` es la TIR en USD (`holdingsXirr` con `flowsUsd`, `lib/flow-returns.ts`) sobre los snapshots con USD > 0 (requiere ≥2 y al menos 0,1 años).
 - **Componentes:** `SiteHeader`, `RetirementClient` (tabs Calculadora, Proyección, Monte Carlo).
 - **Cálculos:** `calculateRetirementGoal`, `buildProjectionCurve`, `runMonteCarlo` (500 simulaciones) de `lib/projections.ts`, memoizados. Tasa anual = `min(historicalCagr/100, 0.30)` o `0.07` por defecto.
 

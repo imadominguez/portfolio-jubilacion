@@ -94,20 +94,61 @@ Luego se descuenta la cantidad y el costo del estado del ticker. Se ordena por f
 
 ## Performance histórica (`app/(app)/performance/page.tsx`)
 
-Las fórmulas viven en `lib/snapshot-returns.ts` (con tests). Un snapshot puede valer $0 (p. ej. el primer export de una cuenta recién abierta) y es inmutable, así que no se corrige el dato: se evita usarlo como base.
+El valor de los snapshots sube con cada compra o suscripción al FCI aunque el mercado no se mueva, así que el rendimiento se mide **descontando los flujos** de las tenencias (ADR-0019). Las fórmulas viven en `lib/flow-returns.ts` y `lib/snapshot-returns.ts` (con tests); `getHoldingsFlows()` (`lib/portfolio-data.ts`) arma los flujos del usuario.
 
-- **Sin base positiva no hay porcentaje.** `pctChange` y `cagrPct` devuelven `null` y la UI muestra "—" (antes salía `+Infinity%` o un CAGR de 0%).
-- **La serie de rendimiento arranca en el primer snapshot con valor** (`performanceSeries`). De ahí salen el CAGR, el rendimiento del año, el drawdown, la fecha desde la que se piden benchmarks e índices, y los gráficos normalizados (benchmarks e inflación). El gráfico de evolución y la tabla de registros siguen mostrando todos los snapshots.
+- **La serie de rendimiento arranca en el primer snapshot con valor** (`performanceSeries`). Un snapshot puede valer $0 (p. ej. el primer export de una cuenta recién abierta) y es inmutable, así que no se corrige el dato: se evita usarlo como base. De ahí salen la TIR, el rendimiento del año, el drawdown, la fecha desde la que se piden benchmarks e índices, y los gráficos normalizados. El gráfico de evolución y la tabla de registros siguen mostrando todos los snapshots.
+- **Sin base positiva no hay porcentaje:** las funciones devuelven `null` y la UI muestra "—".
 
-### CAGR
+### Flujos de las tenencias
+
+Lo medido es todo lo que figura en el snapshot (CEDEARs, bonos, FCI). Un flujo es un movimiento que cruza ese borde (`flowsFromMovements`):
+
+| Categoría | ¿Flujo? |
+|---|---|
+| `TRADE_BUY`, `TRADE_SELL`, `FCI_SUBSCRIPTION`, `FCI_REDEMPTION`, `DIVIDEND`, `DIVIDEND_IN_KIND` | Sí |
+| `OTHER` con instrumento (bonos para dólar MEP) | Sí |
+| `PAYMENT`, `RECEIPT`, `CONVERSION`, `OTHER` sin instrumento | No (mueven efectivo, que no está en el snapshot) |
+
+Signo del inversor: `amount < 0` es plata que entra a las tenencias (compra, suscripción) y `amount > 0` la que sale (venta, rescate, dividendo). Los movimientos en USD se pasan a ARS con el CCL de su fecha (último registro en o antes de esa fecha); los que no tienen CCL se cuentan aparte (`sinCcl`). Los flujos en USD (Jubilación) son cada flujo en ARS dividido por el CCL de su fecha.
+
+### Rendimiento de un período (Dietz modificado)
+
+Para dos snapshots consecutivos, con los flujos `f` de `(inicio, fin]`:
 
 ```
-CAGR = ((V_final / V_inicial) ^ (1 / años) − 1) × 100
+aporte_f   = −amount_f
+peso_f     = (fecha_fin − fecha_f) / (fecha_fin − fecha_inicio)
+base       = V_inicio + Σ aporte_f × peso_f
+período %  = (V_fin − V_inicio − Σ aporte_f) / base × 100      (null si base ≤ 0)
 ```
 
-`años = (fecha_último − fecha_primero) / 365`. Se muestra solo si `años ≥ 0.1`.
+Es el porcentaje de la tabla de registros de `/performance` y de la lista de `/snapshots`, y el "Rendimiento vs snapshot anterior" del Dashboard.
+
+### Índice TWR y rendimiento del año
+
+```
+índice_0 = 100
+índice_n = índice_{n−1} × (1 + período_n / 100)
+```
+
+Un período `null` corta la cadena: desde ahí el índice es `null`. `twrBetween(desde, hasta)` es el índice final − 100 sobre ese tramo.
+
+- **Rendimiento del año** = `twrBetween(base, último)`. Base = último snapshot del año anterior; si no existe, el primero del año en curso.
+- **Ganancia del año (ARS)** = `V_último − V_base − aportes netos del tramo` (`netContributions`).
+- Los gráficos contra benchmarks e inflación usan este índice en lugar de normalizar el valor (prop `portfolioIndex`).
+
+### TIR anual (XIRR)
+
+```
+flujos = [−V_primero en fecha_primero] + flujos de (primero, último] + [+V_último en fecha_último]
+Σ flujo_i / (1 + TIR) ^ ((fecha_i − fecha_0) / 365) = 0
+```
+
+Se resuelve por bisección en `[−99,99 %, 10.000 %]` (`xirr`); `null` si no hay flujos de ambos signos o no hay solución. Se muestra solo si `años ≥ 0.1`. En USD (`flowsUsd` y `totalValueUsd`) es la tasa histórica de Jubilación.
 
 ### Máximo Drawdown
+
+Sobre el índice TWR (sin aportes):
 
 ```
 peak_t = máx(p_0 .. p_t)
@@ -115,19 +156,9 @@ DD_t   = (peak_t − p_t) / peak_t
 MaxDD  = máx(DD_t) × 100
 ```
 
-### Rendimiento del año
+### Cobertura de movimientos
 
-Base = último snapshot del año anterior; si no existe, el primero del año en curso.
-
-```
-rendimientoAnualPct = (V_último − V_base) / V_base × 100
-```
-
-### Variación entre snapshots consecutivos
-
-```
-((snapshot_actual − snapshot_previo) / snapshot_previo) × 100
-```
+Si no hay movimientos importados, o el último es anterior al último snapshot por más de un día, `/performance` muestra un aviso con link a `/transactions`: sin esos movimientos, una venta o un rescate del FCI se lee como pérdida.
 
 ---
 
@@ -141,7 +172,7 @@ Los índices (`^GSPC`, `^MERV`, `^IXIC`) se normalizan a **base 100** en su prim
 normalizedValue = (value / firstValue) × 100
 ```
 
-Esto permite superponerlos con el portafolio normalizado de la misma forma en `BenchmarkOverlayChart`.
+Esto permite superponerlos en `BenchmarkOverlayChart` con el índice TWR del portafolio (base 100, sin aportes; ver Performance histórica).
 
 ---
 
@@ -165,7 +196,7 @@ realPct = ((1 + nominal/100) / (1 + inflación/100) − 1) × 100
 ```
 
 - `annualize(totalPct, años)` lleva el total del período a tasa anual compuesta.
-- El KPI "CAGR real" de `/performance` = `realReturnPct(cagr, annualize(inflaciónPeríodo, años))`.
+- El KPI "TIR real" de `/performance` = `realReturnPct(tir, annualize(inflaciónPeríodo, años))`.
 - La inflación del período se mide con `indexChangePct(serie, primeraFecha, últimaFecha)` (usa IPC; si no hay, CER).
 
 > Nota: el gráfico `InflationChart` usa escala **logarítmica** por defecto, porque con inflación alta la escala lineal aplasta al portfolio.

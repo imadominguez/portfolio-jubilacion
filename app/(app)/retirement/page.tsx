@@ -4,8 +4,8 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { RetirementClient } from "@/components/retirement/retirement-client";
 import { RetirementSkeleton } from "@/components/retirement/retirement-skeleton";
 import { getRetirementSettings } from "@/app/actions/retirement";
-import { getAllSnapshotPoints } from "@/lib/portfolio-data";
-import { cagrPct } from "@/lib/snapshot-returns";
+import { getAllSnapshotPoints, getHoldingsFlows } from "@/lib/portfolio-data";
+import { holdingsXirr } from "@/lib/flow-returns";
 
 export const metadata: Metadata = { title: "Planificación de jubilación" };
 
@@ -39,9 +39,10 @@ export default function RetirementPage() {
 }
 
 async function Retirement() {
-  const [settings, snapshots] = await Promise.all([
+  const [settings, snapshots, flows] = await Promise.all([
     getRetirementSettings(),
     getAllSnapshotPoints(),
+    getHoldingsFlows(),
   ]);
 
   const latestSnapshot = snapshots.at(-1);
@@ -52,11 +53,14 @@ async function Retirement() {
   if (usdSnapshots.length >= 2) {
     const first = usdSnapshots[0];
     const last = usdSnapshots[usdSnapshots.length - 1];
-    const daysDiff =
-      (new Date(last.snapshotDate).getTime() - new Date(first.snapshotDate).getTime()) /
-      (1000 * 60 * 60 * 24);
-    const yearsDiff = daysDiff / 365;
-    historicalCagr = cagrPct(first.totalValueUsd!, last.totalValueUsd!, yearsDiff) ?? 0;
+    const yearsDiff =
+      (last.snapshotDate.getTime() - first.snapshotDate.getTime()) / (1000 * 60 * 60 * 24 * 365);
+    // TIR en USD: el crecimiento del valor incluye los aportes y sobreestimaría
+    // el rendimiento proyectado (ADR-0019). Con menos de ~1 mes, anualizar no informa.
+    if (yearsDiff >= 0.1) {
+      const points = usdSnapshots.map((s) => ({ date: s.snapshotDate, value: s.totalValueUsd! }));
+      historicalCagr = holdingsXirr(points, flows.flowsUsd) ?? 0;
+    }
   }
 
   return (
