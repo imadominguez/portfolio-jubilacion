@@ -133,3 +133,42 @@ export function estimateCostUsd(
     1_000_000
   );
 }
+
+// ─── Parámetros según el modelo ───────────────────────────────────────────────
+// No todos los modelos aceptan lo mismo: mandar un parámetro no soportado es un
+// 400. Thinking adaptativo + effort: familias 4.6 en adelante. `fallbacks:
+// "default"` (reintento server-side si el modelo rechaza por sus
+// clasificadores): solo los modelos que lo admiten en la Claude API.
+
+export type Effort = "low" | "medium" | "high" | "xhigh" | "max";
+
+const EFFORT_MODELS = [
+  "claude-fable-5-1",
+  "claude-opus-5-5",
+  "claude-opus-5",
+  "claude-opus-4-8",
+  "claude-opus-4-7",
+  "claude-opus-4-6",
+  "claude-sonnet-5-5",
+  "claude-sonnet-5",
+  "claude-sonnet-4-6",
+];
+const FALLBACK_MODELS = ["claude-fable-5-1", "claude-opus-5-5", "claude-opus-5", "claude-sonnet-5-5"];
+
+// Id exacto o con sufijo de fecha (`-AAAAMMDD`). Un sufijo cualquiera no alcanza:
+// `claude-sonnet-5-5` no es una variante de `claude-sonnet-5`.
+function matchesModel(model: string, ids: string[]): boolean {
+  return ids.some((id) => model === id || (model.startsWith(`${id}-`) && /^\d{8}$/.test(model.slice(id.length + 1))));
+}
+
+export function modelRequestOptions(model: string, effort: Effort) {
+  const supportsEffort = matchesModel(model, EFFORT_MODELS);
+  const supportsFallback = matchesModel(model, FALLBACK_MODELS);
+  return {
+    thinking: supportsEffort ? ({ type: "adaptive" } as const) : undefined,
+    effort: supportsEffort ? effort : undefined,
+    fallbacks: supportsFallback
+      ? { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const }
+      : undefined,
+  };
+}
