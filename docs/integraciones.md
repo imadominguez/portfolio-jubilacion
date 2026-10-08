@@ -120,6 +120,17 @@ Detalle completo en [api-y-exportacion.md](./api-y-exportacion.md#post-apianalyz
 
 ---
 
+## 6. Gmail (SMTP) — alertas por mail
+
+Decisión y motivos: [ADR-0020](./adr/0020-alertas-por-mail-con-cron-y-gmail-smtp.md).
+
+- `nodemailer` contra `smtp.gmail.com:465` (TLS) en `lib/mailer.ts`, con timeouts de conexión, saludo y socket de 15 s.
+- Variables: `GMAIL_USER` (la cuenta que envía) y `GMAIL_APP_PASSWORD` (contraseña de aplicación de Google, requiere verificación en dos pasos). Sin ellas, `/alertas` avisa y el envío falla con un error claro.
+- Remitente `"Portfolio Jubilación" <GMAIL_USER>`; destinatario, el email de la cuenta del usuario.
+- El cron diario también pide a Yahoo los cierres del último año y los titulares de cada acción del último snapshot; no los guarda en las caches.
+
+---
+
 ## Resumen
 
 | Fuente | Dato | Actualización | Cache |
@@ -131,7 +142,9 @@ Detalle completo en [api-y-exportacion.md](./api-y-exportacion.md#post-apianalyz
 | Yahoo Finance | Precios actuales e históricos | Manual (botones) | `market_price_cache`, `historical_price_cache`, `benchmark_points` |
 | Yahoo Finance | Titulares de noticias por acción | Al generar el reporte | No se guardan (solo en el reporte) |
 | Anthropic | Reporte de oportunidades | Manual (botón en `/portfolio`) | `portfolio_reports` |
+| Yahoo Finance | Cierres y titulares para las alertas | Automático (cron diario) | No se guardan; lo enviado queda en `alert_logs` |
+| Gmail (SMTP) | Envío de las alertas | Automático (cron diario) o manual en `/alertas` | — |
 
 Variables de entorno relacionadas: `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `ANTHROPIC_EFFORT`, `ANTHROPIC_TIMEOUT_MS`, `DATABASE_URL` (ver [arquitectura.md](./arquitectura.md#variables-de-entorno)).
 
-La decisión de cachear todo en DB y refrescar solo con botones está registrada en [ADR-0006](./adr/0006-datos-externos-cacheados-en-db-con-refresco-manual.md).
+La decisión de cachear todo en DB y refrescar solo con botones está registrada en [ADR-0006](./adr/0006-datos-externos-cacheados-en-db-con-refresco-manual.md). La única corrida automática es el cron de alertas, que no escribe las caches ([ADR-0020](./adr/0020-alertas-por-mail-con-cron-y-gmail-smtp.md)).

@@ -93,6 +93,7 @@ Organizados por dominio. Los componentes de `components/ui/` son primitivas shad
 | `real-gains/real-gains-update-button.tsx` | CC | Actualiza CCL histórico y precios de acciones en paralelo (`Promise.all`). |
 | `real-gains/kpi-card.tsx`, `breakdown-bar.tsx`, `positions-table.tsx`, `methodology-note.tsx` | SC | Bloques de `/real-gains`: KPIs, barra de desglose apreciación vs impacto CCL, tabla por posición con cobertura de datos y nota metodológica. Reciben `RealGainsSummary`. |
 | `taxes/tax-report-view.tsx` | SC | `report: TaxReport`. Las tres secciones de `/impuestos` (tenencia al cierre, ventas, dividendos) con tablas, totales por moneda y avisos (snapshot fuera del cierre, ventas sin compras o en otra moneda). |
+| `alerts/alert-settings-form.tsx` | CC | `initial`, `mailerReady`. Formulario de `/alertas`: switch de activación, umbrales y día del recordatorio, y botones Guardar / Mandar mail de prueba / Revisar ahora (deshabilitados sin Gmail configurado). Copia la configuración a su estado: la página le pasa un `key` derivado de los datos. |
 | `market/indices-update-button.tsx` | CC | Actualiza IPC y CER/UVA juntos (`fetchAndSaveAllIndices`). Se usa en `/datos`; en `/performance`, `InflationChart` descarga cada índice por separado. |
 | `ccl/ccl-chart.tsx` | CC | `rates`, `snapshots`. Gráfico de CCL con overlay del portafolio USD (doble eje Y). |
 | `exchange-rate/ccl-update-button.tsx` | CC | Actualiza el CCL actual (`fetchAndSaveCCL`); toast indica si ya existía. En `/datos`, `/ccl` y `/assets`. |
@@ -120,6 +121,7 @@ Cada página pone sus lecturas dentro de `<Suspense>` con un skeleton que tambi�
 | `rebalance/rebalance-skeleton.tsx`, `plan/plan-skeleton.tsx` | `/rebalance`, `/plan` |
 | `retirement/retirement-skeleton.tsx` | `/retirement` |
 | `taxes/tax-report-skeleton.tsx` | `/impuestos` |
+| `alerts/alerts-skeleton.tsx` | `/alertas` |
 | `transactions/transactions-skeleton.tsx` | `/transactions` |
 | `assets/assets-skeleton.tsx`, `strategy/strategy-skeleton.tsx`, `settings/milestones-skeleton.tsx` | `/assets`, `/strategy`, `/settings` |
 | `auth/auth-card-skeleton.tsx` — `AuthCardSkeleton` | `/login`, `/register` (mismo fondo y tarjeta que los formularios) |

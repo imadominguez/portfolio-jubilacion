@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Activity,
+  Bell,
   ArrowLeftRight,
   BarChart3,
   CalendarDays,
@@ -50,6 +51,7 @@ const COMMANDS: CommandEntry[] = [
   { label: "Jubilación", href: "/retirement", group: "Análisis", icon: Target },
   { label: "Impuestos", href: "/impuestos", group: "Análisis", icon: Receipt },
   { label: "Centro de Datos", href: "/datos", group: "Datos", icon: Database },
+  { label: "Alertas", href: "/alertas", group: "Datos", icon: Bell },
   { label: "Transacciones", href: "/transactions", group: "Datos", icon: ArrowLeftRight },
   { label: "Guía Cocos", href: "/guia", group: "Datos", icon: HelpCircle },
 ];

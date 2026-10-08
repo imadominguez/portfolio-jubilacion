@@ -67,6 +67,11 @@ export function revalidateRetirement(userId: string): void {
   updateTag(userTags.retirement(userId));
 }
 
+// Configuración e historial de alertas por mail.
+export function revalidateAlerts(userId: string): void {
+  updateTag(userTags.alerts(userId));
+}
+
 // Estado de onboarding (UserSetup).
 export function revalidateSetup(userId: string): void {
   updateTag(userTags.setup(userId));

@@ -141,3 +141,13 @@ export type PortfolioReport = Prisma.PortfolioReportModel
  * 
  */
 export type Movement = Prisma.MovementModel
+/**
+ * Model AlertSettings
+ * 
+ */
+export type AlertSettings = Prisma.AlertSettingsModel
+/**
+ * Model AlertLog
+ * 
+ */
+export type AlertLog = Prisma.AlertLogModel

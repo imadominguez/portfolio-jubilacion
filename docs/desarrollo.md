@@ -103,6 +103,8 @@ o con Prisma Studio. Alternativas de bootstrap:
 | `ANTHROPIC_TIMEOUT_MS` | Opcional | Timeout del análisis en ms (default y máximo `290000`, por debajo de `maxDuration`). |
 | `SEED_ADMIN_EMAIL` | Opcional | Emails (coma-separados) a promover en el seed. |
 | `ALLOW_PUBLIC_SIGNUP` | Opcional | `true` reactiva el registro público en `/register` (por defecto cerrado). |
+| `GMAIL_USER` / `GMAIL_APP_PASSWORD` | Para las alertas | Cuenta de Gmail y contraseña de aplicación con las que se mandan las alertas (`lib/mailer.ts`). |
+| `CRON_SECRET` | Producción | Secreto que Vercel Cron manda en `Authorization: Bearer …` a `/api/cron/alerts`. |
 
 ---
 

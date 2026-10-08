@@ -494,6 +494,33 @@ Se omiten los de monto 0. Cocos no informa de qué CEDEAR viene cada dividendo e
 
 ---
 
+## Alertas por mail (`lib/alerts.ts`)
+
+Ver [ADR-0020](./adr/0020-alertas-por-mail-con-cron-y-gmail-smtp.md). Se revisa una vez por día (cron a las 9 de Argentina) y se manda un único mail por usuario.
+
+### Caídas
+
+Para cada posición del último snapshot con subyacente, sobre los cierres diarios del último año en USD (Yahoo):
+
+```
+desdeMáximo = (último − máx52s) / máx52s × 100                 (priceSignals)
+5 ruedas    = (último − cierre de 5 ruedas antes) / ese cierre × 100   (sessionChangePct)
+alerta si   desdeMáximo ≤ −umbralMáximo  o  5 ruedas ≤ −umbralSemanal  (15 % y 8 % por defecto)
+```
+
+**No repetir** (`shouldNotifyDrop`): vuelve a avisar si pasaron 7 días desde el último aviso de ese ticker o si `desdeMáximo` bajó al menos 5 puntos más que el valor avisado (`AlertLog.value`).
+
+### Recordatorio de carga
+
+Desde el día `reminderDay` del mes (fecha local de Argentina), para el mes anterior `M` (`reminderMonth`):
+
+- Falta el snapshot si el último es anterior al 1° de `M`.
+- Faltan los movimientos si el último es anterior a la última semana de `M` (fin de mes − 7 días).
+
+Se repite cada 3 días (`shouldNotifyReminder`) mientras falte algo.
+
+---
+
 ## Reglas transversales
 
 1. Todos los valores financieros se guardan como `Decimal` y se leen con `Number(...)`.

@@ -58,7 +58,7 @@ Layering rules:
 - **All mutations are Server Actions** in `app/actions/`, starting with `requireAuth()` (`lib/auth-session.ts`) and returning a discriminated union `{ success: true, ... } | { success: false, error: string }` (catch errors, don't throw to the client).
 - Reads are cached per domain: the exported getter resolves the user and calls an unexported `'use cache'` function with `cacheLife("hours")` and one `cacheTag` per domain it reads (tag builders in `lib/cache-tags.ts`; never export a cached function taking `userId` — in a `"use server"` file it becomes a callable action). Reads with no request data (global market data) call `await connection()` first so they don't hit the DB during `next build` (CI has no DB).
 - After a mutation, invalidate via the helpers in `lib/revalidate.ts` (e.g. `revalidatePortfolioData(userId)`), which `updateTag` the written domain — never ad-hoc `revalidatePath`. `updateTag` only works in Server Actions; use `revalidateTag(tag, "max")` in Route Handlers.
-- **`lib/` is pure domain logic without Prisma**, except the read helpers `portfolio-data.ts`, `analysis-data.ts`, `real-gains-data.ts`, `tax-report-data.ts`. New calculations go in `lib/` as pure functions with a colocated `*.test.ts`.
+- **`lib/` is pure domain logic without Prisma**, except the read helpers `portfolio-data.ts`, `analysis-data.ts`, `real-gains-data.ts`, `tax-report-data.ts`, and `alerts-runner.ts` (runs the daily email alerts and writes `AlertLog`, ADR-0020). New calculations go in `lib/` as pure functions with a colocated `*.test.ts`.
 - Prisma client is the singleton from `lib/db.ts` (driver adapter `PrismaPg`); generated client in `app/generated/prisma` — don't edit. No raw SQL in app code.
 - **Multi-user data isolation:** domain rows carry `userId`; every read/delete must filter by the current user (`requireUserId()` from `lib/auth-session.ts`), including export API routes.
 
@@ -91,7 +91,7 @@ Import pipeline: the Cocos movements CSV is parsed and categorized by `lib/cocos
 
 ## Environment
 
-`DATABASE_URL` (required), `NEXT_PUBLIC_APP_URL`, `BETTER_AUTH_SECRET`/`BETTER_AUTH_URL` (prod), `ANTHROPIC_API_KEY` (+ optional `ANTHROPIC_MODEL`, `ANTHROPIC_EFFORT`, `ANTHROPIC_TIMEOUT_MS`) for the AI opportunities report at `/portfolio` (`app/api/analyze-portfolio/route.ts`, ADR-0018: the app prepares prices and news, Claude only judges; `@anthropic-ai/sdk` with structured outputs, default model `claude-sonnet-5-5`), `SEED_ADMIN_EMAIL`, `ALLOW_PUBLIC_SIGNUP`.
+`DATABASE_URL` (required), `NEXT_PUBLIC_APP_URL`, `BETTER_AUTH_SECRET`/`BETTER_AUTH_URL` (prod), `ANTHROPIC_API_KEY` (+ optional `ANTHROPIC_MODEL`, `ANTHROPIC_EFFORT`, `ANTHROPIC_TIMEOUT_MS`) for the AI opportunities report at `/portfolio` (`app/api/analyze-portfolio/route.ts`, ADR-0018: the app prepares prices and news, Claude only judges; `@anthropic-ai/sdk` with structured outputs, default model `claude-sonnet-5-5`), `SEED_ADMIN_EMAIL`, `ALLOW_PUBLIC_SIGNUP`, `GMAIL_USER`/`GMAIL_APP_PASSWORD` (email alerts via Gmail SMTP, `lib/mailer.ts`) and `CRON_SECRET` (Vercel Cron → `/api/cron/alerts`; the proxy lets `/api/cron/*` through without a session, so every cron route must check it).
 
 <!-- BEGIN:nextjs-agent-rules -->
 
