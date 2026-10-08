@@ -358,6 +358,52 @@ currentValueUsd ≥ targetValueUsd  →  reached = true, reachedAt = now
 
 ---
 
+## Reporte de oportunidades (`lib/opportunity-signals.ts`, `lib/opportunity-report.ts`)
+
+La app calcula estos datos sin IA y Claude solo decide la señal por acción ([ADR-0018](./adr/0018-reporte-de-oportunidades-con-datos-preparados-por-la-app.md)). Todo es puro y tiene tests.
+
+### Señales de precio (`priceSignals`)
+
+Sobre el último año de cierres diarios del subyacente (Yahoo), ordenados por fecha y sin cierres `≤ 0`:
+
+```
+último        = cierre más reciente
+variación_N   = pctChange(último, cierre en o antes de (fecha_último − N días))   N = 30, 91, 365
+máx_52s, mín_52s = máximo y mínimo de los cierres de los últimos 365 días
+desde_máximo  = (último − máx_52s) / máx_52s × 100      (≤ 0)
+desde_mínimo  = (último − mín_52s) / mín_52s × 100      (≥ 0)
+```
+
+Si no hay cierre anterior a la fecha buscada, esa variación es `null` ("s/d" en la entrada de Claude). Sin cierres válidos, la acción queda fuera del análisis.
+
+### CEDEAR vs precio promedio de compra
+
+```
+vs_promedio = (precio CEDEAR ARS del snapshot − PPM ARS) / PPM ARS × 100
+```
+
+Solo con PPM en ARS (`calculatePPM`); sin PPM se informa "s/d".
+
+### Filtro de noticias (`selectNews`)
+
+De los titulares de la búsqueda de Yahoo para el subyacente, se queda con los que cumplen **todo**:
+
+- publicados en los últimos **30 días**;
+- el ticker es el **principal** de la nota (`relatedTickers[0]`), **o** el título nombra el ticker como palabra, **o** nombra la empresa (primera palabra de 4+ letras del nombre del instrumento, sin el prefijo "CEDEAR");
+- sin títulos repetidos.
+
+Ordenados del más nuevo al más viejo, hasta **5** por acción.
+
+### Costo por reporte (`estimateCostUsd`)
+
+```
+costo = (entrada × p_entrada + salida × p_salida + cache_write × p_cache_write + cache_read × p_cache_read) / 1.000.000
+```
+
+Con los precios (USD por millón de tokens) del **modelo que respondió**, de la tabla `MODEL_PRICING`. Si el modelo no está en la tabla, el costo es `null` (no se informa uno equivocado). Medición de referencia: 14 acciones, 6.222 tokens de entrada y 5.314 de salida con `claude-sonnet-5` sin `effort` → US$ 0,0656.
+
+---
+
 ## Reglas transversales
 
 1. Todos los valores financieros se guardan como `Decimal` y se leen con `Number(...)`.

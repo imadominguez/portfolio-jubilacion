@@ -95,6 +95,7 @@ lib/
   projections.ts                Cálculos puros de jubilación (sin Prisma)
   inflation.ts                  Índice acumulado de IPC, anualización y rendimiento real
   dca-planner.ts                Plan DCA determinista (water-filling sobre el gap)
+  snapshot-returns.ts           Variación %, CAGR, drawdown y serie de rendimiento (sin base $0)
   opportunity-signals.ts        Señales de precio y filtro de noticias del reporte de oportunidades
   opportunity-report.ts         Esquema de salida, entrada compacta y costo por modelo del reporte
   http.ts                       fetchWithTimeout para las APIs externas
@@ -102,7 +103,7 @@ lib/
   setup-status.ts               Derivación pura del estado de onboarding/setup
   glossary.ts                   Definiciones de términos financieros (tooltips)
   benchmarks-config.ts          Catálogo de benchmarks
-  yahoo-finance-client.ts       Cliente Yahoo (cookie + crumb)
+  yahoo-finance-client.ts       Cliente Yahoo: precios (cookie + crumb, re-auth ante 401/403) y titulares de noticias
   onboarding/                   Definición de pasos, storage localStorage, targets
   utils.ts                      cn() y helpers
 prisma/

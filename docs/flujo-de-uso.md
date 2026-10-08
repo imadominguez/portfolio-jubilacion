@@ -129,7 +129,12 @@ Una vez importado el snapshot, estas son las secciones principales (el detalle d
 #### Assets (`/assets`) — solo ADMIN
 - Catálogo de CEDEARs con su ratio de conversión, subyacente, sector, industria y país
 - Permite agregar, editar y eliminar activos de referencia (el catálogo es compartido por todos los usuarios)
-- El ratio y el subyacente se usan para los cálculos en USD (precios de Yahoo, ganancia real, plan DCA)
+- El ratio y el subyacente se usan para los cálculos en USD (precios de Yahoo, ganancia real, plan DCA, reporte de oportunidades)
+
+#### Oportunidades (`/portfolio`) — solo ADMIN
+- **Generar reporte**: para cada acción del último snapshot, la app baja el precio del último año y los titulares de noticias recientes, y Claude dice si es oportunidad de **compra**, **mantener** o **venta**, con el motivo, los riesgos y su confianza
+- No habla de porcentajes de tenencia: el reparto del aporte está en el Plan DCA
+- Al pie de cada reporte se ve el costo de esa corrida; los reportes quedan en el historial
 
 ---
 
@@ -170,7 +175,7 @@ dolarapi / argentinadatos / Yahoo ──► caches en DB (CCL, precios, benchmar
 
 | Frecuencia | Acción |
 |---|---|
-| **Mensual** | Exportar e importar un snapshot nuevo y el CSV de movimientos del mes; actualizar CCL y precios en `/datos`; revisar el Plan DCA |
+| **Mensual** | Exportar e importar un snapshot nuevo y el CSV de movimientos del mes; actualizar CCL y precios en `/datos`; revisar el Plan DCA; generar el reporte de oportunidades en `/portfolio` (ADMIN) |
 | **Semestral** | Revisar la página de Performance para evaluar el crecimiento del portfolio |
 | **Cuando cambia un ratio** | Actualizar el ratio CEDEAR correspondiente en la sección Assets |
 

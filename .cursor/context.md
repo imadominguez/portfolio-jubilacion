@@ -120,6 +120,7 @@ CEDEAR catalog (reference table):
 Milestone management:
 - Define target portfolio values in USD
 - Track reached status and date
+- The 5 default milestones are created once, when the user imports their first snapshot (deleting all of them does not bring them back)
 - Shown as progress widgets on the Dashboard
 
 ---

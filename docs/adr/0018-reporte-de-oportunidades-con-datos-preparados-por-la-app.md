@@ -41,7 +41,7 @@ El reporte pasa a ser **de oportunidades por acción**, y **la app prepara los d
 
 **Positivas**
 
-- Costo por reporte estimado en ~US$ 0,035–0,07 con Sonnet 5.5 (entrada de ~3.000 tokens para 14 acciones), de 6 a 10 veces menos que antes, y ahora medido y guardado en cada reporte.
+- Costo por reporte de unos centavos de dólar, varias veces menos que antes, y ahora medido y guardado en cada reporte. Primera medición real (14 acciones): 6.222 tokens de entrada y 5.314 de salida, US$ 0,0656, corriendo con `claude-sonnet-5` sin `effort`; con el modelo y el `effort: low` por defecto se espera menos salida.
 - Más rápido (sin búsquedas web: segundos de Yahoo más una sola respuesta del modelo) y sin JSON inválido.
 - Las métricas de precio son deterministas y testeadas; el modelo no las inventa.
 
@@ -56,7 +56,7 @@ El reporte pasa a ser **de oportunidades por acción**, y **la app prepara los d
 
 - Cambios al formato del reporte: actualizar juntos `OpportunityAnalysisSchema` y sus tests, `OpportunityReportDisplay` y, si hace falta, el criterio en `lib/default-strategy.ts`. No volver a describir el JSON en el prompt.
 - Todo dato numérico que Claude necesite se calcula en `lib/` (puro, con tests) y se le pasa en `buildAnalysisInput`; el modelo no busca precios.
-- Al cambiar de modelo, agregar sus precios a `MODEL_PRICING`.
+- Al cambiar de modelo, agregar sus precios a `MODEL_PRICING` y sus capacidades (thinking, `effort`, `fallbacks`) a `modelRequestOptions`.
 - Nunca editar una versión de `InvestmentStrategy` existente: siempre crear una nueva (igual que ADR-0011).
 - La llamada sigue en un route handler (ADR-0002), con timeout acotado por debajo de `maxDuration` y cancelación desde el cliente.
 
@@ -64,3 +64,8 @@ El reporte pasa a ser **de oportunidades por acción**, y **la app prepara los d
 
 - `app/api/analyze-portfolio/route.ts`, `lib/opportunity-signals.ts`, `lib/opportunity-report.ts`, `lib/yahoo-finance-client.ts` (`getNews`), `lib/default-strategy.ts`, `components/analysis/opportunity-*.tsx`.
 - Referencia de la API de Claude: structured outputs (`output_config.format`), thinking adaptativo y `fallbacks`.
+
+## Seguimiento
+
+- **2026-10-08 — Primera corrida real.** 14 acciones con datos (COCORMA y VALO sin subyacente en Yahoo), 5 compras, 1 venta y 8 mantener, ~75 s. Entrada: 6.222 tokens (el prompt de estrategia son 866; la estimación por caracteres había dado ~3.000). Salida: 5.314 tokens. Costo: US$ 0,0656. Corrió con `claude-sonnet-5` porque `ANTHROPIC_MODEL` lo fijaba, y en ese momento el route no le mandaba `effort` a ese modelo.
+- **`effort` por modelo (#24).** `modelRequestOptions` (`lib/opportunity-report.ts`) manda thinking adaptativo + `effort` a todos los modelos que lo aceptan (familias 4.6 en adelante, incluido `claude-sonnet-5`) y `fallbacks: "default"` solo a Sonnet 5.5, Opus 5.5, Opus 5 y Fable 5.1.

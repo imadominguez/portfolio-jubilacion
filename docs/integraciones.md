@@ -108,11 +108,11 @@ Decisión y motivos: [ADR-0018](./adr/0018-reporte-de-oportunidades-con-datos-pr
 
 - **SDK oficial** `@anthropic-ai/sdk` (`client.beta.messages.parse`), sin streaming: la respuesta es corta.
 - Variables de entorno: `ANTHROPIC_API_KEY` (obligatoria), `ANTHROPIC_MODEL` (default `claude-sonnet-5-5`), `ANTHROPIC_EFFORT` (default `low`: `low|medium|high|xhigh|max`), `ANTHROPIC_TIMEOUT_MS` (default y máximo `290000`, por debajo de `maxDuration`).
-- **Entrada:** la app prepara los datos (precios de Yahoo, titulares de noticias de Yahoo, precio promedio de compra) y le pasa a Claude un texto compacto por acción (~3.000 tokens para 14 acciones). Claude **no** busca en la web.
+- **Entrada:** la app prepara los datos (precios de Yahoo, titulares de noticias de Yahoo, precio promedio de compra) y le pasa a Claude un texto compacto por acción (medido: ~6.200 tokens de entrada para 14 acciones). Claude **no** busca en la web.
 - **Salida:** structured output con `OpportunityAnalysisSchema` (`lib/opportunity-report.ts`): señal `compra` / `mantener` / `venta` por acción, con confianza y una lectura corta de precio, noticias, motivo y riesgos. La respuesta siempre valida contra el esquema.
 - `system` = contenido de la `InvestmentStrategy` activa (editable y versionada en `/strategy`): define solo el **criterio**; el formato lo fija el esquema.
 - Thinking adaptativo con el `effort` configurado, y `fallbacks: "default"` (beta `server-side-fallback-2026-07-01`): si el modelo rechaza por sus clasificadores de seguridad, la API reintenta en otro modelo. Cada parámetro va solo a los modelos que lo aceptan (`modelRequestOptions`): `effort` y thinking también a `claude-sonnet-5`; `fallbacks`, solo a Sonnet 5.5, Opus 5.5, Opus 5 y Fable 5.1.
-- **Costo:** `estimateCostUsd(response.model, usage)` usa los precios del modelo que respondió (`MODEL_PRICING`; `null` si no está). Se guarda en el reporte (`uso`) y se muestra al pie. Estimado con Sonnet 5.5: ~US$ 0,035–0,07 por reporte.
+- **Costo:** `estimateCostUsd(response.model, usage)` usa los precios del modelo que respondió (`MODEL_PRICING`; `null` si no está). Se guarda en el reporte (`uso`) y se muestra al pie. Primera medición real: US$ 0,0656 (6.222 tokens de entrada, 5.314 de salida, `claude-sonnet-5` sin `effort`).
 - `maxDuration = 300` s en el route; el timeout propio se acota a 290 s para devolver un `504` claro antes de que la plataforma corte.
 - Salida guardada en `PortfolioReport` (`version: 2`) y mostrada en `/portfolio`.
 
