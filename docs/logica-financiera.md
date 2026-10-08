@@ -350,7 +350,7 @@ goalAmount  = adjExpenses × 12 / withdrawalRate        (o × 25 si withdrawalRa
 
 ## Milestones (`app/actions/milestones.ts`)
 
-Hitos por defecto si el usuario no tiene ninguno: **USD 10.000, 25.000, 50.000, 100.000, 250.000**. Al importar un snapshot con `totalValueUsd > 0`, `checkAndUpdateMilestones` marca como alcanzados los que cumplen:
+Hitos por defecto: **USD 10.000, 25.000, 50.000, 100.000, 250.000**. Se crean una sola vez, al importar el **primer** snapshot del usuario (si todavía no tiene ninguno); si después los borra todos, no vuelven. Al importar cada snapshot, `checkAndUpdateMilestones` marca como alcanzados los que cumplen:
 
 ```
 currentValueUsd ≥ targetValueUsd  →  reached = true, reachedAt = now

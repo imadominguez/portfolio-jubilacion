@@ -213,8 +213,6 @@ pnpm db:seed
 ### Integraciones
 
 - Los precios de Sonnet 5 para el costo estimado están hardcodeados en el route; cambiar `ANTHROPIC_MODEL` hace que el costo informado sea incorrecto.
-- **Sin timeouts** en `lib/yahoo-finance-client.ts` ni en los fetch a dolarapi/argentinadatos.
-- **Caché de auth de Yahoo** de 23 h sin reintento de re-auth ante 401.
 
 ### Código
 
@@ -223,6 +221,9 @@ pnpm db:seed
 - **Monte Carlo** usa volatilidad mensual fija (4%) independiente de los inputs.
 - Los CSV exportados no incluyen BOM UTF-8; las rutas de export no tienen `try/catch` alrededor de la DB.
 - `/portfolio` no usa `SiteHeader` (excepción a la convención de UI).
+- **Sin tests end-to-end.** La guía de Next sugiere un test `instant()` (`@next/playwright`) por ruta para que el static shell no se degrade sin que nadie lo note.
+- `checkAndUpdateMilestones` es una Server Action exportada que recibe el valor en USD desde el llamador: un usuario logueado podría invocarla con un valor arbitrario y marcar sus propios hitos como alcanzados (solo afecta sus datos).
+- **MCP de Next:** `.mcp.json` usa `pnpm dlx next-devtools-mcp@latest`, que descarga el paquete en cada arranque y suele superar el timeout de conexión de 30 s. Mientras tanto se puede usar `/_next/mcp` del dev server (ver arriba).
 
 > **Resuelto:**
 > - El aislamiento por ownership (deletes, reportes y API routes de export filtran por `userId`), el registro público cerrado por defecto y `PortfolioReport` con `userId`.
@@ -231,6 +232,8 @@ pnpm db:seed
 > - El timeout del análisis se acota a 290 s para vencer antes de `maxDuration` (300 s).
 > - `scripts/refresh-strategy.ts` y `backfill-movements.ts` versionados (`pnpm db:strategy` funciona en un clone nuevo); los CSV reales de `docs/` ignorados.
 > - El CI nunca había pasado: corría `npm install` sobre un `package-lock.json` abandonado (sin `vitest`) y npm cortaba por el peer `vitest@^2–4` de `better-auth`. Ahora todo se maneja con pnpm (`packageManager`, CI con `--frozen-lockfile`) y se eliminó `package-lock.json`.
+> - Las llamadas a Yahoo Finance, dolarapi y argentinadatos tienen timeout (`fetchWithTimeout`, `lib/http.ts`, 15 s) y el cliente de Yahoo renueva la sesión y reintenta una vez ante 401/403.
+> - `getMilestones` es solo lectura: los hitos por defecto se crean al importar el primer snapshot (antes se creaban dentro de la lectura cacheada y volvían si el usuario los borraba todos).
 
 ---
 

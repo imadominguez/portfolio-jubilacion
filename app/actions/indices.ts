@@ -2,6 +2,7 @@
 
 import { revalidateBenchmarks } from "@/lib/revalidate";
 import { db } from "@/lib/db";
+import { fetchWithTimeout } from "@/lib/http";
 import { requireUserId } from "@/lib/auth-session";
 import { getBenchmarkPoints, type BenchmarkPoint } from "@/app/actions/benchmarks";
 import { INDEX_BENCHMARKS, type IndexBenchmarkId } from "@/lib/benchmarks-config";
@@ -18,7 +19,8 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 async function fetchArgentinaDatos(
   path: string
 ): Promise<ArgentinaDatosPoint[] | string> {
-  const res = await fetch(`https://api.argentinadatos.com${path}`, {
+  const res = await fetchWithTimeout(`https://api.argentinadatos.com${path}`, {
+    service: "argentinadatos.com",
     cache: "no-store",
   });
   if (!res.ok) {

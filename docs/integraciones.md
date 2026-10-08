@@ -75,6 +75,7 @@ Cliente propio en `lib/yahoo-finance-client.ts` (no usa `yahoo-finance2`). Imple
   1. `GET https://fc.yahoo.com` con User-Agent de Chrome para obtener cookies de sesión.
   2. `GET https://query1.finance.yahoo.com/v1/test/getcrumb` (fallback a `query2`) para el crumb.
   3. Cachea cookie + crumb a nivel de módulo con TTL de **23 horas**.
+- Si una consulta (`quote` o `chart`) responde **401 o 403**, Yahoo invalidó la sesión antes de tiempo: se descarta la auth cacheada, se pide una nueva y se reintenta **una vez** (`authedGet`).
 - Si falla la cookie → lanza `"No se pudo obtener la cookie de sesión de Yahoo Finance."`; si falla el crumb → `"No se pudo obtener el crumb de Yahoo Finance (<status>)."`.
 
 ### Endpoints
@@ -97,10 +98,9 @@ Cliente propio en `lib/yahoo-finance-client.ts` (no usa `yahoo-finance2`). Imple
 - El histórico de subyacentes se pide desde la primera compra (o −365 días si no hay) hasta hoy.
 - Los tickers subyacentes provienen del campo `Asset.underlyingTicker`.
 
-### Limitaciones conocidas
+### Timeouts
 
-- Sin `AbortController`/timeout (tampoco en los fetch a dolarapi/argentinadatos): un cuelgue de red bloquea la server action.
-- La caché de auth puede expirar antes de 23 h; no hay reintento de re-auth automático (solo fallback `query1 → query2`).
+Todas las llamadas a Yahoo, dolarapi y argentinadatos usan `fetchWithTimeout` (`lib/http.ts`, 15 s por defecto). Si una API no responde, la action devuelve un error que nombra el servicio (p. ej. "Yahoo Finance no respondió en 15 s. Probá de nuevo en unos minutos.") en lugar de quedar colgada hasta el `maxDuration` de la función.
 
 ---
 

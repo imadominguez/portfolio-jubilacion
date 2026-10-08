@@ -40,16 +40,10 @@ async function cachedMilestones(userId: string): Promise<MilestoneRow[]> {
     where: { userId },
     orderBy: { targetValueUsd: "asc" },
   } as const;
-  let milestones = await db.milestoneAlert.findMany(query);
-
-  // La primera lectura crea los hitos por defecto. Se vuelven a leer para
-  // cachear los ids reales (sin ellos no se podrían borrar desde /settings).
-  if (milestones.length === 0) {
-    await db.milestoneAlert.createMany({
-      data: DEFAULT_MILESTONES.map((m) => ({ ...m, userId })),
-    });
-    milestones = await db.milestoneAlert.findMany(query);
-  }
+  // Solo lectura: los hitos por defecto se crean al importar el primer snapshot
+  // (checkAndUpdateMilestones). Crearlos acá escribía dentro de 'use cache' y
+  // los recreaba si el usuario borraba todos.
+  const milestones = await db.milestoneAlert.findMany(query);
 
   return milestones.map((m) => ({
     id: m.id,
@@ -97,10 +91,26 @@ export async function deleteMilestone(id: string): Promise<MilestoneResult> {
   }
 }
 
+// Se llama después de importar un snapshot. Con `isFirstSnapshot`, crea los
+// hitos por defecto si el usuario todavía no tiene ninguno (solo esa vez: si
+// después los borra todos, no vuelven).
 export async function checkAndUpdateMilestones(
-  currentValueUsd: number
+  currentValueUsd: number,
+  { isFirstSnapshot = false }: { isFirstSnapshot?: boolean } = {}
 ): Promise<{ newlyReached: MilestoneRow[] }> {
   const session = await requireAuth();
+
+  let seeded = false;
+  if (isFirstSnapshot) {
+    const existing = await db.milestoneAlert.count({ where: { userId: session.user.id } });
+    if (existing === 0) {
+      await db.milestoneAlert.createMany({
+        data: DEFAULT_MILESTONES.map((m) => ({ ...m, userId: session.user.id })),
+      });
+      seeded = true;
+    }
+  }
+
   const unReached = await db.milestoneAlert.findMany({
     where: { reached: false, userId: session.user.id },
   });
@@ -123,7 +133,7 @@ export async function checkAndUpdateMilestones(
     }
   }
 
-  if (newlyReached.length > 0) revalidateMilestones(session.user.id);
+  if (seeded || newlyReached.length > 0) revalidateMilestones(session.user.id);
 
   return { newlyReached };
 }

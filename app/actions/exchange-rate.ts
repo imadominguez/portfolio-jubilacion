@@ -5,6 +5,7 @@ import { connection } from "next/server";
 import { revalidateCcl } from "@/lib/revalidate";
 import { marketTags } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
+import { fetchWithTimeout } from "@/lib/http";
 
 export type ExchangeRateResult =
   | { success: true; ccl: number; date: string; alreadyExisted: boolean }
@@ -21,10 +22,10 @@ type DolarApiResponse = {
 
 export async function fetchAndSaveCCL(): Promise<ExchangeRateResult> {
   try {
-    const res = await fetch(
-      "https://dolarapi.com/v1/dolares/contadoconliqui",
-      { cache: "no-store" }
-    );
+    const res = await fetchWithTimeout("https://dolarapi.com/v1/dolares/contadoconliqui", {
+      service: "dolarapi.com",
+      cache: "no-store",
+    });
 
     if (!res.ok) {
       return { success: false, error: `Error al obtener el CCL (HTTP ${res.status}).` };
@@ -140,9 +141,9 @@ export async function fetchHistoricalCCL(
   to: Date = new Date()
 ): Promise<HistoricalCCLResult> {
   try {
-    const res = await fetch(
+    const res = await fetchWithTimeout(
       "https://api.argentinadatos.com/v1/cotizaciones/dolares/contadoconliqui",
-      { cache: "no-store" }
+      { service: "argentinadatos.com", cache: "no-store" }
     );
 
     if (!res.ok) {

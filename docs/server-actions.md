@@ -124,10 +124,10 @@ El parser clasifica cada fila en `MovementCategory`; sólo `TRADE_BUY`/`TRADE_SE
 
 | Función | Auth | Comportamiento |
 |---|---|---|
-| `getMilestones()` | Sí | Hitos del usuario; si no tiene, crea los 5 por defecto. |
+| `getMilestones()` | Sí | Hitos del usuario (solo lectura, cacheada con el tag `milestones:<userId>`). |
 | `createMilestone(label, targetValueUsd)` | Sí | Valida label y valor positivo. |
 | `deleteMilestone(id)` | Sí | `deleteMany({ id, userId })`. |
-| `checkAndUpdateMilestones(currentValueUsd)` | Sí | Marca como alcanzados los hitos cumplidos. Invocada desde `importSnapshot`. |
+| `checkAndUpdateMilestones(currentValueUsd, { isFirstSnapshot })` | Sí | Con `isFirstSnapshot`, crea los 5 hitos por defecto si el usuario no tiene ninguno. Marca como alcanzados los hitos cumplidos. Invocada desde `importSnapshot` en cada import (aunque el snapshot valga $0). |
 
 ---
 
