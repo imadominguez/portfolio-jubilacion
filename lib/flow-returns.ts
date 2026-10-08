@@ -1,3 +1,6 @@
+import { annualize } from "@/lib/inflation";
+import { maxDrawdownPct } from "@/lib/snapshot-returns";
+
 // Rendimiento descontando aportes y retiros (puro, sin Prisma).
 //
 // El valor de los snapshots sube con cada compra o suscripción al FCI aunque el
@@ -174,4 +177,50 @@ export function holdingsXirr(points: ValuePoint[], flows: CashFlow[]): number | 
 // ventas, rescates y dividendos.
 export function netContributions(flows: CashFlow[], from: Date, to: Date): number {
   return flowsIn(flows, from, to).reduce((acc, f) => acc - f.amount, 0);
+}
+
+export type ReturnSummary = {
+  index: Array<{ date: Date; index: number | null }>;
+  // Rendimiento de cada período, por fecha de fin (ms).
+  periodReturnByEnd: Map<number, number | null>;
+  yearBase: Date;
+  yearReturnPct: number | null;
+  // Ganancia del año descontando los aportes netos, en la moneda de la serie.
+  yearGain: number;
+  years: number;
+  tirPct: number | null;
+  twrAnnualPct: number | null;
+  maxDrawdownPct: number;
+};
+
+// Con menos de ~1 mes, anualizar no informa.
+const MIN_YEARS_TO_ANNUALIZE = 0.1;
+
+// Métricas de /performance para una serie (ARS o USD) y sus flujos en la misma
+// moneda. Base del año: último punto del año anterior, o el primero del año en curso.
+export function returnSummary(points: ValuePoint[], flows: CashFlow[], currentYear: number): ReturnSummary | null {
+  if (points.length === 0) return null;
+  const first = points[0];
+  const last = points[points.length - 1];
+  const yearBase =
+    [...points].reverse().find((p) => p.date.getUTCFullYear() < currentYear) ??
+    points.find((p) => p.date.getUTCFullYear() === currentYear) ??
+    first;
+
+  const index = twrIndex(points, flows);
+  const lastIndex = index[index.length - 1].index;
+  const years = (last.date.getTime() - first.date.getTime()) / DAY_MS / YEAR_DAYS;
+  const canAnnualize = years >= MIN_YEARS_TO_ANNUALIZE;
+
+  return {
+    index,
+    periodReturnByEnd: new Map(periodReturns(points, flows).map((p) => [p.end.getTime(), p.returnPct])),
+    yearBase: yearBase.date,
+    yearReturnPct: twrBetween(points, flows, yearBase.date, last.date),
+    yearGain: last.value - yearBase.value - netContributions(flows, yearBase.date, last.date),
+    years,
+    tirPct: canAnnualize ? holdingsXirr(points, flows) : null,
+    twrAnnualPct: canAnnualize && lastIndex !== null ? annualize(lastIndex - 100, years) : null,
+    maxDrawdownPct: maxDrawdownPct(index.flatMap((p) => (p.index === null ? [] : [p.index]))),
+  };
 }

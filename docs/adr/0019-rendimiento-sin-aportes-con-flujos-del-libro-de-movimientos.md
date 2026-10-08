@@ -53,3 +53,7 @@ Medimos el rendimiento **descontando los flujos que entran y salen de las tenenc
 - `lib/flow-returns.ts`, `lib/flow-returns.test.ts`, `lib/portfolio-data.ts` (`getHoldingsFlows`).
 - `app/(app)/performance/page.tsx`, `app/(app)/(dashboard)/page.tsx`, `app/(app)/retirement/page.tsx`, `app/(app)/snapshots/page.tsx`.
 - [logica-financiera.md](../logica-financiera.md#performance-histórica-appappperformancepagetsx).
+
+## Seguimiento
+
+- **Análisis en dólares en `/performance`.** El mismo cálculo sobre `totalValueUsd` y `flowsUsd` (`returnSummary`), elegido con `?moneda=usd`. En dólares la TIR real se reemplaza por la diferencia anual contra el S&P 500 (TWR vs índice), y el gráfico de benchmarks usa el índice en USD: en pesos, la devaluación inflaba el portfolio frente al S&P 500 y el NASDAQ.

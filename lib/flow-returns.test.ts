@@ -4,6 +4,7 @@ import {
   holdingsXirr,
   modifiedDietz,
   netContributions,
+  returnSummary,
   twrBetween,
   twrIndex,
   xirr,
@@ -133,5 +134,38 @@ describe("netContributions", () => {
       { date: day("2026-12-31"), amount: 10 },
     ];
     expect(netContributions(flows, day("2026-01-01"), day("2026-12-31"))).toBe(690);
+  });
+});
+
+describe("returnSummary", () => {
+  const points = [
+    { date: day("2024-12-31"), value: 100 },
+    { date: day("2025-12-31"), value: 1210 }, // aporte de 1000 el 1/1; todo rinde +10%
+    { date: day("2026-06-30"), value: 1331 }, // +10%
+  ];
+  const flows = [{ date: day("2025-01-01"), amount: -1000 }];
+
+  it("toma la base del año y descuenta los aportes", () => {
+    const s = returnSummary(points, flows, 2026)!;
+    expect(s.yearBase).toEqual(day("2025-12-31"));
+    expect(s.yearReturnPct).toBeCloseTo(10);
+    expect(s.yearGain).toBeCloseTo(121);
+    expect(s.maxDrawdownPct).toBe(0);
+    expect(s.periodReturnByEnd.get(day("2026-06-30").getTime())).toBeCloseTo(10);
+  });
+
+  it("anualiza el TWR y la TIR del período completo", () => {
+    const s = returnSummary(points, flows, 2026)!;
+    expect(s.years).toBeCloseTo(1.5, 1);
+    expect(s.twrAnnualPct!).toBeGreaterThan(13);
+    expect(s.twrAnnualPct!).toBeLessThan(15);
+    expect(s.tirPct!).toBeGreaterThan(9);
+  });
+
+  it("no anualiza con menos de ~1 mes y devuelve null sin puntos", () => {
+    const s = returnSummary([{ date: day("2026-01-01"), value: 100 }, { date: day("2026-01-10"), value: 101 }], [], 2026)!;
+    expect(s.tirPct).toBeNull();
+    expect(s.twrAnnualPct).toBeNull();
+    expect(returnSummary([], [], 2026)).toBeNull();
   });
 });

@@ -104,6 +104,7 @@ Una vez importado el snapshot, estas son las secciones principales (el detalle d
 
 #### Performance (`/performance`)
 - Rendimiento del año, **TIR anual** y **TIR real** (descontando inflación), máximo drawdown, todos sin contar aportes
+- Selector **Pesos / Dólares**: en dólares, las mismas métricas sin la devaluación y la comparación anual contra el S&P 500
 - Gráfico de evolución con toggle ARS / USD
 - Comparación contra S&P 500, Merval y NASDAQ, y contra IPC y CER/UVA
 - Timeline de todos los snapshots con el rendimiento de cada período
