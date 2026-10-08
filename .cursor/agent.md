@@ -109,7 +109,7 @@ lib/
 | `/retirement` | Retirement calculator, deterministic projection curve, Monte Carlo simulation |
 | `/real-gains` | Real USD gains broken down by underlying appreciation vs CCL impact |
 | `/assets` | (ADMIN) CEDEAR catalog (ratio, sector, industry, country, underlying ticker), inline editing |
-| `/strategy` | (ADMIN) Versioned investment strategy = system prompt of the AI analysis |
+| `/strategy` | (ADMIN) Versioned investment strategy = system prompt of the AI opportunities report (criteria only; the output format is the structured-output schema) |
 | `/settings` | (ADMIN) Milestone management (USD targets, reached status) |
 | `/portfolio` | (ADMIN) AI opportunities report: buy / hold / sell per holding from prices and news headlines prepared by the app (ADR-0018), plus report history |
 

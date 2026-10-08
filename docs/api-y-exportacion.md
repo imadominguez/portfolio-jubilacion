@@ -19,7 +19,7 @@ Sin cuerpo: analiza el **último snapshot importado** del usuario. La app prepar
    - `getHistorical(subyacente, último año)` → `priceSignals` (`lib/opportunity-signals.ts`): variación de 1, 3 y 12 meses y distancia al máximo y mínimo de 52 semanas.
    - `getNews(subyacente)` → `selectNews`: titulares de los últimos 30 días cuyo ticker principal es la acción o que la nombran en el título, sin duplicados, hasta 5.
    - Una posición sin subyacente o con error de Yahoo queda en `posiciones_sin_datos` y no corta el reporte. Si ninguna tiene datos → `502`.
-5. `buildAnalysisInput` (`lib/opportunity-report.ts`) arma un texto compacto por acción (~3.000 tokens para 14 acciones).
+5. `buildAnalysisInput` (`lib/opportunity-report.ts`) arma un texto compacto por acción (medido: 6.222 tokens de entrada para 14 acciones, incluido el prompt de estrategia).
 6. Llama a Claude con el SDK oficial:
 
 ```ts

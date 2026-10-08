@@ -99,7 +99,7 @@ o con Prisma Studio. Alternativas de bootstrap:
 | `BETTER_AUTH_URL` | Producción | URL base del server de auth. |
 | `ANTHROPIC_API_KEY` | Para `/portfolio` | Análisis con Claude. |
 | `ANTHROPIC_MODEL` | Opcional | Modelo Claude (default `claude-sonnet-5-5`). El costo se calcula con los precios de `MODEL_PRICING` (`lib/opportunity-report.ts`): un modelo que no esté ahí informa costo nulo. |
-| `ANTHROPIC_EFFORT` | Opcional | Nivel de razonamiento `low\|medium\|high\|max` (default `low`). |
+| `ANTHROPIC_EFFORT` | Opcional | Nivel de razonamiento `low\|medium\|high\|xhigh\|max` (default `low`). Solo se manda a los modelos que lo aceptan (`modelRequestOptions`); con Haiku 4.5 no se usa. |
 | `ANTHROPIC_TIMEOUT_MS` | Opcional | Timeout del análisis en ms (default y máximo `290000`, por debajo de `maxDuration`). |
 | `SEED_ADMIN_EMAIL` | Opcional | Emails (coma-separados) a promover en el seed. |
 | `ALLOW_PUBLIC_SIGNUP` | Opcional | `true` reactiva el registro público en `/register` (por defecto cerrado). |
@@ -230,7 +230,7 @@ pnpm db:seed
 > - El CI nunca había pasado: corría `npm install` sobre un `package-lock.json` abandonado (sin `vitest`) y npm cortaba por el peer `vitest@^2–4` de `better-auth`. Ahora todo se maneja con pnpm (`packageManager`, CI con `--frozen-lockfile`) y se eliminó `package-lock.json`.
 > - Las llamadas a Yahoo Finance, dolarapi y argentinadatos tienen timeout (`fetchWithTimeout`, `lib/http.ts`, 15 s) y el cliente de Yahoo renueva la sesión y reintenta una vez ante 401/403.
 > - `getMilestones` es solo lectura: los hitos por defecto se crean al importar el primer snapshot (antes se creaban dentro de la lectura cacheada y volvían si el usuario los borraba todos).
-> - El reporte con IA dejó de usar precios fijos de Sonnet 5: el costo se calcula con el modelo que respondió y se guarda en cada reporte, que ahora cuesta ~US$ 0,035–0,07 (ADR-0018).
+> - El reporte con IA dejó de usar precios fijos de Sonnet 5: el costo se calcula con el modelo que respondió y se guarda en cada reporte, que ahora cuesta unos centavos (primera medición: US$ 0,0656; ADR-0018).
 
 ---
 

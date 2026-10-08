@@ -77,6 +77,8 @@ Import pipeline: the Cocos movements CSV is parsed and categorized by `lib/cocos
 - `Position.allocationPct` is stored as a fraction (0–1) intentionally (historical accuracy); the data layer exposes it ×100.
 - `ExchangeRate` is unique per date — use `upsert` for today's CCL.
 - External prices are cached (`MarketPriceCache`, `HistoricalPriceCache`); check the DB before calling Yahoo (`lib/yahoo-finance-client.ts`), never on every page load.
+- Every external HTTP call (Yahoo, dolarapi, argentinadatos) goes through `fetchWithTimeout` (`lib/http.ts`), so a hung API returns a clear error instead of holding the Server Action until `maxDuration`.
+- The AI report (ADR-0018): the app computes every number in `lib/` (pure, tested) and Claude only judges. The output format lives in `OpportunityAnalysisSchema` (structured outputs), not in the strategy prompt; when switching models add its prices to `MODEL_PRICING` and its capabilities to `modelRequestOptions`.
 
 ## UI conventions
 

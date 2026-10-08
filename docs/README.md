@@ -30,7 +30,7 @@ Un tracker privado (multiusuario con autenticación: cada usuario ve solo sus da
 | [arquitectura.md](./arquitectura.md) | Stack, estructura de carpetas, capas, autenticación, roles, variables de entorno. |
 | [modelo-de-datos.md](./modelo-de-datos.md) | Todos los modelos Prisma, enums, relaciones, tablas, migraciones y seed. |
 | [modulos.md](./modulos.md) | Descripción detallada de cada ruta/página de `app/(app)/`. |
-| [logica-financiera.md](./logica-financiera.md) | Fórmulas: PPM, P&L, allocation, CAGR, drawdown, ganancia real, jubilación, parsing CSV. |
+| [logica-financiera.md](./logica-financiera.md) | Fórmulas: PPM, P&L, allocation, CAGR, drawdown, ganancia real, jubilación, señales del reporte de oportunidades, parsing CSV. |
 | [server-actions.md](./server-actions.md) | Referencia de todas las Server Actions de `app/actions/`. |
 | [api-y-exportacion.md](./api-y-exportacion.md) | API routes (análisis IA, export PDF/CSV/HTML) y componentes de exportación. |
 | [integraciones.md](./integraciones.md) | Cocos Capital, dolarapi.com, argentinadatos.com, Yahoo Finance, Anthropic. |

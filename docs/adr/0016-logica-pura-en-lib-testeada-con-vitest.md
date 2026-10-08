@@ -46,3 +46,7 @@ Hasta septiembre de 2026 no había tests ni CI. Los cálculos que vivían mezcla
 
 - `vitest.config.mts`, `.github/workflows/ci.yml`, `lib/*.test.ts`.
 - `.cursor/rules.md` (File Structure). Commit `340b5d3`.
+
+## Seguimiento
+
+- **2026-10-08.** `report-normalizer` se eliminó: el reporte con IA pasó a structured outputs y su respuesta siempre valida contra el esquema ([ADR-0018](./0018-reporte-de-oportunidades-con-datos-preparados-por-la-app.md)). Se sumaron módulos puros con el mismo criterio: `snapshot-returns` (variaciones y CAGR sin base $0), `opportunity-signals` y `opportunity-report` (datos y costo del reporte de oportunidades) y `http` (`fetchWithTimeout`). Todos con su `*.test.ts`.
