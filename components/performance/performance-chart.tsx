@@ -19,6 +19,8 @@ type Currency = "ARS" | "USD";
 
 interface PerformanceChartProps {
   snapshots: SnapshotPoint[];
+  // Moneda con la que arranca: la que se eligió para el resto de /performance.
+  initialCurrency?: Currency;
 }
 
 const chartConfig = {
@@ -28,8 +30,8 @@ const chartConfig = {
   },
 };
 
-export function PerformanceChart({ snapshots }: PerformanceChartProps) {
-  const [currency, setCurrency] = useState<Currency>("ARS");
+export function PerformanceChart({ snapshots, initialCurrency = "ARS" }: PerformanceChartProps) {
+  const [currency, setCurrency] = useState<Currency>(initialCurrency);
 
   const data = snapshots.map((s) => ({
     date: formatDateShort(s.snapshotDate),

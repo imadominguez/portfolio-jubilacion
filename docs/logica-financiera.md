@@ -158,6 +158,23 @@ DD_t   = (peak_t − p_t) / peak_t
 MaxDD  = máx(DD_t) × 100
 ```
 
+### En dólares (`?moneda=usd`)
+
+Las mismas fórmulas sobre la serie en USD, con `returnSummary(puntosUsd, flowsUsd, añoActual)`:
+
+- **Puntos:** `totalValueUsd` de cada snapshot (valor ARS al CCL de esa fecha, inmutable). Los snapshots sin CCL quedan afuera.
+- **Flujos:** `flowsUsd` = cada flujo en ARS dividido por el CCL de su fecha (`getHoldingsFlows`).
+- La diferencia con el análisis en pesos es la devaluación: en pesos, la suba del CCL cuenta como rendimiento.
+- **vs S&P 500** reemplaza a la TIR real (la inflación es un concepto en pesos):
+
+```
+TWR anual  = annualize(índiceTWR_último − 100, años)
+S&P anual  = annualize(indexChangePct(S&P 500, primero_USD, último_USD), años)
+vs S&P 500 = TWR anual − S&P anual          (puntos porcentuales)
+```
+
+Se compara el TWR (no la TIR) porque el índice del S&P tampoco tiene aportes. El Merval sigue en pesos en el gráfico; el de inflación se mantiene en pesos.
+
 ### Cobertura de movimientos
 
 Si no hay movimientos importados, o el último es anterior al último snapshot por más de un día, `/performance` muestra un aviso con link a `/transactions`: sin esos movimientos, una venta o un rescate del FCI se lee como pérdida.

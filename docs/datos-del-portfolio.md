@@ -75,6 +75,8 @@ Todas las métricas descuentan los aportes: el valor del portfolio sube con cada
 | **Máx. Drawdown** | Mayor caída porcentual desde un pico del índice sin aportes: `max((peak - value) / peak)`. |
 | **Snapshots importados** | Cantidad total de registros históricos disponibles. |
 
+**En dólares** (selector Pesos / Dólares): las mismas métricas con cada snapshot al CCL de su fecha y cada flujo al CCL del día en que se hizo, así no cuenta la devaluación como ganancia. La TIR real se reemplaza por **vs S&P 500**: cuántos puntos por año le sacaste (o te sacó) el S&P 500 en el mismo período. Es la comparación justa con el S&P 500 y el NASDAQ, que cotizan en dólares.
+
 ### Gráfico de evolución
 
 Serie temporal del valor del portfolio con toggle ARS/USD.

@@ -57,9 +57,10 @@ Metadata raíz (`app/layout.tsx`): `title` por defecto `"Portfolio Jubilación"`
 ## `/performance` — Performance
 
 - **Archivo:** `app/(app)/performance/page.tsx`.
+- **Moneda:** `searchParams.moneda` (`usd` → dólares; si no, pesos), leído dentro de `<Suspense>`. Un selector Pesos / Dólares arriba de los KPIs cambia el link.
 - **Datos:** `getAllSnapshotPoints()`, `getHoldingsFlows()`, `getBenchmarkPoints(id, fromDate)` para `sp500`, `merval`, `nasdaq` y `getIndexPoints(id, fromDate)` para `inflacion` y `cer`. Las métricas y los gráficos normalizados usan la serie desde el **primer snapshot con valor** (`performanceSeries`, [logica-financiera.md](./logica-financiera.md)); de ahí sale también `fromDate`.
-- **KPIs:** rendimiento del año (TWR; base = último snapshot del año anterior o el primero del año), **TIR anual**, **TIR real** (deflactada por inflación), **máx. drawdown** sobre el índice TWR. Todos sin contar aportes (`lib/flow-returns.ts`, ADR-0019); sin base positiva muestran "—". Si el último movimiento importado es anterior al último snapshot, un aviso pide importar el CSV de Actividad.
-- **Componentes:** `SiteHeader`, `PerformanceChart` (toggle ARS/USD, todos los snapshots), `BenchmarkOverlayChart` (portfolio como índice TWR base 100 vs benchmarks, carga on-demand), `InflationChart` (índice TWR vs IPC/CER, escala log por defecto, carga on-demand) y la tabla de registros con el rendimiento de cada período.
+- **KPIs** (`returnSummary`, `lib/flow-returns.ts`, ADR-0019), todos sin contar aportes y en la moneda elegida: rendimiento del año (TWR; base = último snapshot del año anterior o el primero del año) con la ganancia, **TIR anual**, **máx. drawdown** sobre el índice TWR y un tercer KPI que depende de la moneda: en pesos, **TIR real** (deflactada por inflación); en dólares, **vs S&P 500** (TWR anual del portfolio menos la variación anual del S&P 500 en el mismo período, en puntos). Sin base positiva muestran "—". Si el último movimiento importado es anterior al último snapshot, un aviso pide importar el CSV de Actividad.
+- **Componentes:** `SiteHeader`, `PerformanceChart` (toggle ARS/USD, arranca en la moneda elegida), `BenchmarkOverlayChart` (índice TWR del portfolio en la moneda elegida vs benchmarks, carga on-demand), `InflationChart` (siempre en pesos: índice TWR en ARS vs IPC/CER, escala log por defecto, carga on-demand) y la tabla de registros con el valor y el rendimiento de cada período en la moneda elegida.
 - **Estado vacío:** mensaje con `TrendingUp` + `ImportButton`.
 
 ---

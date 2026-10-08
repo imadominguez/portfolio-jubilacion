@@ -35,7 +35,7 @@ Organizados por dominio. Los componentes de `components/ui/` son primitivas shad
 
 | Componente | Tipo | Descripción |
 |---|---|---|
-| `performance-chart.tsx` | CC | `snapshots`. Línea de evolución con toggle ARS/USD (USD = `totalValueUsd` o `totalValueArs / ccl`). Usa `ChartContainer`. |
+| `performance-chart.tsx` | CC | `snapshots`, `initialCurrency` opcional (la moneda elegida en `/performance`; la página le pasa `key` = moneda para que `<Activity>` no conserve la anterior). Línea de evolución con toggle ARS/USD (USD = `totalValueUsd` o `totalValueArs / ccl`). Usa `ChartContainer`. |
 | `benchmark-overlay-chart.tsx` | CC | `snapshots`, `initialBenchmarks`, `portfolioIndex` opcional (índice TWR sin aportes; sin él normaliza el valor). Normaliza a base 100 y superpone S&P 500 / Merval / NASDAQ; carga datos on-demand con `fetchAndSaveBenchmark` + `getBenchmarkPoints` dentro de `useTransition`. |
 | `inflation-chart.tsx` | CC | `snapshots`, `initialIndices`, `portfolioIndex` opcional (como en el de benchmarks). Portfolio en ARS vs IPC acumulado y CER/UVA, base 100; escala logarítmica por defecto; descarga los índices on-demand (`fetchAndSaveInflation` / `fetchAndSaveCer` + `getIndexPoints`). |
 
