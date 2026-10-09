@@ -1,26 +1,35 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
+import { connection } from "next/server";
 import { Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/layout/site-header";
 import { DcaPlannerClient } from "@/components/plan/dca-planner-client";
 import { PlanSkeleton } from "@/components/plan/plan-skeleton";
 import { getLatestSnapshot } from "@/lib/portfolio-data";
-import { getTargetAllocations } from "@/app/actions/rebalance";
 import { getMarketPrices } from "@/app/actions/market-prices";
+import { getLatestSignals } from "@/app/actions/reports";
 
 export const metadata: Metadata = { title: "Plan DCA" };
 
-// El header y la explicación entran al static shell; el snapshot, los
-// objetivos y los precios se leen en request time detrás del skeleton.
+const DAY_MS = 24 * 60 * 60 * 1000;
+// Pasado este plazo las señales del reporte pueden estar viejas.
+const OLD_REPORT_DAYS = 45;
+
+const reportDateLabel = new Intl.DateTimeFormat("es-AR", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+  timeZone: "America/Argentina/Buenos_Aires",
+});
+
+// El header y la explicación entran al static shell; el snapshot, las señales
+// y los precios se leen en request time detrás del skeleton.
 export default function PlanPage() {
   return (
     <div className="flex flex-col min-h-svh">
-      <SiteHeader
-        title="Plan DCA"
-        description="Qué comprar este mes según tus objetivos"
-      />
+      <SiteHeader title="Plan DCA" description="Qué comprar este mes según el reporte de oportunidades" />
 
       <main className="flex-1 px-6 py-10 flex flex-col gap-6 max-w-6xl w-full mx-auto">
         <div className="animate-fade-up flex flex-col gap-1">
@@ -28,9 +37,9 @@ export default function PlanPage() {
             Aporte mensual
           </p>
           <p className="text-sm text-muted-foreground max-w-xl leading-relaxed">
-            Reparto determinista del aporte del mes priorizando las posiciones
-            infraponderadas respecto a tus objetivos, sin sumar a las que ya los
-            alcanzaron. No usa IA: es el mismo criterio del DCA, siempre disponible.
+            Reparte el aporte del mes según las señales del último reporte de oportunidades: más a las
+            acciones marcadas &quot;compra&quot; con mayor confianza, nada a las marcadas &quot;venta&quot;. Sin
+            pesos objetivo ni topes por acción.
           </p>
         </div>
 
@@ -43,10 +52,11 @@ export default function PlanPage() {
 }
 
 async function Planner() {
-  const [snapshot, targets, marketPrices] = await Promise.all([
+  const [snapshot, marketPrices, latest] = await Promise.all([
     getLatestSnapshot(),
-    getTargetAllocations(),
     getMarketPrices(),
+    getLatestSignals(),
+    connection(),
   ]);
 
   if (!snapshot) {
@@ -64,45 +74,34 @@ async function Planner() {
     );
   }
 
-  if (targets.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-3 py-20 text-center animate-fade-up">
-        <Wallet className="size-8 text-muted-foreground/40" />
-        <p className="text-sm font-medium text-foreground">Sin objetivos definidos</p>
-        <p className="text-xs text-muted-foreground max-w-xs leading-relaxed">
-          Definí el peso objetivo por ticker en Rebalanceo para generar el plan.
-        </p>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/rebalance">Configurar objetivos</Link>
-        </Button>
-      </div>
-    );
-  }
-
   const marketPriceMap: Record<string, number> = {};
   for (const p of marketPrices) {
     if (p.underlyingTicker) marketPriceMap[p.underlyingTicker] = p.priceUsd;
   }
 
-  const positions = snapshot.positions.map((p) => ({
-    ticker: p.ticker,
-    currentPct: p.allocationPct,
-    currentValue: p.positionValue,
-    currentPrice: p.price,
-  }));
+  // Después de connection(): la hora no puede leerse durante el prerender.
+  const now = new Date();
+  const reportIsOld = latest !== null && now.getTime() - latest.createdAt.getTime() > OLD_REPORT_DAYS * DAY_MS;
 
   return (
     <DcaPlannerClient
       portfolioValueArs={snapshot.totalValueArs}
       ccl={snapshot.ccl}
-      positions={positions}
-      targets={targets.map((t) => ({ ticker: t.ticker, targetPct: t.targetPct }))}
+      positions={snapshot.positions.map((p) => ({
+        ticker: p.ticker,
+        currentPct: p.allocationPct,
+        currentValue: p.positionValue,
+        currentPrice: p.price,
+      }))}
       assets={marketPrices.map((p) => ({
         ticker: p.ticker,
         cedearRatio: p.cedearRatio,
         underlyingTicker: p.underlyingTicker,
       }))}
       marketPrices={marketPriceMap}
+      signals={latest?.signals ?? null}
+      reportDate={latest ? reportDateLabel.format(latest.createdAt) : null}
+      reportIsOld={reportIsOld}
     />
   );
 }

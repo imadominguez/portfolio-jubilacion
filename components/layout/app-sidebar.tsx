@@ -9,7 +9,6 @@ import {
   CalendarDays,
   Layers,
   BarChart3,
-  Scale,
   ArrowLeftRight,
   Target,
   Settings,
@@ -59,7 +58,6 @@ const NAV_MAIN: NavItem[] = [
 const NAV_ANALYSIS: NavItem[] = [
   { label: "Análisis", href: "/analysis", icon: BarChart3 },
   { label: "Ganancia Real", href: "/real-gains", icon: DollarSign },
-  { label: "Rebalanceo", href: "/rebalance", icon: Scale },
   { label: "Plan DCA", href: "/plan", icon: Wallet },
   { label: "Jubilación", href: "/retirement", icon: Target },
   { label: "Flujo de caja", href: "/flujo", icon: Coins },

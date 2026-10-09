@@ -18,7 +18,7 @@ Orden recomendado:
 2. **Assets** (requerido para ADMIN) — al importar el snapshot la app detecta los tickers y ofrece completar ratio, subyacente, sector y país (asistente en `/assets`). El catálogo es global y admin-only: para un usuario `USER` el paso aparece como informativo ("Lo configura el administrador") y no bloquea la puesta en marcha.
 3. **Transacciones** — CSV de Actividad. Habilita PPM y P&L.
 4. **Históricos** — CCL y precios de acciones para la Ganancia Real.
-5. **Preferencias** — objetivos de rebalanceo y plan de retiro.
+5. **Preferencias** — plan de retiro.
 
 El **checklist "Puesta en marcha"** (dashboard y `/datos`) muestra qué falta. El **Centro de Datos** (`/datos`) reúne todas las importaciones y actualizaciones. El tour guiado de `nextstepjs` sigue disponible como ayuda contextual desde la Guía.
 
@@ -98,7 +98,7 @@ Una vez importado el snapshot, estas son las secciones principales (el detalle d
 #### Dashboard (`/`)
 - Valor total del portfolio en ARS y su equivalente en USD (si se ingresó el CCL)
 - Rendimiento vs el snapshot anterior, P&L no realizado, dividendos y CCL
-- Resumen de ganancia real, jubilación, rebalanceo y concentración, con acceso a cada módulo
+- Resumen de ganancia real, jubilación, Plan DCA y concentración, con acceso a cada módulo
 - Tabla de posiciones actuales ordenadas por valor y panel de distribución
 - Mientras falten datos, el checklist de **puesta en marcha**
 
@@ -112,8 +112,7 @@ Una vez importado el snapshot, estas son las secciones principales (el detalle d
 #### Análisis y planificación
 - **Análisis** (`/analysis`): concentración por sector, país e industria
 - **Ganancia Real** (`/real-gains`): cuánto de la ganancia en USD es apreciación de la acción y cuánto es efecto del CCL
-- **Rebalanceo** (`/rebalance`): pesos objetivo por ticker y desvío actual
-- **Plan DCA** (`/plan`): cómo repartir el aporte del mes según los objetivos
+- **Plan DCA** (`/plan`): cómo repartir el aporte del mes según las señales del último reporte de oportunidades (más a lo que está en "compra", nada a lo que está en "venta")
 - **Jubilación** (`/retirement`): capital necesario, proyección y Monte Carlo
 - **Flujo de caja** (`/flujo`): por mes, cuánto depositaste en Cocos, cuánto gastaste, tu tasa de ahorro y cuánto fue a CEDEARs
 - **Alertas** (`/alertas`): mail diario si una acción cae más de lo configurado desde su máximo o en la semana (con los titulares de la empresa) y recordatorio para cargar el mes
@@ -152,7 +151,7 @@ Una vez importado el snapshot, estas son las secciones principales (el detalle d
 | Datos históricos preservados | El historial nunca se modifica; los nuevos snapshots se agregan al final |
 | Fuente única de datos | Todo el historial proviene de CSV exportados de Cocos Capital |
 | Importación idempotente | Reimportar movimientos no duplica: se deduplica por número de ticket |
-| Datos por usuario | Cada usuario ve solo sus snapshots, transacciones, objetivos e hitos; el CCL, los precios y el catálogo de assets son compartidos |
+| Datos por usuario | Cada usuario ve solo sus snapshots, transacciones, reportes, gastos e hitos; el CCL, los precios y el catálogo de assets son compartidos |
 
 ---
 

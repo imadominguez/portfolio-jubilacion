@@ -7,7 +7,6 @@ import {
   Database,
   Gauge,
   LineChart,
-  Scale,
   Target,
   TrendingUp,
   Trophy,
@@ -227,15 +226,9 @@ export default function DataHubPage() {
 
         <section className="flex flex-col gap-4">
           <h2 className="text-sm font-semibold text-foreground">
-            4 · Objetivos y preferencias
+            4 · Preferencias
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            <PreferenceLink
-              icon={Scale}
-              title="Rebalanceo"
-              description="Definí la asignación objetivo por activo."
-              href="/rebalance"
-            />
             <PreferenceLink
               icon={Target}
               title="Jubilación"

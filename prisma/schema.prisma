@@ -57,12 +57,12 @@ enum MovementCategory {
 // ---------------------------------------------------------------------------
 
 model User {
-  id            String    @id
+  id            String   @id
   name          String
-  email         String    @unique
+  email         String   @unique
   emailVerified Boolean
   image         String?
-  role          UserRole  @default(USER)
+  role          UserRole @default(USER)
   createdAt     DateTime
   updatedAt     DateTime
 
@@ -72,7 +72,6 @@ model User {
   transactions       Transaction[]
   dividends          Dividend[]
   retirementSettings RetirementSettings[]
-  targetAllocations  TargetAllocation[]
   milestoneAlerts    MilestoneAlert[]
   portfolioReports   PortfolioReport[]
   movements          Movement[]
@@ -190,18 +189,18 @@ model Position {
 // ---------------------------------------------------------------------------
 
 model Asset {
-  id               String   @id @default(cuid())
-  ticker           String   @unique
+  id               String    @id @default(cuid())
+  ticker           String    @unique
   instrumentName   String?
-  cedearRatio      Decimal  @db.Decimal(8, 4)
+  cedearRatio      Decimal   @db.Decimal(8, 4)
   description      String?
   sector           String?
   industry         String?
   country          String?
   underlyingTicker String?
   assetKind        AssetKind @default(CEDEAR)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   @@index([ticker])
   @@index([assetKind])
@@ -264,27 +263,6 @@ model BenchmarkPoint {
 }
 
 // ---------------------------------------------------------------------------
-// TargetAllocation
-//
-// Asignación objetivo por ticker para la función de rebalanceo.
-// Se compara contra la asignación real del snapshot más reciente.
-// ---------------------------------------------------------------------------
-
-model TargetAllocation {
-  id        String   @id @default(cuid())
-  ticker    String
-  targetPct Decimal  @db.Decimal(8, 6)
-  notes     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id])
-
-  @@unique([userId, ticker])
-  @@map("target_allocations")
-}
-
-// ---------------------------------------------------------------------------
 // Transaction
 //
 // Registro de operaciones de compra/venta de CEDEARs.
@@ -292,20 +270,20 @@ model TargetAllocation {
 // ---------------------------------------------------------------------------
 
 model Transaction {
-  id        String          @id @default(cuid())
-  ticker    String
-  type      TransactionType
-  quantity  Decimal         @db.Decimal(18, 8)
-  price     Decimal         @db.Decimal(18, 4)
-  currency  Currency        @default(ARS)
-  fee       Decimal?        @db.Decimal(18, 2)
-  date      DateTime        @db.Date
-  notes     String?
-  createdAt DateTime        @default(now())
-  userId    String?
-  user      User?           @relation(fields: [userId], references: [id])
-  movementId String?        @unique
-  movement   Movement?      @relation(fields: [movementId], references: [id])
+  id         String          @id @default(cuid())
+  ticker     String
+  type       TransactionType
+  quantity   Decimal         @db.Decimal(18, 8)
+  price      Decimal         @db.Decimal(18, 4)
+  currency   Currency        @default(ARS)
+  fee        Decimal?        @db.Decimal(18, 2)
+  date       DateTime        @db.Date
+  notes      String?
+  createdAt  DateTime        @default(now())
+  userId     String?
+  user       User?           @relation(fields: [userId], references: [id])
+  movementId String?         @unique
+  movement   Movement?       @relation(fields: [movementId], references: [id])
 
   @@index([ticker])
   @@index([date])
@@ -508,7 +486,6 @@ model Movement {
   @@index([ticker])
   @@map("movements")
 }
-
 
 // ---------------------------------------------------------------------------
 // Alertas por mail (ADR-0020)

@@ -58,3 +58,35 @@ async function cachedSignalHistory(userId: string): Promise<SignalHistory> {
     rows.flatMap((r) => (isOpportunityReport(r.normalizedJson) ? [{ id: r.id, createdAt: r.createdAt, report: r.normalizedJson }] : []))
   );
 }
+
+export type LatestSignals = {
+  createdAt: Date;
+  signals: Record<string, { senal: "compra" | "mantener" | "venta"; confianza: "alta" | "media" | "baja" }>;
+};
+
+// Señal por ticker del último reporte de oportunidades, para el Plan DCA (ADR-0022).
+export async function getLatestSignals(): Promise<LatestSignals | null> {
+  return cachedLatestSignals(await requireUserId());
+}
+
+// No se exporta: recibe el userId ya resuelto de la sesión (ADR-0017).
+async function cachedLatestSignals(userId: string): Promise<LatestSignals | null> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(userTags.reports(userId));
+
+  const rows = await db.portfolioReport.findMany({
+    where: { userId },
+    select: { createdAt: true, normalizedJson: true },
+    orderBy: { createdAt: "desc" },
+    take: 5,
+  });
+  const latest = rows.find((r) => isOpportunityReport(r.normalizedJson));
+  if (!latest || !isOpportunityReport(latest.normalizedJson)) return null;
+  return {
+    createdAt: latest.createdAt,
+    signals: Object.fromEntries(
+      latest.normalizedJson.acciones.map((a) => [a.ticker, { senal: a.senal, confianza: a.confianza }])
+    ),
+  };
+}

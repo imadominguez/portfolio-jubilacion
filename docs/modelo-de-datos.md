@@ -42,7 +42,7 @@ enum AlertKind        { PRICE_DROP REMINDER }
 | `role` | `UserRole @default(USER)` | Campo adicional expuesto en la sesión. |
 | `createdAt` / `updatedAt` | `DateTime` | |
 
-Relaciones: `sessions`, `accounts`, `portfolioSnapshots`, `transactions`, `dividends`, `retirementSettings`, `targetAllocations`, `milestoneAlerts`, `portfolioReports`, `movements`, `setup`.
+Relaciones: `sessions`, `accounts`, `portfolioSnapshots`, `transactions`, `dividends`, `retirementSettings`, `milestoneAlerts`, `portfolioReports`, `movements`, `setup`.
 
 ### `Session` → `session`
 `id`, `expiresAt`, `token @unique`, `createdAt`, `updatedAt`, `ipAddress?`, `userAgent?`, `userId` (FK a `User`, `onDelete: Cascade`).
@@ -206,10 +206,6 @@ Un registro por usuario (se guarda con `findFirst`/`update`/`create`, no upsert 
 
 `id`, `currentAge Int`, `retirementAge Int`, `monthlyExpensesUsd Decimal(18,2)`, `inflationRate Decimal(6,4)`, `withdrawalRate Decimal(6,4)`, `monthlyContribution Decimal(18,2)`, `expectedReturnRate Decimal(6,4)` (retorno anual esperado en USD para la proyección, fracción; 0.07 por defecto), timestamps, `userId?`/`user?`.
 
-### `TargetAllocation` → `target_allocations`
-
-`id`, `ticker`, `targetPct Decimal(8,6)` (**fracción 0–1**), `notes?`, timestamps, `userId?`/`user?`. Restricción: `@@unique([userId, ticker])` (cada usuario define su propio objetivo por ticker).
-
 ### `MilestoneAlert` → `milestone_alerts`
 
 `id`, `label`, `targetValueUsd Decimal(18,2)`, `reached Boolean @default(false)`, `reachedAt DateTime?`, `createdAt`, `userId?`/`user?`.
@@ -276,7 +272,6 @@ User 1─* PortfolioSnapshot 1─* Position
 User 1─* Transaction 1─1 Movement
 User 1─* Movement
 User 1─* Dividend
-User 1─* TargetAllocation
 User 1─* MilestoneAlert
 User 1─* RetirementSettings
 User 1─* PortfolioReport
@@ -315,6 +310,7 @@ Ubicación: `prisma/migrations/`.
 | `20261009120000_add_alerts` | Enum `AlertKind`, tablas `alert_settings` y `alert_logs`. |
 | `20261009180000_add_expense_tags` | Tabla `expense_tags`. |
 | `20261009181000_expense_tag_optional_category` | `expense_tags.category` pasa a opcional. |
+| `20261009220000_drop_target_allocations` | Borra la tabla `target_allocations` (sin pesos objetivo, ADR-0022). |
 | `20261009200000_retirement_expected_return` | `retirement_settings.expectedReturnRate` (`Decimal(6,4)`, por defecto 0.07). |
 
 Comandos (ver [desarrollo.md](./desarrollo.md)):

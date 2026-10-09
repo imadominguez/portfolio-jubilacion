@@ -16,7 +16,6 @@ function baseInput(overrides: Partial<SetupInput> = {}): SetupInput {
     transactionCount: 0,
     cclHistoryCount: 0,
     stockHistoryCount: 0,
-    targetAllocationCount: 0,
     hasRetirementSettings: false,
     canManageAssets: true,
     onboarding,
@@ -111,7 +110,7 @@ describe("deriveSetupStatus", () => {
         transactionCount: 1,
         cclHistoryCount: 1,
         stockHistoryCount: 1,
-        targetAllocationCount: 1,
+        hasRetirementSettings: true,
       })
     );
     expect(status.allDone).toBe(true);
@@ -130,14 +129,9 @@ describe("deriveSetupStatus", () => {
     expect(both.steps.find((s) => s.id === "historicals")?.done).toBe(true);
   });
 
-  it("preferencias se completan con retiro u objetivos", () => {
+  it("preferencias se completan con el plan de retiro", () => {
     expect(
       deriveSetupStatus(baseInput({ hasRetirementSettings: true })).steps.find(
-        (s) => s.id === "preferences"
-      )?.done
-    ).toBe(true);
-    expect(
-      deriveSetupStatus(baseInput({ targetAllocationCount: 2 })).steps.find(
         (s) => s.id === "preferences"
       )?.done
     ).toBe(true);
@@ -156,7 +150,7 @@ describe("deriveSetupStatus", () => {
         transactionCount: 1,
         cclHistoryCount: 1,
         stockHistoryCount: 1,
-        targetAllocationCount: 1,
+        hasRetirementSettings: true,
       })
     );
     expect(status.allDone).toBe(true);

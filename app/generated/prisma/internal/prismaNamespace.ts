@@ -407,7 +407,6 @@ export const ModelName = {
   ExchangeRate: 'ExchangeRate',
   MarketPriceCache: 'MarketPriceCache',
   BenchmarkPoint: 'BenchmarkPoint',
-  TargetAllocation: 'TargetAllocation',
   Transaction: 'Transaction',
   Dividend: 'Dividend',
   RetirementSettings: 'RetirementSettings',
@@ -435,7 +434,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "portfolioSnapshot" | "position" | "asset" | "exchangeRate" | "marketPriceCache" | "benchmarkPoint" | "targetAllocation" | "transaction" | "dividend" | "retirementSettings" | "historicalPriceCache" | "milestoneAlert" | "userSetup" | "investmentStrategy" | "portfolioReport" | "movement" | "alertSettings" | "alertLog" | "expenseTag"
+    modelProps: "user" | "session" | "account" | "verification" | "portfolioSnapshot" | "position" | "asset" | "exchangeRate" | "marketPriceCache" | "benchmarkPoint" | "transaction" | "dividend" | "retirementSettings" | "historicalPriceCache" | "milestoneAlert" | "userSetup" | "investmentStrategy" | "portfolioReport" | "movement" | "alertSettings" | "alertLog" | "expenseTag"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1176,80 +1175,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.BenchmarkPointCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.BenchmarkPointCountAggregateOutputType> | number
-        }
-      }
-    }
-    TargetAllocation: {
-      payload: Prisma.$TargetAllocationPayload<ExtArgs>
-      fields: Prisma.TargetAllocationFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.TargetAllocationFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TargetAllocationPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.TargetAllocationFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TargetAllocationPayload>
-        }
-        findFirst: {
-          args: Prisma.TargetAllocationFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TargetAllocationPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.TargetAllocationFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TargetAllocationPayload>
-        }
-        findMany: {
-          args: Prisma.TargetAllocationFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TargetAllocationPayload>[]
-        }
-        create: {
-          args: Prisma.TargetAllocationCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TargetAllocationPayload>
-        }
-        createMany: {
-          args: Prisma.TargetAllocationCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.TargetAllocationCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TargetAllocationPayload>[]
-        }
-        delete: {
-          args: Prisma.TargetAllocationDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TargetAllocationPayload>
-        }
-        update: {
-          args: Prisma.TargetAllocationUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TargetAllocationPayload>
-        }
-        deleteMany: {
-          args: Prisma.TargetAllocationDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.TargetAllocationUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.TargetAllocationUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TargetAllocationPayload>[]
-        }
-        upsert: {
-          args: Prisma.TargetAllocationUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TargetAllocationPayload>
-        }
-        aggregate: {
-          args: Prisma.TargetAllocationAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateTargetAllocation>
-        }
-        groupBy: {
-          args: Prisma.TargetAllocationGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.TargetAllocationGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.TargetAllocationCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.TargetAllocationCountAggregateOutputType> | number
         }
       }
     }
@@ -2319,19 +2244,6 @@ export const BenchmarkPointScalarFieldEnum = {
 export type BenchmarkPointScalarFieldEnum = (typeof BenchmarkPointScalarFieldEnum)[keyof typeof BenchmarkPointScalarFieldEnum]
 
 
-export const TargetAllocationScalarFieldEnum = {
-  id: 'id',
-  ticker: 'ticker',
-  targetPct: 'targetPct',
-  notes: 'notes',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  userId: 'userId'
-} as const
-
-export type TargetAllocationScalarFieldEnum = (typeof TargetAllocationScalarFieldEnum)[keyof typeof TargetAllocationScalarFieldEnum]
-
-
 export const TransactionScalarFieldEnum = {
   id: 'id',
   ticker: 'ticker',
@@ -2885,7 +2797,6 @@ export type GlobalOmitConfig = {
   exchangeRate?: Prisma.ExchangeRateOmit
   marketPriceCache?: Prisma.MarketPriceCacheOmit
   benchmarkPoint?: Prisma.BenchmarkPointOmit
-  targetAllocation?: Prisma.TargetAllocationOmit
   transaction?: Prisma.TransactionOmit
   dividend?: Prisma.DividendOmit
   retirementSettings?: Prisma.RetirementSettingsOmit

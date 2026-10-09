@@ -238,36 +238,22 @@ para 1 mes, YTD y 1 año (se busca el registro más cercano hacia atrás).
 
 ---
 
-## Rebalanceo (`app/actions/rebalance.ts`)
-
-```
-deviation = currentPct − targetPct
-```
-
-| Condición | `suggestedAction` |
-|---|---|
-| `deviation < −1` | `BUY` |
-| `deviation > 1` | `SELL` |
-| entre −1 y 1 | `HOLD` |
-
-`targetPct` se persiste como fracción (`/100`) y se expone ×100. La validación exige `0 ≤ targetPct ≤ 100`.
-
----
-
 ## Plan DCA (`lib/dca-planner.ts`)
 
-Reparte un aporte mensual entre los tickers del objetivo (target > 0) priorizando los infraponderados. Función pura `planDca(input): DcaPlan`.
+Reparte el aporte mensual según las señales del último reporte de oportunidades ([ADR-0022](./adr/0022-plan-dca-segun-las-senales-del-reporte-sin-pesos-objetivo.md)). Función pura `planDca(input): DcaPlan`; sin pesos objetivo ni topes.
 
 ```
-gap_i      = max(0, targetPct_i/100 · valorCartera − valorActual_i)
-techo_i    = gap_i                       // no se compra más de lo que falta
-asignado_i = water-filling proporcional al "room" restante (gap_i − asignado_i)
+universo   = posiciones del último snapshot con subyacente (CEDEARs)
+peso_i     = 3 | 2 | 1 según confianza    si señal_i = compra          (modo "compra")
+           = 1                            si no hay compras y señal_i = mantener   (modo "mantener")
+           = 0                            venta, sin señal, o todo en venta        (modo "ninguna")
+           = 1 para todas                 sin reporte                              (modo "iguales")
+asignado_i = aporte · peso_i / Σ peso
 newPct_i   = (valorActual_i + asignado_i) / (valorCartera + aporte) · 100
 ```
 
-- Los tickers fuera del objetivo o ya en objetivo reciben 0.
-- El excedente que no cabe en ningún *gap* se reporta como `unallocatedArs`.
-- `estimatedCedears = floor(asignado_i / precioCedearArs)`, con `precioCedearArs = precioSubyacenteUSD · CCL / ratio` (o el precio del snapshot si la posición existe).
+- `estimatedCedears = floor(asignado_i / precioCedearArs)`, con el precio del snapshot o `precioSubyacenteUSD · CCL / ratio`.
+- `unallocatedArs`: lo que queda sin asignar (todo, en modo "ninguna"; centavos de redondeo en el resto).
 
 ---
 

@@ -34,12 +34,11 @@ app/
     error.tsx / not-found.tsx   Error boundary y 404 compartidos; cada ruta tiene su loading.tsx
     (dashboard)/                Grupo solo para que su loading.tsx aplique únicamente a /
       page.tsx + loading.tsx    Dashboard (/)
-    plan/                       Plan DCA determinista del mes
+    plan/                       Plan DCA del mes según las señales del último reporte
     performance/                TIR, TWR, drawdown, benchmarks
     ccl/                        Historial CCL
     snapshots/                  Listado + [id] detalle
     analysis/                   Concentración
-    rebalance/                  Objetivo vs real
     transactions/               Gastos del mes, compras/ventas, PPM, dividendos
     retirement/                 Calculadora de retiro + Monte Carlo
     real-gains/                 Ganancia real USD vs impacto CCL
@@ -75,7 +74,6 @@ components/
   taxes/                        TaxReportView, TaxReportSkeleton (/impuestos)
   cash-flow/                    CashFlowChart, CashFlowSkeleton (/flujo)
   alerts/                       AlertSettingsForm, AlertsSkeleton (/alertas)
-  rebalance/                    RebalanceClient
   retirement/                   RetirementClient
   strategy/                     StrategyEditor
   settings/                     MilestonesClient

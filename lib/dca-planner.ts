@@ -1,15 +1,18 @@
-// Planificador DCA determinista (sin IA).
+// Planificador del aporte mensual (puro, sin Prisma). ADR-0022 (reemplaza a
+// ADR-0013): sin pesos objetivo ni topes por acción; el reparto sigue las
+// señales del último reporte de oportunidades.
 //
-// Dado un aporte mensual, reparte el capital entre las posiciones del objetivo
-// (TargetAllocation) priorizando las más infraponderadas, sin asignar capital a
-// posiciones que ya alcanzaron su peso objetivo.
-//
-// Reglas (ver skill de inversión):
-//  - Sólo reciben aportes los tickers del objetivo (targetPct > 0).
-//  - Cada ticker tiene un techo: no se compra más de lo que falta para llegar
-//    a su peso objetivo (gap). Si sobra capital, se reparte entre el resto.
+//  - Solo entran las acciones del último snapshot con subyacente (CEDEARs): el
+//    FCI y las acciones locales no tienen señal.
+//  - Con reporte: el aporte va a las marcadas "compra", ponderado por
+//    confianza (alta 3, media 2, baja 1). Si ninguna es "compra", se reparte en
+//    partes iguales entre las "mantener". "Venta" nunca recibe.
+//  - Sin reporte: partes iguales entre todas.
 
-export type DcaTarget = { ticker: string; targetPct: number };
+export type DcaSignal = {
+  senal: "compra" | "mantener" | "venta";
+  confianza: "alta" | "media" | "baja";
+};
 
 export type DcaPosition = {
   ticker: string;
@@ -29,18 +32,25 @@ export type DcaInput = {
   portfolioValueArs: number;
   ccl: number | null;
   positions: DcaPosition[];
-  targets: DcaTarget[];
   assets: DcaAssetInfo[];
   // Precio USD del subyacente por ticker subyacente (ej: { MSFT: 480 }).
   marketPrices: Record<string, number>;
+  // Señal por ticker del último reporte; null si no hay reporte.
+  signals: Record<string, DcaSignal> | null;
 };
+
+// Qué regla se aplicó: "compra" (hay compras), "mantener" (ninguna compra),
+// "ninguna" (todo es venta o no hay señales para estas acciones), "iguales"
+// (sin reporte).
+export type DcaMode = "compra" | "mantener" | "ninguna" | "iguales";
 
 export type DcaRow = {
   ticker: string;
-  targetPct: number;
+  signal: DcaSignal | null;
   currentPct: number;
   currentValue: number;
-  gapArs: number;
+  // Peso en el reparto (0 = no recibe).
+  weight: number;
   amountArs: number;
   newPct: number;
   cedearPriceArs: number | null;
@@ -48,10 +58,13 @@ export type DcaRow = {
 };
 
 export type DcaPlan = {
+  mode: DcaMode;
   rows: DcaRow[];
   totalAllocatedArs: number;
   unallocatedArs: number;
 };
+
+export const CONFIDENCE_WEIGHT: Record<DcaSignal["confianza"], number> = { alta: 3, media: 2, baja: 1 };
 
 function estimateCedearPriceArs(
   asset: DcaAssetInfo | undefined,
@@ -67,79 +80,51 @@ function estimateCedearPriceArs(
 }
 
 export function planDca(input: DcaInput): DcaPlan {
-  const { monthlyAmountArs, portfolioValueArs, ccl, positions, targets, assets, marketPrices } =
-    input;
-
-  const posMap = new Map(positions.map((p) => [p.ticker, p]));
+  const { monthlyAmountArs, portfolioValueArs, ccl, positions, assets, marketPrices, signals } = input;
   const assetMap = new Map(assets.map((a) => [a.ticker, a]));
+  const amount = Math.max(0, monthlyAmountArs);
 
-  const rows: DcaRow[] = targets
-    .filter((t) => t.targetPct > 0)
-    .map((t) => {
-      const pos = posMap.get(t.ticker);
-      const currentValue = pos?.currentValue ?? 0;
-      const currentPct = pos?.currentPct ?? 0;
-      const idealValue = (t.targetPct / 100) * portfolioValueArs;
-      const gapArs = Math.max(0, idealValue - currentValue);
+  const rows: DcaRow[] = positions
+    .filter((p) => assetMap.get(p.ticker)?.underlyingTicker)
+    .map((p) => ({
+      ticker: p.ticker,
+      signal: signals?.[p.ticker] ?? null,
+      currentPct: p.currentPct,
+      currentValue: p.currentValue,
+      weight: 0,
+      amountArs: 0,
+      newPct: p.currentPct,
+      cedearPriceArs: estimateCedearPriceArs(assetMap.get(p.ticker), p.currentPrice, marketPrices, ccl),
+      estimatedCedears: null,
+    }));
 
-      const asset = assetMap.get(t.ticker);
-      const cedearPriceArs = estimateCedearPriceArs(
-        asset,
-        pos?.currentPrice,
-        marketPrices,
-        ccl
-      );
-
-      return {
-        ticker: t.ticker,
-        targetPct: t.targetPct,
-        currentPct,
-        currentValue,
-        gapArs,
-        amountArs: 0,
-        newPct: currentPct,
-        cedearPriceArs,
-        estimatedCedears: null,
-      };
-    });
-
-  // Water-filling: reparte proporcional al gap restante, respetando el techo.
-  const active = rows.filter((r) => r.gapArs > 0);
-  let remaining = Math.max(0, monthlyAmountArs);
-  let guard = 0;
-
-  while (remaining > 0.5 && guard++ < 100) {
-    const totalRoom = active.reduce((s, r) => s + (r.gapArs - r.amountArs), 0);
-    if (totalRoom <= 0) break;
-
-    let distributed = 0;
-    for (const r of active) {
-      const room = r.gapArs - r.amountArs;
-      if (room <= 0) continue;
-      const share = remaining * (room / totalRoom);
-      const add = Math.min(share, room);
-      r.amountArs += add;
-      distributed += add;
-    }
-    if (distributed <= 0) break;
-    remaining -= distributed;
+  let mode: DcaMode;
+  if (signals === null) {
+    mode = "iguales";
+    for (const r of rows) r.weight = 1;
+  } else if (rows.some((r) => r.signal?.senal === "compra")) {
+    mode = "compra";
+    for (const r of rows) if (r.signal?.senal === "compra") r.weight = CONFIDENCE_WEIGHT[r.signal.confianza];
+  } else if (rows.some((r) => r.signal?.senal === "mantener")) {
+    mode = "mantener";
+    for (const r of rows) if (r.signal?.senal === "mantener") r.weight = 1;
+  } else {
+    mode = "ninguna";
   }
 
-  const totalAfter = portfolioValueArs + monthlyAmountArs;
+  const totalWeight = rows.reduce((acc, r) => acc + r.weight, 0);
+  const totalAfter = portfolioValueArs + amount;
   for (const r of rows) {
-    r.amountArs = Math.round(r.amountArs);
+    r.amountArs = totalWeight > 0 ? Math.round((amount * r.weight) / totalWeight) : 0;
     r.newPct = totalAfter > 0 ? ((r.currentValue + r.amountArs) / totalAfter) * 100 : r.currentPct;
-    r.estimatedCedears =
-      r.cedearPriceArs && r.cedearPriceArs > 0
-        ? Math.floor(r.amountArs / r.cedearPriceArs)
-        : null;
+    r.estimatedCedears = r.cedearPriceArs && r.cedearPriceArs > 0 ? Math.floor(r.amountArs / r.cedearPriceArs) : null;
   }
 
   const totalAllocatedArs = rows.reduce((s, r) => s + r.amountArs, 0);
-
   return {
+    mode,
     rows: rows.sort((a, b) => b.amountArs - a.amountArs || a.ticker.localeCompare(b.ticker)),
     totalAllocatedArs,
-    unallocatedArs: Math.max(0, Math.round(monthlyAmountArs) - totalAllocatedArs),
+    unallocatedArs: Math.max(0, Math.round(amount) - totalAllocatedArs),
   };
 }

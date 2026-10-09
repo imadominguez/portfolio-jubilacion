@@ -13,7 +13,6 @@ Las lecturas se cachean con `'use cache'` + `cacheLife("hours")` + `cacheTag` ([
 | `dividends:<userId>` | Dividendos | `revalidateDividends(userId)` |
 | `milestones:<userId>` | Hitos | `revalidateMilestones(userId)` |
 | `retirement:<userId>` | Configuración de retiro | `revalidateRetirement(userId)` |
-| `rebalance:<userId>` | Asignación objetivo | `revalidateRebalance(userId)` |
 | `setup:<userId>` | Estado de onboarding | `revalidateSetup(userId)` |
 | `assets` | Catálogo de assets | `revalidateAssets()` |
 | `ccl` | `ExchangeRate` | `revalidateCcl()` |
@@ -24,7 +23,7 @@ Las lecturas se cachean con `'use cache'` + `cacheLife("hours")` + `cacheTag` ([
 
 Los helpers usan `updateTag`: la siguiente lectura (incluso dentro de la misma action) espera datos frescos, y además se vacía el caché del router en el cliente, así que no hace falta `revalidatePath`. `updateTag` solo funciona en Server Actions; en un Route Handler usar `revalidateTag(tag, "max")`.
 
-Lecturas cacheadas hoy: las del Dashboard (`getLatestSnapshot`, `getPreviousSnapshotFull`, `getAllSnapshotPoints`, `getConcentrationData`, `calculateRealGains`, `calculatePPM`, `getMarketPrices`, `getTotalDividendsUsd`, `getMilestones`, `getRetirementSettings`, `getRebalanceData` y `getSetupStatus`), `getAllExchangeRates` (tag `ccl`), `getTargetAllocations` (tag `rebalance:<userId>`), `getAllTransactions`, `getRealizedPnl` y `getMovements` (tag `trades:<userId>`), `getHoldingsFlows` (tags `trades:<userId>` y `ccl`; flujos de las tenencias para el rendimiento sin aportes), `getAllDividends` (tag `dividends:<userId>`), `getTaxData` (`lib/tax-report-data.ts`; tags `snapshots`, `trades` y `dividends` del usuario), `getAlertsPageData` (tag `alerts:<userId>`), `getMonthExpenses` (tags `trades` y `expenses` del usuario), `getCashFlow` y `getContributionStats` (tags `trades` del usuario y `ccl`), `getBenchmarkPoints` (tag `benchmarks`; `getIndexPoints` delega en ella), `getDataReadiness` (tags `snapshots`, `trades`, `assets`, `ccl` e `historical-prices`), `getAssetCatalog` (tag `assets`), `getActiveStrategy`/`getStrategyHistory` (tag `strategy`; en estas tres últimas `requireAdmin()` queda fuera del caché) y `getSnapshotById` (tag `snapshots:<userId>`, cacheada por id para el `prefetch={true}` del listado). Al cachear una lectura nueva, sumá un tag por cada dominio que lee; al agregar una escritura, llamá al helper de su dominio.
+Lecturas cacheadas hoy: las del Dashboard (`getLatestSnapshot`, `getPreviousSnapshotFull`, `getAllSnapshotPoints`, `getConcentrationData`, `calculateRealGains`, `calculatePPM`, `getMarketPrices`, `getTotalDividendsUsd`, `getMilestones`, `getRetirementSettings`, `getLatestSignals` y `getSetupStatus`), `getAllExchangeRates` (tag `ccl`), `getAllTransactions`, `getRealizedPnl` y `getMovements` (tag `trades:<userId>`), `getHoldingsFlows` (tags `trades:<userId>` y `ccl`; flujos de las tenencias para el rendimiento sin aportes), `getAllDividends` (tag `dividends:<userId>`), `getTaxData` (`lib/tax-report-data.ts`; tags `snapshots`, `trades` y `dividends` del usuario), `getAlertsPageData` (tag `alerts:<userId>`), `getMonthExpenses` (tags `trades` y `expenses` del usuario), `getCashFlow` y `getContributionStats` (tags `trades` del usuario y `ccl`), `getBenchmarkPoints` (tag `benchmarks`; `getIndexPoints` delega en ella), `getDataReadiness` (tags `snapshots`, `trades`, `assets`, `ccl` e `historical-prices`), `getAssetCatalog` (tag `assets`), `getActiveStrategy`/`getStrategyHistory` (tag `strategy`; en estas tres últimas `requireAdmin()` queda fuera del caché) y `getSnapshotById` (tag `snapshots:<userId>`, cacheada por id para el `prefetch={true}` del listado). Al cachear una lectura nueva, sumá un tag por cada dominio que lee; al agregar una escritura, llamá al helper de su dominio.
 
 Autorización: las actions que leen/escriben datos de usuario llaman a `requireAuth()`/`requireUserId()` (lanzan si no hay sesión) y filtran por `userId`, **incluidos los borrados** (`deleteMany({ where: { id, userId } })`, que devuelve "no encontrado" si el registro es ajeno). Las actions sobre datos administrados (`assets.ts`, `strategy.ts`) llaman a `requireAdmin()`. Las de refresco de datos de mercado (exchange-rate, benchmarks, precios) **no** llaman a `requireAuth`: dependen solo de que el proxy exija sesión.
 
@@ -127,17 +126,6 @@ El parser clasifica cada fila en `MovementCategory`; sólo `TRADE_BUY`/`TRADE_SE
 | `saveAlertSettings(data)` | Sí | Valida umbrales (1–90 % y 1–50 %) y día (1–28); upsert por `userId`. `revalidateAlerts`. |
 | `sendTestAlertEmail()` | Sí | Manda un mail de prueba al email de la sesión. |
 | `runAlertsNow()` | Sí | `runAlertsForUser(userId, { force: true })`: la revisión del cron para el usuario de la sesión, sin la regla de no repetir. Devuelve qué se avisó y qué acciones no se pudieron revisar. |
-
----
-
-## `rebalance.ts` — Asignación objetivo
-
-| Función | Auth | Comportamiento |
-|---|---|---|
-| `getRebalanceData()` | Sí | Snapshot más reciente + objetivos → filas con `currentPct`, `targetPct`, `deviation` y `suggestedAction`; ordena por `|deviation|` desc. |
-| `getTargetAllocations()` | Sí | Objetivos del usuario (`targetPct` ×100). |
-| `upsertTargetAllocation(ticker, targetPct, notes?)` | Sí | Valida ticker y `0 ≤ targetPct ≤ 100`; persiste `targetPct/100`. Upsert por la unique `[userId, ticker]`. |
-| `deleteTargetAllocation(id)` | Sí | `deleteMany({ id, userId })`; no elimina objetivos de otros usuarios. |
 
 ---
 
@@ -253,6 +241,7 @@ Por usuario: ambas funciones usan `requireUserId()` y filtran por `userId`. Los 
 | Función | Comportamiento |
 |---|---|
 | `listReports()` | Lista `id` + label (`fechaReporte — hora`) del usuario por fecha desc. |
+| `getLatestSignals()` | Señal y confianza por ticker del último reporte `version: 2` (Plan DCA y tarjeta del Dashboard). Tag `reports:<userId>`. |
 | `getSignalHistory()` | Últimos reportes `version: 2` del usuario → `buildSignalHistory` (`lib/signal-history.ts`). Cacheada con el tag `reports:<userId>`, que el route del análisis invalida al guardar. |
 | `getReport(id)` | `findFirst({ id, userId })`; devuelve `normalizedJson` tal cual: un reporte de oportunidades (`version: 2`, `OpportunityReport`) o uno del formato anterior (`ReportePortafolio`), o `null`. |
 
@@ -274,7 +263,6 @@ Por usuario: ambas funciones usan `requireUserId()` y filtran por `userId`. Los 
 | `indices.ts` | Solo `fetchAndSaveAllIndices` | No (global; usa el primer snapshot del usuario como fecha de inicio) |
 | `market-prices.ts` | No | No (global) |
 | `milestones.ts` | Sí | Sí (incluye delete) |
-| `rebalance.ts` | Sí | Sí |
 | `reports.ts` | Sí | Sí |
 | `retirement.ts` | Sí | Sí |
 | `setup.ts` | Sí | Sí (por usuario) |
