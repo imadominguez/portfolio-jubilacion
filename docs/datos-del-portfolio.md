@@ -298,6 +298,22 @@ La pantalla muestra KPIs, una barra de desglose (apreciación vs impacto CCL), u
 
 ---
 
+## Flujo de caja (`/flujo`)
+
+Cuánto entró y salió de la cuenta de Cocos cada mes. Solo ve lo que pasa por Cocos.
+
+| Dato | Cálculo |
+|---|---|
+| **Depósitos** | Recibos de cobro del mes. |
+| **Gastos** | Órdenes de pago del mes (un reintegro resta). |
+| **Ahorro / tasa de ahorro** | Depósitos − gastos, y ese ahorro sobre los depósitos. Negativo: se gastó más de lo depositado y la diferencia salió del FCI o del efectivo. |
+| **Invertido** | Compras menos ventas de CEDEARs y bonos. |
+| **FCI neto** | Suscripciones menos rescates del FCI. |
+
+El resumen de arriba usa los últimos 12 meses cerrados. Los movimientos en dólares se pasan al CCL de su fecha. Detalle en [logica-financiera.md](./logica-financiera.md#flujo-de-caja-libcash-flowts).
+
+---
+
 ## Impuestos (`/impuestos`)
 
 Datos de un año para la declaración, con descarga en CSV. No aplica reglas impositivas (exenciones, tipo de cambio BNA): eso queda para la declaración.

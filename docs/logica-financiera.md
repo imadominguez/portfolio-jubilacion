@@ -495,6 +495,23 @@ Se omiten los de monto 0. Cocos no informa de qué CEDEAR viene cada dividendo e
 
 ---
 
+## Flujo de caja (`lib/cash-flow.ts`)
+
+Por mes (fecha UTC del movimiento), en pesos. Los movimientos en dólares se pasan al CCL de su fecha (`cclLookup`: el del día o el último anterior); sin CCL se omiten. Así una ON comprada en pesos y vendida en dólares (dólar MEP) se compensa en vez de contar como inversión.
+
+```
+depósitos   = Σ RECEIPT ("Recibo De Cobro")
+gastos      = −Σ PAYMENT ("Orden De Pago")            (un reintegro resta)
+ahorro      = depósitos − gastos
+tasa        = ahorro / depósitos × 100                 (null sin depósitos)
+invertido   = −Σ (TRADE_BUY + TRADE_SELL)              (compras − ventas)
+FCI neto    = −Σ (FCI_SUBSCRIPTION + FCI_REDEMPTION)   (positivo = se estacionó plata)
+```
+
+El resumen (`cashFlowSummary`) suma los últimos 12 meses cerrados; su tasa es ahorro total / depósitos totales (ponderada por depósitos). Una tasa negativa es un mes en que se gastó más de lo depositado: la diferencia salió del FCI o del efectivo. Solo ve la cuenta de Cocos: los ingresos que no pasan por ahí no están.
+
+---
+
 ## Gastos del mes (`lib/expenses.ts`)
 
 Salen de los pagos (`PAYMENT`, "Orden De Pago") del libro de movimientos de Cocos, en pesos. Cocos no informa el destino del pago: la categoría y la nota las pone el usuario en `ExpenseTag` (aparte del `Movement`, que no se edita, ADR-0012). Los cortes por mes y por día usan la fecha local de Argentina (`lib/local-date.ts`).

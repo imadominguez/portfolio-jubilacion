@@ -13,7 +13,7 @@ Documentación técnica y funcional completa de la aplicación **Portfolio Jubil
 Un tracker privado (multiusuario con autenticación: cada usuario ve solo sus datos; el registro público está cerrado) que:
 
 1. Importa **snapshots inmutables** del portafolio desde CSV exportados de Cocos Capital.
-2. Registra **transacciones** (compras/ventas) y **dividendos** para calcular PPM y P&L, y muestra los **gastos del mes** a partir de los pagos de la cuenta, con categorías manuales.
+2. Registra **transacciones** (compras/ventas) y **dividendos** para calcular PPM y P&L, y muestra los **gastos del mes** a partir de los pagos de la cuenta, con categorías manuales, y el **flujo de caja** mensual con la tasa de ahorro.
 3. Mide **performance** histórica sin contar aportes (TIR, TWR, drawdown) y compara contra benchmarks e inflación.
 4. Descompone la **ganancia real en USD** separando la apreciación de la acción del impacto del CCL.
 5. Proyecta la **jubilación** (capital necesario, proyección y Monte Carlo).

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   Activity,
   Bell,
+  Coins,
   ArrowLeftRight,
   BarChart3,
   CalendarDays,
@@ -49,6 +50,7 @@ const COMMANDS: CommandEntry[] = [
   { label: "Rebalanceo", href: "/rebalance", group: "Análisis", icon: Scale },
   { label: "Plan DCA", href: "/plan", group: "Análisis", icon: Wallet },
   { label: "Jubilación", href: "/retirement", group: "Análisis", icon: Target },
+  { label: "Flujo de caja", href: "/flujo", group: "Análisis", icon: Coins },
   { label: "Impuestos", href: "/impuestos", group: "Análisis", icon: Receipt },
   { label: "Centro de Datos", href: "/datos", group: "Datos", icon: Database },
   { label: "Alertas", href: "/alertas", group: "Datos", icon: Bell },

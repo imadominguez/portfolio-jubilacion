@@ -135,6 +135,19 @@ Metadata raíz (`app/layout.tsx`): `title` por defecto `"Portfolio Jubilación"`
 
 ---
 
+## `/flujo` — Flujo de caja
+
+- **Archivo:** `app/(app)/flujo/page.tsx`.
+- **Datos (dentro de `<Suspense>`):** `getCashFlow()` (`app/actions/cash-flow.ts`, tags `trades:<userId>` y `ccl`): los últimos 13 meses de `monthlyCashFlow`, y `connection()` antes de leer el mes actual (hora de Argentina).
+- **Muestra:**
+  - Resumen de los últimos 12 meses cerrados: depositado, gastado, tasa de ahorro e invertido en CEDEARs y bonos.
+  - Gráfico de depósitos y gastos por mes, con la tasa de ahorro (`CashFlowChart`).
+  - Tabla mes a mes, con link a los gastos de cada mes en `/transactions?mes=`.
+- **Alcance:** solo lo que pasa por la cuenta de Cocos; la página lo aclara.
+- **Estado vacío:** `EmptyState` con el botón de importar movimientos.
+
+---
+
 ## `/impuestos` — Reporte para impuestos
 
 - **Archivo:** `app/(app)/impuestos/page.tsx`.
@@ -239,6 +252,7 @@ Ambas redirigen a `/` si ya hay sesión (proxy). El cliente de Better Auth (`lib
 | `/rebalance` | Sí | actions rebalance | No | Análisis |
 | `/plan` | Sí | snapshot + objetivos + precios | No | Análisis |
 | `/retirement` | Sí | settings + snapshots + flujos | No | Análisis |
+| `/flujo` | Sí | movimientos + CCL | No | Análisis |
 | `/impuestos` | Sí (+ `searchParams`) | snapshots + transacciones + dividendos | No | Análisis |
 | `/datos` | Sí (por tarjeta) | setup + readiness + precios/CCL/índices | No | Datos |
 | `/alertas` | Sí | configuración e historial de alertas | No | Datos |

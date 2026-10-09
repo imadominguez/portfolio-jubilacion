@@ -115,6 +115,7 @@ Una vez importado el snapshot, estas son las secciones principales (el detalle d
 - **Rebalanceo** (`/rebalance`): pesos objetivo por ticker y desvío actual
 - **Plan DCA** (`/plan`): cómo repartir el aporte del mes según los objetivos
 - **Jubilación** (`/retirement`): capital necesario, proyección y Monte Carlo
+- **Flujo de caja** (`/flujo`): por mes, cuánto depositaste en Cocos, cuánto gastaste, tu tasa de ahorro y cuánto fue a CEDEARs
 - **Alertas** (`/alertas`): mail diario si una acción cae más de lo configurado desde su máximo o en la semana (con los titulares de la empresa) y recordatorio para cargar el mes
 - **Impuestos** (`/impuestos`): para la declaración de un año, la tenencia al 31/12, las ventas con su resultado y los dividendos cobrados, con descarga en CSV
 
