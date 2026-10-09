@@ -110,7 +110,7 @@ lib/
   revalidate.ts                 Helpers de invalidación por dominio (updateTag)
   projections.ts                Cálculos puros de jubilación (sin Prisma)
   inflation.ts                  Índice acumulado de IPC, anualización y rendimiento real
-  dca-planner.ts                Plan DCA determinista (water-filling sobre el gap)
+  dca-planner.ts                Plan DCA según las señales del último reporte (puro, ADR-0022)
   snapshot-returns.ts           Variación %, CAGR, drawdown y serie de rendimiento (sin base $0)
   flow-returns.ts               Rendimiento sin aportes: flujos de las tenencias, Dietz, TWR y TIR
   opportunity-signals.ts        Señales de precio y filtro de noticias del reporte de oportunidades

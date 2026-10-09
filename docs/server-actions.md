@@ -14,6 +14,9 @@ Las lecturas se cachean con `'use cache'` + `cacheLife("hours")` + `cacheTag` ([
 | `milestones:<userId>` | Hitos | `revalidateMilestones(userId)` |
 | `retirement:<userId>` | Configuración de retiro | `revalidateRetirement(userId)` |
 | `setup:<userId>` | Estado de onboarding | `revalidateSetup(userId)` |
+| `alerts:<userId>` | Configuración e historial de alertas | `revalidateAlerts(userId)` |
+| `expenses:<userId>` | Categorías y notas de los gastos | `revalidateExpenses(userId)` |
+| `reports:<userId>` | Reportes de oportunidades (señales) | `revalidateTag(…, "max")` en `POST /api/analyze-portfolio` |
 | `assets` | Catálogo de assets | `revalidateAssets()` |
 | `ccl` | `ExchangeRate` | `revalidateCcl()` |
 | `market-prices` | `MarketPriceCache` | `revalidateMarketPrices()` |

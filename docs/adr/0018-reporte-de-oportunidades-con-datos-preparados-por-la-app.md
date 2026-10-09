@@ -68,4 +68,5 @@ El reporte pasa a ser **de oportunidades por acción**, y **la app prepara los d
 ## Seguimiento
 
 - **2026-10-08 — Primera corrida real.** 14 acciones con datos (COCORMA y VALO sin subyacente en Yahoo), 5 compras, 1 venta y 8 mantener, ~75 s. Entrada: 6.222 tokens (el prompt de estrategia son 866; la estimación por caracteres había dado ~3.000). Salida: 5.314 tokens. Costo: US$ 0,0656. Corrió con `claude-sonnet-5` porque `ANTHROPIC_MODEL` lo fijaba, y en ese momento el route no le mandaba `effort` a ese modelo.
+- **Historial de señales y Plan DCA (#37, #38).** `/portfolio` muestra la señal de cada acción en los últimos reportes, y el Plan DCA reparte el aporte según las señales del último ([ADR-0022](./0022-plan-dca-segun-las-senales-del-reporte-sin-pesos-objetivo.md), que reemplaza a ADR-0013).
 - **`effort` por modelo (#24).** `modelRequestOptions` (`lib/opportunity-report.ts`) manda thinking adaptativo + `effort` a todos los modelos que lo aceptan (familias 4.6 en adelante, incluido `claude-sonnet-5`) y `fallbacks: "default"` solo a Sonnet 5.5, Opus 5.5, Opus 5 y Fable 5.1.
