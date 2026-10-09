@@ -128,3 +128,46 @@ export function expenseSummary(
     previousTotal: prevMonthEnd,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Sugerencias y presupuestos
+// ---------------------------------------------------------------------------
+
+// Categoría sugerida para cada pago sin categoría cuyo monto (en pesos enteros)
+// ya apareció categorizado: los gastos fijos (una cuota, un servicio) suelen
+// repetir el monto. Si ese monto tuvo varias categorías, gana la más usada; si
+// empatan, no se sugiere nada.
+export function suggestCategories(expenses: Expense[], history: Expense[]): Record<string, string> {
+  const byAmount = new Map<number, Map<string, number>>();
+  for (const h of history) {
+    if (!h.category || !isExpenseCategory(h.category) || h.amount <= 0) continue;
+    const key = Math.round(h.amount);
+    const counts = byAmount.get(key) ?? new Map<string, number>();
+    counts.set(h.category, (counts.get(h.category) ?? 0) + 1);
+    byAmount.set(key, counts);
+  }
+
+  const out: Record<string, string> = {};
+  for (const e of expenses) {
+    if (e.category !== null || e.amount <= 0) continue;
+    const counts = byAmount.get(Math.round(e.amount));
+    if (!counts) continue;
+    const ranked = [...counts].sort((a, b) => b[1] - a[1]);
+    if (ranked.length > 1 && ranked[0][1] === ranked[1][1]) continue;
+    out[e.id] = ranked[0][0];
+  }
+  return out;
+}
+
+export type BudgetRow = { category: string; label: string; spent: number; budget: number; pct: number; over: boolean };
+
+// Gasto del mes contra el presupuesto de cada categoría que tiene uno.
+export function budgetStatus(byCategory: ExpenseCategoryTotal[], budgets: Record<string, number>): BudgetRow[] {
+  return Object.entries(budgets)
+    .filter(([category, budget]) => isExpenseCategory(category) && budget > 0)
+    .map(([category, budget]) => {
+      const spent = byCategory.find((c) => c.category === category)?.total ?? 0;
+      return { category, label: expenseCategoryLabel(category), spent, budget, pct: (spent / budget) * 100, over: spent > budget };
+    })
+    .sort((a, b) => b.pct - a.pct);
+}

@@ -3,9 +3,10 @@ import { ChevronLeft, ChevronRight, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ExpensesDailyChart } from "@/components/transactions/expenses-daily-chart";
 import { ExpensesTable } from "@/components/transactions/expenses-table";
+import { BudgetsDialog } from "@/components/transactions/budgets-dialog";
 import { formatARS } from "@/lib/format";
 import { monthLabel, shiftMonth } from "@/lib/local-date";
-import type { Expense, ExpenseSummary } from "@/lib/expenses";
+import { budgetStatus, type Expense, type ExpenseSummary } from "@/lib/expenses";
 
 function Kpi({ label, value, sub, tone }: { label: string; value: string; sub: string; tone?: "up" | "down" }) {
   return (
@@ -28,12 +29,20 @@ export function ExpensesSection({
   expenses,
   currentMonthKey,
   usdPayments,
+  suggestions,
+  budgets,
 }: {
   summary: ExpenseSummary;
   expenses: Expense[];
   currentMonthKey: string;
   usdPayments: number;
+  suggestions: Record<string, string>;
+  budgets: Record<string, number>;
 }) {
+  const budgetRows = budgetStatus(summary.byCategory, budgets);
+  const budgetByCategory = new Map(budgetRows.map((b) => [b.category, b]));
+  // Categorías con presupuesto y sin gasto en el mes: también se muestran.
+  const unspentBudgets = budgetRows.filter((b) => b.spent === 0);
   const { monthKey } = summary;
   const prevKey = shiftMonth(monthKey, -1);
   const nextKey = shiftMonth(monthKey, 1);
@@ -123,29 +132,50 @@ export function ExpensesSection({
             </div>
 
             <div className="min-w-0 rounded-xl border border-border bg-card shadow-sm p-5 flex flex-col gap-3">
-              <p className="text-xs text-muted-foreground">
-                Por categoría
-                {summary.uncategorized > 0 &&
-                  ` · ${summary.uncategorized} ${summary.uncategorized === 1 ? "pago" : "pagos"} sin categoría`}
-              </p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs text-muted-foreground">
+                  Por categoría
+                  {summary.uncategorized > 0 &&
+                    ` · ${summary.uncategorized} ${summary.uncategorized === 1 ? "pago" : "pagos"} sin categoría`}
+                </p>
+                <BudgetsDialog key={JSON.stringify(budgets)} budgets={budgets} />
+              </div>
               <ul className="flex flex-col gap-2.5">
-                {summary.byCategory.map((c) => (
-                  <li key={c.category} className="flex flex-col gap-1">
-                    <div className="flex items-baseline justify-between gap-2 text-sm">
-                      <span className={c.category === "sin-categoria" ? "text-muted-foreground" : "text-foreground"}>
-                        {c.label}
-                      </span>
-                      <span className="font-mono tabular-nums text-xs">
-                        {formatARS(c.total)}
-                        <span className="text-muted-foreground"> · {c.pct.toFixed(0)}%</span>
-                      </span>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${c.category === "sin-categoria" ? "bg-muted-foreground/40" : "bg-primary"}`}
-                        style={{ width: `${Math.max(0, Math.min(100, c.pct))}%` }}
-                      />
-                    </div>
+                {summary.byCategory.map((c) => {
+                  const budget = budgetByCategory.get(c.category);
+                  // Con presupuesto, la barra muestra cuánto se usó de él; sin, el peso en el mes.
+                  const width = budget ? budget.pct : c.pct;
+                  const barColor =
+                    c.category === "sin-categoria"
+                      ? "bg-muted-foreground/40"
+                      : budget?.over
+                        ? "bg-destructive"
+                        : budget && budget.pct >= 80
+                          ? "bg-warning"
+                          : "bg-primary";
+                  return (
+                    <li key={c.category} className="flex flex-col gap-1">
+                      <div className="flex items-baseline justify-between gap-2 text-sm">
+                        <span className={c.category === "sin-categoria" ? "text-muted-foreground" : "text-foreground"}>
+                          {c.label}
+                        </span>
+                        <span className="font-mono tabular-nums text-xs">
+                          {formatARS(c.total)}
+                          <span className="text-muted-foreground">
+                            {budget ? ` de ${formatARS(budget.budget)}` : ` · ${c.pct.toFixed(0)}%`}
+                          </span>
+                        </span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                        <div className={`h-full rounded-full ${barColor}`} style={{ width: `${Math.max(0, Math.min(100, width))}%` }} />
+                      </div>
+                    </li>
+                  );
+                })}
+                {unspentBudgets.map((b) => (
+                  <li key={b.category} className="flex items-baseline justify-between gap-2 text-sm text-muted-foreground">
+                    <span>{b.label}</span>
+                    <span className="font-mono tabular-nums text-xs">$ 0 de {formatARS(b.budget)}</span>
                   </li>
                 ))}
               </ul>
@@ -158,7 +188,7 @@ export function ExpensesSection({
             </p>
           )}
 
-          <ExpensesTable key={monthKey} expenses={expenses} />
+          <ExpensesTable key={monthKey} expenses={expenses} suggestions={suggestions} />
         </>
       )}
     </section>

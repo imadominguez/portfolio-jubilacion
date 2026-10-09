@@ -57,6 +57,7 @@ Un **cron diario** revisa a cada usuario con alertas activas y le manda **un ún
 
 ## Seguimiento
 
+- **Presupuestos de gastos (2026-10-10).** Si el usuario definió presupuestos mensuales por categoría (`ExpenseBudget`, en `/transactions`), la corrida diaria suma al mail las categorías que los superaron en el mes en curso. `AlertLog` registra `BUDGET` con clave `AAAA-MM:categoría`: avisa una sola vez por categoría y mes.
 - **Tareas mensuales (2026-10-10).** El mismo cron, después de las alertas, corre `runMonthlyTasks` (`lib/monthly-runner.ts`): genera el reporte de oportunidades del mes para los ADMIN que lo eligieron (si no hay uno desde el 1°; hasta 150 s) y manda el **resumen del mes anterior** cuando ese mes está cargado (o desde el día 20 aunque falten datos, avisando qué falta). `AlertLog` registra `MONTHLY_REPORT` y `MONTHLY_SUMMARY` por mes para no repetirlos; las dos opciones se configuran en `/alertas`. La generación del reporte pasó a `lib/opportunity-runner.ts`, compartida con el botón de `/portfolio`.
 - **Repetición mensual (2026-10-09).** Con la regla de 7 días, una acción que sigue muy abajo (BABA a −40 %) avisaba todas las semanas. Ahora vuelve a avisar si se profundiza 5 puntos o, como recordatorio, a los 30 días.
 - **Datos de mercado en el mismo cron (ADR-0021).** Antes de las alertas, la corrida diaria actualiza CCL, precios, históricos, benchmarks, IPC y CER. Los cierres del último año que usan las alertas siguen sin guardarse.

@@ -11,9 +11,12 @@ import {
   sessionChangePct,
   shouldNotifyDrop,
   shouldNotifyReminder,
+  type BudgetAlert,
   type DropAlert,
   type ReminderAlert,
 } from "@/lib/alerts";
+import { budgetStatus, expenseSummary } from "@/lib/expenses";
+import { localDateParts, monthKeyOf } from "@/lib/local-date";
 
 // Corre las alertas por mail (ADR-0020): lee los datos del usuario, pide
 // precios y titulares a Yahoo, manda un único mail y registra lo enviado en
@@ -144,7 +147,37 @@ export async function runAlertsForUser(
     }
   }
 
-  const email = buildAlertEmail(drops, reminder, options.appUrl ?? process.env.NEXT_PUBLIC_APP_URL ?? "");
+  // --- Presupuestos del mes en curso -----------------------------------------
+  const today = localDateParts(now);
+  const currentMonth = monthKeyOf(today);
+  const budgets: BudgetAlert[] = [];
+  const budgetRows = await db.expenseBudget.findMany({ where: { userId }, select: { category: true, amountArs: true } });
+  if (budgetRows.length > 0) {
+    const [year, month] = currentMonth.split("-").map(Number);
+    const payments = await db.movement.findMany({
+      where: {
+        userId,
+        category: "PAYMENT",
+        currency: "ARS",
+        date: { gte: new Date(Date.UTC(year, month - 1, 1)), lt: new Date(Date.UTC(year, month, 1)) },
+      },
+      select: { id: true, date: true, total: true, expenseTag: { select: { category: true } } },
+    });
+    const summary = expenseSummary(
+      payments.map((p) => ({ id: p.id, date: p.date, amount: -Number(p.total), category: p.expenseTag?.category ?? null, note: null })),
+      [],
+      currentMonth,
+      today
+    );
+    const over = budgetStatus(summary.byCategory, Object.fromEntries(budgetRows.map((b) => [b.category, Number(b.amountArs)]))).filter((b) => b.over);
+    for (const b of over) {
+      const key = `${currentMonth}:${b.category}`;
+      const sent = await db.alertLog.count({ where: { userId, kind: "BUDGET", key } });
+      if (force || sent === 0) budgets.push({ monthKey: currentMonth, category: b.category, label: b.label, spent: b.spent, budget: b.budget });
+    }
+  }
+
+  const email = buildAlertEmail(drops, reminder, options.appUrl ?? process.env.NEXT_PUBLIC_APP_URL ?? "", budgets);
   if (email) {
     await sendMail({ to: user.email, ...email });
     await db.alertLog.createMany({
@@ -157,6 +190,7 @@ export async function runAlertsForUser(
           sentAt: now,
         })),
         ...(reminder ? [{ userId, kind: "REMINDER" as const, key: reminder.monthKey, sentAt: now }] : []),
+        ...budgets.map((b) => ({ userId, kind: "BUDGET" as const, key: `${b.monthKey}:${b.category}`, value: Math.round(b.spent), sentAt: now })),
       ],
     });
   }

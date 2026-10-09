@@ -79,6 +79,7 @@ model User {
   alertSettings      AlertSettings?
   alertLogs          AlertLog[]
   expenseTags        ExpenseTag[]
+  expenseBudgets     ExpenseBudget[]
 
   @@map("user")
 }
@@ -500,6 +501,7 @@ enum AlertKind {
   REMINDER
   MONTHLY_REPORT
   MONTHLY_SUMMARY
+  BUDGET
 }
 
 model AlertSettings {
@@ -556,4 +558,18 @@ model ExpenseTag {
 
   @@index([userId])
   @@map("expense_tags")
+}
+
+// Presupuesto mensual por categoría de gasto (lib/expenses.ts). Las alertas
+// avisan una vez por mes cuando el gasto de la categoría lo supera.
+model ExpenseBudget {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Id de EXPENSE_CATEGORIES.
+  category  String
+  amountArs Decimal  @db.Decimal(18, 2)
+  updatedAt DateTime @updatedAt
+
+  @@id([userId, category])
+  @@map("expense_budgets")
 }

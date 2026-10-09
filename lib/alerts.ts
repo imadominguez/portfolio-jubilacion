@@ -121,6 +121,9 @@ export type DropAlert = {
 
 export type ReminderAlert = ReminderStatus & { monthKey: string };
 
+// Presupuesto de una categoría de gasto superado en el mes (una vez por mes).
+export type BudgetAlert = { monthKey: string; category: string; label: string; spent: number; budget: number };
+
 export type AlertEmail = { subject: string; text: string; html: string };
 
 const pct = (n: number) => `${n >= 0 ? "+" : ""}${n.toFixed(1).replace(".", ",")} %`;
@@ -148,9 +151,10 @@ function reminderLines(r: ReminderAlert): string[] {
 export function buildAlertEmail(
   drops: DropAlert[],
   reminder: ReminderAlert | null,
-  appUrl: string
+  appUrl: string,
+  budgets: BudgetAlert[] = []
 ): AlertEmail | null {
-  if (drops.length === 0 && reminder === null) return null;
+  if (drops.length === 0 && reminder === null && budgets.length === 0) return null;
 
   const subjectParts: string[] = [];
   if (drops.length > 0) {
@@ -161,6 +165,9 @@ export function buildAlertEmail(
     );
   }
   if (reminder) subjectParts.push(`falta cargar ${monthLabel(reminder.monthKey)}`);
+  if (budgets.length > 0) {
+    subjectParts.push(budgets.length === 1 ? `superaste el presupuesto de ${budgets[0].label}` : `${budgets.length} presupuestos superados`);
+  }
   const subject = `Portfolio: ${subjectParts.join(" y ")}`;
 
   const text: string[] = [];
@@ -203,6 +210,16 @@ export function buildAlertEmail(
       `<h2 style="font-size:18px;margin:16px 0 8px">Falta cargar ${monthLabel(reminder.monthKey)}</h2>`,
       `<ul style="margin:0;padding-left:18px">${lines.map((l) => `<li>${escapeHtml(l)}</li>`).join("")}</ul>`,
       `<p style="margin:8px 0 0;font-size:13px;color:#555">Sin esos datos, el rendimiento sin aportes y el reporte para impuestos quedan incompletos.</p>`
+    );
+  }
+
+  if (budgets.length > 0) {
+    const ars = (n: number) => `$ ${Math.round(n).toLocaleString("es-AR")}`;
+    const lines = budgets.map((b) => `${b.label}: ${ars(b.spent)} de ${ars(b.budget)} (${Math.round((b.spent / b.budget) * 100)} %)`);
+    text.push(`Presupuestos superados en ${monthLabel(budgets[0].monthKey)}`, ...lines, "");
+    html.push(
+      `<h2 style="font-size:18px;margin:16px 0 8px">Presupuestos superados en ${monthLabel(budgets[0].monthKey)}</h2>`,
+      `<ul style="margin:0;padding-left:18px">${lines.map((l) => `<li>${escapeHtml(l)}</li>`).join("")}</ul>`
     );
   }
 

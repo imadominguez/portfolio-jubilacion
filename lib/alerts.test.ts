@@ -80,6 +80,14 @@ describe("buildAlertEmail", () => {
     news: [{ title: "Mercado <Libre> cae", publisher: "Reuters", publishedAt: day("2026-10-07"), relatedTickers: ["MELI"] }],
   };
 
+  it("avisa los presupuestos superados", () => {
+    const mail = buildAlertEmail([], null, "https://app.test", [
+      { monthKey: "2026-10", category: "supermercado", label: "Supermercado", spent: 120_000, budget: 100_000 },
+    ])!;
+    expect(mail.subject).toBe("Portfolio: superaste el presupuesto de Supermercado");
+    expect(mail.text).toContain("Supermercado: $ 120.000 de $ 100.000 (120 %)");
+  });
+
   it("no arma mail si no hay nada que avisar", () => {
     expect(buildAlertEmail([], null, "https://app.test")).toBeNull();
   });

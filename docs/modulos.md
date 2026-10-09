@@ -156,7 +156,7 @@ Metadata raíz (`app/layout.tsx`): `title` por defecto `"Portfolio Jubilación"`
 
 - **Archivo:** `app/(app)/alertas/page.tsx`. Decisión y motivos: [ADR-0020](./adr/0020-alertas-por-mail-con-cron-y-gmail-smtp.md).
 - **Datos (dentro de `<Suspense>`):** `requireAuth()` (email de destino) y `getAlertsPageData()` (`app/actions/alerts.ts`, tag `alerts:<userId>`): configuración y las últimas 20 alertas enviadas. `isMailerConfigured()` decide si avisa que faltan `GMAIL_USER` / `GMAIL_APP_PASSWORD`.
-- **Muestra:** explicación de las alertas (caídas, carga del mes y resumen mensual), formulario `AlertSettingsForm` (activar, resumen mensual, reporte de oportunidades automático —solo ADMIN—, % de caída desde el máximo de 52 semanas, % de caída en 5 ruedas, día del recordatorio) con **Mandar mail de prueba**, **Revisar ahora** y **Mandar el resumen ahora**, e historial de lo enviado (caídas, recordatorios, reportes y resúmenes).
+- **Muestra:** explicación de las alertas (caídas, carga del mes, presupuestos y resumen mensual), formulario `AlertSettingsForm` (activar, resumen mensual, reporte de oportunidades automático —solo ADMIN—, % de caída desde el máximo de 52 semanas, % de caída en 5 ruedas, día del recordatorio) con **Mandar mail de prueba**, **Revisar ahora** y **Mandar el resumen ahora**, e historial de lo enviado (caídas, recordatorios, presupuestos superados, reportes y resúmenes).
 - **Revisión diaria:** la hace el cron (`/api/cron/alerts`), no la página.
 
 ---
@@ -164,7 +164,7 @@ Metadata raíz (`app/layout.tsx`): `title` por defecto `"Portfolio Jubilación"`
 ## `/transactions` — Transacciones
 
 - **Archivo:** `app/(app)/transactions/page.tsx`.
-- **Gastos del mes** (arriba, en su propio `<Suspense>`): lee `searchParams.mes` (`AAAA-MM`; por defecto el mes actual de Argentina, nunca uno futuro) y `getMonthExpenses(mes)`. `ExpensesSection` muestra lo gastado, el promedio por día, la proyección a fin de mes, la comparación con el mes anterior hasta el mismo día, un gráfico por día, el total por categoría y la lista de pagos para ponerles categoría y nota. Navegación entre meses con links `?mes=`.
+- **Gastos del mes** (arriba, en su propio `<Suspense>`): lee `searchParams.mes` (`AAAA-MM`; por defecto el mes actual de Argentina, nunca uno futuro) y `getMonthExpenses(mes)`. `ExpensesSection` muestra lo gastado, el promedio por día, la proyección a fin de mes, la comparación con el mes anterior hasta el mismo día, un gráfico por día, el total por categoría (contra el presupuesto, si tiene; se edita con `BudgetsDialog`) y la lista de pagos para ponerles categoría y nota, con la categoría sugerida por monto. Navegación entre meses con links `?mes=`.
 - **Datos de las pestañas (`Promise.all`, todas cacheadas):** `getAllTransactions()`, `calculatePPM()`, `getRealizedPnl()`, `getMovements()` (tag `trades:<userId>`) y `getAllDividends()` (tag `dividends:<userId>`).
 - **Muestra:** tabs de Transacciones, PPM, P&L realizado, Dividendos y **Movimientos** (con sub-vista **Fondos FCI**); exportar transacciones a CSV; importar movimientos de Cocos; formularios de transacción y dividendo.
 - **Componentes:** `SiteHeader` (acciones `CsvExportButton`, `ImportMovimientosButton` y `DividendForm` en modo `compact` —solo ícono por debajo de `2xl`—, y `TransactionForm`), `TransactionsClient`.

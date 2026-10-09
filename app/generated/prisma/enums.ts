@@ -62,7 +62,8 @@ export const AlertKind = {
   PRICE_DROP: 'PRICE_DROP',
   REMINDER: 'REMINDER',
   MONTHLY_REPORT: 'MONTHLY_REPORT',
-  MONTHLY_SUMMARY: 'MONTHLY_SUMMARY'
+  MONTHLY_SUMMARY: 'MONTHLY_SUMMARY',
+  BUDGET: 'BUDGET'
 } as const
 
 export type AlertKind = (typeof AlertKind)[keyof typeof AlertKind]

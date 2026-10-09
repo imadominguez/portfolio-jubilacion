@@ -418,7 +418,8 @@ export const ModelName = {
   Movement: 'Movement',
   AlertSettings: 'AlertSettings',
   AlertLog: 'AlertLog',
-  ExpenseTag: 'ExpenseTag'
+  ExpenseTag: 'ExpenseTag',
+  ExpenseBudget: 'ExpenseBudget'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -434,7 +435,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "portfolioSnapshot" | "position" | "asset" | "exchangeRate" | "marketPriceCache" | "benchmarkPoint" | "transaction" | "dividend" | "retirementSettings" | "historicalPriceCache" | "milestoneAlert" | "userSetup" | "investmentStrategy" | "portfolioReport" | "movement" | "alertSettings" | "alertLog" | "expenseTag"
+    modelProps: "user" | "session" | "account" | "verification" | "portfolioSnapshot" | "position" | "asset" | "exchangeRate" | "marketPriceCache" | "benchmarkPoint" | "transaction" | "dividend" | "retirementSettings" | "historicalPriceCache" | "milestoneAlert" | "userSetup" | "investmentStrategy" | "portfolioReport" | "movement" | "alertSettings" | "alertLog" | "expenseTag" | "expenseBudget"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2066,6 +2067,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ExpenseBudget: {
+      payload: Prisma.$ExpenseBudgetPayload<ExtArgs>
+      fields: Prisma.ExpenseBudgetFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ExpenseBudgetFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseBudgetPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ExpenseBudgetFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseBudgetPayload>
+        }
+        findFirst: {
+          args: Prisma.ExpenseBudgetFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseBudgetPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ExpenseBudgetFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseBudgetPayload>
+        }
+        findMany: {
+          args: Prisma.ExpenseBudgetFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseBudgetPayload>[]
+        }
+        create: {
+          args: Prisma.ExpenseBudgetCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseBudgetPayload>
+        }
+        createMany: {
+          args: Prisma.ExpenseBudgetCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ExpenseBudgetCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseBudgetPayload>[]
+        }
+        delete: {
+          args: Prisma.ExpenseBudgetDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseBudgetPayload>
+        }
+        update: {
+          args: Prisma.ExpenseBudgetUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseBudgetPayload>
+        }
+        deleteMany: {
+          args: Prisma.ExpenseBudgetDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ExpenseBudgetUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ExpenseBudgetUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseBudgetPayload>[]
+        }
+        upsert: {
+          args: Prisma.ExpenseBudgetUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseBudgetPayload>
+        }
+        aggregate: {
+          args: Prisma.ExpenseBudgetAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateExpenseBudget>
+        }
+        groupBy: {
+          args: Prisma.ExpenseBudgetGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExpenseBudgetGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ExpenseBudgetCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExpenseBudgetCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2416,6 +2491,16 @@ export const ExpenseTagScalarFieldEnum = {
 } as const
 
 export type ExpenseTagScalarFieldEnum = (typeof ExpenseTagScalarFieldEnum)[keyof typeof ExpenseTagScalarFieldEnum]
+
+
+export const ExpenseBudgetScalarFieldEnum = {
+  userId: 'userId',
+  category: 'category',
+  amountArs: 'amountArs',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ExpenseBudgetScalarFieldEnum = (typeof ExpenseBudgetScalarFieldEnum)[keyof typeof ExpenseBudgetScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2811,6 +2896,7 @@ export type GlobalOmitConfig = {
   alertSettings?: Prisma.AlertSettingsOmit
   alertLog?: Prisma.AlertLogOmit
   expenseTag?: Prisma.ExpenseTagOmit
+  expenseBudget?: Prisma.ExpenseBudgetOmit
 }
 
 /* Types for Logging */

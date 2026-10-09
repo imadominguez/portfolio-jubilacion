@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, Sele
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { saveExpenseTag } from "@/app/actions/expenses";
-import { EXPENSE_CATEGORIES, type Expense } from "@/lib/expenses";
+import { EXPENSE_CATEGORIES, expenseCategoryLabel, type Expense } from "@/lib/expenses";
 import { formatARS } from "@/lib/format";
 
 // Lista de pagos del mes con su categoría y nota editables. Guarda al cambiar
@@ -19,7 +19,14 @@ const NONE = "none";
 
 // El mes ya está en el título de la sección: alcanza con día y mes.
 const SHORT_DATE = new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "short", timeZone: "UTC" });
-export function ExpensesTable({ expenses }: { expenses: Expense[] }) {
+export function ExpensesTable({
+  expenses,
+  suggestions,
+}: {
+  expenses: Expense[];
+  // Categoría sugerida por id de pago (mismo monto que uno ya categorizado).
+  suggestions: Record<string, string>;
+}) {
   const [onlyUncategorized, setOnlyUncategorized] = useState(false);
   const rows = onlyUncategorized ? expenses.filter((e) => e.category === null) : expenses;
 
@@ -45,7 +52,7 @@ export function ExpensesTable({ expenses }: { expenses: Expense[] }) {
         ) : (
           <ul className="divide-y divide-border">
             {rows.map((e) => (
-              <ExpenseRow key={`${e.id}-${e.category}-${e.note}`} expense={e} />
+              <ExpenseRow key={`${e.id}-${e.category}-${e.note}`} expense={e} suggestion={suggestions[e.id] ?? null} />
             ))}
           </ul>
         )}
@@ -54,7 +61,7 @@ export function ExpensesTable({ expenses }: { expenses: Expense[] }) {
   );
 }
 
-function ExpenseRow({ expense }: { expense: Expense }) {
+function ExpenseRow({ expense, suggestion }: { expense: Expense; suggestion: string | null }) {
   const [category, setCategory] = useState(expense.category ?? "");
   const [note, setNote] = useState(expense.note ?? "");
   const [isPending, startTransition] = useTransition();
@@ -103,6 +110,20 @@ function ExpenseRow({ expense }: { expense: Expense }) {
           ))}
         </SelectContent>
       </Select>
+      {suggestion && !category && (
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={() => {
+            setCategory(suggestion);
+            save(suggestion, note);
+          }}
+          className="col-span-2 justify-self-start rounded-md border border-dashed border-primary/40 px-2 py-0.5 text-[11px] text-primary hover:bg-primary/10 sm:col-span-1 sm:col-start-3"
+          title="Mismo monto que un pago que ya categorizaste"
+        >
+          ¿{expenseCategoryLabel(suggestion)}?
+        </button>
+      )}
       <Input
         aria-label="Nota"
         placeholder="Nota (ej. Coto, luz)"

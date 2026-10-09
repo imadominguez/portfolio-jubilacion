@@ -127,3 +127,8 @@ export type AlertLog = Prisma.AlertLogModel
  * 
  */
 export type ExpenseTag = Prisma.ExpenseTagModel
+/**
+ * Model ExpenseBudget
+ * 
+ */
+export type ExpenseBudget = Prisma.ExpenseBudgetModel
