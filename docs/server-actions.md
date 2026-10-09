@@ -24,7 +24,7 @@ Las lecturas se cachean con `'use cache'` + `cacheLife("hours")` + `cacheTag` ([
 
 Los helpers usan `updateTag`: la siguiente lectura (incluso dentro de la misma action) espera datos frescos, y además se vacía el caché del router en el cliente, así que no hace falta `revalidatePath`. `updateTag` solo funciona en Server Actions; en un Route Handler usar `revalidateTag(tag, "max")`.
 
-Lecturas cacheadas hoy: las del Dashboard (`getLatestSnapshot`, `getPreviousSnapshotFull`, `getAllSnapshotPoints`, `getConcentrationData`, `calculateRealGains`, `calculatePPM`, `getMarketPrices`, `getTotalDividendsUsd`, `getMilestones`, `getRetirementSettings`, `getRebalanceData` y `getSetupStatus`), `getAllExchangeRates` (tag `ccl`), `getTargetAllocations` (tag `rebalance:<userId>`), `getAllTransactions`, `getRealizedPnl` y `getMovements` (tag `trades:<userId>`), `getHoldingsFlows` (tags `trades:<userId>` y `ccl`; flujos de las tenencias para el rendimiento sin aportes), `getAllDividends` (tag `dividends:<userId>`), `getTaxData` (`lib/tax-report-data.ts`; tags `snapshots`, `trades` y `dividends` del usuario), `getAlertsPageData` (tag `alerts:<userId>`), `getMonthExpenses` (tags `trades` y `expenses` del usuario), `getBenchmarkPoints` (tag `benchmarks`; `getIndexPoints` delega en ella), `getDataReadiness` (tags `snapshots`, `trades`, `assets`, `ccl` e `historical-prices`), `getAssetCatalog` (tag `assets`), `getActiveStrategy`/`getStrategyHistory` (tag `strategy`; en estas tres últimas `requireAdmin()` queda fuera del caché) y `getSnapshotById` (tag `snapshots:<userId>`, cacheada por id para el `prefetch={true}` del listado). Al cachear una lectura nueva, sumá un tag por cada dominio que lee; al agregar una escritura, llamá al helper de su dominio.
+Lecturas cacheadas hoy: las del Dashboard (`getLatestSnapshot`, `getPreviousSnapshotFull`, `getAllSnapshotPoints`, `getConcentrationData`, `calculateRealGains`, `calculatePPM`, `getMarketPrices`, `getTotalDividendsUsd`, `getMilestones`, `getRetirementSettings`, `getRebalanceData` y `getSetupStatus`), `getAllExchangeRates` (tag `ccl`), `getTargetAllocations` (tag `rebalance:<userId>`), `getAllTransactions`, `getRealizedPnl` y `getMovements` (tag `trades:<userId>`), `getHoldingsFlows` (tags `trades:<userId>` y `ccl`; flujos de las tenencias para el rendimiento sin aportes), `getAllDividends` (tag `dividends:<userId>`), `getTaxData` (`lib/tax-report-data.ts`; tags `snapshots`, `trades` y `dividends` del usuario), `getAlertsPageData` (tag `alerts:<userId>`), `getMonthExpenses` (tags `trades` y `expenses` del usuario), `getCashFlow` (tags `trades` del usuario y `ccl`), `getBenchmarkPoints` (tag `benchmarks`; `getIndexPoints` delega en ella), `getDataReadiness` (tags `snapshots`, `trades`, `assets`, `ccl` e `historical-prices`), `getAssetCatalog` (tag `assets`), `getActiveStrategy`/`getStrategyHistory` (tag `strategy`; en estas tres últimas `requireAdmin()` queda fuera del caché) y `getSnapshotById` (tag `snapshots:<userId>`, cacheada por id para el `prefetch={true}` del listado). Al cachear una lectura nueva, sumá un tag por cada dominio que lee; al agregar una escritura, llamá al helper de su dominio.
 
 Autorización: las actions que leen/escriben datos de usuario llaman a `requireAuth()`/`requireUserId()` (lanzan si no hay sesión) y filtran por `userId`, **incluidos los borrados** (`deleteMany({ where: { id, userId } })`, que devuelve "no encontrado" si el registro es ajeno). Las actions sobre datos administrados (`assets.ts`, `strategy.ts`) llaman a `requireAdmin()`. Las de refresco de datos de mercado (exchange-rate, benchmarks, precios) **no** llaman a `requireAuth`: dependen solo de que el proxy exija sesión.
 
@@ -99,6 +99,14 @@ El parser puro vive en `lib/cocos-movements.ts` (`parseMovementCsv`), no en este
 | `getMovements(categories?)` | Sí | Devuelve el libro de movimientos del usuario (opcionalmente filtrado por categoría) ordenado por fecha desc, con `transactionId` asociado. |
 
 El parser clasifica cada fila en `MovementCategory`; sólo `TRADE_BUY`/`TRADE_SELL` generan transacción. Detalle de la categorización en [logica-financiera.md](./logica-financiera.md#parsing-de-csv-de-cocos).
+
+---
+
+## `cash-flow.ts` — Flujo de caja
+
+| Función | Auth | Comportamiento |
+|---|---|---|
+| `getCashFlow()` | Sí | Movimientos del usuario de las categorías de caja (recibos, pagos, compras y ventas, FCI) y el CCL → `monthlyCashFlow` (`lib/cash-flow.ts`); devuelve los últimos 13 meses. Tags `trades:<userId>` y `ccl`. |
 
 ---
 
@@ -256,6 +264,7 @@ Por usuario: ambas funciones usan `requireUserId()` y filtran por `userId`. Los 
 | `assets.ts` | Sí (admin) | No (catálogo global) |
 | `benchmarks.ts` | No | No |
 | `alerts.ts` | Sí | Sí |
+| `cash-flow.ts` | Sí | Sí |
 | `dividends.ts` | Sí | Sí (incluye delete) |
 | `expenses.ts` | Sí | Sí (el pago tiene que ser del usuario) |
 | `exchange-rate.ts` | No | No (global) |

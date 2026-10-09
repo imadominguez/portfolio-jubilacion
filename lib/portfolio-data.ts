@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { requireUserId } from "@/lib/auth-session";
 import { marketTags, userTags } from "@/lib/cache-tags";
 import { flowsFromMovements, type CashFlow } from "@/lib/flow-returns";
+import { cclLookup } from "@/lib/cash-flow";
 
 // Los getters exportados resuelven el usuario de la sesión y delegan en una
 // función cacheada no exportada que recibe solo el `userId`: así nadie puede
@@ -258,22 +259,7 @@ async function cachedHoldingsFlows(userId: string): Promise<HoldingsFlows> {
     db.exchangeRate.findMany({ orderBy: { date: "asc" }, select: { date: true, ccl: true } }),
   ]);
 
-  // CCL del día o el último anterior (los fines de semana no tienen cotización).
-  const cclAt = (date: Date): number | null => {
-    let lo = 0;
-    let hi = rates.length - 1;
-    let found: number | null = null;
-    while (lo <= hi) {
-      const mid = (lo + hi) >> 1;
-      if (rates[mid].date.getTime() <= date.getTime()) {
-        found = Number(rates[mid].ccl);
-        lo = mid + 1;
-      } else {
-        hi = mid - 1;
-      }
-    }
-    return found;
-  };
+  const cclAt = cclLookup(rates.map((r) => ({ date: r.date, ccl: Number(r.ccl) })));
 
   const { flows: flowsArs, sinCcl } = flowsFromMovements(
     movements.map((m) => ({ ...m, total: Number(m.total) })),

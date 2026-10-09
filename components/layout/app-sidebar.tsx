@@ -17,6 +17,7 @@ import {
   LogOut,
   Activity,
   Bell,
+  Coins,
   FileText,
   BookOpen,
   Database,
@@ -61,6 +62,7 @@ const NAV_ANALYSIS: NavItem[] = [
   { label: "Rebalanceo", href: "/rebalance", icon: Scale },
   { label: "Plan DCA", href: "/plan", icon: Wallet },
   { label: "Jubilación", href: "/retirement", icon: Target },
+  { label: "Flujo de caja", href: "/flujo", icon: Coins },
   { label: "Impuestos", href: "/impuestos", icon: Receipt },
 ];
 
