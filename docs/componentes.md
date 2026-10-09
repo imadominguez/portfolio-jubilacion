@@ -98,8 +98,8 @@ Organizados por dominio. Los componentes de `components/ui/` son primitivas shad
 | `alerts/alert-settings-form.tsx` | CC | `initial`, `mailerReady`. Formulario de `/alertas`: switch de activación, umbrales y día del recordatorio, y botones Guardar / Mandar mail de prueba / Revisar ahora (deshabilitados sin Gmail configurado). Copia la configuración a su estado: la página le pasa un `key` derivado de los datos. |
 | `market/indices-update-button.tsx` | CC | Actualiza IPC y CER/UVA juntos (`fetchAndSaveAllIndices`). Se usa en `/datos`; en `/performance`, `InflationChart` descarga cada índice por separado. |
 | `ccl/ccl-chart.tsx` | CC | `rates`, `snapshots`. Gráfico de CCL con overlay del portafolio USD (doble eje Y). |
-| `exchange-rate/ccl-update-button.tsx` | CC | Actualiza el CCL actual (`fetchAndSaveCCL`); toast indica si ya existía. En `/datos`, `/ccl` y `/assets`. |
-| `market/market-prices-button.tsx` | CC | Actualiza precios de mercado (`fetchAndSaveMarketPrices`); reporta fallos. En `/datos` y `/assets`. |
+| `exchange-rate/ccl-update-button.tsx` | CC | Actualiza el CCL actual (`fetchAndSaveCCL`); toast indica si ya existía. En `/datos`, `/ccl` y `/assets` (ahí con `compact`: solo ícono por debajo de `2xl`). |
+| `market/market-prices-button.tsx` | CC | Actualiza precios de mercado (`fetchAndSaveMarketPrices`); reporta fallos. En `/datos` y `/assets` (ahí con `compact`). |
 | `assets/asset-dialog.tsx` | CC | Diálogo crear/editar CEDEAR (en edición no permite cambiar ticker). |
 | `assets/assets-table-client.tsx` | CC | Tabla del catálogo con alta/edición/eliminación y confirmación. |
 | `export/csv-export-button.tsx` | CC | Abre una ruta de exportación CSV. Prop `compact`: solo ícono por debajo de `2xl`. |

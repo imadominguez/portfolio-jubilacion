@@ -22,8 +22,8 @@ export default function AssetsPage() {
         description="Catálogo de CEDEARs"
         actions={
           <div className="flex items-center gap-1.5">
-            <CclUpdateButton />
-            <MarketPricesButton />
+            <CclUpdateButton compact />
+            <MarketPricesButton compact />
             <ImportButton />
           </div>
         }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { connection } from "next/server";
 import Link from "next/link";
 import { Download, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -44,10 +45,10 @@ export default function TaxesPage({ searchParams }: { searchParams: TaxSearchPar
 }
 
 async function TaxContent({ searchParams }: { searchParams: TaxSearchParams }) {
-  const [{ anio }, data] = await Promise.all([searchParams, getTaxData()]);
+  const [{ anio }, data] = await Promise.all([searchParams, getTaxData(), connection()]);
 
-  // Después de las lecturas de request: con Cache Components, la hora no puede
-  // leerse durante el prerender del shell.
+  // connection() difiere la hora al request: searchParams y la sesión (cacheada
+  // con `use cache: private`) entran en el prefetch, donde la hora no se puede leer.
   const requested = Number(Array.isArray(anio) ? anio[0] : anio);
   const year = data.years.includes(requested)
     ? requested

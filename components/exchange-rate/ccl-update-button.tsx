@@ -10,12 +10,15 @@ interface CclUpdateButtonProps {
   variant?: "default" | "outline" | "ghost" | "secondary";
   size?: "default" | "sm" | "lg" | "icon";
   showLabel?: boolean;
+  // Para headers con varias acciones: solo el ícono por debajo de 2xl.
+  compact?: boolean;
 }
 
 export function CclUpdateButton({
   variant = "outline",
   size = "sm",
   showLabel = true,
+  compact = false,
 }: CclUpdateButtonProps) {
   const [isPending, startTransition] = useTransition();
 
@@ -47,9 +50,15 @@ export function CclUpdateButton({
       onClick={handleUpdate}
       disabled={isPending}
       className="gap-1.5"
+      aria-label={compact || !showLabel ? "Actualizar CCL" : undefined}
+      title={compact ? "Actualizar CCL" : undefined}
     >
       <RefreshCw className={`size-3.5 ${isPending ? "animate-spin" : ""}`} />
-      {showLabel && <span>{isPending ? "Actualizando…" : "Actualizar CCL"}</span>}
+      {showLabel && (
+        <span className={compact ? "hidden 2xl:inline" : undefined}>
+          {isPending ? "Actualizando…" : "Actualizar CCL"}
+        </span>
+      )}
     </Button>
   );
 }

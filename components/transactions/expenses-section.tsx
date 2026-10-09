@@ -117,12 +117,12 @@ export function ExpensesSection({
           </div>
 
           <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
-            <div className="rounded-xl border border-border bg-card shadow-sm p-5 flex flex-col gap-2">
+            <div className="min-w-0 rounded-xl border border-border bg-card shadow-sm p-5 flex flex-col gap-2">
               <p className="text-xs text-muted-foreground">Gasto por día</p>
               <ExpensesDailyChart days={summary.byDay} />
             </div>
 
-            <div className="rounded-xl border border-border bg-card shadow-sm p-5 flex flex-col gap-3">
+            <div className="min-w-0 rounded-xl border border-border bg-card shadow-sm p-5 flex flex-col gap-3">
               <p className="text-xs text-muted-foreground">
                 Por categoría
                 {summary.uncategorized > 0 &&

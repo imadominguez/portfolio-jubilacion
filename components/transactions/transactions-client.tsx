@@ -109,12 +109,14 @@ export function TransactionsClient({
 
   return (
     <>
-      <div className="flex items-center gap-1 border-b border-border">
+      {/* En celular las pestañas no entran: la barra se desliza de costado. La línea
+          de abajo es una sombra interna porque overflow-x recorta el -mb-px. */}
+      <div className="flex items-center gap-1 overflow-x-auto [scrollbar-width:none] shadow-[inset_0_-1px_0_var(--color-border)]">
         {tabs.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`px-4 py-2.5 text-xs font-medium transition-colors border-b-2 -mb-px flex items-center gap-1.5 ${
+            className={`shrink-0 whitespace-nowrap px-4 py-2.5 text-xs font-medium transition-colors border-b-2 flex items-center gap-1.5 ${
               tab === t.id
                 ? "border-foreground text-foreground"
                 : "border-transparent text-muted-foreground hover:text-foreground"
