@@ -19,8 +19,8 @@ Organizados por dominio. Los componentes de `components/ui/` son primitivas shad
 
 | Componente | Tipo | Props / comportamiento |
 |---|---|---|
-| `dashboard-hero.tsx` | CC | `totalValueArs`, `totalValueUsd`, `snapshotDateFormatted`, `gainArs`, `gainPct`. Toggle ARS/USD (USD deshabilitado si es null); badge verde/rojo según la ganancia. |
-| `dashboard-kpi-strip.tsx` | SC | `totalValueUsd`, `ccl`, `positionCount`, `gainPct`, `totalUnrealizedPnlArs`, `totalDividendsUsd` y flags de signo. Tira de KPIs secundarios. |
+| `dashboard-hero.tsx` | CC | `totalValueArs`, `totalValueUsd`, `snapshotDateFormatted`, `gainArs`, `gainPct`, `live` (valor de hoy en ARS y USD y fecha de los precios, o `null`). Toggle ARS/USD (USD deshabilitado si es null); badge verde/rojo según la ganancia; debajo del valor, "Hoy, con precios del …" con la variación contra el snapshot. |
+| `dashboard-kpi-strip.tsx` | SC | `totalValueUsd`, `ccl`, `positionCount`, `gainPct`, `totalUnrealizedPnlArs`, `liveUnrealizedPnlArs`, `totalDividendsUsd` y flags de signo. Tira de KPIs secundarios; el P&L no realizado muestra el de hoy en la línea de estado. |
 | `analysis-tools.tsx` | SC | `realGains`, `retirementGoal`, `retirementSettings`, `latestSignals` (acciones en "compra" y fecha del último reporte, o `null`), `topSector`, `totalSectors`. Tarjetas resumen que enlazan a Ganancia Real, Jubilación, Plan DCA y Concentración. |
 | `holdings-table.tsx` | SC | `positions`, `ppmData?`, `marketPrices?`. Tabla con barra de peso, PPM/P&L (solo si hay PPM en ARS) y valor USD en vivo (`(quantity / cedearRatio) × priceUsd`); pie con "total live USD" y timestamp. |
 | `allocation-panel.tsx` | CC | `positions`, `totalArs`. Donut Recharts (`innerRadius 55%`) + leyenda con barras de progreso. |

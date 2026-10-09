@@ -15,13 +15,14 @@ Punto de entrada principal. Muestra el estado actual del portfolio basado en el 
 | **Valor total ARS** | Suma de `precio × cantidad` de todas las posiciones del snapshot. Fuente: CSV de Cocos Capital. |
 | **Equivalente USD** | `totalValueArs / CCL`, donde CCL es el tipo de cambio contado con liquidación registrado al importar el snapshot. |
 | **Tipo de cambio CCL implícito** | El valor del dólar CCL guardado junto al snapshot. Se ingresa al importar y se autocompleta con el CCL registrado para esa fecha (`ExchangeRate`), si existe. Una vez guardado no cambia. |
+| **Hoy (estimado)** | Debajo del valor del snapshot: las mismas cantidades con el precio del día del subyacente en USD (`cantidad / ratio × precio`) y el último CCL guardado, con la variación contra el snapshot. Las posiciones sin subyacente (bonos, ONs, FCI) quedan con su valor del snapshot. Es una estimación: el precio en pesos del CEDEAR no es exactamente subyacente / ratio × CCL. |
 
 ### KPIs secundarios
 
 | KPI | Cálculo |
 |---|---|
 | **Rendimiento vs snapshot anterior** | Rendimiento del período sin contar compras, ventas ni movimientos del FCI (Dietz modificado, [logica-financiera.md](./logica-financiera.md#rendimiento-de-un-período-dietz-modificado)). El monto es `valor_actual − valor_anterior − aportes netos`. |
-| **P&L no realizado (ARS)** | `Σ (precio_actual - PPM) × cantidad` para todas las posiciones con PPM disponible. Refleja ganancia/pérdida latente respecto al precio promedio de compra. |
+| **P&L no realizado (ARS)** | `Σ (precio_snapshot − PPM) × cantidad` para todas las posiciones con PPM disponible. Debajo, el mismo cálculo **hoy**, con el precio en pesos estimado del día (`subyacente / ratio × CCL`). |
 | **Dividendos cobrados (USD)** | Suma acumulada de todos los dividendos registrados en moneda USD. |
 | **Posiciones activas** | Cantidad de CEDEARs distintos en el snapshot actual. |
 

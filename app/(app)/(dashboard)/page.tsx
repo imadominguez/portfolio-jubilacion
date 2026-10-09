@@ -23,6 +23,8 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { ImportButton } from "@/components/snapshots/snapshots-client";
 import { calculatePPM } from "@/app/actions/transactions";
 import { getMarketPrices } from "@/app/actions/market-prices";
+import { getAllExchangeRates } from "@/app/actions/exchange-rate";
+import { liveValuation } from "@/lib/live-valuation";
 import { getTotalDividendsUsd } from "@/app/actions/dividends";
 import { getMilestones } from "@/app/actions/milestones";
 import { calculateRealGains } from "@/lib/real-gains-data";
@@ -80,6 +82,7 @@ async function DashboardContent() {
     concentrationData,
     previous,
     holdingsFlows,
+    exchangeRates,
   ] = await Promise.all([
     calculatePPM(),
     getMarketPrices(),
@@ -92,6 +95,7 @@ async function DashboardContent() {
     getConcentrationData(),
     getPreviousSnapshotFull(snapshot.snapshotDate),
     getHoldingsFlows(),
+    getAllExchangeRates(),
   ]);
 
   let gainArs: number | null = null;
@@ -133,6 +137,24 @@ async function DashboardContent() {
   const unrealizedIsPositive =
     totalUnrealizedPnlArs !== null ? totalUnrealizedPnlArs >= 0 : true;
 
+  // La misma tenencia con los precios del día (el snapshot puede tener semanas).
+  const live = snapshot.ccl
+    ? liveValuation({
+        positions: snapshot.positions,
+        prices: marketPrices,
+        ppm: ppmData.filter((p) => p.currency === "ARS"),
+        snapshotCcl: snapshot.ccl,
+        currentCcl: exchangeRates.at(-1)?.ccl ?? null,
+      })
+    : null;
+  const liveAsOfLabel = live?.pricesAsOf
+    ? new Intl.DateTimeFormat("es-AR", {
+        day: "2-digit",
+        month: "short",
+        timeZone: "America/Argentina/Buenos_Aires",
+      }).format(live.pricesAsOf)
+    : null;
+
   // Jubilación: calcular si va en camino con tasa conservadora 10% USD anual
   let retirementGoal = null;
   if (retirementSettings && snapshot.totalValueUsd) {
@@ -161,6 +183,7 @@ async function DashboardContent() {
           snapshotDateFormatted={formatDateMedium(snapshot.snapshotDate)}
           gainArs={gainArs}
           gainPct={gainPct}
+          live={live && liveAsOfLabel ? { valueArs: live.valueArs, valueUsd: live.valueUsd, asOfLabel: liveAsOfLabel } : null}
         />
 
         <DashboardKpiStrip
@@ -171,6 +194,7 @@ async function DashboardContent() {
           isPositive={isPositive}
           totalUnrealizedPnlArs={totalUnrealizedPnlArs}
           unrealizedIsPositive={unrealizedIsPositive}
+          liveUnrealizedPnlArs={live?.unrealizedPnlArs ?? null}
           totalDividendsUsd={totalDividendsUsd}
         />
       </section>

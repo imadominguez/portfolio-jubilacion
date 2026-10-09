@@ -10,6 +10,8 @@ interface DashboardHeroProps {
   snapshotDateFormatted: string;
   gainArs: number | null;
   gainPct: number | null;
+  // La tenencia del snapshot con los precios del día; null si no hay precios.
+  live: { valueArs: number; valueUsd: number; asOfLabel: string } | null;
 }
 
 export function DashboardHero({
@@ -18,6 +20,7 @@ export function DashboardHero({
   snapshotDateFormatted,
   gainArs,
   gainPct,
+  live,
 }: DashboardHeroProps) {
   const [currency, setCurrency] = useState<"ARS" | "USD">("ARS");
 
@@ -30,6 +33,11 @@ export function DashboardHero({
       : hasUsd
         ? formatUSD(totalValueUsd!)
         : "—";
+
+  const liveValue = live ? (currency === "ARS" ? live.valueArs : hasUsd ? live.valueUsd : null) : null;
+  const snapshotValue = currency === "ARS" ? totalValueArs : totalValueUsd;
+  const liveChangePct =
+    liveValue !== null && snapshotValue ? (liveValue / snapshotValue - 1) * 100 : null;
 
   return (
     /* Azure Tech hero — navy profundo con glow azul/cian (ver DESIGN.md) */
@@ -71,9 +79,26 @@ export function DashboardHero({
 
         {/* Big number + meta */}
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <p className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white tabular-nums leading-none transition-all duration-150">
-            {displayValue}
-          </p>
+          <div className="flex flex-col gap-2">
+            <p className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white tabular-nums leading-none transition-all duration-150">
+              {displayValue}
+            </p>
+            {liveValue !== null && live && (
+              <p className="text-xs text-white/60">
+                Hoy, con precios del {live.asOfLabel}:{" "}
+                <span className="font-mono font-semibold tabular-nums text-white">
+                  {currency === "ARS" ? formatARS(liveValue) : formatUSD(liveValue)}
+                </span>
+                {liveChangePct !== null && (
+                  <span className={`font-mono tabular-nums ${liveChangePct >= 0 ? "text-success" : "text-destructive"}`}>
+                    {" "}
+                    ({liveChangePct >= 0 ? "+" : ""}
+                    {liveChangePct.toFixed(2)}% vs snapshot)
+                  </span>
+                )}
+              </p>
+            )}
+          </div>
 
           <div className="flex flex-col sm:items-end gap-2 pb-0.5">
             {/* Date indicator */}
