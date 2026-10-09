@@ -2303,6 +2303,7 @@ export const MarketPriceCacheScalarFieldEnum = {
   ticker: 'ticker',
   price: 'price',
   currency: 'currency',
+  dividendRate: 'dividendRate',
   fetchedAt: 'fetchedAt'
 } as const
 

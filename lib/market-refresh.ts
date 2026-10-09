@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { fetchWithTimeout } from "@/lib/http";
-import { getHistorical, getQuotes } from "@/lib/yahoo-finance-client";
+import { getHistorical, getQuoteDetails } from "@/lib/yahoo-finance-client";
 import { BENCHMARKS, INDEX_BENCHMARKS, type BenchmarkId } from "@/lib/benchmarks-config";
 import { buildCumulativeIndex } from "@/lib/inflation";
 import { marketTags } from "@/lib/cache-tags";
@@ -57,19 +57,20 @@ export async function saveMarketPrices(): Promise<{ updated: number; failed: str
   const tickers = [...new Set(assets.map((a) => a.underlyingTicker!))];
   if (tickers.length === 0) throw new Error("No hay assets con ticker subyacente configurado.");
 
-  const priceMap = await getQuotes(tickers);
+  const quotes = await getQuoteDetails(tickers);
   const failed: string[] = [];
   let updated = 0;
   for (const ticker of tickers) {
-    const price = priceMap.get(ticker);
-    if (!price || price <= 0) {
+    const quote = quotes.get(ticker);
+    if (!quote || quote.price <= 0) {
       failed.push(ticker);
       continue;
     }
+    const { price, dividendRate } = quote;
     await db.marketPriceCache.upsert({
       where: { ticker },
-      create: { ticker, price, currency: "USD", fetchedAt: new Date() },
-      update: { price, fetchedAt: new Date() },
+      create: { ticker, price, dividendRate, currency: "USD", fetchedAt: new Date() },
+      update: { price, dividendRate, fetchedAt: new Date() },
     });
     updated++;
   }

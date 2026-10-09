@@ -16,6 +16,8 @@ export type MarketPriceRow = {
   underlyingTicker: string;
   priceUsd: number;
   cedearRatio: number;
+  // Dividendo anual por acción del subyacente; null si no hay dato.
+  dividendRateUsd: number | null;
   fetchedAt: Date;
 };
 
@@ -69,6 +71,7 @@ async function cachedMarketPrices(): Promise<MarketPriceRow[]> {
         underlyingTicker: a.underlyingTicker!,
         priceUsd: Number(cached.price),
         cedearRatio: Number(a.cedearRatio),
+        dividendRateUsd: cached.dividendRate === null ? null : Number(cached.dividendRate),
         fetchedAt: cached.fetchedAt,
       };
     });

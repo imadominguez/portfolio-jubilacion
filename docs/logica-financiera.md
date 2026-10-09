@@ -349,6 +349,22 @@ goalAmount  = adjExpenses × 12 / withdrawalRate        (o × 25 si withdrawalRa
 
 ---
 
+## Dividendos estimados (`lib/dividend-projection.ts`)
+
+Los dividendos que paga Cocos por CEDEAR son centavos y casi no hay historia, así que se estiman con el dividendo anual por acción del subyacente (`MarketPriceCache.dividendRate`, se baja con los precios) y la tenencia del último snapshot.
+
+```
+acciones       = cantidad de CEDEARs / cedearRatio
+ingreso bruto  = Σ acciones × dividendo anual por acción
+ingreso neto   = bruto × (1 − 30 %)          (retención de EE.UU. a no residentes)
+rendimiento    = bruto / Σ acciones × precio USD × 100   (posiciones con dato, paguen o no)
+capital para vivir de dividendos = gastos mensuales × 12 / (rendimiento × 0,7)
+```
+
+Las posiciones sin subyacente o sin dato (bonos, ONs, FCI) no entran y se listan aparte. Es una estimación: el emisor puede cambiar el dividendo y la retención real depende del país del subyacente.
+
+---
+
 ## Parsing de CSV de Cocos
 
 ### Snapshots de portafolio (`app/actions/snapshots.ts`)

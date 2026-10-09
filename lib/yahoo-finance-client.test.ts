@@ -2,7 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Yahoo simulado: cookie, crumb y quote. `quoteStatuses` define la respuesta
 // de cada llamada sucesiva a /v7/finance/quote.
-function yahooMock(quoteStatuses: number[]) {
+function yahooMock(
+  quoteStatuses: number[],
+  quotes: Record<string, unknown>[] = [{ symbol: "AAPL", regularMarketPrice: 200 }]
+) {
   let crumbCount = 0;
   let quoteCall = 0;
   const calls: string[] = [];
@@ -18,7 +21,7 @@ function yahooMock(quoteStatuses: number[]) {
     if (url.includes("/v7/finance/quote")) {
       const status = quoteStatuses[quoteCall++] ?? 200;
       if (status !== 200) return new Response("", { status });
-      return Response.json({ quoteResponse: { result: [{ symbol: "AAPL", regularMarketPrice: 200 }] } });
+      return Response.json({ quoteResponse: { result: quotes } });
     }
     throw new Error(`URL inesperada: ${url}`);
   });
@@ -32,6 +35,24 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+});
+
+describe("getQuoteDetails", () => {
+  it("toma el dividendo forward y, si falta, el de los últimos 12 meses", async () => {
+    const { fetchMock } = yahooMock([], [
+      { symbol: "KO", regularMarketPrice: 88, dividendRate: 2.12, trailingAnnualDividendRate: 2.08 },
+      { symbol: "SPY", regularMarketPrice: 700, trailingAnnualDividendRate: 5.6 },
+      { symbol: "AMZN", regularMarketPrice: 260 },
+    ]);
+    vi.stubGlobal("fetch", fetchMock);
+    const { getQuoteDetails } = await import("./yahoo-finance-client");
+
+    const quotes = await getQuoteDetails(["KO", "SPY", "AMZN"]);
+
+    expect(quotes.get("KO")).toEqual({ price: 88, dividendRate: 2.12 });
+    expect(quotes.get("SPY")).toEqual({ price: 700, dividendRate: 5.6 });
+    expect(quotes.get("AMZN")).toEqual({ price: 260, dividendRate: null });
+  });
 });
 
 describe("getQuotes", () => {

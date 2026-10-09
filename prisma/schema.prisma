@@ -235,11 +235,14 @@ model ExchangeRate {
 // ---------------------------------------------------------------------------
 
 model MarketPriceCache {
-  id        String   @id @default(cuid())
-  ticker    String   @unique
-  price     Decimal  @db.Decimal(18, 4)
-  currency  Currency @default(USD)
-  fetchedAt DateTime @default(now())
+  id           String   @id @default(cuid())
+  ticker       String   @unique
+  price        Decimal  @db.Decimal(18, 4)
+  currency     Currency @default(USD)
+  // Dividendo anual por acción en USD (forward de Yahoo o, si no hay, el de los
+  // últimos 12 meses). 0 = no paga; null = sin dato.
+  dividendRate Decimal? @db.Decimal(18, 4)
+  fetchedAt    DateTime @default(now())
 
   @@index([ticker])
   @@map("market_price_cache")

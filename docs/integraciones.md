@@ -84,7 +84,7 @@ Cliente propio en `lib/yahoo-finance-client.ts` (no usa `yahoo-finance2`). Imple
 
 | Función | Endpoint | Uso |
 |---|---|---|
-| `getQuotes(symbols)` | `/v7/finance/quote?symbols=...&crumb=...` | Precio actual; `regularMarketPrice ?? ask ?? bid`. |
+| `getQuoteDetails(symbols)` / `getQuotes(symbols)` | `/v7/finance/quote?symbols=...&crumb=...` | Precio actual (`regularMarketPrice ?? ask ?? bid`) y dividendo anual por acción (`dividendRate ?? trailingAnnualDividendRate`; los ETF solo traen el segundo). `getQuotes` devuelve solo el precio. |
 | `getHistorical(symbol, from, to)` | `/v8/finance/chart/:symbol?interval=1d&period1=...&period2=...` | Cierres diarios. |
 | `getNews(symbol, count)` | `/v1/finance/search?q=...&newsCount=...` (sin cookie ni crumb) | Titulares recientes con fecha, medio y tickers relacionados. El filtro de relevancia es `selectNews` (`lib/opportunity-signals.ts`). |
 
@@ -94,7 +94,7 @@ Cliente propio en `lib/yahoo-finance-client.ts` (no usa `yahoo-finance2`). Imple
 
 | Action | Función Yahoo | Tabla destino |
 |---|---|---|
-| `market-prices.ts` | `getQuotes` | `MarketPriceCache` (upsert por ticker subyacente, USD) |
+| `market-prices.ts` | `getQuoteDetails` | `MarketPriceCache` (upsert por ticker subyacente, USD: precio y `dividendRate`) |
 | `historical-prices.ts` | `getHistorical` | `HistoricalPriceCache` (upsert `ticker`+`date`) |
 | `benchmarks.ts` | `getHistorical` | `BenchmarkPoint` (upsert `benchmarkId`+`date`) |
 | `api/analyze-portfolio` | `getHistorical`, `getNews` | No persiste: son la entrada del reporte de oportunidades (ADR-0018). |
