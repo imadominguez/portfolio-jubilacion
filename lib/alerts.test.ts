@@ -28,12 +28,13 @@ describe("caídas", () => {
     expect(dropReasons({ fromHigh52wPct: -14.9, change5dPct: null }, DEFAULT_THRESHOLDS)).toEqual([]);
   });
 
-  it("no repite la misma caída salvo a los 7 días o si se profundizó 5 puntos", () => {
+  it("no repite la misma caída salvo que se profundice 5 puntos o pasen 30 días", () => {
     const last = { value: -16, sentAt: at("2026-10-01") };
     expect(shouldNotifyDrop(-16, null, at("2026-10-02"))).toBe(true);
     expect(shouldNotifyDrop(-18, last, at("2026-10-03"))).toBe(false);
+    expect(shouldNotifyDrop(-18, last, at("2026-10-20"))).toBe(false);
     expect(shouldNotifyDrop(-21, last, at("2026-10-03"))).toBe(true);
-    expect(shouldNotifyDrop(-16, last, at("2026-10-08"))).toBe(true);
+    expect(shouldNotifyDrop(-16, last, at("2026-10-31"))).toBe(true);
   });
 });
 

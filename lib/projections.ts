@@ -84,8 +84,7 @@ export type ProjectionPoint = {
 export function buildProjectionCurve(
   inputs: RetirementInputs
 ): ProjectionPoint[] {
-  const { currentAge, retirementAge, currentPortfolioUsd, monthlyContribution, annualReturnRate, capitalNeeded } =
-    inputs as RetirementInputs & { capitalNeeded?: number };
+  const { currentAge, retirementAge, currentPortfolioUsd, monthlyContribution, annualReturnRate } = inputs;
 
   const monthlyRate = annualReturnRate / 12;
   const points: ProjectionPoint[] = [];

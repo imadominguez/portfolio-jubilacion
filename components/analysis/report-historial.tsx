@@ -3,7 +3,6 @@
 import { useState, useEffect, useTransition } from "react";
 import { History, ChevronRight, Loader2, FileX } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ReporteDisplay } from "@/components/analysis/legacy-report";
 import { OpportunityReportDisplay } from "@/components/analysis/opportunity-report";

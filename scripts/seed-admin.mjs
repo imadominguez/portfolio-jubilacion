@@ -2,7 +2,8 @@
  * Script de migración: crea el usuario admin y asocia todos los datos
  * existentes en la DB a ese usuario.
  *
- * Ejecución: node scripts/seed-admin.mjs
+ * Ejecución: SEED_ADMIN_PASSWORD=<contraseña> node scripts/seed-admin.mjs
+ * (o con SEED_ADMIN_PASSWORD en .env; opcional SEED_ADMIN_EMAIL_BOOTSTRAP).
  */
 
 import { readFileSync } from "fs";
@@ -26,9 +27,14 @@ for (const line of envContent.split("\n")) {
   process.env[key] = value;
 }
 
-const ADMIN_EMAIL = "admin@portfolio.com";
+const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL_BOOTSTRAP || "admin@portfolio.com";
 const ADMIN_NAME = "Admin";
-const ADMIN_PASSWORD = "Admin1234!";
+// Sin contraseña por defecto en el código: el repo es público para quien lo clone.
+const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD;
+if (!ADMIN_PASSWORD || ADMIN_PASSWORD.length < 8) {
+  console.error("Definí SEED_ADMIN_PASSWORD (8 caracteres o más) para crear el admin.");
+  process.exit(1);
+}
 
 // ---------------------------------------------------------------------------
 // Hash password — same format as @better-auth/utils/password:

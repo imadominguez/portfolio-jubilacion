@@ -199,7 +199,7 @@ export function TransactionsClient({
                     </TableCell>
                     <TableCell className="py-3 text-right">
                       <span className="text-sm font-mono tabular-nums text-foreground">
-                        {formatCurrency(tx.quantity * tx.price, tx.currency)}
+                        {formatCurrency(tx.amount, tx.currency)}
                       </span>
                     </TableCell>
                     <TableCell className="pr-5 py-3">

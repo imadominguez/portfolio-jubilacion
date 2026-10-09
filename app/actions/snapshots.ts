@@ -313,7 +313,7 @@ export async function importSnapshot(formData: FormData): Promise<ImportResult> 
 
     // Siempre, aunque el snapshot valga $0: el primero crea los hitos por defecto.
     const isFirstSnapshot = (await db.portfolioSnapshot.count({ where: { userId } })) === 1;
-    await checkAndUpdateMilestones(totalValueUsd ?? 0, { isFirstSnapshot });
+    await checkAndUpdateMilestones(snapshot.id, { isFirstSnapshot });
 
     const setup = await getSetupStatus();
     const pending = setup.steps.find(

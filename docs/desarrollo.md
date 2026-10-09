@@ -85,7 +85,7 @@ UPDATE "user" SET role = 'ADMIN' WHERE email = 'tu-email@ejemplo.com';
 o con Prisma Studio. Alternativas de bootstrap:
 
 - `pnpm db:seed` con `SEED_ADMIN_EMAIL` (solo promueve usuarios existentes).
-- `node scripts/seed-admin.mjs` crea/setup del admin `admin@portfolio.com` con contraseña `Admin1234!` (hardcodeada; cambiar en producción) y asocia datos huérfanos.
+- `SEED_ADMIN_PASSWORD=<contraseña> node scripts/seed-admin.mjs` crea/setup del admin `admin@portfolio.com` (o `SEED_ADMIN_EMAIL_BOOTSTRAP`); sin `SEED_ADMIN_PASSWORD` (8+ caracteres) no corre. También asocia los datos huérfanos al admin.
 
 ---
 
@@ -216,23 +216,23 @@ pnpm db:seed
 ### Seguridad
 
 - Las actions de refresco de mercado (`exchange-rate`, `market-prices`, `historical-prices`, `benchmarks`, `indices`) no validan sesión dentro de la action (dependen del proxy); solo escriben caches globales de datos públicos.
-- `scripts/seed-admin.mjs` tiene la contraseña `Admin1234!` hardcodeada.
 
 ### Código
 
 - **`getPreviousSnapshot` y `getSnapshotCount`** (`lib/portfolio-data.ts`) no tienen consumidores.
 - **Tolerancias documentadas vs código:** el `missingReason` de ganancia real (`lib/real-gains-data.ts`) dice "±3 días" para el precio histórico, pero `PRICE_TOLERANCE_DAYS = 5`.
 - **Monte Carlo** usa volatilidad mensual fija (4%) independiente de los inputs.
-- Los CSV exportados (salvo el de impuestos) no incluyen BOM UTF-8; las rutas de export de snapshot y transacciones no tienen `try/catch` alrededor de la DB.
-- **Bonos y ONs:** Cocos da el precio cada 100 nominales, así que el listado de transacciones y `calculatePPM` calculan cantidad × precio 100 veces más grande. El reporte de impuestos usa el bruto del movimiento; el resto todavía no.
 - **Dividendos en especie:** en el rendimiento sin aportes (`flowsFromMovements`), los dividendos de CEDEARs acreditados en dólares solo cuentan por sus gastos en pesos, no como salida de las tenencias. El efecto es de centavos de dólar.
-- **Ventas con cantidad negativa:** las importadas antes de normalizar el signo se leen con `Math.abs`; se podrían corregir en la base con un `UPDATE` sobre `transactions` (type `SELL`, quantity < 0).
 - `/portfolio` no usa `SiteHeader` (excepción a la convención de UI).
 - **Sin tests end-to-end.** La guía de Next sugiere un test `instant()` (`@next/playwright`) por ruta para que el static shell no se degrade sin que nadie lo note.
-- `checkAndUpdateMilestones` es una Server Action exportada que recibe el valor en USD desde el llamador: un usuario logueado podría invocarla con un valor arbitrario y marcar sus propios hitos como alcanzados (solo afecta sus datos).
 - **MCP de Next:** `.mcp.json` usa `pnpm dlx next-devtools-mcp@latest`, que descarga el paquete en cada arranque y suele superar el timeout de conexión de 30 s. Mientras tanto se puede usar `/_next/mcp` del dev server (ver arriba).
 
 > **Resuelto:**
+> - (2026-10-09) Bonos y ONs: el listado de transacciones, el PPM, el P&L realizado y el CSV usan el bruto del movimiento de Cocos (`tradeGrossAmount`), no cantidad × precio. El P&L realizado separa por moneda (la ON del dólar MEP queda afuera).
+> - (2026-10-09) Las 2 ventas guardadas con cantidad negativa se corrigieron en la base (respaldo en `__fixtures__/`); los lectores siguen usando `Math.abs`.
+> - (2026-10-09) `checkAndUpdateMilestones` recibe el id del snapshot y lee el valor de la base.
+> - (2026-10-09) Los CSV de export tienen BOM UTF-8 y responden 500 con JSON si falla la base; el lint quedó sin warnings.
+> - (2026-10-09) `scripts/seed-admin.mjs` toma la contraseña de `SEED_ADMIN_PASSWORD`.
 > - El aislamiento por ownership (deletes, reportes y API routes de export filtran por `userId`), el registro público cerrado por defecto y `PortfolioReport` con `userId`.
 > - Los tests ya no fallan en un checkout limpio: CSV sintético embebido + regresión con archivos reales salteada si faltan.
 > - Las actions de `strategy.ts` exigen rol ADMIN (`requireAdmin()` en `lib/auth-session.ts`, compartido con `assets.ts`) y `POST /api/analyze-portfolio` responde `403` a no-admins.

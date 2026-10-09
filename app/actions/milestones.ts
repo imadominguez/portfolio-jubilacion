@@ -93,12 +93,20 @@ export async function deleteMilestone(id: string): Promise<MilestoneResult> {
 
 // Se llama después de importar un snapshot. Con `isFirstSnapshot`, crea los
 // hitos por defecto si el usuario todavía no tiene ninguno (solo esa vez: si
-// después los borra todos, no vuelven).
+// después los borra todos, no vuelven). Recibe el id del snapshot y lee su
+// valor en USD de la base: al ser una Server Action exportada, un valor que
+// llegara del cliente permitiría marcar hitos como alcanzados.
 export async function checkAndUpdateMilestones(
-  currentValueUsd: number,
+  snapshotId: string,
   { isFirstSnapshot = false }: { isFirstSnapshot?: boolean } = {}
 ): Promise<{ newlyReached: MilestoneRow[] }> {
   const session = await requireAuth();
+  const snapshot = await db.portfolioSnapshot.findFirst({
+    where: { id: snapshotId, userId: session.user.id },
+    select: { totalValueUsd: true },
+  });
+  if (!snapshot) return { newlyReached: [] };
+  const currentValueUsd = snapshot.totalValueUsd ? Number(snapshot.totalValueUsd) : 0;
 
   let seeded = false;
   if (isFirstSnapshot) {

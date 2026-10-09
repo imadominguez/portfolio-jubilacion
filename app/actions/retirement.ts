@@ -21,8 +21,6 @@ export type RetirementSettingsResult =
   | { success: true }
   | { success: false; error: string };
 
-const SETTINGS_ID = "default";
-
 export async function getRetirementSettings(): Promise<RetirementSettingsData | null> {
   return cachedRetirementSettings(await requireUserId());
 }

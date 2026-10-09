@@ -16,7 +16,6 @@ import { ChartContainer } from "@/components/ui/chart";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel, FieldDescription } from "@/components/ui/field";
-import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import { Badge } from "@/components/ui/badge";
 import { Target, TrendingUp, AlertTriangle, CheckCircle } from "lucide-react";
@@ -73,23 +72,24 @@ export function RetirementClient({
   const [isPending, startTransition] = useTransition();
   const [isEditing, setIsEditing] = useState(!initialSettings);
 
-  const inputs = {
-    ...settings,
-    currentPortfolioUsd: currentPortfolioUsd ?? 0,
-    // El retorno configurado, no la TIR histórica: con un año y medio de historia
-    // la TIR puede dar 30 % y proyectar eso a 35 años no tiene sentido.
-    annualReturnRate: settings.expectedReturnRate,
-  };
+  const inputs = useMemo(
+    () => ({
+      ...settings,
+      currentPortfolioUsd: currentPortfolioUsd ?? 0,
+      // El retorno configurado, no la TIR histórica: con un año y medio de historia
+      // la TIR puede dar 30 % y proyectar eso a 35 años no tiene sentido.
+      annualReturnRate: settings.expectedReturnRate,
+    }),
+    [settings, currentPortfolioUsd]
+  );
 
-  const inputsKey = JSON.stringify(inputs);
-
-  const goal = useMemo(() => calculateRetirementGoal(inputs), [inputsKey]);
-  const projectionData = useMemo(() => buildProjectionCurve({ ...inputs, capitalNeeded: goal.capitalNeeded } as never), [inputsKey, goal.capitalNeeded]);
+  const goal = useMemo(() => calculateRetirementGoal(inputs), [inputs]);
+  const projectionData = useMemo(() => buildProjectionCurve(inputs), [inputs]);
 
   const monteCarloData = useMemo(() => {
     if (tab !== "montecarlo") return null;
     return runMonteCarlo(inputs, 500);
-  }, [tab, inputsKey]);
+  }, [tab, inputs]);
 
   const mcChartData = useMemo(() => {
     if (!monteCarloData) return [];

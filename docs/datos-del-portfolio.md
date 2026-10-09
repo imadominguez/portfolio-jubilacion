@@ -324,7 +324,7 @@ Mail diario (9:00 de Argentina) solo si hay algo para avisar ([ADR-0020](./adr/0
 
 | Alerta | Cuándo |
 |---|---|
-| **Caída** | Una acción del último snapshot cae más que el umbral desde su máximo de 52 semanas (15 % por defecto) o en 5 ruedas (8 %), en USD del subyacente. Incluye titulares recientes de la empresa. No se repite hasta 7 días después, salvo que caiga 5 puntos más. |
+| **Caída** | Una acción del último snapshot cae más que el umbral desde su máximo de 52 semanas (15 % por defecto) o en 5 ruedas (8 %), en USD del subyacente. Incluye titulares recientes de la empresa. No se repite salvo que caiga 5 puntos más; si sigue abajo, se recuerda a los 30 días. |
 | **Carga del mes** | Desde el día configurado (5 por defecto), si falta el snapshot o los movimientos del mes anterior. Se repite cada 3 días. |
 
 En la página se activan, se ajustan los umbrales, se manda un mail de prueba y se ve el historial de lo enviado.
