@@ -33,6 +33,7 @@ export type RetirementSettingsAvgAggregateOutputType = {
   inflationRate: runtime.Decimal | null
   withdrawalRate: runtime.Decimal | null
   monthlyContribution: runtime.Decimal | null
+  expectedReturnRate: runtime.Decimal | null
 }
 
 export type RetirementSettingsSumAggregateOutputType = {
@@ -42,6 +43,7 @@ export type RetirementSettingsSumAggregateOutputType = {
   inflationRate: runtime.Decimal | null
   withdrawalRate: runtime.Decimal | null
   monthlyContribution: runtime.Decimal | null
+  expectedReturnRate: runtime.Decimal | null
 }
 
 export type RetirementSettingsMinAggregateOutputType = {
@@ -52,6 +54,7 @@ export type RetirementSettingsMinAggregateOutputType = {
   inflationRate: runtime.Decimal | null
   withdrawalRate: runtime.Decimal | null
   monthlyContribution: runtime.Decimal | null
+  expectedReturnRate: runtime.Decimal | null
   createdAt: Date | null
   updatedAt: Date | null
   userId: string | null
@@ -65,6 +68,7 @@ export type RetirementSettingsMaxAggregateOutputType = {
   inflationRate: runtime.Decimal | null
   withdrawalRate: runtime.Decimal | null
   monthlyContribution: runtime.Decimal | null
+  expectedReturnRate: runtime.Decimal | null
   createdAt: Date | null
   updatedAt: Date | null
   userId: string | null
@@ -78,6 +82,7 @@ export type RetirementSettingsCountAggregateOutputType = {
   inflationRate: number
   withdrawalRate: number
   monthlyContribution: number
+  expectedReturnRate: number
   createdAt: number
   updatedAt: number
   userId: number
@@ -92,6 +97,7 @@ export type RetirementSettingsAvgAggregateInputType = {
   inflationRate?: true
   withdrawalRate?: true
   monthlyContribution?: true
+  expectedReturnRate?: true
 }
 
 export type RetirementSettingsSumAggregateInputType = {
@@ -101,6 +107,7 @@ export type RetirementSettingsSumAggregateInputType = {
   inflationRate?: true
   withdrawalRate?: true
   monthlyContribution?: true
+  expectedReturnRate?: true
 }
 
 export type RetirementSettingsMinAggregateInputType = {
@@ -111,6 +118,7 @@ export type RetirementSettingsMinAggregateInputType = {
   inflationRate?: true
   withdrawalRate?: true
   monthlyContribution?: true
+  expectedReturnRate?: true
   createdAt?: true
   updatedAt?: true
   userId?: true
@@ -124,6 +132,7 @@ export type RetirementSettingsMaxAggregateInputType = {
   inflationRate?: true
   withdrawalRate?: true
   monthlyContribution?: true
+  expectedReturnRate?: true
   createdAt?: true
   updatedAt?: true
   userId?: true
@@ -137,6 +146,7 @@ export type RetirementSettingsCountAggregateInputType = {
   inflationRate?: true
   withdrawalRate?: true
   monthlyContribution?: true
+  expectedReturnRate?: true
   createdAt?: true
   updatedAt?: true
   userId?: true
@@ -237,6 +247,7 @@ export type RetirementSettingsGroupByOutputType = {
   inflationRate: runtime.Decimal
   withdrawalRate: runtime.Decimal
   monthlyContribution: runtime.Decimal
+  expectedReturnRate: runtime.Decimal
   createdAt: Date
   updatedAt: Date
   userId: string | null
@@ -273,6 +284,7 @@ export type RetirementSettingsWhereInput = {
   inflationRate?: Prisma.DecimalFilter<"RetirementSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   withdrawalRate?: Prisma.DecimalFilter<"RetirementSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   monthlyContribution?: Prisma.DecimalFilter<"RetirementSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  expectedReturnRate?: Prisma.DecimalFilter<"RetirementSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"RetirementSettings"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RetirementSettings"> | Date | string
   userId?: Prisma.StringNullableFilter<"RetirementSettings"> | string | null
@@ -287,6 +299,7 @@ export type RetirementSettingsOrderByWithRelationInput = {
   inflationRate?: Prisma.SortOrder
   withdrawalRate?: Prisma.SortOrder
   monthlyContribution?: Prisma.SortOrder
+  expectedReturnRate?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   userId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -304,6 +317,7 @@ export type RetirementSettingsWhereUniqueInput = Prisma.AtLeast<{
   inflationRate?: Prisma.DecimalFilter<"RetirementSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   withdrawalRate?: Prisma.DecimalFilter<"RetirementSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   monthlyContribution?: Prisma.DecimalFilter<"RetirementSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  expectedReturnRate?: Prisma.DecimalFilter<"RetirementSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"RetirementSettings"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RetirementSettings"> | Date | string
   userId?: Prisma.StringNullableFilter<"RetirementSettings"> | string | null
@@ -318,6 +332,7 @@ export type RetirementSettingsOrderByWithAggregationInput = {
   inflationRate?: Prisma.SortOrder
   withdrawalRate?: Prisma.SortOrder
   monthlyContribution?: Prisma.SortOrder
+  expectedReturnRate?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   userId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -339,6 +354,7 @@ export type RetirementSettingsScalarWhereWithAggregatesInput = {
   inflationRate?: Prisma.DecimalWithAggregatesFilter<"RetirementSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   withdrawalRate?: Prisma.DecimalWithAggregatesFilter<"RetirementSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   monthlyContribution?: Prisma.DecimalWithAggregatesFilter<"RetirementSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  expectedReturnRate?: Prisma.DecimalWithAggregatesFilter<"RetirementSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"RetirementSettings"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"RetirementSettings"> | Date | string
   userId?: Prisma.StringNullableWithAggregatesFilter<"RetirementSettings"> | string | null
@@ -352,6 +368,7 @@ export type RetirementSettingsCreateInput = {
   inflationRate: runtime.Decimal | runtime.DecimalJsLike | number | string
   withdrawalRate: runtime.Decimal | runtime.DecimalJsLike | number | string
   monthlyContribution: runtime.Decimal | runtime.DecimalJsLike | number | string
+  expectedReturnRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
   user?: Prisma.UserCreateNestedOneWithoutRetirementSettingsInput
@@ -365,6 +382,7 @@ export type RetirementSettingsUncheckedCreateInput = {
   inflationRate: runtime.Decimal | runtime.DecimalJsLike | number | string
   withdrawalRate: runtime.Decimal | runtime.DecimalJsLike | number | string
   monthlyContribution: runtime.Decimal | runtime.DecimalJsLike | number | string
+  expectedReturnRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
   userId?: string | null
@@ -378,6 +396,7 @@ export type RetirementSettingsUpdateInput = {
   inflationRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   withdrawalRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   monthlyContribution?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  expectedReturnRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneWithoutRetirementSettingsNestedInput
@@ -391,6 +410,7 @@ export type RetirementSettingsUncheckedUpdateInput = {
   inflationRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   withdrawalRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   monthlyContribution?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  expectedReturnRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -404,6 +424,7 @@ export type RetirementSettingsCreateManyInput = {
   inflationRate: runtime.Decimal | runtime.DecimalJsLike | number | string
   withdrawalRate: runtime.Decimal | runtime.DecimalJsLike | number | string
   monthlyContribution: runtime.Decimal | runtime.DecimalJsLike | number | string
+  expectedReturnRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
   userId?: string | null
@@ -417,6 +438,7 @@ export type RetirementSettingsUpdateManyMutationInput = {
   inflationRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   withdrawalRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   monthlyContribution?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  expectedReturnRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -429,6 +451,7 @@ export type RetirementSettingsUncheckedUpdateManyInput = {
   inflationRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   withdrawalRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   monthlyContribution?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  expectedReturnRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -452,6 +475,7 @@ export type RetirementSettingsCountOrderByAggregateInput = {
   inflationRate?: Prisma.SortOrder
   withdrawalRate?: Prisma.SortOrder
   monthlyContribution?: Prisma.SortOrder
+  expectedReturnRate?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   userId?: Prisma.SortOrder
@@ -464,6 +488,7 @@ export type RetirementSettingsAvgOrderByAggregateInput = {
   inflationRate?: Prisma.SortOrder
   withdrawalRate?: Prisma.SortOrder
   monthlyContribution?: Prisma.SortOrder
+  expectedReturnRate?: Prisma.SortOrder
 }
 
 export type RetirementSettingsMaxOrderByAggregateInput = {
@@ -474,6 +499,7 @@ export type RetirementSettingsMaxOrderByAggregateInput = {
   inflationRate?: Prisma.SortOrder
   withdrawalRate?: Prisma.SortOrder
   monthlyContribution?: Prisma.SortOrder
+  expectedReturnRate?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   userId?: Prisma.SortOrder
@@ -487,6 +513,7 @@ export type RetirementSettingsMinOrderByAggregateInput = {
   inflationRate?: Prisma.SortOrder
   withdrawalRate?: Prisma.SortOrder
   monthlyContribution?: Prisma.SortOrder
+  expectedReturnRate?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   userId?: Prisma.SortOrder
@@ -499,6 +526,7 @@ export type RetirementSettingsSumOrderByAggregateInput = {
   inflationRate?: Prisma.SortOrder
   withdrawalRate?: Prisma.SortOrder
   monthlyContribution?: Prisma.SortOrder
+  expectedReturnRate?: Prisma.SortOrder
 }
 
 export type RetirementSettingsCreateNestedManyWithoutUserInput = {
@@ -559,6 +587,7 @@ export type RetirementSettingsCreateWithoutUserInput = {
   inflationRate: runtime.Decimal | runtime.DecimalJsLike | number | string
   withdrawalRate: runtime.Decimal | runtime.DecimalJsLike | number | string
   monthlyContribution: runtime.Decimal | runtime.DecimalJsLike | number | string
+  expectedReturnRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -571,6 +600,7 @@ export type RetirementSettingsUncheckedCreateWithoutUserInput = {
   inflationRate: runtime.Decimal | runtime.DecimalJsLike | number | string
   withdrawalRate: runtime.Decimal | runtime.DecimalJsLike | number | string
   monthlyContribution: runtime.Decimal | runtime.DecimalJsLike | number | string
+  expectedReturnRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -612,6 +642,7 @@ export type RetirementSettingsScalarWhereInput = {
   inflationRate?: Prisma.DecimalFilter<"RetirementSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   withdrawalRate?: Prisma.DecimalFilter<"RetirementSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   monthlyContribution?: Prisma.DecimalFilter<"RetirementSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  expectedReturnRate?: Prisma.DecimalFilter<"RetirementSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"RetirementSettings"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RetirementSettings"> | Date | string
   userId?: Prisma.StringNullableFilter<"RetirementSettings"> | string | null
@@ -625,6 +656,7 @@ export type RetirementSettingsCreateManyUserInput = {
   inflationRate: runtime.Decimal | runtime.DecimalJsLike | number | string
   withdrawalRate: runtime.Decimal | runtime.DecimalJsLike | number | string
   monthlyContribution: runtime.Decimal | runtime.DecimalJsLike | number | string
+  expectedReturnRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -637,6 +669,7 @@ export type RetirementSettingsUpdateWithoutUserInput = {
   inflationRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   withdrawalRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   monthlyContribution?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  expectedReturnRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -649,6 +682,7 @@ export type RetirementSettingsUncheckedUpdateWithoutUserInput = {
   inflationRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   withdrawalRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   monthlyContribution?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  expectedReturnRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -661,6 +695,7 @@ export type RetirementSettingsUncheckedUpdateManyWithoutUserInput = {
   inflationRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   withdrawalRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   monthlyContribution?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  expectedReturnRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -675,6 +710,7 @@ export type RetirementSettingsSelect<ExtArgs extends runtime.Types.Extensions.In
   inflationRate?: boolean
   withdrawalRate?: boolean
   monthlyContribution?: boolean
+  expectedReturnRate?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   userId?: boolean
@@ -689,6 +725,7 @@ export type RetirementSettingsSelectCreateManyAndReturn<ExtArgs extends runtime.
   inflationRate?: boolean
   withdrawalRate?: boolean
   monthlyContribution?: boolean
+  expectedReturnRate?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   userId?: boolean
@@ -703,6 +740,7 @@ export type RetirementSettingsSelectUpdateManyAndReturn<ExtArgs extends runtime.
   inflationRate?: boolean
   withdrawalRate?: boolean
   monthlyContribution?: boolean
+  expectedReturnRate?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   userId?: boolean
@@ -717,12 +755,13 @@ export type RetirementSettingsSelectScalar = {
   inflationRate?: boolean
   withdrawalRate?: boolean
   monthlyContribution?: boolean
+  expectedReturnRate?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   userId?: boolean
 }
 
-export type RetirementSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "currentAge" | "retirementAge" | "monthlyExpensesUsd" | "inflationRate" | "withdrawalRate" | "monthlyContribution" | "createdAt" | "updatedAt" | "userId", ExtArgs["result"]["retirementSettings"]>
+export type RetirementSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "currentAge" | "retirementAge" | "monthlyExpensesUsd" | "inflationRate" | "withdrawalRate" | "monthlyContribution" | "expectedReturnRate" | "createdAt" | "updatedAt" | "userId", ExtArgs["result"]["retirementSettings"]>
 export type RetirementSettingsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.RetirementSettings$userArgs<ExtArgs>
 }
@@ -746,6 +785,7 @@ export type $RetirementSettingsPayload<ExtArgs extends runtime.Types.Extensions.
     inflationRate: runtime.Decimal
     withdrawalRate: runtime.Decimal
     monthlyContribution: runtime.Decimal
+    expectedReturnRate: runtime.Decimal
     createdAt: Date
     updatedAt: Date
     userId: string | null
@@ -1180,6 +1220,7 @@ export interface RetirementSettingsFieldRefs {
   readonly inflationRate: Prisma.FieldRef<"RetirementSettings", 'Decimal'>
   readonly withdrawalRate: Prisma.FieldRef<"RetirementSettings", 'Decimal'>
   readonly monthlyContribution: Prisma.FieldRef<"RetirementSettings", 'Decimal'>
+  readonly expectedReturnRate: Prisma.FieldRef<"RetirementSettings", 'Decimal'>
   readonly createdAt: Prisma.FieldRef<"RetirementSettings", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"RetirementSettings", 'DateTime'>
   readonly userId: Prisma.FieldRef<"RetirementSettings", 'String'>
