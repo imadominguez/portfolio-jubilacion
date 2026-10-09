@@ -57,6 +57,7 @@ Organizados por dominio. Los componentes de `components/ui/` son primitivas shad
 | `opportunity-analyzer.tsx` | CC | `OpportunityAnalyzer`: botón "Generar reporte" → `POST /api/analyze-portfolio` (sin cuerpo: usa el último snapshot), con cancelación y el último reporte en `localStorage` (leído con `useSyncExternalStore`). |
 | `opportunity-report.tsx` | SC | `OpportunityReportDisplay`: resumen, conteo por señal, acciones agrupadas (compra / venta / mantener) con precio, noticias, motivo, riesgos y confianza, y al pie modelo, tokens y costo. |
 | `legacy-report.tsx` | SC | `ReporteDisplay` y el tipo `ReportePortafolio`: visor de los reportes del formato anterior (plan de aporte con asignaciones), solo para el historial. |
+| `signal-history.tsx` | SC | `history: SignalHistory`. Tabla de señales por acción: una columna por reporte (los últimos 6), con la señal y su confianza; marca "cambió" cuando la última difiere de la anterior. |
 | `report-historial.tsx` | CC | Lista reportes (`listReports`) y muestra el seleccionado (`getReport`) con `OpportunityReportDisplay` si es `version: 2`, o con `ReporteDisplay` si es del formato anterior. |
 
 ---

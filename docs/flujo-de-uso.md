@@ -137,6 +137,7 @@ Una vez importado el snapshot, estas son las secciones principales (el detalle d
 
 #### Oportunidades (`/portfolio`) — solo ADMIN
 - **Generar reporte**: para cada acción del último snapshot, la app baja el precio del último año y los titulares de noticias recientes, y Claude dice si es oportunidad de **compra**, **mantener** o **venta**, con el motivo, los riesgos y su confianza
+- **Señales por acción:** tabla con la señal de cada acción en los últimos reportes, marcando las que cambiaron
 - No habla de porcentajes de tenencia: el reparto del aporte está en el Plan DCA
 - Al pie de cada reporte se ve el costo de esa corrida; los reportes quedan en el historial
 

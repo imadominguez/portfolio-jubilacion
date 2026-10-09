@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
+import { userTags } from "@/lib/cache-tags";
 import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { db } from "@/lib/db";
@@ -188,6 +190,8 @@ export async function POST(request: NextRequest) {
           userId,
         },
       });
+      // Historial de señales y Plan DCA (updateTag solo funciona en Server Actions).
+      revalidateTag(userTags.reports(userId), "max");
     } catch (err) {
       // El reporte ya se generó (y se pagó): se devuelve aunque no se pueda guardar.
       console.error("No se pudo guardar el reporte en DB:", err);

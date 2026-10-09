@@ -116,6 +116,7 @@ lib/
   snapshot-returns.ts           Variación %, CAGR, drawdown y serie de rendimiento (sin base $0)
   flow-returns.ts               Rendimiento sin aportes: flujos de las tenencias, Dietz, TWR y TIR
   opportunity-signals.ts        Señales de precio y filtro de noticias del reporte de oportunidades
+  signal-history.ts             Historial de señales por acción entre reportes (puro)
   opportunity-report.ts         Esquema de salida, entrada compacta y costo por modelo del reporte
   http.ts                       fetchWithTimeout para las APIs externas
   default-strategy.ts           Estrategia por defecto (system prompt) para seed/refresh

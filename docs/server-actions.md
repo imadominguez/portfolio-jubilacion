@@ -253,6 +253,7 @@ Por usuario: ambas funciones usan `requireUserId()` y filtran por `userId`. Los 
 | Función | Comportamiento |
 |---|---|
 | `listReports()` | Lista `id` + label (`fechaReporte — hora`) del usuario por fecha desc. |
+| `getSignalHistory()` | Últimos reportes `version: 2` del usuario → `buildSignalHistory` (`lib/signal-history.ts`). Cacheada con el tag `reports:<userId>`, que el route del análisis invalida al guardar. |
 | `getReport(id)` | `findFirst({ id, userId })`; devuelve `normalizedJson` tal cual: un reporte de oportunidades (`version: 2`, `OpportunityReport`) o uno del formato anterior (`ReportePortafolio`), o `null`. |
 
 ---
