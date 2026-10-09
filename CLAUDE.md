@@ -47,7 +47,7 @@ Cocos CSV / dolarapi / argentinadatos / Yahoo / Anthropic
 Cache Components adoption is **complete**: no route uses `export const instant = false`; don't add it without a documented reason. Every page is synchronous: `SiteHeader` and static copy go into the static shell, data reads go into an async component inside `<Suspense>` whose fallback is a skeleton shared with the route's `loading.tsx` (`components/<domain>/*-skeleton.tsx`). Rules:
 - Never await session/`cookies()`/`headers()`/`params`/`searchParams` at the top of a layout or page; move the read into an async component inside `<Suspense>`.
 - Never read `cookies()`/`headers()` inside plain `'use cache'`; resolve the user outside and pass only `userId` to an unexported `'use cache'` function with `cacheLife` + `cacheTag(\`<domain>:${userId}\`)`, or use `'use cache: private'`.
-- `new Date()` / `Date.now()` / `Math.random()` during render must come after request data or `await connection()` inside `<Suspense>`.
+- `new Date()` / `Date.now()` / `Math.random()` during render must come after request data or `await connection()` inside `<Suspense>`. Awaiting only `searchParams` is **not** enough (dev reports "encountered the unstable value `new Date()` while prerendering"): add `connection()` (see `/transactions`).
 - Route segment configs `dynamic`, `revalidate`, `fetchCache`, `dynamicParams`, `runtime` are not allowed (build error).
 - State persists across navigations (`<Activity>`): forms/dialogs may need explicit resets, and a client that copies props into `useState` needs a `key` derived from the data (see `MilestonesClient`, `StrategyEditor`).
 - A `loading.tsx` wraps every route below its folder and its fallback lands in each of their static shells: keep route-specific loadings in their own segment or route group (the Dashboard's lives in `app/(app)/(dashboard)/`). To see what a route's shell contains, `pnpm build` and inspect `.next/server/app/<route>.html`.
@@ -68,7 +68,7 @@ Auth and roles:
 - The proxy guards pages, not Server Actions: an action can be invoked from any page the user can reach. Admin-only actions must check the role themselves with `requireAdmin()` from `lib/auth-session.ts` (used by `assets.ts` and `strategy.ts`; `/api/analyze-portfolio` returns 403 to non-admins).
 - Public signup is closed unless `ALLOW_PUBLIC_SIGNUP=true`.
 
-Import pipeline: the Cocos movements CSV is parsed and categorized by `lib/cocos-movements.ts` into the `Movement` ledger (source of truth, idempotent via `@@unique([userId, nroTicket])`). Only `TRADE_BUY`/`TRADE_SELL` movements produce a linked `Transaction` (1:1 via `movementId`), which feeds PPM / realized P&L. Portfolio snapshots come from a separate Cocos holdings CSV (`app/actions/snapshots.ts`).
+Import pipeline: the Cocos movements CSV is parsed and categorized by `lib/cocos-movements.ts` into the `Movement` ledger (source of truth, idempotent via `@@unique([userId, nroTicket])`). Only `TRADE_BUY`/`TRADE_SELL` movements produce a linked `Transaction` (1:1 via `movementId`), which feeds PPM / realized P&L. Portfolio snapshots come from a separate Cocos holdings CSV (`app/actions/snapshots.ts`). The ledger also feeds the contribution-free returns (`lib/flow-returns.ts`, ADR-0019), the tax report (`lib/tax-report.ts`) and monthly expenses (`PAYMENT` rows, `lib/expenses.ts`). Never edit `Movement` rows: user annotations live in their own tables (`ExpenseTag`). Cocos quirks: sells come with negative quantity (readers use `Math.abs`), and bond/ON prices are per 100 nominal (use `grossAmount` for amounts).
 
 ## Financial data invariants
 
@@ -76,6 +76,8 @@ Import pipeline: the Cocos movements CSV is parsed and categorized by `lib/cocos
 - Money is `Decimal` in Prisma; convert explicitly with `Number(value)` when exposing to TS/clients.
 - `Position.allocationPct` is stored as a fraction (0–1) intentionally (historical accuracy); the data layer exposes it ×100.
 - `ExchangeRate` is unique per date — use `upsert` for today's CCL.
+- `@db.Date` columns are UTC midnight: format them with `formatDateUTC` and take day/month with `getUTC*`. "Today" and month cuts are Argentina local time (`lib/local-date.ts`), since the server runs in UTC.
+- Performance metrics never compare raw values (contributions would count as gains): use `lib/flow-returns.ts` (ADR-0019).
 - External prices are cached (`MarketPriceCache`, `HistoricalPriceCache`); check the DB before calling Yahoo (`lib/yahoo-finance-client.ts`), never on every page load.
 - Every external HTTP call (Yahoo, dolarapi, argentinadatos) goes through `fetchWithTimeout` (`lib/http.ts`), so a hung API returns a clear error instead of holding the Server Action until `maxDuration`.
 - The AI report (ADR-0018): the app computes every number in `lib/` (pure, tested) and Claude only judges. The output format lives in `OpportunityAnalysisSchema` (structured outputs), not in the strategy prompt; when switching models add its prices to `MODEL_PRICING` and its capabilities to `modelRequestOptions`.

@@ -230,15 +230,15 @@ Ambas redirigen a `/` si ya hay sesión (proxy). El cliente de Better Auth (`lib
 | Ruta | Lecturas en el servidor | Fuente principal | ADMIN | Grupo del sidebar |
 |---|---|---|---|---|
 | `/` | Sí | `lib/*-data` + actions | No | Principal |
-| `/snapshots` | Sí | snapshots | No | Principal |
+| `/snapshots` | Sí | snapshots + flujos de movimientos | No | Principal |
 | `/snapshots/[id]` | Sí | `getSnapshotById` (filtrado por `userId`) | No | — |
 | `/ccl` | Sí | exchange rates + snapshots | No | Principal |
-| `/performance` | Sí | snapshots + benchmarks + índices | No | Principal |
+| `/performance` | Sí (+ `searchParams`) | snapshots + flujos + benchmarks + índices | No | Principal |
 | `/analysis` | Sí | concentration | No | Análisis |
 | `/real-gains` | Sí | real gains data | No | Análisis |
 | `/rebalance` | Sí | actions rebalance | No | Análisis |
 | `/plan` | Sí | snapshot + objetivos + precios | No | Análisis |
-| `/retirement` | Sí | settings + snapshots | No | Análisis |
+| `/retirement` | Sí | settings + snapshots + flujos | No | Análisis |
 | `/impuestos` | Sí (+ `searchParams`) | snapshots + transacciones + dividendos | No | Análisis |
 | `/datos` | Sí (por tarjeta) | setup + readiness + precios/CCL/índices | No | Datos |
 | `/alertas` | Sí | configuración e historial de alertas | No | Datos |

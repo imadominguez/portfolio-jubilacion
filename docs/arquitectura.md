@@ -70,7 +70,9 @@ components/
   analysis/                     ConcentrationCharts, OpportunityAnalyzer, OpportunityReportDisplay, ReportHistorial, legacy-report
   assets/                       AssetDialog, AssetsTableClient
   snapshots/                    ImportCsvSheet, ImportButton
-  transactions/                 TransactionsClient, TransactionForm, DividendForm, ImportMovimientosButton
+  transactions/                 ExpensesSection (gastos del mes), ExpensesTable, ExpensesDailyChart, TransactionsClient, TransactionForm, DividendForm, ImportMovimientosButton
+  taxes/                        TaxReportView, TaxReportSkeleton (/impuestos)
+  alerts/                       AlertSettingsForm, AlertsSkeleton (/alertas)
   rebalance/                    RebalanceClient
   retirement/                   RetirementClient
   strategy/                     StrategyEditor

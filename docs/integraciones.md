@@ -23,6 +23,12 @@ Fuente primaria del estado del portafolio. No hay API: se descargan archivos CSV
 - Columnas: `nroticket, fechaejecucion, tipooperacion, instrumento, moneda, cantidad, precio, montobruto, comision, ddmm, iva, otros, total`.
 - Parseado por `parseMovementCsv` (`lib/cocos-movements.ts`, puro: corre en el cliente para la previsualización) y persistido por `importMovements` (`app/actions/import-movements.ts`) de forma idempotente por `nroTicket`.
 - Análisis detallado del formato: [`movimientos/analisis-csv-movimientos.md`](./movimientos/analisis-csv-movimientos.md).
+- Qué alimenta cada categoría del libro:
+  - `TRADE_BUY` / `TRADE_SELL` → `Transaction` (PPM, P&L realizado, ventas del reporte para impuestos). Las ventas vienen con cantidad negativa y, en bonos y ONs, el precio es cada 100 nominales (el reporte para impuestos usa `montobruto`).
+  - Compras y ventas, FCI, dividendos y `OTHER` con instrumento → flujos del rendimiento sin aportes (ADR-0019).
+  - `DIVIDEND` / `DIVIDEND_IN_KIND` → dividendos del reporte para impuestos (los de CEDEARs llegan en dólares, sin decir de qué acción).
+  - `PAYMENT` ("Orden De Pago") → gastos del mes en `/transactions`. No traen destino: la categoría la pone el usuario (`ExpenseTag`).
+  - Fecha del último movimiento → aviso de cobertura en `/performance` y recordatorio mensual de las alertas.
 
 Guía visual: `components/guide/cocos-guide.tsx` (ruta `/guia`), con esquemas de las pantallas de Cocos dibujados en `components/guide/cocos-mockup.tsx` (sin capturas: siguen el tema y no exponen datos de una cuenta).
 
