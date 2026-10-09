@@ -9,11 +9,14 @@ import { fetchAndSaveMarketPrices } from "@/app/actions/market-prices";
 interface MarketPricesButtonProps {
   variant?: "default" | "outline" | "ghost" | "secondary";
   size?: "default" | "sm" | "lg" | "icon";
+  // Para headers con varias acciones: solo el ícono por debajo de 2xl.
+  compact?: boolean;
 }
 
 export function MarketPricesButton({
   variant = "outline",
   size = "sm",
+  compact = false,
 }: MarketPricesButtonProps) {
   const [isPending, startTransition] = useTransition();
 
@@ -39,9 +42,13 @@ export function MarketPricesButton({
       onClick={handleFetch}
       disabled={isPending}
       className="gap-1.5"
+      aria-label={compact ? "Actualizar precios" : undefined}
+      title={compact ? "Actualizar precios" : undefined}
     >
       <TrendingUp className={`size-3.5 ${isPending ? "animate-pulse" : ""}`} />
-      <span>{isPending ? "Actualizando precios…" : "Actualizar precios"}</span>
+      <span className={compact ? "hidden 2xl:inline" : undefined}>
+        {isPending ? "Actualizando precios…" : "Actualizar precios"}
+      </span>
     </Button>
   );
 }
