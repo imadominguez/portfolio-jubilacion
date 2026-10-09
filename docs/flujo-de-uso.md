@@ -178,7 +178,8 @@ dolarapi / argentinadatos / Yahoo ──► caches en DB (CCL, precios, benchmar
 
 | Frecuencia | Acción |
 |---|---|
-| **Mensual** | Exportar e importar un snapshot nuevo y el CSV de movimientos del mes; actualizar CCL y precios en `/datos`; revisar el Plan DCA; generar el reporte de oportunidades en `/portfolio` (ADMIN) |
+| **Diaria (automática)** | Si están activadas, las alertas revisan caídas y la carga del mes y mandan un mail solo si hay algo |
+| **Mensual** | Exportar e importar un snapshot nuevo y el CSV de movimientos del mes; categorizar los gastos en Transacciones; actualizar CCL y precios en `/datos`; revisar el Plan DCA; generar el reporte de oportunidades en `/portfolio` (ADMIN) |
 | **Semestral** | Revisar la página de Performance para evaluar el crecimiento del portfolio |
 | **Anual (enero)** | Importar el snapshot del 31/12 y los movimientos del año, y descargar el CSV de `/impuestos` para la declaración |
 | **Cuando cambia un ratio** | Actualizar el ratio CEDEAR correspondiente en la sección Assets |

@@ -187,12 +187,18 @@ pnpm prisma migrate dev --name add_x
 pnpm db:seed
 ```
 
+> Después de `pnpm prisma generate` (o de un `migrate` que lo dispara) hay que **reiniciar `pnpm dev`**: el dev server sigue con el cliente viejo y falla al compilar ("Jest worker encountered 2 child process exceptions") o al leer los modelos nuevos.
+>
+> Si `migrate dev` detecta drift, no usar `migrate reset`: generar la migración con `pnpm prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script > prisma/migrations/<fecha>_<nombre>/migration.sql` y aplicarla con `pnpm prisma migrate deploy` (es lo que se hizo con las migraciones de alertas y gastos).
+
 ---
 
 ## Despliegue
 
 - Aplicación pensada para Vercel (la IA y los exports server-side usan API routes; el sistema de archivos es efímero, por eso los reportes se guardan en `PortfolioReport`).
-- Pasos típicos: configurar variables de entorno → `prisma migrate deploy` → `next build`.
+- Pasos típicos: configurar variables de entorno → `prisma migrate deploy` → `next build`. El build de Vercel **no** corre migraciones: una migración nueva se aplica a mano (`pnpm prisma migrate deploy`) antes de mergear el código que la usa.
+- **Cron:** `vercel.json` programa `/api/cron/alerts` todos los días a las 12:00 UTC. Vercel manda `CRON_SECRET` en `Authorization`; el valor no puede tener espacios ni saltos de línea al principio o al final (el build falla). Para generarlo en Windows sin el `\r\n` de `openssl`: `openssl rand -hex 32 | tr -cd '0-9a-f'`.
+- Las variables de entorno nuevas solo llegan a producción con un deploy nuevo (`vercel redeploy <url> --target production` o un merge a `main`).
 - El proxy (`proxy.ts`) corre en runtime Node.js por defecto, por lo que el entorno de despliegue debe soportarlo.
 
 ---

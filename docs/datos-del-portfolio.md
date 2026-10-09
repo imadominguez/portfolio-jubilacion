@@ -208,6 +208,22 @@ pnl_pct = (precio_venta - precio_promedio_compra) / precio_promedio_compra × 10
 
 Registro de dividendos cobrados por ticker con monto, moneda (ARS/USD) y fecha. El total acumulado en USD se muestra en el Dashboard.
 
+> Las ventas importadas de Cocos traen la cantidad en negativo; el PPM y el P&L realizado usan su valor absoluto (la importación nueva ya la guarda positiva).
+
+### Gastos del mes
+
+Arriba de las pestañas. Sale de los pagos ("Orden De Pago") del CSV de Actividad, en pesos: Cocos no informa a quién se pagó, así que cada pago acepta una **categoría** (Supermercado, Alquiler y expensas, Servicios e impuestos, Suscripciones, etc.) y una **nota**.
+
+| Dato | Cálculo |
+|---|---|
+| **Gastado** | Suma de los pagos del mes (un pago con total positivo es un reintegro y resta). |
+| **Promedio por día** | Gastado / días transcurridos (hasta hoy en el mes actual, todos en un mes cerrado). |
+| **Proyección del mes** | Promedio por día × días del mes. Solo en el mes actual. |
+| **Contra el mes anterior** | Variación contra el mes anterior **hasta el mismo día** (en un mes cerrado, contra el mes anterior completo). |
+| **Por categoría** | Total y % por categoría; los pagos sin categoría van aparte. |
+
+Los cortes por día y por mes usan la hora de Argentina. Los pagos en dólares no entran en los totales. Detalle en [logica-financiera.md](./logica-financiera.md#gastos-del-mes-libexpensests).
+
 ---
 
 ## Snapshots (`/snapshots`)
@@ -282,11 +298,40 @@ La pantalla muestra KPIs, una barra de desglose (apreciación vs impacto CCL), u
 
 ---
 
+## Impuestos (`/impuestos`)
+
+Datos de un año para la declaración, con descarga en CSV. No aplica reglas impositivas (exenciones, tipo de cambio BNA): eso queda para la declaración.
+
+| Sección | Qué muestra |
+|---|---|
+| **Tenencia al cierre** (Bienes Personales) | Posiciones del último snapshot del año, valuadas al precio de esa fecha. Avisa si el snapshot está a más de 7 días del 31/12. No incluye el efectivo de la cuenta. |
+| **Ventas** (Ganancias) | Por venta: ingreso neto, costo promedio ponderado con comisiones y resultado. Si se compró en otra moneda (dólar MEP), el resultado queda sin calcular. |
+| **Dividendos cobrados** | Del libro de movimientos más los cargados a mano, con totales por moneda. |
+
+Detalle en [logica-financiera.md](./logica-financiera.md#reporte-para-impuestos-libtax-reportts).
+
+---
+
+## Alertas (`/alertas`)
+
+Mail diario (9:00 de Argentina) solo si hay algo para avisar ([ADR-0020](./adr/0020-alertas-por-mail-con-cron-y-gmail-smtp.md)):
+
+| Alerta | Cuándo |
+|---|---|
+| **Caída** | Una acción del último snapshot cae más que el umbral desde su máximo de 52 semanas (15 % por defecto) o en 5 ruedas (8 %), en USD del subyacente. Incluye titulares recientes de la empresa. No se repite hasta 7 días después, salvo que caiga 5 puntos más. |
+| **Carga del mes** | Desde el día configurado (5 por defecto), si falta el snapshot o los movimientos del mes anterior. Se repite cada 3 días. |
+
+En la página se activan, se ajustan los umbrales, se manda un mail de prueba y se ve el historial de lo enviado.
+
+---
+
 ## Fuentes de datos externas
 
 | Fuente | Datos obtenidos | Actualización |
 |---|---|---|
 | **Cocos Capital (CSV)** | Posiciones del portfolio (snapshot) y movimientos de la cuenta | Manual, al importar |
+| **Yahoo Finance (alertas)** | Cierres del último año y titulares de las acciones del último snapshot | Automática: cron diario (no se guardan) |
+| **Gmail (SMTP)** | Envío de las alertas por mail | Automática: cron diario, o manual en `/alertas` |
 | **Yahoo Finance (titulares)** | Noticias por acción para el reporte de oportunidades con IA | Al generar el reporte en `/portfolio` (no se guardan aparte) |
 | **dolarapi.com** | CCL actual | Manual (botón en `/datos`, `/ccl` o `/assets`) |
 | **argentinadatos.com** | CCL histórico, IPC y CER/UVA | Manual (`/datos`, wizard de ganancia real, `/performance`) |
