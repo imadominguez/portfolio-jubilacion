@@ -21,6 +21,8 @@ import { Spinner } from "@/components/ui/spinner";
 import { Badge } from "@/components/ui/badge";
 import { Target, TrendingUp, AlertTriangle, CheckCircle } from "lucide-react";
 import type { RetirementSettingsData } from "@/app/actions/retirement";
+import type { ContributionStats } from "@/lib/cash-flow";
+import { monthLabel } from "@/lib/local-date";
 import { saveRetirementSettings } from "@/app/actions/retirement";
 import {
   calculateRetirementGoal,
@@ -33,7 +35,11 @@ interface RetirementClientProps {
   initialSettings: RetirementSettingsData | null;
   currentPortfolioUsd: number | null;
   historicalCagr: number;
+  // Aporte neto real de los últimos 12 meses cerrados; null sin movimientos importados.
+  realContribution: ContributionStats | null;
 }
+
+const usd0 = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 
 const DEFAULT_SETTINGS: RetirementSettingsData = {
   currentAge: 35,
@@ -57,6 +63,7 @@ export function RetirementClient({
   initialSettings,
   currentPortfolioUsd,
   historicalCagr,
+  realContribution,
 }: RetirementClientProps) {
   const [settings, setSettings] = useState<RetirementSettingsData>(
     initialSettings ?? DEFAULT_SETTINGS
@@ -114,6 +121,17 @@ export function RetirementClient({
       } else {
         toast.error(result.error);
       }
+    });
+  }
+
+  // Reemplaza el aporte mensual configurado por uno calculado de los movimientos.
+  function applyContribution(value: number) {
+    const next = { ...settings, monthlyContribution: Math.max(0, Math.round(value)) };
+    setSettings(next);
+    startTransition(async () => {
+      const result = await saveRetirementSettings(next);
+      if (result.success) toast.success(`Aporte mensual: ${usd0.format(next.monthlyContribution)}`);
+      else toast.error(result.error);
     });
   }
 
@@ -272,6 +290,37 @@ export function RetirementClient({
             </span>
           )}
         </div>
+
+        {realContribution && (
+          <div className="mt-3 rounded-lg border border-border bg-muted/30 px-4 py-3 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-muted-foreground leading-relaxed max-w-2xl">
+              <span className="text-foreground font-medium">
+                Aporte real: {usd0.format(realContribution.monthlyUsd)}/mes
+              </span>{" "}
+              de {monthLabel(realContribution.fromMonth)} a {monthLabel(realContribution.toMonth)}: compraste{" "}
+              {usd0.format(realContribution.tradesMonthlyUsd)}/mes en CEDEARs y bonos, y el resto es lo que
+              entró o salió del FCI. La proyección usa {usd0.format(settings.monthlyContribution)}/mes.
+            </p>
+            <div className="flex flex-wrap gap-1.5 shrink-0">
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={isPending}
+                onClick={() => applyContribution(realContribution.monthlyUsd)}
+              >
+                Usar {usd0.format(Math.max(0, realContribution.monthlyUsd))}
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={isPending}
+                onClick={() => applyContribution(realContribution.tradesMonthlyUsd)}
+              >
+                Solo CEDEARs: {usd0.format(Math.max(0, realContribution.tradesMonthlyUsd))}
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Tabs */}

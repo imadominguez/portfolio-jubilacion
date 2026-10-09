@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { connection } from "next/server";
 import { SiteHeader } from "@/components/layout/site-header";
 import { RetirementClient } from "@/components/retirement/retirement-client";
 import { RetirementSkeleton } from "@/components/retirement/retirement-skeleton";
 import { getRetirementSettings } from "@/app/actions/retirement";
-import { getAllSnapshotPoints, getHoldingsFlows } from "@/lib/portfolio-data";
+import { getAllSnapshotPoints, getContributionStats, getHoldingsFlows } from "@/lib/portfolio-data";
+import { localDateParts, monthKeyOf, shiftMonth } from "@/lib/local-date";
 import { holdingsXirr } from "@/lib/flow-returns";
 
 export const metadata: Metadata = { title: "Planificación de jubilación" };
@@ -39,10 +41,15 @@ export default function RetirementPage() {
 }
 
 async function Retirement() {
-  const [settings, snapshots, flows] = await Promise.all([
+  await connection();
+  // Últimos 12 meses cerrados, en hora de Argentina (después de connection():
+  // la hora no puede leerse durante el prerender).
+  const currentMonth = monthKeyOf(localDateParts(new Date()));
+  const [settings, snapshots, flows, contributions] = await Promise.all([
     getRetirementSettings(),
     getAllSnapshotPoints(),
     getHoldingsFlows(),
+    getContributionStats(shiftMonth(currentMonth, -12), shiftMonth(currentMonth, -1)),
   ]);
 
   const latestSnapshot = snapshots.at(-1);
@@ -68,6 +75,7 @@ async function Retirement() {
       initialSettings={settings}
       currentPortfolioUsd={currentPortfolioUsd}
       historicalCagr={historicalCagr}
+      realContribution={flows.lastMovementDate ? contributions : null}
     />
   );
 }

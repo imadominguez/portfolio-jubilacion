@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cashFlowSummary, cclLookup, monthlyCashFlow, type CashMovement } from "./cash-flow";
+import { cashFlowSummary, cclLookup, contributionStats, monthlyCashFlow, type CashMovement } from "./cash-flow";
 
 const day = (iso: string) => new Date(`${iso}T00:00:00Z`);
 const mv = (iso: string, category: string, total: number, currency: "ARS" | "USD" = "ARS"): CashMovement => ({
@@ -75,5 +75,38 @@ describe("cashFlowSummary", () => {
     expect(s.savings).toBe(500_000);
     expect(s.savingsRate).toBeCloseTo((500_000 / 1_500_000) * 100);
     expect(s.averageMonthlyExpenses).toBe(500_000);
+  });
+});
+
+describe("contributionStats", () => {
+  const m = (iso: string, category: string, total: number, instrument: string | null = "X") => ({
+    date: day(iso),
+    category,
+    currency: "ARS" as const,
+    total,
+    instrument,
+  });
+
+  it("promedia el aporte neto en USD y separa lo que fue a CEDEARs y bonos", () => {
+    const s = contributionStats(
+      [
+        m("2026-01-10", "TRADE_BUY", -160_000), // 100 USD
+        m("2026-02-10", "FCI_SUBSCRIPTION", -80_000), // 50 USD
+        m("2026-03-10", "FCI_REDEMPTION", 160_000), // −100 USD
+        m("2026-03-11", "PAYMENT", -160_000, null), // no es un flujo de las tenencias
+        m("2025-12-31", "TRADE_BUY", -1_600_000), // fuera de la ventana
+      ],
+      () => 1600,
+      "2026-01",
+      "2026-04"
+    );
+    expect(s.months).toBe(4);
+    expect(s.totalUsd).toBeCloseTo(50);
+    expect(s.monthlyUsd).toBeCloseTo(12.5);
+    expect(s.tradesMonthlyUsd).toBeCloseTo(25);
+  });
+
+  it("cuenta los meses entre años", () => {
+    expect(contributionStats([], () => 1600, "2025-10", "2026-09").months).toBe(12);
   });
 });

@@ -512,6 +512,19 @@ El resumen (`cashFlowSummary`) suma los últimos 12 meses cerrados; su tasa es a
 
 ---
 
+### Aporte real (`contributionStats`)
+
+Para Jubilación: el aporte neto a las tenencias de los últimos 12 meses cerrados, con la misma definición que el rendimiento sin aportes (ADR-0019): compras, ventas, FCI y dividendos, cada flujo pasado a USD con el CCL de su fecha.
+
+```
+aporte mensual   = Σ aportes netos de la ventana / meses
+solo CEDEARs     = Σ (compras − ventas de CEDEARs y bonos) / meses
+```
+
+Si los rescates del FCI para pagar gastos compensan las compras, el aporte real queda muy por debajo de lo que se compra en CEDEARs.
+
+---
+
 ## Gastos del mes (`lib/expenses.ts`)
 
 Salen de los pagos (`PAYMENT`, "Orden De Pago") del libro de movimientos de Cocos, en pesos. Cocos no informa el destino del pago: la categoría y la nota las pone el usuario en `ExpenseTag` (aparte del `Movement`, que no se edita, ADR-0012). Los cortes por mes y por día usan la fecha local de Argentina (`lib/local-date.ts`).
