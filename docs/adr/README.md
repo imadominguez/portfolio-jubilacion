@@ -34,7 +34,7 @@ Se escribieron **retrospectivamente** el 2026-10-04 para documentar decisiones y
 | [0003](./0003-prisma-7-con-driver-adapter-pg.md) | Prisma 7 + PostgreSQL con driver adapter `pg` | Aceptado |
 | [0004](./0004-snapshots-inmutables-con-ccl-congelado.md) | Snapshots inmutables con el CCL congelado | Aceptado |
 | [0005](./0005-decimal-para-valores-monetarios.md) | `Decimal` para valores monetarios y conversión explícita a `number` | Aceptado |
-| [0006](./0006-datos-externos-cacheados-en-db-con-refresco-manual.md) | Datos externos cacheados en DB con refresco manual | Aceptado |
+| [0006](./0006-datos-externos-cacheados-en-db-con-refresco-manual.md) | Datos externos cacheados en DB con refresco manual | Reemplazado en parte por 0021 |
 | [0007](./0007-cliente-propio-de-yahoo-finance.md) | Cliente propio de Yahoo Finance en lugar de `yahoo-finance2` | Aceptado |
 | [0008](./0008-aislamiento-por-usuario-y-datos-de-mercado-globales.md) | Aislamiento por `userId`; datos de mercado globales | Aceptado |
 | [0009](./0009-better-auth-roles-en-db-y-registro-cerrado.md) | Better Auth con roles en DB, proxy y registro cerrado | Aceptado |
@@ -49,3 +49,4 @@ Se escribieron **retrospectivamente** el 2026-10-04 para documentar decisiones y
 | [0018](./0018-reporte-de-oportunidades-con-datos-preparados-por-la-app.md) | Reporte de oportunidades por acción con datos preparados por la app | Aceptado |
 | [0019](./0019-rendimiento-sin-aportes-con-flujos-del-libro-de-movimientos.md) | Rendimiento sin aportes, con los flujos del libro de movimientos | Aceptado |
 | [0020](./0020-alertas-por-mail-con-cron-y-gmail-smtp.md) | Alertas por mail con un cron diario y Gmail SMTP | Aceptado |
+| [0021](./0021-actualizacion-diaria-automatica-de-datos-de-mercado.md) | Actualización diaria automática de los datos de mercado | Aceptado |

@@ -333,9 +333,9 @@ En la página se activan, se ajustan los umbrales, se manda un mail de prueba y 
 | **Yahoo Finance (alertas)** | Cierres del último año y titulares de las acciones del último snapshot | Automática: cron diario (no se guardan) |
 | **Gmail (SMTP)** | Envío de las alertas por mail | Automática: cron diario, o manual en `/alertas` |
 | **Yahoo Finance (titulares)** | Noticias por acción para el reporte de oportunidades con IA | Al generar el reporte en `/portfolio` (no se guardan aparte) |
-| **dolarapi.com** | CCL actual | Manual (botón en `/datos`, `/ccl` o `/assets`) |
-| **argentinadatos.com** | CCL histórico, IPC y CER/UVA | Manual (`/datos`, wizard de ganancia real, `/performance`) |
-| **Yahoo Finance** | Precios actuales e históricos de subyacentes en USD y benchmarks | Manual (botón en `/datos` o `/assets`; benchmarks on-demand en `/performance`) |
+| **dolarapi.com** | CCL actual | Automática todos los días a las 9, y manual (botón en `/datos`, `/ccl` o `/assets`) |
+| **argentinadatos.com** | CCL histórico, IPC y CER/UVA | IPC y CER automáticos todos los días; manual en `/datos`, wizard de ganancia real y `/performance` |
+| **Yahoo Finance** | Precios actuales e históricos de subyacentes en USD y benchmarks | Automática todos los días a las 9, y manual (botón en `/datos` o `/assets`; benchmarks on-demand en `/performance`) |
 
 Detalle técnico en [integraciones.md](./integraciones.md).
 

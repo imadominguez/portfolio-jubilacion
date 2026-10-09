@@ -34,12 +34,25 @@ import { getIndexPoints } from "@/app/actions/indices";
 
 export const metadata: Metadata = { title: "Centro de Datos" };
 
+// Columnas @db.Date: medianoche UTC, se muestran en UTC para no correr el día.
 function fmtDate(date: Date | null): string {
   if (!date) return "—";
   return new Intl.DateTimeFormat("es-AR", {
     day: "2-digit",
     month: "short",
     year: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+}
+
+// Momento de una actualización (timestamp), en hora de Argentina.
+function fmtDateTime(date: Date): string {
+  return new Intl.DateTimeFormat("es-AR", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "America/Argentina/Buenos_Aires",
   }).format(date);
 }
 
@@ -157,9 +170,15 @@ export default function DataHubPage() {
         </section>
 
         <section className="flex flex-col gap-4">
-          <h2 className="text-sm font-semibold text-foreground">
-            2 · Mantener los datos al día
-          </h2>
+          <div className="flex flex-col gap-1">
+            <h2 className="text-sm font-semibold text-foreground">
+              2 · Mantener los datos al día
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Se actualizan solos todos los días a las 9 (hora de Argentina). Los botones fuerzan
+              una actualización en el momento.
+            </p>
+          </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <DataCard
               icon={Gauge}
@@ -268,7 +287,14 @@ async function CclMeta() {
 
 async function MarketPricesMeta() {
   const [session, marketPrices] = await Promise.all([getSession(), getMarketPrices()]);
-  if (marketPrices.length > 0) return <>{marketPrices.length} precios en caché.</>;
+  if (marketPrices.length > 0) {
+    const last = marketPrices.reduce((acc, p) => (p.fetchedAt > acc ? p.fetchedAt : acc), marketPrices[0].fetchedAt);
+    return (
+      <>
+        {marketPrices.length} precios · actualizados el {fmtDateTime(new Date(last))}
+      </>
+    );
+  }
   return isAdminRole(session?.user.role) ? (
     <>Sin precios cargados. Completá el subyacente en Assets.</>
   ) : (
@@ -282,9 +308,10 @@ async function IndicesMeta() {
     getIndexPoints("cer"),
   ]);
   if (ipcPoints.length === 0 && cerPoints.length === 0) return <>Sin índices cargados.</>;
+  const lastDate = (points: typeof ipcPoints) => (points.length > 0 ? fmtDate(new Date(points[points.length - 1].date)) : "—");
   return (
     <>
-      IPC: {ipcPoints.length} puntos · CER: {cerPoints.length} puntos.
+      IPC hasta {lastDate(ipcPoints)} · CER hasta {lastDate(cerPoints)}
     </>
   );
 }

@@ -54,3 +54,7 @@ Un **cron diario** revisa a cada usuario con alertas activas y le manda **un ún
 
 - `lib/alerts.ts`, `lib/alerts.test.ts`, `lib/alerts-runner.ts`, `lib/mailer.ts`, `app/api/cron/alerts/route.ts`, `app/actions/alerts.ts`, `app/(app)/alertas/page.tsx`, `vercel.json`, `proxy.ts`.
 - Modelos `AlertSettings` y `AlertLog` (migración `20261009120000_add_alerts`).
+
+## Seguimiento
+
+- **Datos de mercado en el mismo cron (ADR-0021).** Antes de las alertas, la corrida diaria actualiza CCL, precios, históricos, benchmarks, IPC y CER. Los cierres del último año que usan las alertas siguen sin guardarse.

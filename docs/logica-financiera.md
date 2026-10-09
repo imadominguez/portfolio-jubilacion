@@ -206,6 +206,7 @@ nivel_n = nivel_{n-1} × (1 + tasa_n / 100)
 ```
 
 - **CER/UVA** ya es un índice diario → se guarda directo.
+- El nivel del IPC acumulado depende del mes de arranque: `saveInflation` (`lib/market-refresh.ts`) siempre reconstruye la serie desde su primer punto guardado, para que los meses nuevos queden en la misma base (ADR-0021).
 - Ambos se persisten en `BenchmarkPoint` (`benchmarkId` = `inflacion` / `cer`) y se leen con `getBenchmarkPoints` (normalización base 100).
 
 **Rendimiento real** (descunta la inflación del rendimiento nominal):

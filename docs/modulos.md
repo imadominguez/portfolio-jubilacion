@@ -38,7 +38,7 @@ Metadata raíz (`app/layout.tsx`): `title` por defecto `"Portfolio Jubilación"`
 - **Archivo:** `app/(app)/datos/page.tsx`.
 - **Propósito:** hub único para importar y mantener actualizados todos los datos.
 - **Shell:** casi toda la página es estática y entra al static shell (títulos, descripciones y botones de las cuatro secciones). Solo se streamea, cada parte en su `<Suspense>`: el checklist (`getSetupStatus()`), el dato de cada tarjeta de mantenimiento (último CCL con `getAllExchangeRates()`, cantidad de precios con `getMarketPrices()` y `getSession()`, puntos de IPC/CER con `getIndexPoints()`), la sección de históricos (`getDataReadiness()`) y el link de Hitos (solo ADMIN, `getSession()`).
-- **Muestra:** checklist (`SetupChecklist` si está completo, si no `SetupPanel`) + tarjetas de import (snapshot, movimientos), mantenimiento (CCL, precios, inflación/CER), históricos (`RealGainsWizard`) y accesos a Rebalanceo / Jubilación / Hitos / Benchmarks.
+- **Muestra:** checklist (`SetupChecklist` si está completo, si no `SetupPanel`) + tarjetas de import (snapshot, movimientos), mantenimiento (CCL con su fecha, precios con fecha y hora de la última actualización, IPC y CER con hasta qué fecha llegan; aclara que se actualizan solos todos los días a las 9, ADR-0021), históricos (`RealGainsWizard`) y accesos a Rebalanceo / Jubilación / Hitos / Benchmarks.
 - **Componentes:** `SiteHeader`, `SetupChecklist`, `SetupPanel`, `ImportButton`, `ImportMovimientosButton`, `CclUpdateButton`, `MarketPricesButton`, `IndicesUpdateButton`, `RealGainsWizard`.
 
 ---

@@ -1,6 +1,6 @@
 # ADR-0006: Datos externos cacheados en DB con refresco manual
 
-- **Estado:** Aceptado
+- **Estado:** Reemplazado en parte por [ADR-0021](./0021-actualizacion-diaria-automatica-de-datos-de-mercado.md) (el refresco también es automático, una vez por día)
 - **Fecha:** 2026-03-08 (registrado retrospectivamente el 2026-10-04)
 - **Relacionados:** ADR-0007, ADR-0015
 

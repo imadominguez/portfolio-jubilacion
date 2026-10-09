@@ -5,7 +5,7 @@ import { connection } from "next/server";
 import { revalidateBenchmarks } from "@/lib/revalidate";
 import { marketTags } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
-import { getHistorical } from "@/lib/yahoo-finance-client";
+import { saveBenchmark } from "@/lib/market-refresh";
 import { BENCHMARKS, type BenchmarkId } from "@/lib/benchmarks-config";
 
 export type BenchmarkFetchResult =
@@ -23,22 +23,7 @@ export async function fetchAndSaveBenchmark(
   }
 
   try {
-    const result = await getHistorical(benchmark.ticker, fromDate, toDate);
-
-    if (!result || result.length === 0) {
-      return { success: false, error: "No se obtuvieron datos históricos.", benchmarkId };
-    }
-
-    let saved = 0;
-    for (const row of result) {
-      await db.benchmarkPoint.upsert({
-        where: { benchmarkId_date: { benchmarkId, date: row.date } },
-        create: { benchmarkId, date: row.date, value: row.close },
-        update: { value: row.close },
-      });
-      saved++;
-    }
-
+    const saved = await saveBenchmark(benchmarkId, fromDate, toDate);
     revalidateBenchmarks();
     return { success: true, benchmarkId, saved };
   } catch (err) {
