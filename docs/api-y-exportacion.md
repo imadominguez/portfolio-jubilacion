@@ -8,7 +8,7 @@ La app evita API routes salvo para (a) binarios/formatos de archivo, (b) la inte
 
 **Archivo:** `app/api/analyze-portfolio/route.ts` · runtime Node.js (default) · `maxDuration = 300` (segundos). Decisión y motivos: [ADR-0018](./adr/0018-reporte-de-oportunidades-con-datos-preparados-por-la-app.md).
 
-Sin cuerpo: analiza el **último snapshot importado** del usuario. La app prepara los datos y Claude solo devuelve una señal por acción.
+Sin cuerpo: analiza el **último snapshot importado** del usuario. La app prepara los datos y Claude solo devuelve una señal por acción. El route resuelve la sesión y el rol; la generación vive en `generateOpportunityReport(userId)` (`lib/opportunity-runner.ts`), que también usa el cron mensual y devuelve `{ ok, report }` o `{ ok: false, status, error }` (el route lo traduce a la respuesta HTTP).
 
 ### Flujo
 
@@ -118,7 +118,8 @@ El documento (`components/export/portfolio-pdf.tsx`) usa A4, fuente Inter (regis
 - Lo llama Vercel Cron (`vercel.json`, `0 12 * * *` = 9:00 en Argentina) con `Authorization: Bearer <CRON_SECRET>`. Sin el header correcto (o sin `CRON_SECRET` configurado) → `401`. El proxy no le pide sesión.
 - Primero `refreshMarketData()` (`lib/market-refresh.ts`, [ADR-0021](./adr/0021-actualizacion-diaria-automatica-de-datos-de-mercado.md)): CCL, precios, históricos, benchmarks, IPC y CER, de forma incremental; después `revalidateTag(tag, "max")` de los pasos que funcionaron.
 - Después `runAllAlerts()` (`lib/alerts-runner.ts`) recorre los usuarios con `AlertSettings.enabled`; un usuario que falla no corta al resto.
-- Responde el estado de cada paso de datos y conteos de alertas: `{ market: [{ step, ok, detail }], users, failed, mailsSent, drops, reminders }` (nada de datos de usuarios). Error inesperado → `500`.
+- Al final, `runMonthlyTasks()` (`lib/monthly-runner.ts`): reporte de oportunidades del mes (ADMIN que lo eligieron) y resumen mensual por mail.
+- Responde el estado de cada paso de datos y conteos: `{ market: [{ step, ok, detail }], users, failed, mailsSent, drops, reminders, monthly: { reports, summaries, errors } }` (nada de datos de usuarios). Error inesperado → `500`.
 
 ---
 

@@ -126,8 +126,9 @@ El parser clasifica cada fila en `MovementCategory`; sólo `TRADE_BUY`/`TRADE_SE
 | Función | Auth | Comportamiento |
 |---|---|---|
 | `getAlertsPageData()` | Sí | Configuración (`AlertSettings`, o los valores por defecto desactivados) y las últimas 20 `AlertLog` del usuario. Tag `alerts:<userId>`. |
-| `saveAlertSettings(data)` | Sí | Valida umbrales (1–90 % y 1–50 %) y día (1–28); upsert por `userId`. `revalidateAlerts`. |
+| `saveAlertSettings(data)` | Sí | Valida umbrales (1–90 % y 1–50 %) y día (1–28); guarda también `monthlySummary` y `monthlyReport`. Upsert por `userId`. `revalidateAlerts`. |
 | `sendTestAlertEmail()` | Sí | Manda un mail de prueba al email de la sesión. |
+| `sendMonthlySummary()` | Sí | `sendMonthlySummaryNow` (`lib/monthly-runner.ts`): manda ahora el resumen del mes anterior al email de la sesión, aunque esté incompleto, sin registrarlo (el cron lo manda igual). |
 | `runAlertsNow()` | Sí | `runAlertsForUser(userId, { force: true })`: la revisión del cron para el usuario de la sesión, sin la regla de no repetir. Devuelve qué se avisó y qué acciones no se pudieron revisar. |
 
 ---

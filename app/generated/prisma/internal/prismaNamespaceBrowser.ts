@@ -373,6 +373,8 @@ export const AlertSettingsScalarFieldEnum = {
   dropFromHighPct: 'dropFromHighPct',
   weeklyDropPct: 'weeklyDropPct',
   reminderDay: 'reminderDay',
+  monthlySummary: 'monthlySummary',
+  monthlyReport: 'monthlyReport',
   updatedAt: 'updatedAt'
 } as const
 

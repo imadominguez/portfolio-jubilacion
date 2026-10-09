@@ -100,6 +100,10 @@ lib/
   cash-flow.ts                  Flujo de caja mensual, tasa de ahorro y búsqueda del CCL por fecha (puro)
   local-date.ts                 Fecha y mes locales de Argentina, claves AAAA-MM (puro)
   alerts-runner.ts              Corre las alertas: datos del usuario + Yahoo + envío + AlertLog
+  monthly-runner.ts             Tareas mensuales del cron: reporte automático y resumen por mail
+  monthly-summary.ts            Cuándo mandar el resumen mensual y su contenido (puro)
+  opportunity-runner.ts         Genera y guarda el reporte de oportunidades de un usuario (route y cron)
+  trade-amount.ts               Monto bruto de una operación (bonos: precio cada 100 nominales)
   mailer.ts                     Envío por Gmail SMTP (nodemailer)
   market-refresh.ts             Descarga y guardado de datos de mercado (botones y cron diario)
   map-limit.ts                  Promise.all con concurrencia acotada
@@ -154,7 +158,7 @@ Anthropic ──┘   (app/actions/)   └── API routes (PDF/CSV/IA)
 Reglas de la arquitectura (ver `.cursor/rules.md`):
 
 - **RSC pages** (`app/(app)/**/page.tsx`) son síncronas: header y contenido estático van al static shell, y las lecturas van en un componente async dentro de `<Suspense>` que pasa los datos como props a componentes cliente. Las lecturas se cachean con `'use cache'` y un tag por dominio (ver [server-actions.md](./server-actions.md) y [ADR-0017](./adr/0017-cache-components-partial-prerendering-y-prefetching.md)).
-- **`lib/` sin Prisma** salvo los helpers de lectura permitidos: `portfolio-data.ts`, `analysis-data.ts`, `real-gains-data.ts`, `tax-report-data.ts`, `alerts-runner.ts` (que además escribe `AlertLog`) y `market-refresh.ts` (descarga y guarda los datos de mercado globales).
+- **`lib/` sin Prisma** salvo los helpers de lectura permitidos: `portfolio-data.ts`, `analysis-data.ts`, `real-gains-data.ts`, `tax-report-data.ts`, `alerts-runner.ts` y `monthly-runner.ts` (escriben `AlertLog`), `opportunity-runner.ts` (guarda `PortfolioReport`) y `market-refresh.ts` (descarga y guarda los datos de mercado globales).
 - **Toda mutación** pasa por Server Actions que devuelven uniones discriminadas `{ success: true, ... } | { success: false, error }`.
 - **API routes** solo para binarios (PDF/CSV/HTML) y la integración con IA. Además del proxy, cada ruta valida la sesión (`401` si falta) y filtra por `userId` (un snapshot ajeno responde `404`).
 - **Aislamiento por usuario:** los datos del portafolio se leen y borran siempre con `where: { ..., userId }` (`requireUserId()`); los datos de mercado son globales. Ver [ADR-0008](./adr/0008-aislamiento-por-usuario-y-datos-de-mercado-globales.md).

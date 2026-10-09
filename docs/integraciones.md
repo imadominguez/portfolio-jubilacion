@@ -147,7 +147,7 @@ Decisión y motivos: [ADR-0020](./adr/0020-alertas-por-mail-con-cron-y-gmail-smt
 | argentinadatos.com | Inflación (IPC) y CER/UVA | Diaria (cron) y manual (botón en `/datos` o carga on-demand en `/performance`) | `benchmark_points` |
 | Yahoo Finance | Precios actuales e históricos, benchmarks | Diaria (cron) y manual (botones) | `market_price_cache`, `historical_price_cache`, `benchmark_points` |
 | Yahoo Finance | Titulares de noticias por acción | Al generar el reporte | No se guardan (solo en el reporte) |
-| Anthropic | Reporte de oportunidades | Manual (botón en `/portfolio`) | `portfolio_reports` |
+| Anthropic | Reporte de oportunidades | Manual (botón en `/portfolio`) y automático el 1° de cada mes (cron, ADMIN que lo eligió) | `portfolio_reports` |
 | Yahoo Finance | Cierres y titulares para las alertas | Automático (cron diario) | No se guardan; lo enviado queda en `alert_logs` |
 | Gmail (SMTP) | Envío de las alertas | Automático (cron diario) o manual en `/alertas` | — |
 

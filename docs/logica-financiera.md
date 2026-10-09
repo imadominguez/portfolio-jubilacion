@@ -546,6 +546,17 @@ alerta si   desdeMáximo ≤ −umbralMáximo  o  5 ruedas ≤ −umbralSemanal 
 
 **No repetir** (`shouldNotifyDrop`): vuelve a avisar si pasaron 30 días desde el último aviso de ese ticker (recordatorio) o si `desdeMáximo` bajó al menos 5 puntos más que el valor avisado (`AlertLog.value`).
 
+### Resumen mensual (`lib/monthly-summary.ts`)
+
+Para el mes anterior `M` (`summaryMonthDue`): se manda desde el día `reminderDay` si `M` está cargado (snapshot desde el 1° de `M` y movimientos hasta su última semana), o desde el día 20 aunque falte algo, avisando qué. Contenido:
+
+- **Portfolio:** valor del último snapshot y rendimiento del año sin aportes (`returnSummary`) en pesos y en dólares.
+- **Flujo de caja de `M`** (`monthlyCashFlow`): depósitos, gastos, ahorro y tasa.
+- **Gastos de `M`** (`expenseSummary`): las 4 categorías con más gasto y cuántos pagos siguen sin categoría.
+- **Plan DCA del mes** (`planDca`): con el aporte configurado en Jubilación (USD × CCL del snapshot; sin configuración, $ 500.000) y las señales del último reporte.
+
+Se registra en `AlertLog` (`MONTHLY_SUMMARY`, clave `M`). El reporte automático (`MONTHLY_REPORT`, clave del mes en curso) se genera si no hay un reporte desde el 1° del mes (00:00 de Argentina).
+
 ### Recordatorio de carga
 
 Desde el día `reminderDay` del mes (fecha local de Argentina), para el mes anterior `M` (`reminderMonth`):

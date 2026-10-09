@@ -20,7 +20,7 @@ enum MovementCategory {
   DIVIDEND DIVIDEND_IN_KIND
   CONVERSION OTHER
 }
-enum AlertKind        { PRICE_DROP REMINDER }
+enum AlertKind        { PRICE_DROP REMINDER MONTHLY_REPORT MONTHLY_SUMMARY }
 ```
 
 - `AssetKind` clasifica el catálogo (`CEDEAR`, `FCI`, `OTHER`).
@@ -256,12 +256,14 @@ Configuración de las alertas por mail (1:1 con `User`, ADR-0020).
 | `enabled` | `Boolean @default(false)` | El cron solo revisa a los usuarios activos. |
 | `dropFromHighPct` | `Decimal(5,2) @default(15)` | Caída desde el máximo de 52 semanas, en %. |
 | `weeklyDropPct` | `Decimal(5,2) @default(8)` | Caída en 5 ruedas, en %. |
-| `reminderDay` | `Int @default(5)` | Día del mes desde el que se recuerda cargar el anterior. |
+| `reminderDay` | `Int @default(5)` | Día del mes desde el que se recuerda cargar el anterior (y se manda el resumen). |
+| `monthlySummary` | `Boolean @default(true)` | Mail con el resumen del mes anterior. |
+| `monthlyReport` | `Boolean @default(true)` | Generar el reporte de oportunidades el 1° de cada mes (solo ADMIN, tiene costo). |
 | `updatedAt` | `DateTime @updatedAt` | |
 
 ### `AlertLog` → `alert_logs`
 
-Alertas enviadas, para no repetirlas todos los días: `id`, `userId` (FK, `onDelete: Cascade`), `kind AlertKind`, `key` (ticker o `AAAA-MM` del mes a cargar), `value Decimal(8,2)?` (caída desde el máximo al avisar, solo `PRICE_DROP`), `sentAt`. Índice `[userId, kind, key, sentAt]`.
+Alertas enviadas, para no repetirlas todos los días: `id`, `userId` (FK, `onDelete: Cascade`), `kind AlertKind`, `key` (ticker, o `AAAA-MM` en recordatorios, reportes y resúmenes mensuales), `value Decimal(8,2)?` (caída desde el máximo al avisar, solo `PRICE_DROP`), `sentAt`. Índice `[userId, kind, key, sentAt]`.
 
 ---
 
@@ -310,6 +312,7 @@ Ubicación: `prisma/migrations/`.
 | `20261009120000_add_alerts` | Enum `AlertKind`, tablas `alert_settings` y `alert_logs`. |
 | `20261009180000_add_expense_tags` | Tabla `expense_tags`. |
 | `20261009181000_expense_tag_optional_category` | `expense_tags.category` pasa a opcional. |
+| `20261010120000_monthly_tasks` | `AlertKind` suma `MONTHLY_REPORT` y `MONTHLY_SUMMARY`; `alert_settings.monthlySummary` y `monthlyReport`. |
 | `20261009220000_drop_target_allocations` | Borra la tabla `target_allocations` (sin pesos objetivo, ADR-0022). |
 | `20261009200000_retirement_expected_return` | `retirement_settings.expectedReturnRate` (`Decimal(6,4)`, por defecto 0.07). |
 

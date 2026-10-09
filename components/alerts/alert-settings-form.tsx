@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { Mail, Search } from "lucide-react";
+import { CalendarRange, Mail, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -11,6 +11,7 @@ import { Spinner } from "@/components/ui/spinner";
 import {
   runAlertsNow,
   saveAlertSettings,
+  sendMonthlySummary,
   sendTestAlertEmail,
   type AlertActionResult,
   type AlertSettingsData,
@@ -21,18 +22,22 @@ import {
 export function AlertSettingsForm({
   initial,
   mailerReady,
+  isAdmin,
 }: {
   initial: AlertSettingsData;
   mailerReady: boolean;
+  isAdmin: boolean;
 }) {
   const [enabled, setEnabled] = useState(initial.enabled);
   const [dropFromHigh, setDropFromHigh] = useState(String(initial.dropFromHighPct));
   const [weeklyDrop, setWeeklyDrop] = useState(String(initial.weeklyDropPct));
   const [reminderDay, setReminderDay] = useState(String(initial.reminderDay));
-  const [pending, setPending] = useState<"save" | "test" | "run" | null>(null);
+  const [monthlySummary, setMonthlySummary] = useState(initial.monthlySummary);
+  const [monthlyReport, setMonthlyReport] = useState(initial.monthlyReport);
+  const [pending, setPending] = useState<"save" | "test" | "run" | "summary" | null>(null);
   const [, startTransition] = useTransition();
 
-  function run(kind: "save" | "test" | "run", action: () => Promise<AlertActionResult>) {
+  function run(kind: "save" | "test" | "run" | "summary", action: () => Promise<AlertActionResult>) {
     setPending(kind);
     startTransition(async () => {
       const result = await action();
@@ -50,6 +55,8 @@ export function AlertSettingsForm({
         dropFromHighPct: Number(dropFromHigh),
         weeklyDropPct: Number(weeklyDrop),
         reminderDay: Number(reminderDay),
+        monthlySummary,
+        monthlyReport,
       })
     );
   }
@@ -64,6 +71,27 @@ export function AlertSettingsForm({
           </FieldContent>
           <Switch id="alerts-enabled" checked={enabled} onCheckedChange={setEnabled} />
         </Field>
+
+        <Field orientation="horizontal">
+          <FieldContent>
+            <FieldLabel htmlFor="monthly-summary">Resumen mensual</FieldLabel>
+            <FieldDescription>Rendimiento, flujo de caja, gastos y Plan DCA del mes anterior.</FieldDescription>
+          </FieldContent>
+          <Switch id="monthly-summary" checked={monthlySummary} onCheckedChange={setMonthlySummary} />
+        </Field>
+
+        {isAdmin && (
+          <Field orientation="horizontal">
+            <FieldContent>
+              <FieldLabel htmlFor="monthly-report">Reporte de oportunidades automático</FieldLabel>
+              <FieldDescription>
+                Lo genera el 1° de cada mes si no hay uno del mes, así el Plan DCA usa señales nuevas. Cuesta unos
+                US$ 0,07 por reporte.
+              </FieldDescription>
+            </FieldContent>
+            <Switch id="monthly-report" checked={monthlyReport} onCheckedChange={setMonthlyReport} />
+          </Field>
+        )}
 
         <div className="grid gap-4 sm:grid-cols-3">
           <Field>
@@ -133,6 +161,15 @@ export function AlertSettingsForm({
         >
           {pending === "run" ? <Spinner /> : <Search className="size-3.5" />}
           Revisar ahora
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={pending !== null || !mailerReady}
+          onClick={() => run("summary", sendMonthlySummary)}
+        >
+          {pending === "summary" ? <Spinner /> : <CalendarRange className="size-3.5" />}
+          Mandar el resumen ahora
         </Button>
       </div>
       <p className="text-xs text-muted-foreground -mt-3">

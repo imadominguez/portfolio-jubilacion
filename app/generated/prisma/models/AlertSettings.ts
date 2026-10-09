@@ -44,6 +44,8 @@ export type AlertSettingsMinAggregateOutputType = {
   dropFromHighPct: runtime.Decimal | null
   weeklyDropPct: runtime.Decimal | null
   reminderDay: number | null
+  monthlySummary: boolean | null
+  monthlyReport: boolean | null
   updatedAt: Date | null
 }
 
@@ -53,6 +55,8 @@ export type AlertSettingsMaxAggregateOutputType = {
   dropFromHighPct: runtime.Decimal | null
   weeklyDropPct: runtime.Decimal | null
   reminderDay: number | null
+  monthlySummary: boolean | null
+  monthlyReport: boolean | null
   updatedAt: Date | null
 }
 
@@ -62,6 +66,8 @@ export type AlertSettingsCountAggregateOutputType = {
   dropFromHighPct: number
   weeklyDropPct: number
   reminderDay: number
+  monthlySummary: number
+  monthlyReport: number
   updatedAt: number
   _all: number
 }
@@ -85,6 +91,8 @@ export type AlertSettingsMinAggregateInputType = {
   dropFromHighPct?: true
   weeklyDropPct?: true
   reminderDay?: true
+  monthlySummary?: true
+  monthlyReport?: true
   updatedAt?: true
 }
 
@@ -94,6 +102,8 @@ export type AlertSettingsMaxAggregateInputType = {
   dropFromHighPct?: true
   weeklyDropPct?: true
   reminderDay?: true
+  monthlySummary?: true
+  monthlyReport?: true
   updatedAt?: true
 }
 
@@ -103,6 +113,8 @@ export type AlertSettingsCountAggregateInputType = {
   dropFromHighPct?: true
   weeklyDropPct?: true
   reminderDay?: true
+  monthlySummary?: true
+  monthlyReport?: true
   updatedAt?: true
   _all?: true
 }
@@ -199,6 +211,8 @@ export type AlertSettingsGroupByOutputType = {
   dropFromHighPct: runtime.Decimal
   weeklyDropPct: runtime.Decimal
   reminderDay: number
+  monthlySummary: boolean
+  monthlyReport: boolean
   updatedAt: Date
   _count: AlertSettingsCountAggregateOutputType | null
   _avg: AlertSettingsAvgAggregateOutputType | null
@@ -231,6 +245,8 @@ export type AlertSettingsWhereInput = {
   dropFromHighPct?: Prisma.DecimalFilter<"AlertSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   weeklyDropPct?: Prisma.DecimalFilter<"AlertSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   reminderDay?: Prisma.IntFilter<"AlertSettings"> | number
+  monthlySummary?: Prisma.BoolFilter<"AlertSettings"> | boolean
+  monthlyReport?: Prisma.BoolFilter<"AlertSettings"> | boolean
   updatedAt?: Prisma.DateTimeFilter<"AlertSettings"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }
@@ -241,6 +257,8 @@ export type AlertSettingsOrderByWithRelationInput = {
   dropFromHighPct?: Prisma.SortOrder
   weeklyDropPct?: Prisma.SortOrder
   reminderDay?: Prisma.SortOrder
+  monthlySummary?: Prisma.SortOrder
+  monthlyReport?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
 }
@@ -254,6 +272,8 @@ export type AlertSettingsWhereUniqueInput = Prisma.AtLeast<{
   dropFromHighPct?: Prisma.DecimalFilter<"AlertSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   weeklyDropPct?: Prisma.DecimalFilter<"AlertSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   reminderDay?: Prisma.IntFilter<"AlertSettings"> | number
+  monthlySummary?: Prisma.BoolFilter<"AlertSettings"> | boolean
+  monthlyReport?: Prisma.BoolFilter<"AlertSettings"> | boolean
   updatedAt?: Prisma.DateTimeFilter<"AlertSettings"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }, "userId">
@@ -264,6 +284,8 @@ export type AlertSettingsOrderByWithAggregationInput = {
   dropFromHighPct?: Prisma.SortOrder
   weeklyDropPct?: Prisma.SortOrder
   reminderDay?: Prisma.SortOrder
+  monthlySummary?: Prisma.SortOrder
+  monthlyReport?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.AlertSettingsCountOrderByAggregateInput
   _avg?: Prisma.AlertSettingsAvgOrderByAggregateInput
@@ -281,6 +303,8 @@ export type AlertSettingsScalarWhereWithAggregatesInput = {
   dropFromHighPct?: Prisma.DecimalWithAggregatesFilter<"AlertSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   weeklyDropPct?: Prisma.DecimalWithAggregatesFilter<"AlertSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   reminderDay?: Prisma.IntWithAggregatesFilter<"AlertSettings"> | number
+  monthlySummary?: Prisma.BoolWithAggregatesFilter<"AlertSettings"> | boolean
+  monthlyReport?: Prisma.BoolWithAggregatesFilter<"AlertSettings"> | boolean
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"AlertSettings"> | Date | string
 }
 
@@ -289,6 +313,8 @@ export type AlertSettingsCreateInput = {
   dropFromHighPct?: runtime.Decimal | runtime.DecimalJsLike | number | string
   weeklyDropPct?: runtime.Decimal | runtime.DecimalJsLike | number | string
   reminderDay?: number
+  monthlySummary?: boolean
+  monthlyReport?: boolean
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutAlertSettingsInput
 }
@@ -299,6 +325,8 @@ export type AlertSettingsUncheckedCreateInput = {
   dropFromHighPct?: runtime.Decimal | runtime.DecimalJsLike | number | string
   weeklyDropPct?: runtime.Decimal | runtime.DecimalJsLike | number | string
   reminderDay?: number
+  monthlySummary?: boolean
+  monthlyReport?: boolean
   updatedAt?: Date | string
 }
 
@@ -307,6 +335,8 @@ export type AlertSettingsUpdateInput = {
   dropFromHighPct?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   weeklyDropPct?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   reminderDay?: Prisma.IntFieldUpdateOperationsInput | number
+  monthlySummary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  monthlyReport?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutAlertSettingsNestedInput
 }
@@ -317,6 +347,8 @@ export type AlertSettingsUncheckedUpdateInput = {
   dropFromHighPct?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   weeklyDropPct?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   reminderDay?: Prisma.IntFieldUpdateOperationsInput | number
+  monthlySummary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  monthlyReport?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -326,6 +358,8 @@ export type AlertSettingsCreateManyInput = {
   dropFromHighPct?: runtime.Decimal | runtime.DecimalJsLike | number | string
   weeklyDropPct?: runtime.Decimal | runtime.DecimalJsLike | number | string
   reminderDay?: number
+  monthlySummary?: boolean
+  monthlyReport?: boolean
   updatedAt?: Date | string
 }
 
@@ -334,6 +368,8 @@ export type AlertSettingsUpdateManyMutationInput = {
   dropFromHighPct?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   weeklyDropPct?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   reminderDay?: Prisma.IntFieldUpdateOperationsInput | number
+  monthlySummary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  monthlyReport?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -343,6 +379,8 @@ export type AlertSettingsUncheckedUpdateManyInput = {
   dropFromHighPct?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   weeklyDropPct?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   reminderDay?: Prisma.IntFieldUpdateOperationsInput | number
+  monthlySummary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  monthlyReport?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -357,6 +395,8 @@ export type AlertSettingsCountOrderByAggregateInput = {
   dropFromHighPct?: Prisma.SortOrder
   weeklyDropPct?: Prisma.SortOrder
   reminderDay?: Prisma.SortOrder
+  monthlySummary?: Prisma.SortOrder
+  monthlyReport?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
@@ -372,6 +412,8 @@ export type AlertSettingsMaxOrderByAggregateInput = {
   dropFromHighPct?: Prisma.SortOrder
   weeklyDropPct?: Prisma.SortOrder
   reminderDay?: Prisma.SortOrder
+  monthlySummary?: Prisma.SortOrder
+  monthlyReport?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
@@ -381,6 +423,8 @@ export type AlertSettingsMinOrderByAggregateInput = {
   dropFromHighPct?: Prisma.SortOrder
   weeklyDropPct?: Prisma.SortOrder
   reminderDay?: Prisma.SortOrder
+  monthlySummary?: Prisma.SortOrder
+  monthlyReport?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
@@ -427,6 +471,8 @@ export type AlertSettingsCreateWithoutUserInput = {
   dropFromHighPct?: runtime.Decimal | runtime.DecimalJsLike | number | string
   weeklyDropPct?: runtime.Decimal | runtime.DecimalJsLike | number | string
   reminderDay?: number
+  monthlySummary?: boolean
+  monthlyReport?: boolean
   updatedAt?: Date | string
 }
 
@@ -435,6 +481,8 @@ export type AlertSettingsUncheckedCreateWithoutUserInput = {
   dropFromHighPct?: runtime.Decimal | runtime.DecimalJsLike | number | string
   weeklyDropPct?: runtime.Decimal | runtime.DecimalJsLike | number | string
   reminderDay?: number
+  monthlySummary?: boolean
+  monthlyReport?: boolean
   updatedAt?: Date | string
 }
 
@@ -459,6 +507,8 @@ export type AlertSettingsUpdateWithoutUserInput = {
   dropFromHighPct?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   weeklyDropPct?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   reminderDay?: Prisma.IntFieldUpdateOperationsInput | number
+  monthlySummary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  monthlyReport?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -467,6 +517,8 @@ export type AlertSettingsUncheckedUpdateWithoutUserInput = {
   dropFromHighPct?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   weeklyDropPct?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   reminderDay?: Prisma.IntFieldUpdateOperationsInput | number
+  monthlySummary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  monthlyReport?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -478,6 +530,8 @@ export type AlertSettingsSelect<ExtArgs extends runtime.Types.Extensions.Interna
   dropFromHighPct?: boolean
   weeklyDropPct?: boolean
   reminderDay?: boolean
+  monthlySummary?: boolean
+  monthlyReport?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["alertSettings"]>
@@ -488,6 +542,8 @@ export type AlertSettingsSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   dropFromHighPct?: boolean
   weeklyDropPct?: boolean
   reminderDay?: boolean
+  monthlySummary?: boolean
+  monthlyReport?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["alertSettings"]>
@@ -498,6 +554,8 @@ export type AlertSettingsSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   dropFromHighPct?: boolean
   weeklyDropPct?: boolean
   reminderDay?: boolean
+  monthlySummary?: boolean
+  monthlyReport?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["alertSettings"]>
@@ -508,10 +566,12 @@ export type AlertSettingsSelectScalar = {
   dropFromHighPct?: boolean
   weeklyDropPct?: boolean
   reminderDay?: boolean
+  monthlySummary?: boolean
+  monthlyReport?: boolean
   updatedAt?: boolean
 }
 
-export type AlertSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"userId" | "enabled" | "dropFromHighPct" | "weeklyDropPct" | "reminderDay" | "updatedAt", ExtArgs["result"]["alertSettings"]>
+export type AlertSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"userId" | "enabled" | "dropFromHighPct" | "weeklyDropPct" | "reminderDay" | "monthlySummary" | "monthlyReport" | "updatedAt", ExtArgs["result"]["alertSettings"]>
 export type AlertSettingsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -533,6 +593,8 @@ export type $AlertSettingsPayload<ExtArgs extends runtime.Types.Extensions.Inter
     dropFromHighPct: runtime.Decimal
     weeklyDropPct: runtime.Decimal
     reminderDay: number
+    monthlySummary: boolean
+    monthlyReport: boolean
     updatedAt: Date
   }, ExtArgs["result"]["alertSettings"]>
   composites: {}
@@ -963,6 +1025,8 @@ export interface AlertSettingsFieldRefs {
   readonly dropFromHighPct: Prisma.FieldRef<"AlertSettings", 'Decimal'>
   readonly weeklyDropPct: Prisma.FieldRef<"AlertSettings", 'Decimal'>
   readonly reminderDay: Prisma.FieldRef<"AlertSettings", 'Int'>
+  readonly monthlySummary: Prisma.FieldRef<"AlertSettings", 'Boolean'>
+  readonly monthlyReport: Prisma.FieldRef<"AlertSettings", 'Boolean'>
   readonly updatedAt: Prisma.FieldRef<"AlertSettings", 'DateTime'>
 }
     

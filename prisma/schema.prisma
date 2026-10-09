@@ -498,6 +498,8 @@ model Movement {
 enum AlertKind {
   PRICE_DROP
   REMINDER
+  MONTHLY_REPORT
+  MONTHLY_SUMMARY
 }
 
 model AlertSettings {
@@ -510,6 +512,10 @@ model AlertSettings {
   weeklyDropPct   Decimal  @default(8) @db.Decimal(5, 2)
   // Día del mes desde el que se recuerda cargar el mes anterior.
   reminderDay     Int      @default(5)
+  // Mail con el resumen del mes anterior (rendimiento, gastos, Plan DCA).
+  monthlySummary  Boolean  @default(true)
+  // Generar el reporte de oportunidades el 1° de cada mes (solo ADMIN, tiene costo).
+  monthlyReport   Boolean  @default(true)
   updatedAt       DateTime @updatedAt
 
   @@map("alert_settings")
@@ -520,7 +526,7 @@ model AlertLog {
   userId String
   user   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   kind   AlertKind
-  // Ticker (caída) o "AAAA-MM" del mes que falta cargar (recordatorio).
+  // Ticker (caída) o "AAAA-MM" (recordatorio, reporte y resumen mensuales).
   key    String
   // Caída desde el máximo de 52 semanas al avisar, en % (solo PRICE_DROP).
   value  Decimal?  @db.Decimal(8, 2)
