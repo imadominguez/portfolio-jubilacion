@@ -335,7 +335,7 @@ Se ejecuta con `pnpm db:seed` o `pnpm prisma db seed`. Crea su propio cliente `P
 
 > `.gitignore` ignora `scripts/*` (para scripts sueltos) con excepciones explícitas para `refresh-strategy.ts` y `backfill-movements.ts`. `seed-admin.mjs` y `add-user-id-columns.mjs` están versionados desde antes de la regla. Un script nuevo que se quiera versionar necesita su línea `!scripts/<nombre>` en `.gitignore`.
 
-- `seed-admin.mjs` — bootstrap de un admin hardcodeado (`admin@portfolio.com` / `Admin1234!`) con conexión `pg` directa y hash scrypt (`N=16384, r=16, p=1`, `dkLen=64`, formato `${saltHex}:${keyHex}`). También asocia datos huérfanos (`userId IS NULL`) al admin.
+- `seed-admin.mjs` — bootstrap de un admin (`admin@portfolio.com` o `SEED_ADMIN_EMAIL_BOOTSTRAP`, contraseña de `SEED_ADMIN_PASSWORD`) con conexión `pg` directa y hash scrypt (`N=16384, r=16, p=1`, `dkLen=64`, formato `${saltHex}:${keyHex}`). También asocia datos huérfanos (`userId IS NULL`) al admin.
 - `add-user-id-columns.mjs` — agrega columnas `userId` (FK a `user`) a las tablas de dominio mediante `ALTER TABLE ... IF NOT EXISTS`.
 - `backfill-movements.ts` — crea un `Movement` por cada `Transaction` legacy (`notes = "Cocos #..."`) y la vincula. Ejecutar con `pnpm exec tsx scripts/backfill-movements.ts` una sola vez tras el refactor.
 - `refresh-strategy.ts` — activa `ESTRATEGIA_DEFAULT` (`lib/default-strategy.ts`) como nueva versión de `InvestmentStrategy`. Se corre con `pnpm db:strategy`.

@@ -90,7 +90,9 @@ pnlPct      = ((sellPrice − avgBuyPrice) / avgBuyPrice) × 100
 
 Luego se descuenta la cantidad y el costo del estado del ticker. Se ordena por fecha descendente.
 
-Las ventas importadas antes de normalizar el signo tienen cantidad negativa (así las exporta Cocos): `calculatePPM`, `getRealizedPnl`, `getAllTransactions` y el CSV de transacciones usan el valor absoluto.
+Las ventas importadas antes de normalizar el signo tenían cantidad negativa (así las exporta Cocos; se corrigieron en la base): `calculatePPM`, `getRealizedPnl`, `getAllTransactions` y el CSV siguen usando el valor absoluto por las dudas.
+
+Los montos (costo de compra, ingreso de venta) salen de `tradeGrossAmount` (`lib/trade-amount.ts`): el bruto del movimiento de Cocos si existe, porque en bonos y ONs el precio es cada 100 nominales; si no, cantidad × precio. El P&L realizado agrupa por ticker **y moneda**: una venta en otra moneda que la compra (dólar MEP) no tiene resultado.
 
 ---
 
@@ -542,7 +544,7 @@ desdeMáximo = (último − máx52s) / máx52s × 100                 (priceSign
 alerta si   desdeMáximo ≤ −umbralMáximo  o  5 ruedas ≤ −umbralSemanal  (15 % y 8 % por defecto)
 ```
 
-**No repetir** (`shouldNotifyDrop`): vuelve a avisar si pasaron 7 días desde el último aviso de ese ticker o si `desdeMáximo` bajó al menos 5 puntos más que el valor avisado (`AlertLog.value`).
+**No repetir** (`shouldNotifyDrop`): vuelve a avisar si pasaron 30 días desde el último aviso de ese ticker (recordatorio) o si `desdeMáximo` bajó al menos 5 puntos más que el valor avisado (`AlertLog.value`).
 
 ### Recordatorio de carga
 

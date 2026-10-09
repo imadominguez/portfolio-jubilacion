@@ -17,12 +17,17 @@ export async function GET(
     return NextResponse.json({ error: "No autenticado" }, { status: 401 });
   }
 
-  const snapshot = await db.portfolioSnapshot.findFirst({
-    where: { id, userId },
-    include: {
-      positions: { orderBy: { positionValue: "desc" } },
-    },
-  });
+  let snapshot;
+  try {
+    snapshot = await db.portfolioSnapshot.findFirst({
+      where: { id, userId },
+      include: {
+        positions: { orderBy: { positionValue: "desc" } },
+      },
+    });
+  } catch {
+    return NextResponse.json({ error: "No se pudo leer el snapshot" }, { status: 500 });
+  }
 
   if (!snapshot) {
     return NextResponse.json({ error: "Snapshot no encontrado" }, { status: 404 });
@@ -40,7 +45,8 @@ export async function GET(
         (Number(p.allocationPct) * 100).toFixed(4),
       ].join(",")
     );
-    const csv = [header, ...csvRows].join("\n");
+    // BOM: sin él, Excel abre el archivo como ANSI y rompe los acentos.
+    const csv = "\uFEFF" + [header, ...csvRows].join("\n");
     const dateStr = new Date(snapshot.snapshotDate).toISOString().split("T")[0];
 
     return new NextResponse(csv, {

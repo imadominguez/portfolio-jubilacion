@@ -47,13 +47,14 @@ export function dropReasons(s: DropSignals, t: AlertThresholds): DropReason[] {
 
 export type LastAlert = { value: number | null; sentAt: Date };
 
-// Puntos adicionales de caída desde el máximo que justifican volver a avisar
-// antes de los 7 días.
+// Puntos adicionales de caída desde el máximo que justifican volver a avisar.
 const DEEPER_DROP_PP = 5;
-const DROP_REPEAT_DAYS = 7;
+// Una acción que sigue abajo meses (BABA a −40 %) no tiene que avisar cada
+// semana: el recordatorio de algo que ya se sabe pasa a ser mensual.
+const DROP_REPEAT_DAYS = 30;
 
-// No repetir la misma caída todos los días: vuelve a avisar a los 7 días o si
-// se profundizó al menos 5 puntos desde el último aviso.
+// No repetir la misma caída: vuelve a avisar si se profundizó al menos 5 puntos
+// desde el último aviso, o a los 30 días como recordatorio.
 export function shouldNotifyDrop(fromHigh52wPct: number, last: LastAlert | null, now: Date): boolean {
   if (!last) return true;
   if (now.getTime() - last.sentAt.getTime() >= DROP_REPEAT_DAYS * DAY_MS) return true;

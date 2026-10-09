@@ -30,7 +30,7 @@ export default function AlertsPage() {
                 <span className="text-foreground font-medium">Caídas:</span> una acción de tu último snapshot
                 cae más de lo que configures desde su máximo del año o en la semana. El mail trae los titulares
                 recientes de la empresa, para ver si hay una noticia detrás o es el mercado. No repite la misma
-                caída hasta 7 días después, salvo que se profundice 5 puntos.
+                caída salvo que se profundice 5 puntos más; si sigue abajo, te lo recuerda una vez por mes.
               </span>
             </li>
             <li className="flex gap-2">

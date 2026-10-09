@@ -95,7 +95,7 @@ El documento (`components/export/portfolio-pdf.tsx`) usa A4, fuente Inter (regis
 **Archivo:** `app/api/export/transactions/route.ts`
 
 - `requireUserId()` (`401`) y `db.transaction.findMany({ where: { userId }, orderBy: { date: "desc" } })`.
-- Header `Fecha,Tipo,Ticker,Cantidad,Precio,Moneda,Comisión,Notas`; `fee` vacío si es null; notas escapadas.
+- Header `Fecha,Tipo,Ticker,Cantidad,Precio,Monto,Moneda,Comisión,Notas`; `Monto` sale de `tradeGrossAmount` (bruto de Cocos: en bonos el precio es cada 100 nominales); `fee` vacío si es null; notas escapadas. Con BOM UTF-8; error de la base → `500`.
 - `Content-Disposition: attachment; filename="transacciones-<YYYY-MM-DD>.csv"`.
 
 ---
@@ -144,4 +144,4 @@ El documento (`components/export/portfolio-pdf.tsx`) usa A4, fuente Inter (regis
 | `/api/cron/alerts` | GET | JSON con conteos | `CRON_SECRET` (sin sesión) |
 | `/api/auth/[...all]` | GET/POST | Endpoints Better Auth | Público |
 
-> **Pendientes conocidos:** salvo el de impuestos, los CSV no incluyen BOM UTF-8 (Excel puede mostrar mal los acentos) y las rutas de export no envuelven las consultas a la DB en `try/catch` (un error de DB responde el 500 genérico de Next).
+> Todos los CSV llevan BOM UTF-8 (para que Excel muestre bien los acentos) y responden `500` con JSON si falla la base.

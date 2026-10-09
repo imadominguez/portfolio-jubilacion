@@ -4,6 +4,7 @@ import { cacheLife, cacheTag } from "next/cache";
 import { revalidateTrades } from "@/lib/revalidate";
 import { userTags } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
+import { tradeGrossAmount } from "@/lib/trade-amount";
 import { requireAuth, requireUserId } from "@/lib/auth-session";
 import type { TransactionType, Currency } from "@/app/generated/prisma/client";
 
@@ -28,6 +29,8 @@ export type TransactionRow = {
   type: TransactionType;
   quantity: number;
   price: number;
+  // Monto bruto (ver tradeGrossAmount): en bonos el precio es cada 100 nominales.
+  amount: number;
   currency: Currency;
   fee: number | null;
   date: Date;
@@ -97,6 +100,7 @@ async function cachedAllTransactions(userId: string): Promise<TransactionRow[]> 
   const txs = await db.transaction.findMany({
     where: { userId },
     orderBy: { date: "desc" },
+    include: { movement: { select: { grossAmount: true } } },
   });
 
   return txs.map((t) => ({
@@ -105,6 +109,7 @@ async function cachedAllTransactions(userId: string): Promise<TransactionRow[]> 
     type: t.type,
     quantity: Math.abs(Number(t.quantity)),
     price: Number(t.price),
+    amount: tradeGrossAmount({ quantity: Number(t.quantity), price: Number(t.price), movementGross: t.movement?.grossAmount != null ? Number(t.movement.grossAmount) : null }),
     currency: t.currency,
     fee: t.fee ? Number(t.fee) : null,
     date: t.date,
@@ -134,13 +139,14 @@ async function cachedPPM(userId: string): Promise<PpmRow[]> {
   const txs = await db.transaction.findMany({
     where: { type: "BUY", userId },
     orderBy: { date: "asc" },
+    include: { movement: { select: { grossAmount: true } } },
   });
 
   const byTicker = new Map<string, { totalCost: number; totalQty: number; currency: Currency }>();
 
   for (const tx of txs) {
     const existing = byTicker.get(tx.ticker);
-    const cost = Number(tx.quantity) * Number(tx.price) + (tx.fee ? Number(tx.fee) : 0);
+    const cost = tradeGrossAmount({ quantity: Number(tx.quantity), price: Number(tx.price), movementGross: tx.movement?.grossAmount != null ? Number(tx.movement.grossAmount) : null }) + (tx.fee ? Number(tx.fee) : 0);
     if (existing) {
       existing.totalCost += cost;
       existing.totalQty += Number(tx.quantity);
@@ -204,11 +210,13 @@ async function cachedRealizedPnl(userId: string): Promise<RealizedPnlRow[]> {
   const sells = await db.transaction.findMany({
     where: { type: "SELL", userId },
     orderBy: { date: "asc" },
+    include: { movement: { select: { grossAmount: true } } },
   });
 
   const buys = await db.transaction.findMany({
     where: { type: "BUY", userId },
     orderBy: { date: "asc" },
+    include: { movement: { select: { grossAmount: true } } },
   });
 
   const tickerBuys = new Map<
@@ -216,26 +224,30 @@ async function cachedRealizedPnl(userId: string): Promise<RealizedPnlRow[]> {
     { qty: number; totalCost: number }
   >();
 
+  // Por ticker y moneda: una ON comprada en pesos y vendida en dólares (dólar
+  // MEP) no tiene un resultado comparable y queda afuera, como en el reporte
+  // para impuestos.
+  const lotKey = (t: { ticker: string; currency: Currency }) => `${t.ticker}|${t.currency}`;
   for (const buy of buys) {
-    const existing = tickerBuys.get(buy.ticker);
-    const cost = Number(buy.quantity) * Number(buy.price);
+    const existing = tickerBuys.get(lotKey(buy));
+    const cost = tradeGrossAmount({ quantity: Number(buy.quantity), price: Number(buy.price), movementGross: buy.movement?.grossAmount != null ? Number(buy.movement.grossAmount) : null });
     if (existing) {
       existing.qty += Number(buy.quantity);
       existing.totalCost += cost;
     } else {
-      tickerBuys.set(buy.ticker, { qty: Number(buy.quantity), totalCost: cost });
+      tickerBuys.set(lotKey(buy), { qty: Number(buy.quantity), totalCost: cost });
     }
   }
 
   const rows: RealizedPnlRow[] = [];
 
   for (const sell of sells) {
-    const entry = tickerBuys.get(sell.ticker);
+    const entry = tickerBuys.get(lotKey(sell));
     if (!entry || entry.qty <= 0) continue;
 
     const avgBuyPrice = entry.qty > 0 ? entry.totalCost / entry.qty : 0;
     const soldQty = Math.abs(Number(sell.quantity));
-    const sellPrice = Number(sell.price);
+    const sellPrice = soldQty > 0 ? tradeGrossAmount({ quantity: Number(sell.quantity), price: Number(sell.price), movementGross: sell.movement?.grossAmount != null ? Number(sell.movement.grossAmount) : null }) / soldQty : Number(sell.price);
     const pnl = (sellPrice - avgBuyPrice) * soldQty;
     const pnlPct = avgBuyPrice > 0 ? ((sellPrice - avgBuyPrice) / avgBuyPrice) * 100 : 0;
 
