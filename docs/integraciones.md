@@ -120,7 +120,7 @@ Decisión y motivos: [ADR-0018](./adr/0018-reporte-de-oportunidades-con-datos-pr
 - Thinking adaptativo con el `effort` configurado, y `fallbacks: "default"` (beta `server-side-fallback-2026-07-01`): si el modelo rechaza por sus clasificadores de seguridad, la API reintenta en otro modelo. Cada parámetro va solo a los modelos que lo aceptan (`modelRequestOptions`): `effort` y thinking también a `claude-sonnet-5`; `fallbacks`, solo a Sonnet 5.5, Opus 5.5, Opus 5 y Fable 5.1.
 - **Costo:** `estimateCostUsd(response.model, usage)` usa los precios del modelo que respondió (`MODEL_PRICING`; `null` si no está). Se guarda en el reporte (`uso`) y se muestra al pie. Primera medición real: US$ 0,0656 (6.222 tokens de entrada, 5.314 de salida, `claude-sonnet-5` sin `effort`).
 - `maxDuration = 300` s en el route; el timeout propio se acota a 290 s para devolver un `504` claro antes de que la plataforma corte.
-- Salida guardada en `PortfolioReport` (`version: 2`) y mostrada en `/portfolio`.
+- Salida guardada en `PortfolioReport` (`version: 2`) y mostrada en `/portfolio`, con el historial de señales por acción. Las señales del último reporte reparten el aporte del Plan DCA ([ADR-0022](./adr/0022-plan-dca-segun-las-senales-del-reporte-sin-pesos-objetivo.md)).
 
 Detalle completo en [api-y-exportacion.md](./api-y-exportacion.md#post-apianalyze-portfolio--reporte-de-oportunidades-con-ia).
 

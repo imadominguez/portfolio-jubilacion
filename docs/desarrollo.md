@@ -196,7 +196,7 @@ pnpm db:seed
 ## Despliegue
 
 - Aplicación pensada para Vercel (la IA y los exports server-side usan API routes; el sistema de archivos es efímero, por eso los reportes se guardan en `PortfolioReport`).
-- Pasos típicos: configurar variables de entorno → `prisma migrate deploy` → `next build`. El build de Vercel **no** corre migraciones: una migración nueva se aplica a mano (`pnpm prisma migrate deploy`) antes de mergear el código que la usa.
+- Pasos típicos: configurar variables de entorno → `prisma migrate deploy` → `next build`. El build de Vercel **no** corre migraciones: se aplican a mano (`pnpm prisma migrate deploy`). Una migración que **agrega** algo va antes de mergear el código que la usa; una que **borra** (tabla o columna) va después de que el deploy del código que ya no la usa esté Ready, con un respaldo previo de los datos (así se hizo con `target_allocations`).
 - **Cron:** `vercel.json` programa `/api/cron/alerts` todos los días a las 12:00 UTC: actualiza los datos de mercado (ADR-0021) y corre las alertas (ADR-0020). Vercel manda `CRON_SECRET` en `Authorization`; el valor no puede tener espacios ni saltos de línea al principio o al final (el build falla). Para generarlo en Windows sin el `\r\n` de `openssl`: `openssl rand -hex 32 | tr -cd '0-9a-f'`.
 - Las variables de entorno nuevas solo llegan a producción con un deploy nuevo (`vercel redeploy <url> --target production` o un merge a `main`).
 - El proxy (`proxy.ts`) corre en runtime Node.js por defecto, por lo que el entorno de despliegue debe soportarlo.
@@ -225,6 +225,7 @@ pnpm db:seed
 - **Monte Carlo** usa volatilidad mensual fija (4%) independiente de los inputs.
 - Los CSV exportados (salvo el de impuestos) no incluyen BOM UTF-8; las rutas de export de snapshot y transacciones no tienen `try/catch` alrededor de la DB.
 - **Bonos y ONs:** Cocos da el precio cada 100 nominales, así que el listado de transacciones y `calculatePPM` calculan cantidad × precio 100 veces más grande. El reporte de impuestos usa el bruto del movimiento; el resto todavía no.
+- **Dividendos en especie:** en el rendimiento sin aportes (`flowsFromMovements`), los dividendos de CEDEARs acreditados en dólares solo cuentan por sus gastos en pesos, no como salida de las tenencias. El efecto es de centavos de dólar.
 - **Ventas con cantidad negativa:** las importadas antes de normalizar el signo se leen con `Math.abs`; se podrían corregir en la base con un `UPDATE` sobre `transactions` (type `SELL`, quantity < 0).
 - `/portfolio` no usa `SiteHeader` (excepción a la convención de UI).
 - **Sin tests end-to-end.** La guía de Next sugiere un test `instant()` (`@next/playwright`) por ruta para que el static shell no se degrade sin que nadie lo note.

@@ -21,7 +21,7 @@ Un tracker privado (multiusuario con autenticación: cada usuario ve solo sus da
 7. Genera el **plan DCA** del mes (qué comprar y cuánto) según las señales del último reporte de oportunidades.
 8. Junta los datos para la **declaración anual**: tenencia al cierre, resultado de las ventas y dividendos cobrados (`/impuestos`).
 9. Manda **alertas por mail**: caídas fuertes de tus acciones (con titulares) y recordatorio de carga mensual.
-10. Genera un **reporte de oportunidades con IA**: revisa precio y titulares de noticias de cada acción y dice si es momento de comprar, mantener o vender.
+10. Genera un **reporte de oportunidades con IA**: revisa precio y titulares de noticias de cada acción y dice si es momento de comprar, mantener o vender. Sus señales reparten el aporte del Plan DCA.
 
 ---
 

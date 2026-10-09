@@ -80,7 +80,7 @@ Import pipeline: the Cocos movements CSV is parsed and categorized by `lib/cocos
 - Performance metrics never compare raw values (contributions would count as gains): use `lib/flow-returns.ts` (ADR-0019).
 - External prices are cached (`MarketPriceCache`, `HistoricalPriceCache`, `BenchmarkPoint`); pages read the DB, never Yahoo on page load. The daily cron refreshes them incrementally (ADR-0021); new market downloads go in `lib/market-refresh.ts` without invalidation (actions `updateTag`, the cron `revalidateTag`). The IPC series is a cumulative index: always rebuild it from its first stored point (`saveInflation`).
 - Every external HTTP call (Yahoo, dolarapi, argentinadatos) goes through `fetchWithTimeout` (`lib/http.ts`), so a hung API returns a clear error instead of holding the Server Action until `maxDuration`.
-- The AI report (ADR-0018): the app computes every number in `lib/` (pure, tested) and Claude only judges. The output format lives in `OpportunityAnalysisSchema` (structured outputs), not in the strategy prompt; when switching models add its prices to `MODEL_PRICING` and its capabilities to `modelRequestOptions`.
+- The AI report (ADR-0018): the app computes every number in `lib/` (pure, tested) and Claude only judges. The output format lives in `OpportunityAnalysisSchema` (structured outputs), not in the strategy prompt; when switching models add its prices to `MODEL_PRICING` and its capabilities to `modelRequestOptions`. The latest report's signals drive the DCA plan (`planDca`, ADR-0022): no target weights or per-position caps.
 
 ## UI conventions
 
