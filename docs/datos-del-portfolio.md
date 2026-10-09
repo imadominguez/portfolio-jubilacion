@@ -160,6 +160,7 @@ Calculadora de planificación para el retiro.
 | **Capital necesario para jubilarse** | `gastos_mensuales × 12 / tasa_retiro` ajustado por inflación |
 | **Proyección del portfolio** | Crecimiento proyectado del capital actual asumiendo una tasa de retorno (configurable o basada en la TIR histórica en USD) |
 | **Años para alcanzar la meta** | Estimación en base a la proyección |
+| **Aporte real** | Promedio mensual en USD de lo que entró neto al portfolio en los últimos 12 meses cerrados (compras, ventas, FCI, dividendos), y la parte que fue a CEDEARs y bonos. Se muestra al lado del aporte configurado y se puede usar en la proyección. |
 | **TIR histórica en USD** | Calculada automáticamente desde los snapshots con valor en USD (> 0) y los flujos de las tenencias pasados a USD con el CCL de su fecha (XIRR). No cuenta los aportes como rendimiento. |
 
 ---

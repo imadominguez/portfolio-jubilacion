@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { requireUserId } from "@/lib/auth-session";
 import { marketTags, userTags } from "@/lib/cache-tags";
 import { flowsFromMovements, type CashFlow } from "@/lib/flow-returns";
-import { cclLookup } from "@/lib/cash-flow";
+import { cclLookup, contributionStats, type ContributionStats } from "@/lib/cash-flow";
 
 // Los getters exportados resuelven el usuario de la sesión y delegan en una
 // función cacheada no exportada que recibe solo el `userId`: así nadie puede
@@ -276,4 +276,37 @@ async function cachedHoldingsFlows(userId: string): Promise<HoldingsFlows> {
     lastMovementDate: movements.length > 0 ? movements[movements.length - 1].date : null,
     sinCcl,
   };
+}
+
+// Aporte real promedio en USD en los meses [fromMonth, toMonth] (AAAA-MM), para
+// comparar con el aporte configurado en Jubilación. La página calcula la
+// ventana con la hora de Argentina y la pasa como argumento.
+export async function getContributionStats(fromMonth: string, toMonth: string): Promise<ContributionStats> {
+  return cachedContributionStats(await requireUserId(), fromMonth, toMonth);
+}
+
+// No se exporta: recibe el userId ya resuelto de la sesión (ADR-0017).
+async function cachedContributionStats(
+  userId: string,
+  fromMonth: string,
+  toMonth: string
+): Promise<ContributionStats> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(userTags.trades(userId), marketTags.ccl);
+
+  const [movements, rates] = await Promise.all([
+    db.movement.findMany({
+      where: { userId },
+      orderBy: { date: "asc" },
+      select: { date: true, category: true, currency: true, total: true, instrument: true },
+    }),
+    db.exchangeRate.findMany({ orderBy: { date: "asc" }, select: { date: true, ccl: true } }),
+  ]);
+  return contributionStats(
+    movements.map((m) => ({ ...m, total: Number(m.total) })),
+    cclLookup(rates.map((r) => ({ date: r.date, ccl: Number(r.ccl) }))),
+    fromMonth,
+    toMonth
+  );
 }
