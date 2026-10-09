@@ -61,7 +61,6 @@ export const ModelName = {
   ExchangeRate: 'ExchangeRate',
   MarketPriceCache: 'MarketPriceCache',
   BenchmarkPoint: 'BenchmarkPoint',
-  TargetAllocation: 'TargetAllocation',
   Transaction: 'Transaction',
   Dividend: 'Dividend',
   RetirementSettings: 'RetirementSettings',
@@ -229,19 +228,6 @@ export const BenchmarkPointScalarFieldEnum = {
 } as const
 
 export type BenchmarkPointScalarFieldEnum = (typeof BenchmarkPointScalarFieldEnum)[keyof typeof BenchmarkPointScalarFieldEnum]
-
-
-export const TargetAllocationScalarFieldEnum = {
-  id: 'id',
-  ticker: 'ticker',
-  targetPct: 'targetPct',
-  notes: 'notes',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  userId: 'userId'
-} as const
-
-export type TargetAllocationScalarFieldEnum = (typeof TargetAllocationScalarFieldEnum)[keyof typeof TargetAllocationScalarFieldEnum]
 
 
 export const TransactionScalarFieldEnum = {

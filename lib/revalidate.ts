@@ -54,11 +54,6 @@ export function revalidateBenchmarks(): void {
   updateTag(marketTags.benchmarks);
 }
 
-// Asignación objetivo de rebalanceo.
-export function revalidateRebalance(userId: string): void {
-  updateTag(userTags.rebalance(userId));
-}
-
 export function revalidateMilestones(userId: string): void {
   updateTag(userTags.milestones(userId));
 }

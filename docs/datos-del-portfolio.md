@@ -111,30 +111,19 @@ Concentración del portfolio basada en el snapshot más reciente.
 
 ---
 
-## Rebalanceo (`/rebalance`)
-
-Herramienta para alinear el portfolio a una asignación objetivo.
-
-- El usuario define un **porcentaje objetivo** por ticker (ej: AAPL → 15%)
-- La app compara con la asignación real del snapshot más reciente
-- Muestra desviación: posiciones que hay que **comprar** o **vender**
-- Desviaciones menores a ±1% se consideran en rango (sin acción requerida)
-
----
-
 ## Plan DCA (`/plan`)
 
-Reparto **determinista** (sin IA) del aporte del mes entre las posiciones del objetivo de rebalanceo.
+Reparto del aporte del mes según las **señales del último reporte de oportunidades** ([ADR-0022](./adr/0022-plan-dca-segun-las-senales-del-reporte-sin-pesos-objetivo.md)). Sin pesos objetivo ni topes por acción.
 
 | Dato | Descripción |
 |---|---|
 | **Aporte** | Monto en ARS a invertir este mes (editable; default $500.000). |
-| **Gap por ticker** | `max(0, targetPct × valorCartera − valorActual)`: cuánto falta para llegar al peso objetivo. |
-| **Monto a comprar** | El aporte se reparte en proporción al gap restante de cada ticker (las más infraponderadas reciben más), sin superar el gap de ninguna. Lo que no entra en ningún gap queda como "sin asignar". |
-| **CEDEARs estimados** | Monto / precio estimado del CEDEAR (`precio USD del subyacente / ratio × CCL`). |
-| **Peso resultante** | Peso de cada posición después de la compra. |
+| **Señal** | Compra, mantener o venta, con su confianza, del último reporte. |
+| **Monto a comprar** | Va a las acciones en "compra", proporcional a la confianza (alta 3, media 2, baja 1). Si ninguna está en "compra", partes iguales entre las "mantener". "Venta" no recibe. Sin reporte, partes iguales entre todos los CEDEARs. |
+| **CEDEARs estimados** | Monto / precio del CEDEAR (el del snapshot, o `precio USD del subyacente / ratio × CCL`). |
+| **Peso resultante** | Peso de cada posición después de la compra (informativo: no hay objetivo). |
 
-Requiere un snapshot y objetivos cargados en `/rebalance`. Detalle del algoritmo en [logica-financiera.md](./logica-financiera.md#plan-dca-libdca-plannerts).
+Si el reporte tiene más de 45 días, la página avisa. Detalle en [logica-financiera.md](./logica-financiera.md#plan-dca-libdca-plannerts).
 
 ---
 

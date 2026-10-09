@@ -22,13 +22,13 @@ Metadata raíz (`app/layout.tsx`): `title` por defecto `"Portfolio Jubilación"`
   - `getMilestones()` — `app/actions/milestones.ts`
   - `calculateRealGains()` — `lib/real-gains-data.ts`
   - `getRetirementSettings()` — `app/actions/retirement.ts`
-  - `getRebalanceData()` — `app/actions/rebalance.ts`
+  - `getLatestSignals()` — `app/actions/reports.ts` (tarjeta del Plan DCA)
   - `getConcentrationData()` — `lib/analysis-data.ts`
   - `getPreviousSnapshotFull(snapshot.snapshotDate)`
   - `getHoldingsFlows()` — `lib/portfolio-data.ts`
   - Luego, en el servidor: `calculateRetirementGoal({ ..., annualReturnRate: 0.1 })` — `lib/projections.ts`
 - **KPIs:** valor total ARS/USD, rendimiento vs snapshot anterior sin aportes (`modifiedDietz` y `netContributions` de `lib/flow-returns.ts`: "—" sin base positiva), P&L no realizado (precio snapshot vs PPM en ARS), dividendos USD, posiciones activas, CCL.
-- **Componentes:** `SiteHeader` (título "Dashboard", acción `<ImportButton/>`), `SetupPanel` (wizard + checklist de puesta en marcha), `DashboardHero`, `DashboardKpiStrip`, `PortfolioChartWidget`, `AnalysisTools` (tarjetas resumen de Ganancia Real, Jubilación, Rebalanceo y Concentración con link a cada módulo), `PerformersPanel` (si hay previo), `AllocationPanel`, `HoldingsTable` (con `ppmData` y `marketPrices`), `MilestoneWidget`.
+- **Componentes:** `SiteHeader` (título "Dashboard", acción `<ImportButton/>`), `SetupPanel` (wizard + checklist de puesta en marcha), `DashboardHero`, `DashboardKpiStrip`, `PortfolioChartWidget`, `AnalysisTools` (tarjetas resumen de Ganancia Real, Jubilación, Plan DCA y Concentración con link a cada módulo), `PerformersPanel` (si hay previo), `AllocationPanel`, `HoldingsTable` (con `ppmData` y `marketPrices`), `MilestoneWidget`.
 - **Estado vacío:** `SetupPanel` + `EmptyDashboard` con CTA de importación.
 
 ---
@@ -38,7 +38,7 @@ Metadata raíz (`app/layout.tsx`): `title` por defecto `"Portfolio Jubilación"`
 - **Archivo:** `app/(app)/datos/page.tsx`.
 - **Propósito:** hub único para importar y mantener actualizados todos los datos.
 - **Shell:** casi toda la página es estática y entra al static shell (títulos, descripciones y botones de las cuatro secciones). Solo se streamea, cada parte en su `<Suspense>`: el checklist (`getSetupStatus()`), el dato de cada tarjeta de mantenimiento (último CCL con `getAllExchangeRates()`, cantidad de precios con `getMarketPrices()` y `getSession()`, puntos de IPC/CER con `getIndexPoints()`), la sección de históricos (`getDataReadiness()`) y el link de Hitos (solo ADMIN, `getSession()`).
-- **Muestra:** checklist (`SetupChecklist` si está completo, si no `SetupPanel`) + tarjetas de import (snapshot, movimientos), mantenimiento (CCL con su fecha, precios con fecha y hora de la última actualización, IPC y CER con hasta qué fecha llegan; aclara que se actualizan solos todos los días a las 9, ADR-0021), históricos (`RealGainsWizard`) y accesos a Rebalanceo / Jubilación / Hitos / Benchmarks.
+- **Muestra:** checklist (`SetupChecklist` si está completo, si no `SetupPanel`) + tarjetas de import (snapshot, movimientos), mantenimiento (CCL con su fecha, precios con fecha y hora de la última actualización, IPC y CER con hasta qué fecha llegan; aclara que se actualizan solos todos los días a las 9, ADR-0021), históricos (`RealGainsWizard`) y accesos a Jubilación / Hitos / Benchmarks.
 - **Componentes:** `SiteHeader`, `SetupChecklist`, `SetupPanel`, `ImportButton`, `ImportMovimientosButton`, `CclUpdateButton`, `MarketPricesButton`, `IndicesUpdateButton`, `RealGainsWizard`.
 
 ---
@@ -105,24 +105,14 @@ Metadata raíz (`app/layout.tsx`): `title` por defecto `"Portfolio Jubilación"`
 
 ---
 
-## `/rebalance` — Rebalanceo
-
-- **Archivo:** `app/(app)/rebalance/page.tsx`.
-- **Datos:** `getRebalanceData()` y `getTargetAllocations()` (ambas cacheadas con el tag `rebalance:<userId>`). `totalPct` = suma de objetivos.
-- **Regla:** `deviation = currentPct − targetPct`; `BUY` si `< −1`, `SELL` si `> 1`, `HOLD` en el resto (umbral ±1 punto porcentual).
-- **Componentes:** `SiteHeader`, `RebalanceClient` (tabla ordenable, alta/baja de objetivos, badge de total con alerta si se aleja de 100%).
-- **Estado vacío:** icono `Scale`.
-
----
-
 ## `/plan` — Plan DCA
 
 - **Archivo:** `app/(app)/plan/page.tsx`.
-- **Propósito:** calcular de forma **determinista** (sin IA) cómo repartir el aporte mensual entre las posiciones del objetivo, priorizando las infraponderadas.
-- **Datos:** `getLatestSnapshot()`, `getTargetAllocations()`, `getMarketPrices()`.
-- **Lógica:** `planDca()` de `lib/dca-planner.ts` (pura y testeada) — water-filling sobre el *gap* de cada ticker (`targetPct% · valorCartera − valorActual`), sin comprar posiciones que ya alcanzaron su objetivo. Estima CEDEARs con el precio del subyacente y el CCL.
-- **Componentes:** `SiteHeader`, `DcaPlannerClient` (input de aporte, tabla por ticker con desvío, monto a comprar, CEDEARs estimados y peso resultante).
-- **Estados vacíos:** sin snapshot (CTA a `/datos`) y sin objetivos (CTA a `/rebalance`).
+- **Propósito:** repartir el aporte mensual según las señales del último reporte de oportunidades, sin pesos objetivo ni topes ([ADR-0022](./adr/0022-plan-dca-segun-las-senales-del-reporte-sin-pesos-objetivo.md)).
+- **Datos:** `getLatestSnapshot()`, `getMarketPrices()`, `getLatestSignals()` (tag `reports:<userId>`) y `connection()` antes de calcular si el reporte tiene más de 45 días.
+- **Lógica:** `planDca()` de `lib/dca-planner.ts` (pura y testeada): "compra" ponderada por confianza; si no hay, "mantener" en partes iguales; sin reporte, partes iguales.
+- **Componentes:** `SiteHeader`, `DcaPlannerClient` (input de aporte, aviso de reporte viejo, regla aplicada, tabla con señal, monto, CEDEARs estimados y peso resultante).
+- **Estado vacío:** sin snapshot (CTA a `/datos`).
 
 ---
 
@@ -249,8 +239,7 @@ Ambas redirigen a `/` si ya hay sesión (proxy). El cliente de Better Auth (`lib
 | `/performance` | Sí (+ `searchParams`) | snapshots + flujos + benchmarks + índices | No | Principal |
 | `/analysis` | Sí | concentration | No | Análisis |
 | `/real-gains` | Sí | real gains data | No | Análisis |
-| `/rebalance` | Sí | actions rebalance | No | Análisis |
-| `/plan` | Sí | snapshot + objetivos + precios | No | Análisis |
+| `/plan` | Sí | snapshot + señales del último reporte + precios | No | Análisis |
 | `/retirement` | Sí | settings + snapshots + flujos | No | Análisis |
 | `/flujo` | Sí | movimientos + CCL | No | Análisis |
 | `/impuestos` | Sí (+ `searchParams`) | snapshots + transacciones + dividendos | No | Análisis |

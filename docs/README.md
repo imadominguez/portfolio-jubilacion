@@ -17,8 +17,8 @@ Un tracker privado (multiusuario con autenticación: cada usuario ve solo sus da
 3. Mide **performance** histórica sin contar aportes (TIR, TWR, drawdown) y compara contra benchmarks e inflación.
 4. Descompone la **ganancia real en USD** separando la apreciación de la acción del impacto del CCL.
 5. Proyecta la **jubilación** (capital necesario, proyección y Monte Carlo).
-6. Analiza **concentración** por sector/país/industria y permite **rebalanceo** contra objetivos.
-7. Genera el **plan DCA determinista** del mes (qué comprar y cuánto) sin depender de la IA.
+6. Analiza **concentración** por sector/país/industria.
+7. Genera el **plan DCA** del mes (qué comprar y cuánto) según las señales del último reporte de oportunidades.
 8. Junta los datos para la **declaración anual**: tenencia al cierre, resultado de las ventas y dividendos cobrados (`/impuestos`).
 9. Manda **alertas por mail**: caídas fuertes de tus acciones (con titulares) y recordatorio de carga mensual.
 10. Genera un **reporte de oportunidades con IA**: revisa precio y titulares de noticias de cada acción y dice si es momento de comprar, mantener o vender.

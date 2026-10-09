@@ -1,125 +1,70 @@
 import { describe, expect, it } from "vitest";
-import { planDca, type DcaInput } from "./dca-planner";
+import { planDca, type DcaInput, type DcaSignal } from "./dca-planner";
 
-function baseInput(overrides: Partial<DcaInput> = {}): DcaInput {
-  return {
-    monthlyAmountArs: 100_000,
-    portfolioValueArs: 1_000_000,
-    ccl: 1000,
-    positions: [],
-    targets: [],
-    assets: [],
-    marketPrices: {},
-    ...overrides,
-  };
-}
+const base: Omit<DcaInput, "signals" | "monthlyAmountArs"> = {
+  portfolioValueArs: 1_000_000,
+  ccl: 1500,
+  positions: [
+    { ticker: "MELI", currentPct: 20, currentValue: 200_000, currentPrice: 25_000 },
+    { ticker: "KO", currentPct: 10, currentValue: 100_000, currentPrice: 20_000 },
+    { ticker: "BABA", currentPct: 10, currentValue: 100_000, currentPrice: 20_000 },
+    { ticker: "AAPL", currentPct: 50, currentValue: 500_000, currentPrice: 0 },
+    { ticker: "COCORMA", currentPct: 10, currentValue: 100_000, currentPrice: 10 },
+  ],
+  assets: [
+    { ticker: "MELI", cedearRatio: 120, underlyingTicker: "MELI" },
+    { ticker: "KO", cedearRatio: 5, underlyingTicker: "KO" },
+    { ticker: "BABA", cedearRatio: 9, underlyingTicker: "BABA" },
+    { ticker: "AAPL", cedearRatio: 20, underlyingTicker: "AAPL" },
+    { ticker: "COCORMA", cedearRatio: null, underlyingTicker: null },
+  ],
+  marketPrices: { AAPL: 260 },
+};
+const s = (senal: DcaSignal["senal"], confianza: DcaSignal["confianza"]): DcaSignal => ({ senal, confianza });
+const byTicker = (plan: ReturnType<typeof planDca>) => Object.fromEntries(plan.rows.map((r) => [r.ticker, r]));
 
 describe("planDca", () => {
-  it("reparte proporcional al gap entre posiciones infraponderadas", () => {
-    // Objetivo 50/50, cartera 1M con 0/0 → gaps iguales → reparto 50/50.
-    const plan = planDca(
-      baseInput({
-        targets: [
-          { ticker: "A", targetPct: 50 },
-          { ticker: "B", targetPct: 50 },
-        ],
-      })
-    );
-    expect(plan.rows).toHaveLength(2);
-    expect(plan.rows[0].amountArs).toBe(50_000);
-    expect(plan.rows[1].amountArs).toBe(50_000);
-    expect(plan.totalAllocatedArs).toBe(100_000);
+  it("reparte entre las compras ponderando por confianza y no le da nada a mantener ni venta", () => {
+    const plan = planDca({
+      ...base,
+      monthlyAmountArs: 600_000,
+      signals: { MELI: s("compra", "alta"), AAPL: s("compra", "baja"), KO: s("mantener", "alta"), BABA: s("venta", "alta") },
+    });
+    const r = byTicker(plan);
+    expect(plan.mode).toBe("compra");
+    expect(r.MELI.amountArs).toBe(450_000);
+    expect(r.AAPL.amountArs).toBe(150_000);
+    expect(r.KO.amountArs).toBe(0);
+    expect(r.BABA.amountArs).toBe(0);
     expect(plan.unallocatedArs).toBe(0);
+    expect(r.MELI.estimatedCedears).toBe(18);
+    // Sin precio en el snapshot: subyacente / ratio × CCL = 260 / 20 × 1500.
+    expect(r.AAPL.cedearPriceArs).toBeCloseTo(19_500);
   });
 
-  it("no asigna capital a posiciones que ya alcanzaron su objetivo", () => {
-    // A está en 70% (target 50) → sobreponderada; B en 30% (target 50) → recibe todo.
-    const plan = planDca(
-      baseInput({
-        positions: [
-          { ticker: "A", currentPct: 70, currentValue: 700_000 },
-          { ticker: "B", currentPct: 30, currentValue: 300_000 },
-        ],
-        targets: [
-          { ticker: "A", targetPct: 50 },
-          { ticker: "B", targetPct: 50 },
-        ],
-      })
-    );
-    const a = plan.rows.find((r) => r.ticker === "A")!;
-    const b = plan.rows.find((r) => r.ticker === "B")!;
-    expect(a.amountArs).toBe(0);
-    expect(b.amountArs).toBe(100_000);
+  it("no tiene tope: una sola compra se lleva todo el aporte", () => {
+    const plan = planDca({ ...base, monthlyAmountArs: 600_000, signals: { KO: s("compra", "media") } });
+    expect(byTicker(plan).KO.amountArs).toBe(600_000);
   });
 
-  it("prioriza la más infraponderada", () => {
-    const plan = planDca(
-      baseInput({
-        positions: [
-          { ticker: "A", currentPct: 20, currentValue: 200_000 },
-          { ticker: "B", currentPct: 10, currentValue: 100_000 },
-        ],
-        targets: [
-          { ticker: "A", targetPct: 40 },
-          { ticker: "B", targetPct: 40 },
-        ],
-      })
-    );
-    const a = plan.rows.find((r) => r.ticker === "A")!;
-    const b = plan.rows.find((r) => r.ticker === "B")!;
-    expect(b.amountArs).toBeGreaterThan(a.amountArs);
+  it("sin compras reparte en partes iguales entre las mantener", () => {
+    const plan = planDca({ ...base, monthlyAmountArs: 300_000, signals: { MELI: s("mantener", "baja"), KO: s("mantener", "alta"), BABA: s("venta", "alta") } });
+    const r = byTicker(plan);
+    expect(plan.mode).toBe("mantener");
+    expect([r.MELI.amountArs, r.KO.amountArs, r.BABA.amountArs]).toEqual([150_000, 150_000, 0]);
   });
 
-  it("respeta el techo del gap y reporta lo no asignado", () => {
-    // A sólo necesita 10.000 para llegar al objetivo; el resto queda sin asignar.
-    const plan = planDca(
-      baseInput({
-        monthlyAmountArs: 100_000,
-        positions: [{ ticker: "A", currentPct: 0, currentValue: 0 }],
-        targets: [{ ticker: "A", targetPct: 1 }],
-      })
-    );
-    const a = plan.rows[0];
-    expect(a.gapArs).toBe(10_000);
-    expect(a.amountArs).toBe(10_000);
-    expect(plan.unallocatedArs).toBe(90_000);
+  it("si todo es venta no asigna nada", () => {
+    const plan = planDca({ ...base, monthlyAmountArs: 300_000, signals: { MELI: s("venta", "alta") } });
+    expect(plan.mode).toBe("ninguna");
+    expect(plan.totalAllocatedArs).toBe(0);
+    expect(plan.unallocatedArs).toBe(300_000);
   });
 
-  it("estima CEDEARs a partir del precio del subyacente y el CCL", () => {
-    const plan = planDca(
-      baseInput({
-        targets: [{ ticker: "MSFT", targetPct: 100 }],
-        assets: [{ ticker: "MSFT", cedearRatio: 2, underlyingTicker: "MSFT" }],
-        marketPrices: { MSFT: 500 },
-      })
-    );
-    const row = plan.rows[0];
-    // precio CEDEAR = (500 / 2) * 1000 = 250.000 → 100.000 / 250.000 = 0
-    expect(row.cedearPriceArs).toBe(250_000);
-    expect(row.estimatedCedears).toBe(0);
-  });
-
-  it("usa el precio del snapshot cuando la posición existe", () => {
-    const plan = planDca(
-      baseInput({
-        positions: [{ ticker: "KO", currentPct: 0, currentValue: 0, currentPrice: 10_000 }],
-        targets: [{ ticker: "KO", targetPct: 100 }],
-      })
-    );
-    const row = plan.rows[0];
-    expect(row.cedearPriceArs).toBe(10_000);
-    expect(row.estimatedCedears).toBe(10);
-  });
-
-  it("ignora tickers con objetivo 0", () => {
-    const plan = planDca(
-      baseInput({
-        targets: [
-          { ticker: "A", targetPct: 100 },
-          { ticker: "Z", targetPct: 0 },
-        ],
-      })
-    );
-    expect(plan.rows.map((r) => r.ticker)).toEqual(["A"]);
+  it("sin reporte reparte en partes iguales entre los CEDEARs, sin el FCI", () => {
+    const plan = planDca({ ...base, monthlyAmountArs: 400_000, signals: null });
+    expect(plan.mode).toBe("iguales");
+    expect(plan.rows.map((r) => r.ticker).sort()).toEqual(["AAPL", "BABA", "KO", "MELI"]);
+    expect(plan.rows.every((r) => r.amountArs === 100_000)).toBe(true);
   });
 });

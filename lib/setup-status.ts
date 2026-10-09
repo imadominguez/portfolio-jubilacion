@@ -65,7 +65,6 @@ export type SetupInput = {
   transactionCount: number;
   cclHistoryCount: number;
   stockHistoryCount: number;
-  targetAllocationCount: number;
   hasRetirementSettings: boolean;
   /** Sólo un ADMIN puede editar el catálogo de Assets. */
   canManageAssets: boolean;
@@ -112,8 +111,7 @@ export function deriveSetupStatus(input: SetupInput): SetupStatus {
   const historicalsDone =
     input.cclHistoryCount > 0 && input.stockHistoryCount > 0;
 
-  const preferencesDone =
-    input.targetAllocationCount > 0 || input.hasRetirementSettings;
+  const preferencesDone = input.hasRetirementSettings;
 
   const steps: SetupStep[] = [
     {
@@ -163,14 +161,13 @@ export function deriveSetupStatus(input: SetupInput): SetupStatus {
     },
     {
       id: "preferences",
-      label: "Definir objetivos y plan de retiro",
-      description:
-        "Asignación objetivo por activo y parámetros de tu calculadora de jubilación.",
+      label: "Definir tu plan de retiro",
+      description: "Edad, gastos y aporte de tu calculadora de jubilación.",
       required: false,
       actionable: true,
       done: preferencesDone,
-      href: "/rebalance",
-      ctaLabel: "Configurar objetivos",
+      href: "/retirement",
+      ctaLabel: "Configurar jubilación",
     },
   ];
 

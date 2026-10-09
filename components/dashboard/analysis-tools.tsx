@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { TrendingUp, Target, Scale, PieChart, ArrowRight } from "lucide-react";
+import { TrendingUp, Target, Wallet, PieChart, ArrowRight } from "lucide-react";
 import { formatUSD } from "@/lib/format";
 import type { RealGainsSummary } from "@/lib/real-gains-data";
 import type { RetirementSettingsData } from "@/app/actions/retirement";
-import type { RebalanceRow } from "@/app/actions/rebalance";
 import type { ConcentrationItem } from "@/lib/analysis-data";
 import type { RetirementGoal } from "@/lib/projections";
 
@@ -11,7 +10,8 @@ interface AnalysisToolsProps {
   realGains: RealGainsSummary | null;
   retirementGoal: RetirementGoal | null;
   retirementSettings: RetirementSettingsData | null;
-  rebalanceData: RebalanceRow[];
+  // Señales del último reporte de oportunidades (Plan DCA); null si no hay.
+  latestSignals: { buy: number; dateLabel: string } | null;
   topSector: ConcentrationItem | null;
   totalSectors: number;
 }
@@ -20,7 +20,7 @@ export function AnalysisTools({
   realGains,
   retirementGoal,
   retirementSettings,
-  rebalanceData,
+  latestSignals,
   topSector,
   totalSectors,
 }: AnalysisToolsProps) {
@@ -33,9 +33,7 @@ export function AnalysisTools({
       ? realGains.positionsWithFullData / realGains.positionsTotal
       : null;
 
-  const rebalanceBuy = rebalanceData.filter((r) => r.suggestedAction === "BUY").length;
-  const rebalanceSell = rebalanceData.filter((r) => r.suggestedAction === "SELL").length;
-  const rebalanceAlerts = rebalanceBuy + rebalanceSell;
+  const buySignals = latestSignals?.buy ?? 0;
 
   return (
     <section className="animate-fade-up flex flex-col gap-4">
@@ -160,64 +158,44 @@ export function AnalysisTools({
           </div>
         </Link>
 
-        {/* Rebalanceo */}
+        {/* Plan DCA */}
         <Link
-          href="/rebalance"
+          href="/plan"
           className="group rounded-xl border border-border bg-card shadow-sm px-5 py-4 flex flex-col gap-3 transition-all hover:shadow-md hover:border-primary/30"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div
-                className={`rounded-lg p-1.5 ${
-                  rebalanceAlerts > 0 ? "bg-warning/10" : "bg-success/10"
-                }`}
-              >
-                <Scale
-                  className={`size-4 ${rebalanceAlerts > 0 ? "text-warning" : "text-success"}`}
-                />
+              <div className={`rounded-lg p-1.5 ${buySignals > 0 ? "bg-success/10" : "bg-muted"}`}>
+                <Wallet className={`size-4 ${buySignals > 0 ? "text-success" : "text-muted-foreground"}`} />
               </div>
-              <span className="text-sm font-semibold text-foreground">Rebalanceo</span>
+              <span className="text-sm font-semibold text-foreground">Plan DCA</span>
             </div>
             <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
           </div>
           <div className="flex flex-col gap-0.5">
             <span
               className={`text-xl font-bold font-mono tabular-nums leading-none ${
-                rebalanceData.length === 0
-                  ? "text-muted-foreground"
-                  : rebalanceAlerts === 0
-                    ? "text-success"
-                    : "text-warning"
+                buySignals > 0 ? "text-success" : "text-muted-foreground"
               }`}
             >
-              {rebalanceData.length === 0
-                ? "Sin objetivos"
-                : rebalanceAlerts === 0
-                  ? "Balanceado"
-                  : `${rebalanceAlerts} alerta${rebalanceAlerts > 1 ? "s" : ""}`}
+              {latestSignals === null
+                ? "Sin reporte"
+                : buySignals > 0
+                  ? `${buySignals} en compra`
+                  : "Sin compras"}
             </span>
             <span className="text-xs text-muted-foreground">
-              {rebalanceBuy > 0 || rebalanceSell > 0
-                ? `${rebalanceBuy > 0 ? `${rebalanceBuy} compra${rebalanceBuy > 1 ? "s" : ""}` : ""}${rebalanceBuy > 0 && rebalanceSell > 0 ? " · " : ""}${rebalanceSell > 0 ? `${rebalanceSell} venta${rebalanceSell > 1 ? "s" : ""}` : ""} sugeridas`
-                : rebalanceData.length > 0
-                  ? "Todas las posiciones dentro del rango"
-                  : "Definí objetivos de asignación por ticker"}
+              {latestSignals === null
+                ? "El aporte se reparte en partes iguales"
+                : buySignals > 0
+                  ? "Ahí va el aporte del mes"
+                  : "El aporte va a las acciones en mantener"}
             </span>
           </div>
           <div className="flex items-center gap-1.5 mt-auto">
-            <span
-              className={`size-2 rounded-full shrink-0 ${
-                rebalanceData.length === 0
-                  ? "bg-muted-foreground/40"
-                  : rebalanceAlerts === 0
-                    ? "bg-success"
-                    : "bg-warning"
-              }`}
-            />
+            <span className={`size-2 rounded-full shrink-0 ${buySignals > 0 ? "bg-success" : "bg-muted-foreground/40"}`} />
             <span className="text-xs text-muted-foreground">
-              {rebalanceData.length > 0
-                ? `${rebalanceData.length} posicion${rebalanceData.length > 1 ? "es" : ""} monitoreadas`
-                : "sin objetivos configurados"}
+              {latestSignals ? `Señales del reporte del ${latestSignals.dateLabel}` : "Generá un reporte de oportunidades"}
             </span>
           </div>
         </Link>

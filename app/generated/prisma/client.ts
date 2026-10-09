@@ -92,11 +92,6 @@ export type MarketPriceCache = Prisma.MarketPriceCacheModel
  */
 export type BenchmarkPoint = Prisma.BenchmarkPointModel
 /**
- * Model TargetAllocation
- * 
- */
-export type TargetAllocation = Prisma.TargetAllocationModel
-/**
  * Model Transaction
  * 
  */

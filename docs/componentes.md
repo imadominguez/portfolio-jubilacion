@@ -8,7 +8,7 @@ Organizados por dominio. Los componentes de `components/ui/` son primitivas shad
 
 | Componente | Tipo | Descripción |
 |---|---|---|
-| `layout/app-sidebar.tsx` — `AppSidebar` | CC | Sidebar colapsable con cuatro grupos: **Principal** (`NAV_MAIN`: Dashboard, Snapshots, Historial CCL, Performance), **Análisis** (`NAV_ANALYSIS`: Análisis, Ganancia Real, Rebalanceo, Plan DCA, Jubilación), **Datos** (`NAV_DATA`: Centro de Datos, Transacciones, Guía Cocos) y **Configuración** (`NAV_CONFIG`: Assets, Estrategia, Configuración, Oportunidades), que llega como slot `adminNav` (lo resuelve `layout/admin-nav.tsx` — `AdminNav`, SC — según el rol, detrás de `<Suspense>`). Item activo por `pathname.startsWith(href)` (excepto `/`); `usePathname()` va detrás de un `<Suspense>` por grupo, cuyo fallback dibuja los mismos links sin activo (en rutas con params dinámicos se suspende durante el prerender). Logout vía `signOut()`. Expone ids de tour: `tour-nav-snapshots`, `tour-nav-guia`, `tour-nav-transacciones`. |
+| `layout/app-sidebar.tsx` — `AppSidebar` | CC | Sidebar colapsable con cuatro grupos: **Principal** (`NAV_MAIN`: Dashboard, Snapshots, Historial CCL, Performance), **Análisis** (`NAV_ANALYSIS`: Análisis, Ganancia Real, Plan DCA, Jubilación, Flujo de caja, Impuestos), **Datos** (`NAV_DATA`: Centro de Datos, Transacciones, Guía Cocos) y **Configuración** (`NAV_CONFIG`: Assets, Estrategia, Configuración, Oportunidades), que llega como slot `adminNav` (lo resuelve `layout/admin-nav.tsx` — `AdminNav`, SC — según el rol, detrás de `<Suspense>`). Item activo por `pathname.startsWith(href)` (excepto `/`); `usePathname()` va detrás de un `<Suspense>` por grupo, cuyo fallback dibuja los mismos links sin activo (en rutas con params dinámicos se suspende durante el prerender). Logout vía `signOut()`. Expone ids de tour: `tour-nav-snapshots`, `tour-nav-guia`, `tour-nav-transacciones`. |
 | `layout/site-header.tsx` — `SiteHeader` | SC | Header sticky con `SidebarTrigger`, título, descripción (`ReactNode`: puede streamearse en su propio `<Suspense>`, como la fecha en `/snapshots/[id]`), `actions` a la derecha, `CommandMenu` y `ThemeToggle`. Va en el static shell de cada página. |
 | `layout/command-menu.tsx` — `CommandMenu` | CC | Buscador global (⌘K / Ctrl+K) con `cmdk` (`CommandDialog`). Navega a las secciones principales, de análisis y de datos. |
 | `theme-toggle.tsx` / `theme-provider.tsx` | CC | Toggle claro/oscuro y wrapper de `next-themes` (dark por defecto). |
@@ -21,7 +21,7 @@ Organizados por dominio. Los componentes de `components/ui/` son primitivas shad
 |---|---|---|
 | `dashboard-hero.tsx` | CC | `totalValueArs`, `totalValueUsd`, `snapshotDateFormatted`, `gainArs`, `gainPct`. Toggle ARS/USD (USD deshabilitado si es null); badge verde/rojo según la ganancia. |
 | `dashboard-kpi-strip.tsx` | SC | `totalValueUsd`, `ccl`, `positionCount`, `gainPct`, `totalUnrealizedPnlArs`, `totalDividendsUsd` y flags de signo. Tira de KPIs secundarios. |
-| `analysis-tools.tsx` | SC | `realGains`, `retirementGoal`, `retirementSettings`, `rebalanceData`, `topSector`, `totalSectors`. Tarjetas resumen que enlazan a Ganancia Real, Jubilación, Rebalanceo y Concentración. |
+| `analysis-tools.tsx` | SC | `realGains`, `retirementGoal`, `retirementSettings`, `latestSignals` (acciones en "compra" y fecha del último reporte, o `null`), `topSector`, `totalSectors`. Tarjetas resumen que enlazan a Ganancia Real, Jubilación, Plan DCA y Concentración. |
 | `holdings-table.tsx` | SC | `positions`, `ppmData?`, `marketPrices?`. Tabla con barra de peso, PPM/P&L (solo si hay PPM en ARS) y valor USD en vivo (`(quantity / cedearRatio) × priceUsd`); pie con "total live USD" y timestamp. |
 | `allocation-panel.tsx` | CC | `positions`, `totalArs`. Donut Recharts (`innerRadius 55%`) + leyenda con barras de progreso. |
 | `performers-panel.tsx` | SC | `currentPositions`, `previousPositions`. Calcula `Δ%` de precio por ticker y muestra hasta 3 mejores y 3 peores. Retorna `null` si hay < 2 performers. |
@@ -88,7 +88,6 @@ Organizados por dominio. Los componentes de `components/ui/` son primitivas shad
 
 | Componente | Tipo | Descripción |
 |---|---|---|
-| `rebalance/rebalance-client.tsx` | CC | `rebalanceData`, `targets`, `totalPct`. Tabla ordenable, acciones sugeridas (Comprar/Vender/Mantener), alta/baja de objetivos y badge de total (alerta si se aleja de 100%). |
 | `retirement/retirement-client.tsx` | CC | `initialSettings`, `currentPortfolioUsd`, `historicalCagr`, `realContribution` (aporte real de los últimos 12 meses o `null`; botones "Usar" que guardan ese aporte con `saveRetirementSettings`). Tabs Calculadora / Proyección / Monte Carlo; cálculos memoizados con `JSON.stringify(inputs)`; tasa anual = `expectedReturnRate` configurado (7 % por defecto); `historicalCagr` (TIR histórica en USD) se muestra solo como referencia. |
 | `strategy/strategy-editor.tsx` | CC | `active`, `history`. Editor del system prompt con versionado (guardar nueva versión / restaurar versión anterior). Copia el contenido a su estado: la página le pasa `key` = id de la versión activa. |
 | `settings/milestones-client.tsx` | CC | `initialMilestones`, `currentPortfolioUsd`. Alta/baja de hitos y progreso al próximo. Copia la lista a su estado: la página le pasa un `key` derivado de los hitos. |
@@ -122,7 +121,7 @@ Cada página pone sus lecturas dentro de `<Suspense>` con un skeleton que tambi�
 | `performance/performance-skeleton.tsx` | `/performance` |
 | `analysis/analysis-skeleton.tsx` | `/analysis` |
 | `real-gains/real-gains-skeleton.tsx` | `/real-gains` |
-| `rebalance/rebalance-skeleton.tsx`, `plan/plan-skeleton.tsx` | `/rebalance`, `/plan` |
+| `plan/plan-skeleton.tsx` | `/plan` |
 | `retirement/retirement-skeleton.tsx` | `/retirement` |
 | `cash-flow/cash-flow-skeleton.tsx` | `/flujo` |
 | `taxes/tax-report-skeleton.tsx` | `/impuestos` |

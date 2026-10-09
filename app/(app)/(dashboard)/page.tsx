@@ -27,7 +27,7 @@ import { getTotalDividendsUsd } from "@/app/actions/dividends";
 import { getMilestones } from "@/app/actions/milestones";
 import { calculateRealGains } from "@/lib/real-gains-data";
 import { getRetirementSettings } from "@/app/actions/retirement";
-import { getRebalanceData } from "@/app/actions/rebalance";
+import { getLatestSignals } from "@/app/actions/reports";
 import { getConcentrationData } from "@/lib/analysis-data";
 import { getSetupStatus } from "@/app/actions/setup";
 import { calculateRetirementGoal } from "@/lib/projections";
@@ -76,7 +76,7 @@ async function DashboardContent() {
     milestones,
     realGains,
     retirementSettings,
-    rebalanceData,
+    latestSignals,
     concentrationData,
     previous,
     holdingsFlows,
@@ -88,7 +88,7 @@ async function DashboardContent() {
     getMilestones(),
     calculateRealGains(),
     getRetirementSettings(),
-    getRebalanceData(),
+    getLatestSignals(),
     getConcentrationData(),
     getPreviousSnapshotFull(snapshot.snapshotDate),
     getHoldingsFlows(),
@@ -186,7 +186,18 @@ async function DashboardContent() {
         realGains={realGains}
         retirementGoal={retirementGoal}
         retirementSettings={retirementSettings}
-        rebalanceData={rebalanceData}
+        latestSignals={
+          latestSignals
+            ? {
+                buy: Object.values(latestSignals.signals).filter((s) => s.senal === "compra").length,
+                dateLabel: new Intl.DateTimeFormat("es-AR", {
+                  day: "2-digit",
+                  month: "short",
+                  timeZone: "America/Argentina/Buenos_Aires",
+                }).format(latestSignals.createdAt),
+              }
+            : null
+        }
         topSector={topSector}
         totalSectors={totalSectors}
       />

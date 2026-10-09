@@ -113,15 +113,15 @@ const WIZARD_STEPS: WizardStep[] = [
   {
     key: "preferences",
     icon: Target,
-    title: "5 · Definí tus objetivos",
+    title: "5 · Definí tu plan de retiro",
     body: (
       <>
-        La <strong>asignación objetivo</strong> por activo y tu plan de retiro.
-        Con eso el Rebalanceo y el Plan DCA te sugieren qué comprar cada mes.
+        Tu edad, los gastos que querés cubrir y el <strong>aporte mensual</strong>. Con eso
+        Jubilación proyecta si llegás a la meta.
       </>
     ),
     setupId: "preferences",
-    action: { kind: "navigate", href: "/rebalance", label: "Configurar objetivos" },
+    action: { kind: "navigate", href: "/retirement", label: "Configurar jubilación" },
   },
   {
     key: "finish",

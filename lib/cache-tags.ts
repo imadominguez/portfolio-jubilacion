@@ -15,7 +15,6 @@ export const userTags = {
   dividends: (userId: string) => `dividends:${userId}`,
   milestones: (userId: string) => `milestones:${userId}`,
   retirement: (userId: string) => `retirement:${userId}`,
-  rebalance: (userId: string) => `rebalance:${userId}`,
   setup: (userId: string) => `setup:${userId}`,
   alerts: (userId: string) => `alerts:${userId}`,
   expenses: (userId: string) => `expenses:${userId}`,

@@ -36,7 +36,6 @@ async function cachedSetupStatus(
   cacheTag(
     userTags.snapshots(userId),
     userTags.trades(userId),
-    userTags.rebalance(userId),
     userTags.retirement(userId),
     userTags.setup(userId),
     marketTags.assets,
@@ -50,7 +49,6 @@ async function cachedSetupStatus(
     transactionCount,
     cclHistoryCount,
     stockHistoryCount,
-    targetAllocationCount,
     retirementSettings,
     setup,
   ] = await Promise.all([
@@ -65,7 +63,6 @@ async function cachedSetupStatus(
     db.transaction.count({ where: { userId } }),
     db.exchangeRate.count(),
     db.historicalPriceCache.count(),
-    db.targetAllocation.count({ where: { userId } }),
     db.retirementSettings.findFirst({
       where: { userId },
       select: { id: true },
@@ -87,7 +84,6 @@ async function cachedSetupStatus(
     transactionCount,
     cclHistoryCount,
     stockHistoryCount,
-    targetAllocationCount,
     hasRetirementSettings: retirementSettings !== null,
     canManageAssets,
     onboarding,

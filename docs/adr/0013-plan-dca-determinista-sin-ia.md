@@ -1,6 +1,6 @@
 # ADR-0013: Plan DCA determinista, sin IA
 
-- **Estado:** Aceptado
+- **Estado:** Reemplazado por [ADR-0022](./0022-plan-dca-segun-las-senales-del-reporte-sin-pesos-objetivo.md)
 - **Fecha:** 2026-09-28 (registrado retrospectivamente el 2026-10-04)
 - **Relacionados:** ADR-0011
 
