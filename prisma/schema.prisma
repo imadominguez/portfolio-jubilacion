@@ -350,6 +350,9 @@ model RetirementSettings {
   inflationRate       Decimal  @db.Decimal(6, 4)
   withdrawalRate      Decimal  @db.Decimal(6, 4)
   monthlyContribution Decimal  @db.Decimal(18, 2)
+  // Retorno anual esperado en USD para la proyección (fracción). La TIR
+  // histórica de pocos años no sirve como supuesto a 30 años.
+  expectedReturnRate  Decimal  @default(0.07) @db.Decimal(6, 4)
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
   userId              String?

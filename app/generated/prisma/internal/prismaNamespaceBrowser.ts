@@ -284,6 +284,7 @@ export const RetirementSettingsScalarFieldEnum = {
   inflationRate: 'inflationRate',
   withdrawalRate: 'withdrawalRate',
   monthlyContribution: 'monthlyContribution',
+  expectedReturnRate: 'expectedReturnRate',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   userId: 'userId'

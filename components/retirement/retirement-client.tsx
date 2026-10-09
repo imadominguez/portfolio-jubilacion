@@ -48,6 +48,7 @@ const DEFAULT_SETTINGS: RetirementSettingsData = {
   inflationRate: 0.03,
   withdrawalRate: 0.04,
   monthlyContribution: 500,
+  expectedReturnRate: 0.07,
 };
 
 type Tab = "calculator" | "projection" | "montecarlo";
@@ -75,9 +76,9 @@ export function RetirementClient({
   const inputs = {
     ...settings,
     currentPortfolioUsd: currentPortfolioUsd ?? 0,
-    // Cap at 30% to avoid Monte Carlo explosion when the historical return is unrealistically high
-    // (e.g. short measurement window or lucky streak) — 7% default follows US long-run equity avg
-    annualReturnRate: historicalCagr > 0 ? Math.min(historicalCagr / 100, 0.30) : 0.07,
+    // El retorno configurado, no la TIR histórica: con un año y medio de historia
+    // la TIR puede dar 30 % y proyectar eso a 35 años no tiene sentido.
+    annualReturnRate: settings.expectedReturnRate,
   };
 
   const inputsKey = JSON.stringify(inputs);
@@ -110,6 +111,7 @@ export function RetirementClient({
       inflationRate: parseFloat(fd.get("inflationRate") as string) / 100,
       withdrawalRate: parseFloat(fd.get("withdrawalRate") as string) / 100,
       monthlyContribution: parseFloat(fd.get("monthlyContribution") as string),
+      expectedReturnRate: parseFloat(fd.get("expectedReturnRate") as string) / 100,
     };
 
     setSettings(newSettings);
@@ -217,6 +219,22 @@ export function RetirementClient({
                 </FieldDescription>
               </Field>
               <Field>
+                <FieldLabel className="text-xs font-medium">Retorno anual esperado (%)</FieldLabel>
+                <Input
+                  name="expectedReturnRate"
+                  type="number"
+                  min="0"
+                  max="15"
+                  step="0.5"
+                  defaultValue={(settings.expectedReturnRate * 100).toFixed(1)}
+                  required
+                  className="text-sm font-mono"
+                />
+                <FieldDescription className="text-[10px] text-muted-foreground">
+                  Nominal en dólares (los gastos ya se ajustan por inflación). La bolsa de EE.UU. rindió cerca de 10 % anual a largo plazo; 7 % es un supuesto prudente.
+                </FieldDescription>
+              </Field>
+              <Field>
                 <FieldLabel className="text-xs font-medium">Inflación anual (%)</FieldLabel>
                 <Input
                   name="inflationRate"
@@ -262,7 +280,7 @@ export function RetirementClient({
             </div>
           </form>
         ) : (
-          <div className="grid grid-cols-3 gap-3 sm:grid-cols-6 text-center">
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-7 text-center">
             {[
               { label: "Edad actual", value: settings.currentAge },
               { label: "Retiro a los", value: settings.retirementAge },
@@ -270,6 +288,7 @@ export function RetirementClient({
               { label: "Aporte/mes", value: formatUSDCompact(settings.monthlyContribution) },
               { label: "Inflación", value: `${(settings.inflationRate * 100).toFixed(1)}%` },
               { label: "Tasa retiro", value: `${(settings.withdrawalRate * 100).toFixed(1)}%` },
+              { label: "Retorno anual", value: `${(settings.expectedReturnRate * 100).toFixed(1)}%` },
             ].map(({ label, value }) => (
               <div key={label} className="flex flex-col gap-0.5">
                 <span className="text-[10px] text-muted-foreground">{label}</span>
@@ -281,8 +300,9 @@ export function RetirementClient({
 
         <div className="mt-3 pt-3 border-t border-border flex items-center gap-2">
           <span className="text-[10px] text-muted-foreground">
-            Retorno anual usado: {(inputs.annualReturnRate * 100).toFixed(2)}%
-            {historicalCagr > 0 ? " (TIR histórica en USD, sin aportes)" : " (estimado)"}
+            Retorno anual usado: {(inputs.annualReturnRate * 100).toFixed(1)}% (configurado)
+            {historicalCagr !== 0 &&
+              ` · Tu TIR histórica en USD es ${historicalCagr.toFixed(1)}%: sirve de referencia, pero con pocos años de historia no conviene proyectarla a largo plazo`}
           </span>
           {currentPortfolioUsd && (
             <span className="text-[10px] text-muted-foreground">

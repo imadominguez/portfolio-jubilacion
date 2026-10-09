@@ -204,7 +204,7 @@ Restricciones: `@@unique([userId, nroTicket])` (importación idempotente), índi
 
 Un registro por usuario (se guarda con `findFirst`/`update`/`create`, no upsert por id fijo).
 
-`id`, `currentAge Int`, `retirementAge Int`, `monthlyExpensesUsd Decimal(18,2)`, `inflationRate Decimal(6,4)`, `withdrawalRate Decimal(6,4)`, `monthlyContribution Decimal(18,2)`, timestamps, `userId?`/`user?`.
+`id`, `currentAge Int`, `retirementAge Int`, `monthlyExpensesUsd Decimal(18,2)`, `inflationRate Decimal(6,4)`, `withdrawalRate Decimal(6,4)`, `monthlyContribution Decimal(18,2)`, `expectedReturnRate Decimal(6,4)` (retorno anual esperado en USD para la proyección, fracción; 0.07 por defecto), timestamps, `userId?`/`user?`.
 
 ### `TargetAllocation` → `target_allocations`
 
@@ -315,6 +315,7 @@ Ubicación: `prisma/migrations/`.
 | `20261009120000_add_alerts` | Enum `AlertKind`, tablas `alert_settings` y `alert_logs`. |
 | `20261009180000_add_expense_tags` | Tabla `expense_tags`. |
 | `20261009181000_expense_tag_optional_category` | `expense_tags.category` pasa a opcional. |
+| `20261009200000_retirement_expected_return` | `retirement_settings.expectedReturnRate` (`Decimal(6,4)`, por defecto 0.07). |
 
 Comandos (ver [desarrollo.md](./desarrollo.md)):
 

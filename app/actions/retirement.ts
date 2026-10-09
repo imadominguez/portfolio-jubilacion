@@ -13,6 +13,8 @@ export type RetirementSettingsData = {
   inflationRate: number;
   withdrawalRate: number;
   monthlyContribution: number;
+  // Fracción (0.07 = 7 %).
+  expectedReturnRate: number;
 };
 
 export type RetirementSettingsResult =
@@ -47,6 +49,7 @@ async function cachedRetirementSettings(
     inflationRate: Number(settings.inflationRate),
     withdrawalRate: Number(settings.withdrawalRate),
     monthlyContribution: Number(settings.monthlyContribution),
+    expectedReturnRate: Number(settings.expectedReturnRate),
   };
 }
 
@@ -66,6 +69,9 @@ export async function saveRetirementSettings(
     if (data.monthlyExpensesUsd <= 0) {
       return { success: false, error: "Los gastos mensuales deben ser positivos." };
     }
+    if (!Number.isFinite(data.expectedReturnRate) || data.expectedReturnRate < 0 || data.expectedReturnRate > 0.15) {
+      return { success: false, error: "El retorno anual esperado tiene que estar entre 0 % y 15 %." };
+    }
 
     const existing = await db.retirementSettings.findFirst({ where: { userId } });
 
@@ -79,6 +85,7 @@ export async function saveRetirementSettings(
           inflationRate: data.inflationRate,
           withdrawalRate: data.withdrawalRate,
           monthlyContribution: data.monthlyContribution,
+          expectedReturnRate: data.expectedReturnRate,
         },
       });
     } else {
@@ -90,6 +97,7 @@ export async function saveRetirementSettings(
           inflationRate: data.inflationRate,
           withdrawalRate: data.withdrawalRate,
           monthlyContribution: data.monthlyContribution,
+          expectedReturnRate: data.expectedReturnRate,
           userId,
         },
       });
