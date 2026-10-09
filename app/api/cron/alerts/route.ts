@@ -1,8 +1,10 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { runAllAlerts } from "@/lib/alerts-runner";
+import { refreshMarketData } from "@/lib/market-refresh";
 
-// Revisa ~16 acciones por usuario contra Yahoo y manda mails.
+// Actualiza los datos de mercado y revisa ~16 acciones por usuario contra Yahoo.
 export const maxDuration = 300;
 
 // Lo llama el cron de Vercel (vercel.json) con `Authorization: Bearer
@@ -20,9 +22,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
   try {
+    // Primero los datos de mercado (ADR-0021): las pantallas y las alertas de
+    // hoy usan precios del día. updateTag solo funciona en Server Actions.
+    const market = await refreshMarketData();
+    for (const tag of market.tags) revalidateTag(tag, "max");
+
     const results = await runAllAlerts();
-    // Solo conteos: nada de mails ni datos de usuarios en la respuesta.
+    // Solo conteos y estado de los datos globales: nada de mails ni datos de usuarios.
     return NextResponse.json({
+      market: market.steps,
       users: results.length,
       failed: results.filter((r) => !r.ok).length,
       mailsSent: results.filter((r) => r.sent).length,
@@ -30,6 +38,6 @@ export async function GET(req: NextRequest) {
       reminders: results.filter((r) => r.reminder).length,
     });
   } catch {
-    return NextResponse.json({ error: "No se pudieron correr las alertas" }, { status: 500 });
+    return NextResponse.json({ error: "No se pudo completar la corrida diaria" }, { status: 500 });
   }
 }

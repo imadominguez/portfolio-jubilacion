@@ -5,7 +5,7 @@ import { connection } from "next/server";
 import { revalidateMarketPrices } from "@/lib/revalidate";
 import { marketTags } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
-import { getQuotes } from "@/lib/yahoo-finance-client";
+import { saveMarketPrices } from "@/lib/market-refresh";
 
 export type MarketPriceResult =
   | { success: true; updated: number; failed: string[] }
@@ -21,52 +21,9 @@ export type MarketPriceRow = {
 
 export async function fetchAndSaveMarketPrices(): Promise<MarketPriceResult> {
   try {
-    const assets = await db.asset.findMany({
-      where: { underlyingTicker: { not: null } },
-      select: { ticker: true, underlyingTicker: true },
-    });
-
-    if (assets.length === 0) {
-      return { success: false, error: "No hay assets con ticker subyacente configurado." };
-    }
-
-    const underlyingTickers = assets
-      .map((a) => a.underlyingTicker)
-      .filter(Boolean) as string[];
-
-    const failed: string[] = [];
-    let updated = 0;
-
-    const priceMap = await getQuotes(underlyingTickers);
-
-    for (const asset of assets) {
-      if (!asset.underlyingTicker) continue;
-      const price = priceMap.get(asset.underlyingTicker);
-
-      if (!price || price <= 0) {
-        failed.push(asset.underlyingTicker);
-        continue;
-      }
-
-      await db.marketPriceCache.upsert({
-        where: { ticker: asset.underlyingTicker },
-        create: {
-          ticker: asset.underlyingTicker,
-          price,
-          currency: "USD",
-          fetchedAt: new Date(),
-        },
-        update: {
-          price,
-          fetchedAt: new Date(),
-        },
-      });
-      updated++;
-    }
-
+    const result = await saveMarketPrices();
     revalidateMarketPrices();
-
-    return { success: true, updated, failed };
+    return { success: true, ...result };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error inesperado al obtener precios.";
     return { success: false, error: message };

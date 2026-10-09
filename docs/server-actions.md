@@ -87,6 +87,8 @@ Detalles del parser en [logica-financiera.md](./logica-financiera.md#parsing-de-
 
 ---
 
+> **Datos de mercado** (`exchange-rate.ts`, `market-prices.ts`, `historical-prices.ts`, `benchmarks.ts`, `indices.ts`): las acciones de actualización (`fetchAndSave*`, `fetchAndCacheStockHistory`) delegan la descarga en `lib/market-refresh.ts` y después invalidan con `updateTag`. El cron diario usa las mismas funciones (ADR-0021).
+
 ## `import-movements.ts` — Libro de movimientos de Cocos
 
 El parser puro vive en `lib/cocos-movements.ts` (`parseMovementCsv`), no en este archivo.

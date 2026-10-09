@@ -116,8 +116,9 @@ El documento (`components/export/portfolio-pdf.tsx`) usa A4, fuente Inter (regis
 **Archivo:** `app/api/cron/alerts/route.ts` · `maxDuration = 300`. Decisión: [ADR-0020](./adr/0020-alertas-por-mail-con-cron-y-gmail-smtp.md).
 
 - Lo llama Vercel Cron (`vercel.json`, `0 12 * * *` = 9:00 en Argentina) con `Authorization: Bearer <CRON_SECRET>`. Sin el header correcto (o sin `CRON_SECRET` configurado) → `401`. El proxy no le pide sesión.
-- `runAllAlerts()` (`lib/alerts-runner.ts`) recorre los usuarios con `AlertSettings.enabled`; un usuario que falla no corta al resto.
-- Responde solo conteos: `{ users, failed, mailsSent, drops, reminders }`. Error inesperado → `500`.
+- Primero `refreshMarketData()` (`lib/market-refresh.ts`, [ADR-0021](./adr/0021-actualizacion-diaria-automatica-de-datos-de-mercado.md)): CCL, precios, históricos, benchmarks, IPC y CER, de forma incremental; después `revalidateTag(tag, "max")` de los pasos que funcionaron.
+- Después `runAllAlerts()` (`lib/alerts-runner.ts`) recorre los usuarios con `AlertSettings.enabled`; un usuario que falla no corta al resto.
+- Responde el estado de cada paso de datos y conteos de alertas: `{ market: [{ step, ok, detail }], users, failed, mailsSent, drops, reminders }` (nada de datos de usuarios). Error inesperado → `500`.
 
 ---
 

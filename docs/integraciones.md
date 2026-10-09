@@ -142,10 +142,10 @@ Decisión y motivos: [ADR-0020](./adr/0020-alertas-por-mail-con-cron-y-gmail-smt
 | Fuente | Dato | Actualización | Cache |
 |---|---|---|---|
 | Cocos Capital (CSV) | Posiciones y movimientos | Manual (importación) | DB (`portfolio_snapshots`, `movements`, `transactions`) |
-| dolarapi.com | CCL actual | Manual (botón) | `exchange_rates` |
+| dolarapi.com | CCL actual | Diaria (cron) y manual (botón) | `exchange_rates` |
 | argentinadatos.com | CCL histórico | Manual (wizard/backfill) | `exchange_rates` |
-| argentinadatos.com | Inflación (IPC) y CER/UVA | Manual (botón en `/datos` o carga on-demand en `/performance`) | `benchmark_points` |
-| Yahoo Finance | Precios actuales e históricos | Manual (botones) | `market_price_cache`, `historical_price_cache`, `benchmark_points` |
+| argentinadatos.com | Inflación (IPC) y CER/UVA | Diaria (cron) y manual (botón en `/datos` o carga on-demand en `/performance`) | `benchmark_points` |
+| Yahoo Finance | Precios actuales e históricos, benchmarks | Diaria (cron) y manual (botones) | `market_price_cache`, `historical_price_cache`, `benchmark_points` |
 | Yahoo Finance | Titulares de noticias por acción | Al generar el reporte | No se guardan (solo en el reporte) |
 | Anthropic | Reporte de oportunidades | Manual (botón en `/portfolio`) | `portfolio_reports` |
 | Yahoo Finance | Cierres y titulares para las alertas | Automático (cron diario) | No se guardan; lo enviado queda en `alert_logs` |
@@ -153,4 +153,4 @@ Decisión y motivos: [ADR-0020](./adr/0020-alertas-por-mail-con-cron-y-gmail-smt
 
 Variables de entorno relacionadas: `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `ANTHROPIC_EFFORT`, `ANTHROPIC_TIMEOUT_MS`, `DATABASE_URL` (ver [arquitectura.md](./arquitectura.md#variables-de-entorno)).
 
-La decisión de cachear todo en DB y refrescar solo con botones está registrada en [ADR-0006](./adr/0006-datos-externos-cacheados-en-db-con-refresco-manual.md). La única corrida automática es el cron de alertas, que no escribe las caches ([ADR-0020](./adr/0020-alertas-por-mail-con-cron-y-gmail-smtp.md)).
+La decisión de cachear todo en DB y refrescar solo con botones está registrada en [ADR-0006](./adr/0006-datos-externos-cacheados-en-db-con-refresco-manual.md). Desde [ADR-0021](./adr/0021-actualizacion-diaria-automatica-de-datos-de-mercado.md) el cron diario también los actualiza (antes de las alertas); las pantallas siguen leyendo siempre de la base. La descarga vive en `lib/market-refresh.ts`, compartida por los botones y el cron.
