@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, type ReactNode } from "react";
+import { Suspense, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -14,6 +14,7 @@ import {
   Settings,
   DollarSign,
   LogOut,
+  KeyRound,
   Activity,
   Bell,
   Coins,
@@ -26,6 +27,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { signOut } from "@/lib/auth-client";
+import { ChangePasswordDialog } from "@/components/layout/change-password-dialog";
 import {
   Sidebar,
   SidebarContent,
@@ -86,6 +88,7 @@ type AppSidebarProps = {
 
 export function AppSidebar({ adminNav }: AppSidebarProps) {
   const router = useRouter();
+  const [passwordOpen, setPasswordOpen] = useState(false);
 
   async function handleSignOut() {
     await signOut();
@@ -128,6 +131,16 @@ export function AppSidebar({ adminNav }: AppSidebarProps) {
         <SidebarMenu className="gap-1">
           <SidebarMenuItem>
             <SidebarMenuButton
+              onClick={() => setPasswordOpen(true)}
+              tooltip="Cambiar contraseña"
+              className="rounded-lg border border-transparent text-sidebar-foreground/60 transition-colors duration-150 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+            >
+              <KeyRound className="size-4 shrink-0" />
+              <span className="text-sm font-medium">Cambiar contraseña</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
               onClick={handleSignOut}
               tooltip="Cerrar sesión"
               className="rounded-lg border border-transparent text-sidebar-foreground/60 transition-colors duration-150 hover:text-destructive hover:bg-destructive/12"
@@ -140,6 +153,7 @@ export function AppSidebar({ adminNav }: AppSidebarProps) {
       </SidebarFooter>
 
       <SidebarRail />
+      <ChangePasswordDialog open={passwordOpen} onOpenChange={setPasswordOpen} />
     </Sidebar>
   );
 }
