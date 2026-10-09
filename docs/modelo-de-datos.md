@@ -126,7 +126,7 @@ Historial de CCL por fecha (global, sin `userId`).
 
 Último precio de mercado por ticker subyacente (global).
 
-`id`, `ticker @unique`, `price Decimal(18,4)`, `currency Currency @default(USD)`, `fetchedAt DateTime @default(now())`, índice por `ticker`.
+`id`, `ticker @unique`, `price Decimal(18,4)`, `currency Currency @default(USD)`, `dividendRate Decimal(18,4)?` (dividendo anual por acción en USD: forward de Yahoo o, si no hay, el de los últimos 12 meses; 0 = no paga, `null` = sin dato), `fetchedAt DateTime @default(now())`, índice por `ticker`.
 
 ### `HistoricalPriceCache` → `historical_price_cache`
 
@@ -326,6 +326,7 @@ Ubicación: `prisma/migrations/`.
 | `20261009181000_expense_tag_optional_category` | `expense_tags.category` pasa a opcional. |
 | `20261010120000_monthly_tasks` | `AlertKind` suma `MONTHLY_REPORT` y `MONTHLY_SUMMARY`; `alert_settings.monthlySummary` y `monthlyReport`. |
 | `20261010140000_expense_budgets` | `AlertKind` suma `BUDGET`; tabla `expense_budgets`. |
+| `20261010160000_market_dividend_rate` | `market_price_cache.dividendRate`. |
 | `20261009220000_drop_target_allocations` | Borra la tabla `target_allocations` (sin pesos objetivo, ADR-0022). |
 | `20261009200000_retirement_expected_return` | `retirement_settings.expectedReturnRate` (`Decimal(6,4)`, por defecto 0.07). |
 

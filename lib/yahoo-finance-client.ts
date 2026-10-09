@@ -97,6 +97,20 @@ async function authedGet(buildUrl: (crumb: string) => string): Promise<Response>
 export async function getQuotes(
   symbols: string[]
 ): Promise<Map<string, number>> {
+  const details = await getQuoteDetails(symbols);
+  return new Map([...details].map(([symbol, d]) => [symbol, d.price]));
+}
+
+export type QuoteDetail = {
+  price: number;
+  // Dividendo anual por acción: el forward y, si no hay, el de los últimos 12
+  // meses (los ETF solo traen este). null si Yahoo no informa ninguno.
+  dividendRate: number | null;
+};
+
+export async function getQuoteDetails(
+  symbols: string[]
+): Promise<Map<string, QuoteDetail>> {
   const res = await authedGet(
     (crumb) =>
       `${BASE}/v7/finance/quote?symbols=${symbols.join(",")}&crumb=${encodeURIComponent(crumb)}`
@@ -108,14 +122,17 @@ export async function getQuotes(
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const data: any = await res.json();
-  const results: Map<string, number> = new Map();
+  const results: Map<string, QuoteDetail> = new Map();
 
   const quoteList = data?.quoteResponse?.result ?? [];
   for (const q of quoteList) {
     const price: number | undefined =
       q.regularMarketPrice ?? q.ask ?? q.bid;
     if (q.symbol && price && price > 0) {
-      results.set(q.symbol, price);
+      const rate = [q.dividendRate, q.trailingAnnualDividendRate].find(
+        (r): r is number => typeof r === "number" && Number.isFinite(r) && r >= 0
+      );
+      results.set(q.symbol, { price, dividendRate: rate ?? null });
     }
   }
 

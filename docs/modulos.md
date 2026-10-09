@@ -120,7 +120,7 @@ Metadata raíz (`app/layout.tsx`): `title` por defecto `"Portfolio Jubilación"`
 
 - **Archivo:** `app/(app)/retirement/page.tsx`.
 - **Datos:** `getRetirementSettings()`, `getAllSnapshotPoints()`, `getHoldingsFlows()` y `getContributionStats(desde, hasta)` para los últimos 12 meses cerrados (después de `connection()`, en hora de Argentina); `currentPortfolioUsd` del último snapshot con `totalValueUsd`; `historicalCagr` es la TIR en USD (`holdingsXirr` con `flowsUsd`, `lib/flow-returns.ts`) sobre los snapshots con USD > 0 (requiere ≥2 y al menos 0,1 años).
-- **Componentes:** `SiteHeader`, `RetirementClient` (tabs Calculadora, Proyección, Monte Carlo). Debajo de los parámetros, si hay movimientos importados, muestra el **aporte real** (promedio mensual en USD y la parte que fue a CEDEARs y bonos) contra el configurado, con botones para usar cualquiera de los dos.
+- **Componentes:** `SiteHeader`, `RetirementClient` (tabs Calculadora, Proyección, Monte Carlo) y `DividendProjectionCard` (dividendos estimados, con `getLatestSnapshot()` y `getMarketPrices()`; `projectDividends` de `lib/dividend-projection.ts`). Debajo de los parámetros, si hay movimientos importados, muestra el **aporte real** (promedio mensual en USD y la parte que fue a CEDEARs y bonos) contra el configurado, con botones para usar cualquiera de los dos.
 - **Cálculos:** `calculateRetirementGoal`, `buildProjectionCurve`, `runMonteCarlo` (500 simulaciones) de `lib/projections.ts`, memoizados. Tasa anual = `expectedReturnRate` de la configuración (7 % por defecto, editable entre 0 % y 15 %). La TIR histórica en USD (`historicalCagr`) se muestra solo como referencia: con pocos años de historia no sirve como supuesto a largo plazo.
 
 ---

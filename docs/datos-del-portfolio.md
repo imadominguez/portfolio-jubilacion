@@ -151,6 +151,7 @@ Calculadora de planificación para el retiro.
 | **Años para alcanzar la meta** | Estimación en base a la proyección |
 | **Aporte real** | Promedio mensual en USD de lo que entró neto al portfolio en los últimos 12 meses cerrados (compras, ventas, FCI, dividendos), y la parte que fue a CEDEARs y bonos. Se muestra al lado del aporte configurado y se puede usar en la proyección. |
 | **TIR histórica en USD** | Calculada automáticamente desde los snapshots con valor en USD (> 0) y los flujos de las tenencias pasados a USD con el CCL de su fecha (XIRR). No cuenta los aportes como rendimiento. |
+| **Dividendos estimados** | Lo que pagaría por año la tenencia actual con el dividendo anual de cada subyacente (Yahoo), neto de una retención del 30 %; el rendimiento del portfolio y el capital que haría falta para cubrir los gastos mensuales solo con dividendos. Detalle en [logica-financiera.md](./logica-financiera.md#dividendos-estimados-libdividend-projectionts). |
 
 ---
 

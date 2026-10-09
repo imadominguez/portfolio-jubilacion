@@ -4,8 +4,11 @@ import { connection } from "next/server";
 import { SiteHeader } from "@/components/layout/site-header";
 import { RetirementClient } from "@/components/retirement/retirement-client";
 import { RetirementSkeleton } from "@/components/retirement/retirement-skeleton";
+import { DividendProjectionCard } from "@/components/retirement/dividend-projection-card";
+import { getMarketPrices } from "@/app/actions/market-prices";
+import { projectDividends } from "@/lib/dividend-projection";
 import { getRetirementSettings } from "@/app/actions/retirement";
-import { getAllSnapshotPoints, getContributionStats, getHoldingsFlows } from "@/lib/portfolio-data";
+import { getAllSnapshotPoints, getContributionStats, getHoldingsFlows, getLatestSnapshot } from "@/lib/portfolio-data";
 import { localDateParts, monthKeyOf, shiftMonth } from "@/lib/local-date";
 import { holdingsXirr } from "@/lib/flow-returns";
 
@@ -45,11 +48,13 @@ async function Retirement() {
   // Últimos 12 meses cerrados, en hora de Argentina (después de connection():
   // la hora no puede leerse durante el prerender).
   const currentMonth = monthKeyOf(localDateParts(new Date()));
-  const [settings, snapshots, flows, contributions] = await Promise.all([
+  const [settings, snapshots, flows, contributions, latest, prices] = await Promise.all([
     getRetirementSettings(),
     getAllSnapshotPoints(),
     getHoldingsFlows(),
     getContributionStats(shiftMonth(currentMonth, -12), shiftMonth(currentMonth, -1)),
+    getLatestSnapshot(),
+    getMarketPrices(),
   ]);
 
   const latestSnapshot = snapshots.at(-1);
@@ -70,12 +75,31 @@ async function Retirement() {
     }
   }
 
+  // Tenencia del último snapshot con el precio y el dividendo guardados del
+  // subyacente; lo que no tiene subyacente (bonos, ONs) queda sin dato.
+  const priceByTicker = new Map(prices.map((p) => [p.ticker, p]));
+  const dividends = projectDividends(
+    (latest?.positions ?? []).map((pos) => {
+      const price = priceByTicker.get(pos.ticker);
+      return {
+        ticker: pos.ticker,
+        quantity: pos.quantity,
+        cedearRatio: price?.cedearRatio ?? 0,
+        priceUsd: price?.priceUsd ?? 0,
+        dividendRateUsd: price?.dividendRateUsd ?? null,
+      };
+    })
+  );
+
   return (
-    <RetirementClient
-      initialSettings={settings}
-      currentPortfolioUsd={currentPortfolioUsd}
-      historicalCagr={historicalCagr}
-      realContribution={flows.lastMovementDate ? contributions : null}
-    />
+    <>
+      <RetirementClient
+        initialSettings={settings}
+        currentPortfolioUsd={currentPortfolioUsd}
+        historicalCagr={historicalCagr}
+        realContribution={flows.lastMovementDate ? contributions : null}
+      />
+      {latest && <DividendProjectionCard projection={dividends} monthlyExpensesUsd={settings?.monthlyExpensesUsd ?? null} />}
+    </>
   );
 }

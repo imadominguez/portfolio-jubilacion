@@ -28,10 +28,12 @@ export type AggregateMarketPriceCache = {
 
 export type MarketPriceCacheAvgAggregateOutputType = {
   price: runtime.Decimal | null
+  dividendRate: runtime.Decimal | null
 }
 
 export type MarketPriceCacheSumAggregateOutputType = {
   price: runtime.Decimal | null
+  dividendRate: runtime.Decimal | null
 }
 
 export type MarketPriceCacheMinAggregateOutputType = {
@@ -39,6 +41,7 @@ export type MarketPriceCacheMinAggregateOutputType = {
   ticker: string | null
   price: runtime.Decimal | null
   currency: $Enums.Currency | null
+  dividendRate: runtime.Decimal | null
   fetchedAt: Date | null
 }
 
@@ -47,6 +50,7 @@ export type MarketPriceCacheMaxAggregateOutputType = {
   ticker: string | null
   price: runtime.Decimal | null
   currency: $Enums.Currency | null
+  dividendRate: runtime.Decimal | null
   fetchedAt: Date | null
 }
 
@@ -55,6 +59,7 @@ export type MarketPriceCacheCountAggregateOutputType = {
   ticker: number
   price: number
   currency: number
+  dividendRate: number
   fetchedAt: number
   _all: number
 }
@@ -62,10 +67,12 @@ export type MarketPriceCacheCountAggregateOutputType = {
 
 export type MarketPriceCacheAvgAggregateInputType = {
   price?: true
+  dividendRate?: true
 }
 
 export type MarketPriceCacheSumAggregateInputType = {
   price?: true
+  dividendRate?: true
 }
 
 export type MarketPriceCacheMinAggregateInputType = {
@@ -73,6 +80,7 @@ export type MarketPriceCacheMinAggregateInputType = {
   ticker?: true
   price?: true
   currency?: true
+  dividendRate?: true
   fetchedAt?: true
 }
 
@@ -81,6 +89,7 @@ export type MarketPriceCacheMaxAggregateInputType = {
   ticker?: true
   price?: true
   currency?: true
+  dividendRate?: true
   fetchedAt?: true
 }
 
@@ -89,6 +98,7 @@ export type MarketPriceCacheCountAggregateInputType = {
   ticker?: true
   price?: true
   currency?: true
+  dividendRate?: true
   fetchedAt?: true
   _all?: true
 }
@@ -184,6 +194,7 @@ export type MarketPriceCacheGroupByOutputType = {
   ticker: string
   price: runtime.Decimal
   currency: $Enums.Currency
+  dividendRate: runtime.Decimal | null
   fetchedAt: Date
   _count: MarketPriceCacheCountAggregateOutputType | null
   _avg: MarketPriceCacheAvgAggregateOutputType | null
@@ -215,6 +226,7 @@ export type MarketPriceCacheWhereInput = {
   ticker?: Prisma.StringFilter<"MarketPriceCache"> | string
   price?: Prisma.DecimalFilter<"MarketPriceCache"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFilter<"MarketPriceCache"> | $Enums.Currency
+  dividendRate?: Prisma.DecimalNullableFilter<"MarketPriceCache"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fetchedAt?: Prisma.DateTimeFilter<"MarketPriceCache"> | Date | string
 }
 
@@ -223,6 +235,7 @@ export type MarketPriceCacheOrderByWithRelationInput = {
   ticker?: Prisma.SortOrder
   price?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  dividendRate?: Prisma.SortOrderInput | Prisma.SortOrder
   fetchedAt?: Prisma.SortOrder
 }
 
@@ -234,6 +247,7 @@ export type MarketPriceCacheWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.MarketPriceCacheWhereInput | Prisma.MarketPriceCacheWhereInput[]
   price?: Prisma.DecimalFilter<"MarketPriceCache"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFilter<"MarketPriceCache"> | $Enums.Currency
+  dividendRate?: Prisma.DecimalNullableFilter<"MarketPriceCache"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fetchedAt?: Prisma.DateTimeFilter<"MarketPriceCache"> | Date | string
 }, "id" | "ticker">
 
@@ -242,6 +256,7 @@ export type MarketPriceCacheOrderByWithAggregationInput = {
   ticker?: Prisma.SortOrder
   price?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  dividendRate?: Prisma.SortOrderInput | Prisma.SortOrder
   fetchedAt?: Prisma.SortOrder
   _count?: Prisma.MarketPriceCacheCountOrderByAggregateInput
   _avg?: Prisma.MarketPriceCacheAvgOrderByAggregateInput
@@ -258,6 +273,7 @@ export type MarketPriceCacheScalarWhereWithAggregatesInput = {
   ticker?: Prisma.StringWithAggregatesFilter<"MarketPriceCache"> | string
   price?: Prisma.DecimalWithAggregatesFilter<"MarketPriceCache"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyWithAggregatesFilter<"MarketPriceCache"> | $Enums.Currency
+  dividendRate?: Prisma.DecimalNullableWithAggregatesFilter<"MarketPriceCache"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fetchedAt?: Prisma.DateTimeWithAggregatesFilter<"MarketPriceCache"> | Date | string
 }
 
@@ -266,6 +282,7 @@ export type MarketPriceCacheCreateInput = {
   ticker: string
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
+  dividendRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fetchedAt?: Date | string
 }
 
@@ -274,6 +291,7 @@ export type MarketPriceCacheUncheckedCreateInput = {
   ticker: string
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
+  dividendRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fetchedAt?: Date | string
 }
 
@@ -282,6 +300,7 @@ export type MarketPriceCacheUpdateInput = {
   ticker?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  dividendRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fetchedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -290,6 +309,7 @@ export type MarketPriceCacheUncheckedUpdateInput = {
   ticker?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  dividendRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fetchedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -298,6 +318,7 @@ export type MarketPriceCacheCreateManyInput = {
   ticker: string
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: $Enums.Currency
+  dividendRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fetchedAt?: Date | string
 }
 
@@ -306,6 +327,7 @@ export type MarketPriceCacheUpdateManyMutationInput = {
   ticker?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  dividendRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fetchedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -314,6 +336,7 @@ export type MarketPriceCacheUncheckedUpdateManyInput = {
   ticker?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  dividendRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fetchedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -322,11 +345,13 @@ export type MarketPriceCacheCountOrderByAggregateInput = {
   ticker?: Prisma.SortOrder
   price?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  dividendRate?: Prisma.SortOrder
   fetchedAt?: Prisma.SortOrder
 }
 
 export type MarketPriceCacheAvgOrderByAggregateInput = {
   price?: Prisma.SortOrder
+  dividendRate?: Prisma.SortOrder
 }
 
 export type MarketPriceCacheMaxOrderByAggregateInput = {
@@ -334,6 +359,7 @@ export type MarketPriceCacheMaxOrderByAggregateInput = {
   ticker?: Prisma.SortOrder
   price?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  dividendRate?: Prisma.SortOrder
   fetchedAt?: Prisma.SortOrder
 }
 
@@ -342,11 +368,13 @@ export type MarketPriceCacheMinOrderByAggregateInput = {
   ticker?: Prisma.SortOrder
   price?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  dividendRate?: Prisma.SortOrder
   fetchedAt?: Prisma.SortOrder
 }
 
 export type MarketPriceCacheSumOrderByAggregateInput = {
   price?: Prisma.SortOrder
+  dividendRate?: Prisma.SortOrder
 }
 
 
@@ -356,6 +384,7 @@ export type MarketPriceCacheSelect<ExtArgs extends runtime.Types.Extensions.Inte
   ticker?: boolean
   price?: boolean
   currency?: boolean
+  dividendRate?: boolean
   fetchedAt?: boolean
 }, ExtArgs["result"]["marketPriceCache"]>
 
@@ -364,6 +393,7 @@ export type MarketPriceCacheSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
   ticker?: boolean
   price?: boolean
   currency?: boolean
+  dividendRate?: boolean
   fetchedAt?: boolean
 }, ExtArgs["result"]["marketPriceCache"]>
 
@@ -372,6 +402,7 @@ export type MarketPriceCacheSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
   ticker?: boolean
   price?: boolean
   currency?: boolean
+  dividendRate?: boolean
   fetchedAt?: boolean
 }, ExtArgs["result"]["marketPriceCache"]>
 
@@ -380,10 +411,11 @@ export type MarketPriceCacheSelectScalar = {
   ticker?: boolean
   price?: boolean
   currency?: boolean
+  dividendRate?: boolean
   fetchedAt?: boolean
 }
 
-export type MarketPriceCacheOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ticker" | "price" | "currency" | "fetchedAt", ExtArgs["result"]["marketPriceCache"]>
+export type MarketPriceCacheOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ticker" | "price" | "currency" | "dividendRate" | "fetchedAt", ExtArgs["result"]["marketPriceCache"]>
 
 export type $MarketPriceCachePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "MarketPriceCache"
@@ -393,6 +425,7 @@ export type $MarketPriceCachePayload<ExtArgs extends runtime.Types.Extensions.In
     ticker: string
     price: runtime.Decimal
     currency: $Enums.Currency
+    dividendRate: runtime.Decimal | null
     fetchedAt: Date
   }, ExtArgs["result"]["marketPriceCache"]>
   composites: {}
@@ -821,6 +854,7 @@ export interface MarketPriceCacheFieldRefs {
   readonly ticker: Prisma.FieldRef<"MarketPriceCache", 'String'>
   readonly price: Prisma.FieldRef<"MarketPriceCache", 'Decimal'>
   readonly currency: Prisma.FieldRef<"MarketPriceCache", 'Currency'>
+  readonly dividendRate: Prisma.FieldRef<"MarketPriceCache", 'Decimal'>
   readonly fetchedAt: Prisma.FieldRef<"MarketPriceCache", 'DateTime'>
 }
     
