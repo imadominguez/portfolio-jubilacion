@@ -72,6 +72,11 @@ export function revalidateAlerts(userId: string): void {
   updateTag(userTags.alerts(userId));
 }
 
+// Categorías y notas de los gastos (ExpenseTag).
+export function revalidateExpenses(userId: string): void {
+  updateTag(userTags.expenses(userId));
+}
+
 // Estado de onboarding (UserSetup).
 export function revalidateSetup(userId: string): void {
   updateTag(userTags.setup(userId));

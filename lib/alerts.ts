@@ -3,9 +3,9 @@
 
 import type { NewsItem, PricePoint } from "@/lib/opportunity-signals";
 import { pctChange } from "@/lib/snapshot-returns";
+import { localDateParts, monthKeyOf, monthLabel, shiftMonth } from "@/lib/local-date";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-export const ALERT_TIME_ZONE = "America/Argentina/Buenos_Aires";
 
 export type AlertThresholds = {
   // Caída desde el máximo de 52 semanas, en % (positivo: 15 = −15 %).
@@ -64,26 +64,12 @@ export function shouldNotifyDrop(fromHigh52wPct: number, last: LastAlert | null,
 // Recordatorio de carga mensual
 // ---------------------------------------------------------------------------
 
-// Fecha local (Argentina) como { year, month (1-12), day }.
-export function localDateParts(now: Date, timeZone = ALERT_TIME_ZONE) {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(now);
-  const get = (type: string) => Number(parts.find((p) => p.type === type)?.value);
-  return { year: get("year"), month: get("month"), day: get("day") };
-}
-
 // Mes a recordar ("AAAA-MM", el anterior al actual) si ya pasó el día del
 // recordatorio; si no, null.
 export function reminderMonth(now: Date, reminderDay: number): string | null {
-  const { year, month, day } = localDateParts(now);
-  if (day < reminderDay) return null;
-  const prevYear = month === 1 ? year - 1 : year;
-  const prevMonth = month === 1 ? 12 : month - 1;
-  return `${prevYear}-${String(prevMonth).padStart(2, "0")}`;
+  const today = localDateParts(now);
+  if (today.day < reminderDay) return null;
+  return shiftMonth(monthKeyOf(today), -1);
 }
 
 export type ReminderStatus = { missingSnapshot: boolean; missingMovements: boolean };
@@ -135,16 +121,6 @@ export type DropAlert = {
 export type ReminderAlert = ReminderStatus & { monthKey: string };
 
 export type AlertEmail = { subject: string; text: string; html: string };
-
-const MONTHS = [
-  "enero", "febrero", "marzo", "abril", "mayo", "junio",
-  "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
-];
-
-export function monthLabel(monthKey: string): string {
-  const [year, month] = monthKey.split("-").map(Number);
-  return `${MONTHS[month - 1]} ${year}`;
-}
 
 const pct = (n: number) => `${n >= 0 ? "+" : ""}${n.toFixed(1).replace(".", ",")} %`;
 const usd = (n: number) => `US$ ${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;

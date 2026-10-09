@@ -418,7 +418,8 @@ export const ModelName = {
   PortfolioReport: 'PortfolioReport',
   Movement: 'Movement',
   AlertSettings: 'AlertSettings',
-  AlertLog: 'AlertLog'
+  AlertLog: 'AlertLog',
+  ExpenseTag: 'ExpenseTag'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -434,7 +435,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "portfolioSnapshot" | "position" | "asset" | "exchangeRate" | "marketPriceCache" | "benchmarkPoint" | "targetAllocation" | "transaction" | "dividend" | "retirementSettings" | "historicalPriceCache" | "milestoneAlert" | "userSetup" | "investmentStrategy" | "portfolioReport" | "movement" | "alertSettings" | "alertLog"
+    modelProps: "user" | "session" | "account" | "verification" | "portfolioSnapshot" | "position" | "asset" | "exchangeRate" | "marketPriceCache" | "benchmarkPoint" | "targetAllocation" | "transaction" | "dividend" | "retirementSettings" | "historicalPriceCache" | "milestoneAlert" | "userSetup" | "investmentStrategy" | "portfolioReport" | "movement" | "alertSettings" | "alertLog" | "expenseTag"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2066,6 +2067,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ExpenseTag: {
+      payload: Prisma.$ExpenseTagPayload<ExtArgs>
+      fields: Prisma.ExpenseTagFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ExpenseTagFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseTagPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ExpenseTagFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseTagPayload>
+        }
+        findFirst: {
+          args: Prisma.ExpenseTagFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseTagPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ExpenseTagFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseTagPayload>
+        }
+        findMany: {
+          args: Prisma.ExpenseTagFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseTagPayload>[]
+        }
+        create: {
+          args: Prisma.ExpenseTagCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseTagPayload>
+        }
+        createMany: {
+          args: Prisma.ExpenseTagCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ExpenseTagCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseTagPayload>[]
+        }
+        delete: {
+          args: Prisma.ExpenseTagDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseTagPayload>
+        }
+        update: {
+          args: Prisma.ExpenseTagUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseTagPayload>
+        }
+        deleteMany: {
+          args: Prisma.ExpenseTagDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ExpenseTagUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ExpenseTagUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseTagPayload>[]
+        }
+        upsert: {
+          args: Prisma.ExpenseTagUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseTagPayload>
+        }
+        aggregate: {
+          args: Prisma.ExpenseTagAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateExpenseTag>
+        }
+        groupBy: {
+          args: Prisma.ExpenseTagGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExpenseTagGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ExpenseTagCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExpenseTagCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2415,6 +2490,17 @@ export const AlertLogScalarFieldEnum = {
 } as const
 
 export type AlertLogScalarFieldEnum = (typeof AlertLogScalarFieldEnum)[keyof typeof AlertLogScalarFieldEnum]
+
+
+export const ExpenseTagScalarFieldEnum = {
+  movementId: 'movementId',
+  userId: 'userId',
+  category: 'category',
+  note: 'note',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ExpenseTagScalarFieldEnum = (typeof ExpenseTagScalarFieldEnum)[keyof typeof ExpenseTagScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2810,6 +2896,7 @@ export type GlobalOmitConfig = {
   movement?: Prisma.MovementOmit
   alertSettings?: Prisma.AlertSettingsOmit
   alertLog?: Prisma.AlertLogOmit
+  expenseTag?: Prisma.ExpenseTagOmit
 }
 
 /* Types for Logging */

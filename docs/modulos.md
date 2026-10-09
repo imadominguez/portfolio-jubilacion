@@ -161,7 +161,8 @@ Metadata raíz (`app/layout.tsx`): `title` por defecto `"Portfolio Jubilación"`
 ## `/transactions` — Transacciones
 
 - **Archivo:** `app/(app)/transactions/page.tsx`.
-- **Datos (`Promise.all`, todas cacheadas):** `getAllTransactions()`, `calculatePPM()`, `getRealizedPnl()`, `getMovements()` (tag `trades:<userId>`) y `getAllDividends()` (tag `dividends:<userId>`).
+- **Gastos del mes** (arriba, en su propio `<Suspense>`): lee `searchParams.mes` (`AAAA-MM`; por defecto el mes actual de Argentina, nunca uno futuro) y `getMonthExpenses(mes)`. `ExpensesSection` muestra lo gastado, el promedio por día, la proyección a fin de mes, la comparación con el mes anterior hasta el mismo día, un gráfico por día, el total por categoría y la lista de pagos para ponerles categoría y nota. Navegación entre meses con links `?mes=`.
+- **Datos de las pestañas (`Promise.all`, todas cacheadas):** `getAllTransactions()`, `calculatePPM()`, `getRealizedPnl()`, `getMovements()` (tag `trades:<userId>`) y `getAllDividends()` (tag `dividends:<userId>`).
 - **Muestra:** tabs de Transacciones, PPM, P&L realizado, Dividendos y **Movimientos** (con sub-vista **Fondos FCI**); exportar transacciones a CSV; importar movimientos de Cocos; formularios de transacción y dividendo.
 - **Componentes:** `SiteHeader` (acciones `CsvExportButton`, `ImportMovimientosButton` y `DividendForm` en modo `compact` —solo ícono por debajo de `2xl`—, y `TransactionForm`), `TransactionsClient`.
 
@@ -241,7 +242,7 @@ Ambas redirigen a `/` si ya hay sesión (proxy). El cliente de Better Auth (`lib
 | `/impuestos` | Sí (+ `searchParams`) | snapshots + transacciones + dividendos | No | Análisis |
 | `/datos` | Sí (por tarjeta) | setup + readiness + precios/CCL/índices | No | Datos |
 | `/alertas` | Sí | configuración e historial de alertas | No | Datos |
-| `/transactions` | Sí | actions transactions/dividends/movements | No | Datos |
+| `/transactions` | Sí (+ `searchParams`) | actions transactions/dividends/movements/expenses | No | Datos |
 | `/guia` | No | — | No | Datos |
 | `/assets` | Sí | `getAssetCatalog` | **Sí** | Configuración |
 | `/strategy` | Sí | actions strategy | **Sí** | Configuración |

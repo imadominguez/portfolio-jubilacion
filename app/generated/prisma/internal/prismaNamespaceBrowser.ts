@@ -72,7 +72,8 @@ export const ModelName = {
   PortfolioReport: 'PortfolioReport',
   Movement: 'Movement',
   AlertSettings: 'AlertSettings',
-  AlertLog: 'AlertLog'
+  AlertLog: 'AlertLog',
+  ExpenseTag: 'ExpenseTag'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -401,6 +402,17 @@ export const AlertLogScalarFieldEnum = {
 } as const
 
 export type AlertLogScalarFieldEnum = (typeof AlertLogScalarFieldEnum)[keyof typeof AlertLogScalarFieldEnum]
+
+
+export const ExpenseTagScalarFieldEnum = {
+  movementId: 'movementId',
+  userId: 'userId',
+  category: 'category',
+  note: 'note',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ExpenseTagScalarFieldEnum = (typeof ExpenseTagScalarFieldEnum)[keyof typeof ExpenseTagScalarFieldEnum]
 
 
 export const SortOrder = {

@@ -127,3 +127,8 @@ export type AlertSettings = Prisma.AlertSettingsModel
  * 
  */
 export type AlertLog = Prisma.AlertLogModel
+/**
+ * Model ExpenseTag
+ * 
+ */
+export type ExpenseTag = Prisma.ExpenseTagModel

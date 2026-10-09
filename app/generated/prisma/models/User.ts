@@ -219,6 +219,7 @@ export type UserWhereInput = {
   setup?: Prisma.XOR<Prisma.UserSetupNullableScalarRelationFilter, Prisma.UserSetupWhereInput> | null
   alertSettings?: Prisma.XOR<Prisma.AlertSettingsNullableScalarRelationFilter, Prisma.AlertSettingsWhereInput> | null
   alertLogs?: Prisma.AlertLogListRelationFilter
+  expenseTags?: Prisma.ExpenseTagListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -243,6 +244,7 @@ export type UserOrderByWithRelationInput = {
   setup?: Prisma.UserSetupOrderByWithRelationInput
   alertSettings?: Prisma.AlertSettingsOrderByWithRelationInput
   alertLogs?: Prisma.AlertLogOrderByRelationAggregateInput
+  expenseTags?: Prisma.ExpenseTagOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -270,6 +272,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   setup?: Prisma.XOR<Prisma.UserSetupNullableScalarRelationFilter, Prisma.UserSetupWhereInput> | null
   alertSettings?: Prisma.XOR<Prisma.AlertSettingsNullableScalarRelationFilter, Prisma.AlertSettingsWhereInput> | null
   alertLogs?: Prisma.AlertLogListRelationFilter
+  expenseTags?: Prisma.ExpenseTagListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -322,6 +325,7 @@ export type UserCreateInput = {
   setup?: Prisma.UserSetupCreateNestedOneWithoutUserInput
   alertSettings?: Prisma.AlertSettingsCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -346,6 +350,7 @@ export type UserUncheckedCreateInput = {
   setup?: Prisma.UserSetupUncheckedCreateNestedOneWithoutUserInput
   alertSettings?: Prisma.AlertSettingsUncheckedCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogUncheckedCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -370,6 +375,7 @@ export type UserUpdateInput = {
   setup?: Prisma.UserSetupUpdateOneWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -394,6 +400,7 @@ export type UserUncheckedUpdateInput = {
   setup?: Prisma.UserSetupUncheckedUpdateOneWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUncheckedUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUncheckedUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -690,6 +697,20 @@ export type UserUpdateOneRequiredWithoutAlertLogsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAlertLogsInput, Prisma.UserUpdateWithoutAlertLogsInput>, Prisma.UserUncheckedUpdateWithoutAlertLogsInput>
 }
 
+export type UserCreateNestedOneWithoutExpenseTagsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutExpenseTagsInput, Prisma.UserUncheckedCreateWithoutExpenseTagsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutExpenseTagsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutExpenseTagsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutExpenseTagsInput, Prisma.UserUncheckedCreateWithoutExpenseTagsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutExpenseTagsInput
+  upsert?: Prisma.UserUpsertWithoutExpenseTagsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutExpenseTagsInput, Prisma.UserUpdateWithoutExpenseTagsInput>, Prisma.UserUncheckedUpdateWithoutExpenseTagsInput>
+}
+
 export type UserCreateWithoutSessionsInput = {
   id: string
   name: string
@@ -711,6 +732,7 @@ export type UserCreateWithoutSessionsInput = {
   setup?: Prisma.UserSetupCreateNestedOneWithoutUserInput
   alertSettings?: Prisma.AlertSettingsCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -734,6 +756,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   setup?: Prisma.UserSetupUncheckedCreateNestedOneWithoutUserInput
   alertSettings?: Prisma.AlertSettingsUncheckedCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogUncheckedCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -773,6 +796,7 @@ export type UserUpdateWithoutSessionsInput = {
   setup?: Prisma.UserSetupUpdateOneWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -796,6 +820,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   setup?: Prisma.UserSetupUncheckedUpdateOneWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUncheckedUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUncheckedUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAccountsInput = {
@@ -819,6 +844,7 @@ export type UserCreateWithoutAccountsInput = {
   setup?: Prisma.UserSetupCreateNestedOneWithoutUserInput
   alertSettings?: Prisma.AlertSettingsCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -842,6 +868,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   setup?: Prisma.UserSetupUncheckedCreateNestedOneWithoutUserInput
   alertSettings?: Prisma.AlertSettingsUncheckedCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogUncheckedCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -881,6 +908,7 @@ export type UserUpdateWithoutAccountsInput = {
   setup?: Prisma.UserSetupUpdateOneWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -904,6 +932,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   setup?: Prisma.UserSetupUncheckedUpdateOneWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUncheckedUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUncheckedUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPortfolioSnapshotsInput = {
@@ -927,6 +956,7 @@ export type UserCreateWithoutPortfolioSnapshotsInput = {
   setup?: Prisma.UserSetupCreateNestedOneWithoutUserInput
   alertSettings?: Prisma.AlertSettingsCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPortfolioSnapshotsInput = {
@@ -950,6 +980,7 @@ export type UserUncheckedCreateWithoutPortfolioSnapshotsInput = {
   setup?: Prisma.UserSetupUncheckedCreateNestedOneWithoutUserInput
   alertSettings?: Prisma.AlertSettingsUncheckedCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogUncheckedCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPortfolioSnapshotsInput = {
@@ -989,6 +1020,7 @@ export type UserUpdateWithoutPortfolioSnapshotsInput = {
   setup?: Prisma.UserSetupUpdateOneWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPortfolioSnapshotsInput = {
@@ -1012,6 +1044,7 @@ export type UserUncheckedUpdateWithoutPortfolioSnapshotsInput = {
   setup?: Prisma.UserSetupUncheckedUpdateOneWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUncheckedUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUncheckedUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTargetAllocationsInput = {
@@ -1035,6 +1068,7 @@ export type UserCreateWithoutTargetAllocationsInput = {
   setup?: Prisma.UserSetupCreateNestedOneWithoutUserInput
   alertSettings?: Prisma.AlertSettingsCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTargetAllocationsInput = {
@@ -1058,6 +1092,7 @@ export type UserUncheckedCreateWithoutTargetAllocationsInput = {
   setup?: Prisma.UserSetupUncheckedCreateNestedOneWithoutUserInput
   alertSettings?: Prisma.AlertSettingsUncheckedCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogUncheckedCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTargetAllocationsInput = {
@@ -1097,6 +1132,7 @@ export type UserUpdateWithoutTargetAllocationsInput = {
   setup?: Prisma.UserSetupUpdateOneWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTargetAllocationsInput = {
@@ -1120,6 +1156,7 @@ export type UserUncheckedUpdateWithoutTargetAllocationsInput = {
   setup?: Prisma.UserSetupUncheckedUpdateOneWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUncheckedUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUncheckedUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTransactionsInput = {
@@ -1143,6 +1180,7 @@ export type UserCreateWithoutTransactionsInput = {
   setup?: Prisma.UserSetupCreateNestedOneWithoutUserInput
   alertSettings?: Prisma.AlertSettingsCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTransactionsInput = {
@@ -1166,6 +1204,7 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   setup?: Prisma.UserSetupUncheckedCreateNestedOneWithoutUserInput
   alertSettings?: Prisma.AlertSettingsUncheckedCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogUncheckedCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTransactionsInput = {
@@ -1205,6 +1244,7 @@ export type UserUpdateWithoutTransactionsInput = {
   setup?: Prisma.UserSetupUpdateOneWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTransactionsInput = {
@@ -1228,6 +1268,7 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   setup?: Prisma.UserSetupUncheckedUpdateOneWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUncheckedUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUncheckedUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutDividendsInput = {
@@ -1251,6 +1292,7 @@ export type UserCreateWithoutDividendsInput = {
   setup?: Prisma.UserSetupCreateNestedOneWithoutUserInput
   alertSettings?: Prisma.AlertSettingsCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutDividendsInput = {
@@ -1274,6 +1316,7 @@ export type UserUncheckedCreateWithoutDividendsInput = {
   setup?: Prisma.UserSetupUncheckedCreateNestedOneWithoutUserInput
   alertSettings?: Prisma.AlertSettingsUncheckedCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogUncheckedCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutDividendsInput = {
@@ -1313,6 +1356,7 @@ export type UserUpdateWithoutDividendsInput = {
   setup?: Prisma.UserSetupUpdateOneWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutDividendsInput = {
@@ -1336,6 +1380,7 @@ export type UserUncheckedUpdateWithoutDividendsInput = {
   setup?: Prisma.UserSetupUncheckedUpdateOneWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUncheckedUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUncheckedUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutRetirementSettingsInput = {
@@ -1359,6 +1404,7 @@ export type UserCreateWithoutRetirementSettingsInput = {
   setup?: Prisma.UserSetupCreateNestedOneWithoutUserInput
   alertSettings?: Prisma.AlertSettingsCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutRetirementSettingsInput = {
@@ -1382,6 +1428,7 @@ export type UserUncheckedCreateWithoutRetirementSettingsInput = {
   setup?: Prisma.UserSetupUncheckedCreateNestedOneWithoutUserInput
   alertSettings?: Prisma.AlertSettingsUncheckedCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogUncheckedCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutRetirementSettingsInput = {
@@ -1421,6 +1468,7 @@ export type UserUpdateWithoutRetirementSettingsInput = {
   setup?: Prisma.UserSetupUpdateOneWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRetirementSettingsInput = {
@@ -1444,6 +1492,7 @@ export type UserUncheckedUpdateWithoutRetirementSettingsInput = {
   setup?: Prisma.UserSetupUncheckedUpdateOneWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUncheckedUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUncheckedUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutMilestoneAlertsInput = {
@@ -1467,6 +1516,7 @@ export type UserCreateWithoutMilestoneAlertsInput = {
   setup?: Prisma.UserSetupCreateNestedOneWithoutUserInput
   alertSettings?: Prisma.AlertSettingsCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutMilestoneAlertsInput = {
@@ -1490,6 +1540,7 @@ export type UserUncheckedCreateWithoutMilestoneAlertsInput = {
   setup?: Prisma.UserSetupUncheckedCreateNestedOneWithoutUserInput
   alertSettings?: Prisma.AlertSettingsUncheckedCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogUncheckedCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutMilestoneAlertsInput = {
@@ -1529,6 +1580,7 @@ export type UserUpdateWithoutMilestoneAlertsInput = {
   setup?: Prisma.UserSetupUpdateOneWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMilestoneAlertsInput = {
@@ -1552,6 +1604,7 @@ export type UserUncheckedUpdateWithoutMilestoneAlertsInput = {
   setup?: Prisma.UserSetupUncheckedUpdateOneWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUncheckedUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUncheckedUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSetupInput = {
@@ -1575,6 +1628,7 @@ export type UserCreateWithoutSetupInput = {
   movements?: Prisma.MovementCreateNestedManyWithoutUserInput
   alertSettings?: Prisma.AlertSettingsCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSetupInput = {
@@ -1598,6 +1652,7 @@ export type UserUncheckedCreateWithoutSetupInput = {
   movements?: Prisma.MovementUncheckedCreateNestedManyWithoutUserInput
   alertSettings?: Prisma.AlertSettingsUncheckedCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogUncheckedCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSetupInput = {
@@ -1637,6 +1692,7 @@ export type UserUpdateWithoutSetupInput = {
   movements?: Prisma.MovementUpdateManyWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSetupInput = {
@@ -1660,6 +1716,7 @@ export type UserUncheckedUpdateWithoutSetupInput = {
   movements?: Prisma.MovementUncheckedUpdateManyWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUncheckedUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUncheckedUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPortfolioReportsInput = {
@@ -1683,6 +1740,7 @@ export type UserCreateWithoutPortfolioReportsInput = {
   setup?: Prisma.UserSetupCreateNestedOneWithoutUserInput
   alertSettings?: Prisma.AlertSettingsCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPortfolioReportsInput = {
@@ -1706,6 +1764,7 @@ export type UserUncheckedCreateWithoutPortfolioReportsInput = {
   setup?: Prisma.UserSetupUncheckedCreateNestedOneWithoutUserInput
   alertSettings?: Prisma.AlertSettingsUncheckedCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogUncheckedCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPortfolioReportsInput = {
@@ -1745,6 +1804,7 @@ export type UserUpdateWithoutPortfolioReportsInput = {
   setup?: Prisma.UserSetupUpdateOneWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPortfolioReportsInput = {
@@ -1768,6 +1828,7 @@ export type UserUncheckedUpdateWithoutPortfolioReportsInput = {
   setup?: Prisma.UserSetupUncheckedUpdateOneWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUncheckedUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUncheckedUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutMovementsInput = {
@@ -1791,6 +1852,7 @@ export type UserCreateWithoutMovementsInput = {
   setup?: Prisma.UserSetupCreateNestedOneWithoutUserInput
   alertSettings?: Prisma.AlertSettingsCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutMovementsInput = {
@@ -1814,6 +1876,7 @@ export type UserUncheckedCreateWithoutMovementsInput = {
   setup?: Prisma.UserSetupUncheckedCreateNestedOneWithoutUserInput
   alertSettings?: Prisma.AlertSettingsUncheckedCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogUncheckedCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutMovementsInput = {
@@ -1853,6 +1916,7 @@ export type UserUpdateWithoutMovementsInput = {
   setup?: Prisma.UserSetupUpdateOneWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMovementsInput = {
@@ -1876,6 +1940,7 @@ export type UserUncheckedUpdateWithoutMovementsInput = {
   setup?: Prisma.UserSetupUncheckedUpdateOneWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUncheckedUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUncheckedUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAlertSettingsInput = {
@@ -1899,6 +1964,7 @@ export type UserCreateWithoutAlertSettingsInput = {
   movements?: Prisma.MovementCreateNestedManyWithoutUserInput
   setup?: Prisma.UserSetupCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAlertSettingsInput = {
@@ -1922,6 +1988,7 @@ export type UserUncheckedCreateWithoutAlertSettingsInput = {
   movements?: Prisma.MovementUncheckedCreateNestedManyWithoutUserInput
   setup?: Prisma.UserSetupUncheckedCreateNestedOneWithoutUserInput
   alertLogs?: Prisma.AlertLogUncheckedCreateNestedManyWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAlertSettingsInput = {
@@ -1961,6 +2028,7 @@ export type UserUpdateWithoutAlertSettingsInput = {
   movements?: Prisma.MovementUpdateManyWithoutUserNestedInput
   setup?: Prisma.UserSetupUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAlertSettingsInput = {
@@ -1984,6 +2052,7 @@ export type UserUncheckedUpdateWithoutAlertSettingsInput = {
   movements?: Prisma.MovementUncheckedUpdateManyWithoutUserNestedInput
   setup?: Prisma.UserSetupUncheckedUpdateOneWithoutUserNestedInput
   alertLogs?: Prisma.AlertLogUncheckedUpdateManyWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAlertLogsInput = {
@@ -2007,6 +2076,7 @@ export type UserCreateWithoutAlertLogsInput = {
   movements?: Prisma.MovementCreateNestedManyWithoutUserInput
   setup?: Prisma.UserSetupCreateNestedOneWithoutUserInput
   alertSettings?: Prisma.AlertSettingsCreateNestedOneWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAlertLogsInput = {
@@ -2030,6 +2100,7 @@ export type UserUncheckedCreateWithoutAlertLogsInput = {
   movements?: Prisma.MovementUncheckedCreateNestedManyWithoutUserInput
   setup?: Prisma.UserSetupUncheckedCreateNestedOneWithoutUserInput
   alertSettings?: Prisma.AlertSettingsUncheckedCreateNestedOneWithoutUserInput
+  expenseTags?: Prisma.ExpenseTagUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAlertLogsInput = {
@@ -2069,6 +2140,7 @@ export type UserUpdateWithoutAlertLogsInput = {
   movements?: Prisma.MovementUpdateManyWithoutUserNestedInput
   setup?: Prisma.UserSetupUpdateOneWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUpdateOneWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAlertLogsInput = {
@@ -2092,6 +2164,119 @@ export type UserUncheckedUpdateWithoutAlertLogsInput = {
   movements?: Prisma.MovementUncheckedUpdateManyWithoutUserNestedInput
   setup?: Prisma.UserSetupUncheckedUpdateOneWithoutUserNestedInput
   alertSettings?: Prisma.AlertSettingsUncheckedUpdateOneWithoutUserNestedInput
+  expenseTags?: Prisma.ExpenseTagUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutExpenseTagsInput = {
+  id: string
+  name: string
+  email: string
+  emailVerified: boolean
+  image?: string | null
+  role?: $Enums.UserRole
+  createdAt: Date | string
+  updatedAt: Date | string
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  portfolioSnapshots?: Prisma.PortfolioSnapshotCreateNestedManyWithoutUserInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  dividends?: Prisma.DividendCreateNestedManyWithoutUserInput
+  retirementSettings?: Prisma.RetirementSettingsCreateNestedManyWithoutUserInput
+  targetAllocations?: Prisma.TargetAllocationCreateNestedManyWithoutUserInput
+  milestoneAlerts?: Prisma.MilestoneAlertCreateNestedManyWithoutUserInput
+  portfolioReports?: Prisma.PortfolioReportCreateNestedManyWithoutUserInput
+  movements?: Prisma.MovementCreateNestedManyWithoutUserInput
+  setup?: Prisma.UserSetupCreateNestedOneWithoutUserInput
+  alertSettings?: Prisma.AlertSettingsCreateNestedOneWithoutUserInput
+  alertLogs?: Prisma.AlertLogCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutExpenseTagsInput = {
+  id: string
+  name: string
+  email: string
+  emailVerified: boolean
+  image?: string | null
+  role?: $Enums.UserRole
+  createdAt: Date | string
+  updatedAt: Date | string
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  portfolioSnapshots?: Prisma.PortfolioSnapshotUncheckedCreateNestedManyWithoutUserInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  dividends?: Prisma.DividendUncheckedCreateNestedManyWithoutUserInput
+  retirementSettings?: Prisma.RetirementSettingsUncheckedCreateNestedManyWithoutUserInput
+  targetAllocations?: Prisma.TargetAllocationUncheckedCreateNestedManyWithoutUserInput
+  milestoneAlerts?: Prisma.MilestoneAlertUncheckedCreateNestedManyWithoutUserInput
+  portfolioReports?: Prisma.PortfolioReportUncheckedCreateNestedManyWithoutUserInput
+  movements?: Prisma.MovementUncheckedCreateNestedManyWithoutUserInput
+  setup?: Prisma.UserSetupUncheckedCreateNestedOneWithoutUserInput
+  alertSettings?: Prisma.AlertSettingsUncheckedCreateNestedOneWithoutUserInput
+  alertLogs?: Prisma.AlertLogUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutExpenseTagsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutExpenseTagsInput, Prisma.UserUncheckedCreateWithoutExpenseTagsInput>
+}
+
+export type UserUpsertWithoutExpenseTagsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutExpenseTagsInput, Prisma.UserUncheckedUpdateWithoutExpenseTagsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutExpenseTagsInput, Prisma.UserUncheckedCreateWithoutExpenseTagsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutExpenseTagsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutExpenseTagsInput, Prisma.UserUncheckedUpdateWithoutExpenseTagsInput>
+}
+
+export type UserUpdateWithoutExpenseTagsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  portfolioSnapshots?: Prisma.PortfolioSnapshotUpdateManyWithoutUserNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  dividends?: Prisma.DividendUpdateManyWithoutUserNestedInput
+  retirementSettings?: Prisma.RetirementSettingsUpdateManyWithoutUserNestedInput
+  targetAllocations?: Prisma.TargetAllocationUpdateManyWithoutUserNestedInput
+  milestoneAlerts?: Prisma.MilestoneAlertUpdateManyWithoutUserNestedInput
+  portfolioReports?: Prisma.PortfolioReportUpdateManyWithoutUserNestedInput
+  movements?: Prisma.MovementUpdateManyWithoutUserNestedInput
+  setup?: Prisma.UserSetupUpdateOneWithoutUserNestedInput
+  alertSettings?: Prisma.AlertSettingsUpdateOneWithoutUserNestedInput
+  alertLogs?: Prisma.AlertLogUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutExpenseTagsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  portfolioSnapshots?: Prisma.PortfolioSnapshotUncheckedUpdateManyWithoutUserNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  dividends?: Prisma.DividendUncheckedUpdateManyWithoutUserNestedInput
+  retirementSettings?: Prisma.RetirementSettingsUncheckedUpdateManyWithoutUserNestedInput
+  targetAllocations?: Prisma.TargetAllocationUncheckedUpdateManyWithoutUserNestedInput
+  milestoneAlerts?: Prisma.MilestoneAlertUncheckedUpdateManyWithoutUserNestedInput
+  portfolioReports?: Prisma.PortfolioReportUncheckedUpdateManyWithoutUserNestedInput
+  movements?: Prisma.MovementUncheckedUpdateManyWithoutUserNestedInput
+  setup?: Prisma.UserSetupUncheckedUpdateOneWithoutUserNestedInput
+  alertSettings?: Prisma.AlertSettingsUncheckedUpdateOneWithoutUserNestedInput
+  alertLogs?: Prisma.AlertLogUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -2111,6 +2296,7 @@ export type UserCountOutputType = {
   portfolioReports: number
   movements: number
   alertLogs: number
+  expenseTags: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2125,6 +2311,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   portfolioReports?: boolean | UserCountOutputTypeCountPortfolioReportsArgs
   movements?: boolean | UserCountOutputTypeCountMovementsArgs
   alertLogs?: boolean | UserCountOutputTypeCountAlertLogsArgs
+  expenseTags?: boolean | UserCountOutputTypeCountExpenseTagsArgs
 }
 
 /**
@@ -2214,6 +2401,13 @@ export type UserCountOutputTypeCountAlertLogsArgs<ExtArgs extends runtime.Types.
   where?: Prisma.AlertLogWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountExpenseTagsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ExpenseTagWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2237,6 +2431,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   setup?: boolean | Prisma.User$setupArgs<ExtArgs>
   alertSettings?: boolean | Prisma.User$alertSettingsArgs<ExtArgs>
   alertLogs?: boolean | Prisma.User$alertLogsArgs<ExtArgs>
+  expenseTags?: boolean | Prisma.User$expenseTagsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -2288,6 +2483,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   setup?: boolean | Prisma.User$setupArgs<ExtArgs>
   alertSettings?: boolean | Prisma.User$alertSettingsArgs<ExtArgs>
   alertLogs?: boolean | Prisma.User$alertLogsArgs<ExtArgs>
+  expenseTags?: boolean | Prisma.User$expenseTagsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -2309,6 +2505,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     setup: Prisma.$UserSetupPayload<ExtArgs> | null
     alertSettings: Prisma.$AlertSettingsPayload<ExtArgs> | null
     alertLogs: Prisma.$AlertLogPayload<ExtArgs>[]
+    expenseTags: Prisma.$ExpenseTagPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2726,6 +2923,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   setup<T extends Prisma.User$setupArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$setupArgs<ExtArgs>>): Prisma.Prisma__UserSetupClient<runtime.Types.Result.GetResult<Prisma.$UserSetupPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   alertSettings<T extends Prisma.User$alertSettingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$alertSettingsArgs<ExtArgs>>): Prisma.Prisma__AlertSettingsClient<runtime.Types.Result.GetResult<Prisma.$AlertSettingsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   alertLogs<T extends Prisma.User$alertLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$alertLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AlertLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  expenseTags<T extends Prisma.User$expenseTagsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$expenseTagsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExpenseTagPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3455,6 +3653,30 @@ export type User$alertLogsArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.AlertLogScalarFieldEnum | Prisma.AlertLogScalarFieldEnum[]
+}
+
+/**
+ * User.expenseTags
+ */
+export type User$expenseTagsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ExpenseTag
+   */
+  select?: Prisma.ExpenseTagSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ExpenseTag
+   */
+  omit?: Prisma.ExpenseTagOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ExpenseTagInclude<ExtArgs> | null
+  where?: Prisma.ExpenseTagWhereInput
+  orderBy?: Prisma.ExpenseTagOrderByWithRelationInput | Prisma.ExpenseTagOrderByWithRelationInput[]
+  cursor?: Prisma.ExpenseTagWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ExpenseTagScalarFieldEnum | Prisma.ExpenseTagScalarFieldEnum[]
 }
 
 /**

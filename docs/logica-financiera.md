@@ -494,6 +494,23 @@ Se omiten los de monto 0. Cocos no informa de qué CEDEAR viene cada dividendo e
 
 ---
 
+## Gastos del mes (`lib/expenses.ts`)
+
+Salen de los pagos (`PAYMENT`, "Orden De Pago") del libro de movimientos de Cocos, en pesos. Cocos no informa el destino del pago: la categoría y la nota las pone el usuario en `ExpenseTag` (aparte del `Movement`, que no se edita, ADR-0012). Los cortes por mes y por día usan la fecha local de Argentina (`lib/local-date.ts`).
+
+```
+monto            = −Movement.total            (un pago con total positivo es un reintegro y resta)
+días transcurridos = hoy (mes actual) | días del mes (mes cerrado)
+promedio diario  = total / días transcurridos
+proyección       = promedio diario × días del mes      (solo mes actual)
+vs mes anterior  = (total − anterior) / anterior × 100
+                   anterior = mes anterior hasta el mismo día (mes actual) o completo (mes cerrado)
+```
+
+Por categoría: suma por `ExpenseTag.category`; los pagos sin categoría (o con una que ya no existe) van a "Sin categorizar". Los pagos en dólares no entran en los totales (se informa cuántos hay).
+
+---
+
 ## Alertas por mail (`lib/alerts.ts`)
 
 Ver [ADR-0020](./adr/0020-alertas-por-mail-con-cron-y-gmail-smtp.md). Se revisa una vez por día (cron a las 9 de Argentina) y se manda un único mail por usuario.

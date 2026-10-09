@@ -7,7 +7,7 @@ import { AlertsSkeleton } from "@/components/alerts/alerts-skeleton";
 import { getAlertsPageData } from "@/app/actions/alerts";
 import { requireAuth } from "@/lib/auth-session";
 import { isMailerConfigured } from "@/lib/mailer";
-import { monthLabel } from "@/lib/alerts";
+import { monthLabel } from "@/lib/local-date";
 
 export const metadata: Metadata = { title: "Alertas" };
 

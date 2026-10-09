@@ -79,6 +79,7 @@ model User {
   setup              UserSetup?
   alertSettings      AlertSettings?
   alertLogs          AlertLog[]
+  expenseTags        ExpenseTag[]
 
   @@map("user")
 }
@@ -496,6 +497,7 @@ model Movement {
   userId         String?
   user           User?            @relation(fields: [userId], references: [id])
   transaction    Transaction?
+  expenseTag     ExpenseTag?
 
   @@unique([userId, nroTicket])
   @@index([date])
@@ -546,4 +548,26 @@ model AlertLog {
 
   @@index([userId, kind, key, sentAt])
   @@map("alert_logs")
+}
+
+// ---------------------------------------------------------------------------
+// ExpenseTag
+//
+// Categoría y nota que el usuario le pone a un pago (PAYMENT) del libro de
+// movimientos para ver en qué gasta. Cocos no informa el destino del pago.
+// Va aparte del Movement: el libro de Cocos no se edita (ADR-0012).
+// ---------------------------------------------------------------------------
+
+model ExpenseTag {
+  movementId String   @id
+  movement   Movement @relation(fields: [movementId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Id de lib/expenses.ts (EXPENSE_CATEGORIES); null si solo tiene nota.
+  category   String?
+  note       String?
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+  @@map("expense_tags")
 }

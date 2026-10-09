@@ -65,7 +65,7 @@ CEDEAR NVIDIA CORPORATION (NVDA);11;11100;ARS;122100
 5. Descargá el archivo en formato **CSV**
 6. El archivo se llamará `movements_report_YYYY-MM-DD_YYYY-MM-DD.csv`
 
-Importá este archivo en **Transacciones** o en el **Centro de Datos** (`/datos`) con el botón **Importar CSV Cocos**. La app muestra una previsualización agrupada por categoría (compras, ventas, FCI, pagos, dividendos…) donde podés destildar filas. Solo las compras y ventas generan transacciones; el resto queda en el libro de movimientos. Podés reimportar el mismo archivo (o uno que se superponga en fechas) sin duplicar: se deduplica por número de ticket de Cocos.
+Importá este archivo en **Transacciones** o en el **Centro de Datos** (`/datos`) con el botón **Importar CSV Cocos**. Arriba de Transacciones aparecen los **gastos del mes** (los pagos de la cuenta): total, promedio por día, proyección, comparación con el mes anterior y el total por categoría; a cada pago le podés poner una categoría y una nota. La app muestra una previsualización agrupada por categoría (compras, ventas, FCI, pagos, dividendos…) donde podés destildar filas. Solo las compras y ventas generan transacciones; el resto queda en el libro de movimientos. Podés reimportar el mismo archivo (o uno que se superponga en fechas) sin duplicar: se deduplica por número de ticket de Cocos.
 
 ---
 

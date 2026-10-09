@@ -9,3 +9,18 @@ export function TransactionsSkeleton() {
     </>
   );
 }
+
+// Fallback de la sección de gastos del mes.
+export function ExpensesSkeleton() {
+  return (
+    <div className="flex flex-col gap-4">
+      <Skeleton className="h-5 w-40" />
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {[0, 1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-24 rounded-xl" />
+        ))}
+      </div>
+      <Skeleton className="h-[260px] rounded-xl" />
+    </div>
+  );
+}

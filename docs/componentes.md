@@ -77,6 +77,8 @@ Organizados por dominio. Los componentes de `components/ui/` son primitivas shad
 | `transactions-client.tsx` | CC | Tabs Transacciones / PPM / P&L Realizado / Dividendos / **Movimientos**. El tab de Movimientos tiene sub-vistas "Todos" y "Fondos FCI" (aporta/rescata/neto por fondo). Eliminación con `AlertDialog`; fechas en `timeZone: "UTC"`. |
 | `transaction-form.tsx` | CC | Diálogo para registrar BUY/SELL (`createTransaction`). En mobile el botón muestra solo el ícono. |
 | `dividend-form.tsx` | CC | Diálogo para registrar dividendos (`createDividend`, USD por defecto). Prop `compact`: solo ícono por debajo de `2xl` (header de `/transactions`). |
+| `expenses-section.tsx` | SC | `summary`, `expenses`, `currentMonthKey`, `usdPayments`. Sección "Gastos del mes" de `/transactions`: navegación entre meses (links `?mes=`), KPIs, gráfico por día (`ExpensesDailyChart`, barras con Recharts), total por categoría y `ExpensesTable`. |
+| `expenses-table.tsx` | CC | `expenses`. Lista de pagos del mes con categoría (`NativeSelect`) y nota editables; guarda al cambiar la categoría o al salir de la nota (`saveExpenseTag`) y vuelve al valor anterior si falla. Switch "Solo sin categoría". La sección le pasa `key` = mes. |
 | `import-movements-button.tsx` | CC | Importación de movimientos de Cocos. Prop `compact` (header de `/transactions`): solo ícono por debajo de `2xl`, sin el link a la guía y con el aviso de error flotando. Parsea el CSV en el cliente (`parseMovementCsv`) y muestra una previsualización **agrupada por categoría** con checkboxes por grupo y por fila (todo seleccionado por defecto). Avisos para tipos no reconocidos y trades sin ticker. Al confirmar llama a `importMovements`. `id="tour-import-movimientos"`. |
 
 ---
@@ -122,7 +124,7 @@ Cada página pone sus lecturas dentro de `<Suspense>` con un skeleton que tambi�
 | `retirement/retirement-skeleton.tsx` | `/retirement` |
 | `taxes/tax-report-skeleton.tsx` | `/impuestos` |
 | `alerts/alerts-skeleton.tsx` | `/alertas` |
-| `transactions/transactions-skeleton.tsx` | `/transactions` |
+| `transactions/transactions-skeleton.tsx` (`TransactionsSkeleton`, `ExpensesSkeleton`) | `/transactions` |
 | `assets/assets-skeleton.tsx`, `strategy/strategy-skeleton.tsx`, `settings/milestones-skeleton.tsx` | `/assets`, `/strategy`, `/settings` |
 | `auth/auth-card-skeleton.tsx` — `AuthCardSkeleton` | `/login`, `/register` (mismo fondo y tarjeta que los formularios) |
 
