@@ -27,7 +27,7 @@ Metadata raíz (`app/layout.tsx`): `title` por defecto `"Portfolio Jubilación"`
   - `getPreviousSnapshotFull(snapshot.snapshotDate)`
   - `getHoldingsFlows()` — `lib/portfolio-data.ts`
   - Luego, en el servidor: `calculateRetirementGoal({ ..., annualReturnRate: 0.1 })` — `lib/projections.ts`
-- **KPIs:** valor total ARS/USD, rendimiento vs snapshot anterior sin aportes (`modifiedDietz` y `netContributions` de `lib/flow-returns.ts`: "—" sin base positiva), P&L no realizado (precio snapshot vs PPM en ARS), dividendos USD, posiciones activas, CCL.
+- **KPIs:** valor total ARS/USD, rendimiento vs snapshot anterior sin aportes (`modifiedDietz` y `netContributions` de `lib/flow-returns.ts`: "—" sin base positiva), P&L no realizado (precio snapshot vs PPM en ARS), dividendos USD, posiciones activas, CCL. El valor total y el P&L no realizado muestran además la cifra **de hoy** (`liveValuation`, `lib/live-valuation.ts`: tenencia del snapshot con `getMarketPrices()` y el último CCL de `getAllExchangeRates()`).
 - **Componentes:** `SiteHeader` (título "Dashboard", acción `<ImportButton/>`), `SetupPanel` (wizard + checklist de puesta en marcha), `DashboardHero`, `DashboardKpiStrip`, `PortfolioChartWidget`, `AnalysisTools` (tarjetas resumen de Ganancia Real, Jubilación, Plan DCA y Concentración con link a cada módulo), `PerformersPanel` (si hay previo), `AllocationPanel`, `HoldingsTable` (con `ppmData` y `marketPrices`), `MilestoneWidget`.
 - **Estado vacío:** `SetupPanel` + `EmptyDashboard` con CTA de importación.
 

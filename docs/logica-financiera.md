@@ -240,6 +240,21 @@ para 1 mes, YTD y 1 año (se busca el registro más cercano hacia atrás).
 
 ---
 
+## Valuación de hoy (`lib/live-valuation.ts`)
+
+El Dashboard muestra, junto a los números del snapshot, la misma tenencia valuada con los precios del día:
+
+```
+valor USD (con subyacente)  = cantidad / ratio × precio del subyacente (MarketPriceCache)
+valor ARS (con subyacente)  = valor USD × último CCL guardado (o el del snapshot si no hay)
+sin subyacente (bonos, FCI) = valor ARS del snapshot; en USD, / CCL del snapshot
+P&L no realizado hoy        = Σ (precio del subyacente / ratio × CCL − PPM) × cantidad
+```
+
+Las cantidades son las del snapshot (las compras o ventas posteriores no se ven hasta importar uno nuevo). Sin ningún precio del día no se muestra.
+
+---
+
 ## Plan DCA (`lib/dca-planner.ts`)
 
 Reparte el aporte mensual según las señales del último reporte de oportunidades ([ADR-0022](./adr/0022-plan-dca-segun-las-senales-del-reporte-sin-pesos-objetivo.md)). Función pura `planDca(input): DcaPlan`; sin pesos objetivo ni topes.

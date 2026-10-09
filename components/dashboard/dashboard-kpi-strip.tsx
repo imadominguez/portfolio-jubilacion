@@ -10,6 +10,8 @@ interface DashboardKpiStripProps {
   isPositive: boolean;
   totalUnrealizedPnlArs: number | null;
   unrealizedIsPositive: boolean;
+  // Con los precios del día (lib/live-valuation.ts); null si no hay.
+  liveUnrealizedPnlArs: number | null;
   totalDividendsUsd: number;
 }
 
@@ -21,6 +23,7 @@ export function DashboardKpiStrip({
   isPositive,
   totalUnrealizedPnlArs,
   unrealizedIsPositive,
+  liveUnrealizedPnlArs,
   totalDividendsUsd,
 }: DashboardKpiStripProps) {
   const kpis: {
@@ -71,9 +74,14 @@ export function DashboardKpiStrip({
   if (totalUnrealizedPnlArs !== null) {
     kpis.push({
       label: "P&L no realizado",
-      sub: "precio actual vs PPM",
+      sub: "precio del snapshot vs PPM",
       value: `${unrealizedIsPositive ? "+" : ""}${formatARS(totalUnrealizedPnlArs)}`,
-      status: unrealizedIsPositive ? "ganancia latente" : "pérdida latente",
+      status:
+        liveUnrealizedPnlArs !== null
+          ? `hoy: ${liveUnrealizedPnlArs >= 0 ? "+" : ""}${formatARS(liveUnrealizedPnlArs)}`
+          : unrealizedIsPositive
+            ? "ganancia latente"
+            : "pérdida latente",
       accent: unrealizedIsPositive,
       glossary: "pnl",
     });
