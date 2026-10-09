@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { expenseCategoryLabel, expenseSummary, isExpenseCategory, type Expense } from "./expenses";
+import { budgetStatus, expenseCategoryLabel, expenseSummary, isExpenseCategory, suggestCategories, type Expense } from "./expenses";
 import { localDateParts, shiftMonth, isMonthKey, daysInMonth } from "./local-date";
 
 const day = (iso: string) => new Date(`${iso}T00:00:00Z`);
@@ -71,5 +71,30 @@ describe("expenseSummary", () => {
     expect(isExpenseCategory("salud")).toBe(true);
     expect(isExpenseCategory("cualquiera")).toBe(false);
     expect(expenseCategoryLabel(null)).toBe("Sin categorizar");
+  });
+});
+
+describe("suggestCategories", () => {
+  it("sugiere la categoría de un monto ya categorizado y no sugiere si hay empate", () => {
+    const history = [
+      exp("2026-09-05", 23_675, "servicios"),
+      exp("2026-08-05", 23_675, "servicios"),
+      exp("2026-09-10", 500, "transporte"),
+      exp("2026-09-11", 500, "comida"),
+    ];
+    const pending = [exp("2026-10-05", 23_675), exp("2026-10-06", 500), exp("2026-10-07", 999), exp("2026-10-08", 23_675, "otros")];
+    expect(suggestCategories(pending, history)).toEqual({ "2026-10-05-23675": "servicios" });
+  });
+});
+
+describe("budgetStatus", () => {
+  it("compara lo gastado con el presupuesto de cada categoría", () => {
+    const s = expenseSummary([exp("2026-10-01", 1200, "supermercado"), exp("2026-10-02", 300, "salud")], [], "2026-10", { year: 2026, month: 10, day: 9 });
+    const rows = budgetStatus(s.byCategory, { supermercado: 1000, salud: 600, ocio: 500, inventada: 100 });
+    expect(rows.map((r) => [r.category, r.spent, r.over])).toEqual([
+      ["supermercado", 1200, true],
+      ["salud", 300, false],
+      ["ocio", 0, false],
+    ]);
   });
 });

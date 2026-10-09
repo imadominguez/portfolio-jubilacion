@@ -210,7 +210,9 @@ Arriba de las pestañas. Sale de los pagos ("Orden De Pago") del CSV de Activida
 | **Promedio por día** | Gastado / días transcurridos (hasta hoy en el mes actual, todos en un mes cerrado). |
 | **Proyección del mes** | Promedio por día × días del mes. Solo en el mes actual. |
 | **Contra el mes anterior** | Variación contra el mes anterior **hasta el mismo día** (en un mes cerrado, contra el mes anterior completo). |
-| **Por categoría** | Total y % por categoría; los pagos sin categoría van aparte. |
+| **Por categoría** | Total y % por categoría; los pagos sin categoría van aparte. Si la categoría tiene **presupuesto**, muestra lo gastado contra él (la barra se pone amarilla desde el 80 % y roja al superarlo). |
+
+Un pago sin categoría con el mismo monto que otros ya categorizados muestra una **sugerencia** ("¿Suscripciones?") que la aplica con un clic. Los presupuestos se cargan con el botón **Presupuestos**; con las alertas activadas, llega un mail la primera vez que una categoría supera el suyo en el mes.
 
 Los cortes por día y por mes usan la hora de Argentina. Los pagos en dólares no entran en los totales. Detalle en [logica-financiera.md](./logica-financiera.md#gastos-del-mes-libexpensests).
 

@@ -528,6 +528,17 @@ vs mes anterior  = (total − anterior) / anterior × 100
 
 Por categoría: suma por `ExpenseTag.category`; los pagos sin categoría (o con una que ya no existe) van a "Sin categorizar". Los pagos en dólares no entran en los totales (se informa cuántos hay).
 
+**Sugerencias** (`suggestCategories`): a un pago sin categoría se le sugiere la de los pagos ya categorizados **con el mismo monto en pesos** (redondeado), mirando desde 6 meses antes del mes elegido en adelante. Gana la categoría más repetida para ese monto; si hay empate, no se sugiere nada. Sirve para pagos recurrentes (suscripciones, servicios, el mismo delivery).
+
+**Presupuestos** (`budgetStatus`, `ExpenseBudget`): monto mensual por categoría.
+
+```
+usado    = gastado en la categoría / presupuesto × 100
+superado = gastado > presupuesto
+```
+
+Las categorías con presupuesto y sin gasto en el mes también se listan (con $ 0). La barra es roja si está superado y amarilla desde el 80 %.
+
 ---
 
 ## Alertas por mail (`lib/alerts.ts`)

@@ -72,7 +72,8 @@ export const ModelName = {
   Movement: 'Movement',
   AlertSettings: 'AlertSettings',
   AlertLog: 'AlertLog',
-  ExpenseTag: 'ExpenseTag'
+  ExpenseTag: 'ExpenseTag',
+  ExpenseBudget: 'ExpenseBudget'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -402,6 +403,16 @@ export const ExpenseTagScalarFieldEnum = {
 } as const
 
 export type ExpenseTagScalarFieldEnum = (typeof ExpenseTagScalarFieldEnum)[keyof typeof ExpenseTagScalarFieldEnum]
+
+
+export const ExpenseBudgetScalarFieldEnum = {
+  userId: 'userId',
+  category: 'category',
+  amountArs: 'amountArs',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ExpenseBudgetScalarFieldEnum = (typeof ExpenseBudgetScalarFieldEnum)[keyof typeof ExpenseBudgetScalarFieldEnum]
 
 
 export const SortOrder = {

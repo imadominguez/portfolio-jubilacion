@@ -20,7 +20,7 @@ enum MovementCategory {
   DIVIDEND DIVIDEND_IN_KIND
   CONVERSION OTHER
 }
-enum AlertKind        { PRICE_DROP REMINDER MONTHLY_REPORT MONTHLY_SUMMARY }
+enum AlertKind        { PRICE_DROP REMINDER MONTHLY_REPORT MONTHLY_SUMMARY BUDGET }
 ```
 
 - `AssetKind` clasifica el catálogo (`CEDEAR`, `FCI`, `OTHER`).
@@ -246,6 +246,17 @@ Categoría y nota que el usuario le pone a un pago (`PAYMENT`) para ver en qué 
 | `note` | `String?` | Hasta 120 caracteres (p. ej. el comercio). |
 | `updatedAt` | `DateTime @updatedAt` | |
 
+### `ExpenseBudget` → `expense_budgets`
+
+Presupuesto mensual en pesos por categoría de gasto. PK compuesta `[userId, category]`; sin fila = sin presupuesto.
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `userId` | `String` (FK a `User`, `onDelete: Cascade`) | |
+| `category` | `String` | Id de `EXPENSE_CATEGORIES`. |
+| `amountArs` | `Decimal(18,2)` | Monto mensual. |
+| `updatedAt` | `DateTime @updatedAt` | |
+
 ### `AlertSettings` → `alert_settings`
 
 Configuración de las alertas por mail (1:1 con `User`, ADR-0020).
@@ -263,7 +274,7 @@ Configuración de las alertas por mail (1:1 con `User`, ADR-0020).
 
 ### `AlertLog` → `alert_logs`
 
-Alertas enviadas, para no repetirlas todos los días: `id`, `userId` (FK, `onDelete: Cascade`), `kind AlertKind`, `key` (ticker, o `AAAA-MM` en recordatorios, reportes y resúmenes mensuales), `value Decimal(8,2)?` (caída desde el máximo al avisar, solo `PRICE_DROP`), `sentAt`. Índice `[userId, kind, key, sentAt]`.
+Alertas enviadas, para no repetirlas todos los días: `id`, `userId` (FK, `onDelete: Cascade`), `kind AlertKind`, `key` (ticker; `AAAA-MM` en recordatorios, reportes y resúmenes mensuales; `AAAA-MM:categoría` en presupuestos), `value Decimal(8,2)?` (caída desde el máximo al avisar en `PRICE_DROP`; lo gastado en `BUDGET`), `sentAt`. Índice `[userId, kind, key, sentAt]`.
 
 ---
 
@@ -280,6 +291,7 @@ User 1─* PortfolioReport
 User 1─1 UserSetup
 User 1─1 AlertSettings
 User 1─* ExpenseTag  (Movement 1─1 ExpenseTag)
+User 1─* ExpenseBudget
 User 1─* AlertLog
 User 1─* Session  /  Account
 
@@ -313,6 +325,7 @@ Ubicación: `prisma/migrations/`.
 | `20261009180000_add_expense_tags` | Tabla `expense_tags`. |
 | `20261009181000_expense_tag_optional_category` | `expense_tags.category` pasa a opcional. |
 | `20261010120000_monthly_tasks` | `AlertKind` suma `MONTHLY_REPORT` y `MONTHLY_SUMMARY`; `alert_settings.monthlySummary` y `monthlyReport`. |
+| `20261010140000_expense_budgets` | `AlertKind` suma `BUDGET`; tabla `expense_budgets`. |
 | `20261009220000_drop_target_allocations` | Borra la tabla `target_allocations` (sin pesos objetivo, ADR-0022). |
 | `20261009200000_retirement_expected_return` | `retirement_settings.expectedReturnRate` (`Decimal(6,4)`, por defecto 0.07). |
 

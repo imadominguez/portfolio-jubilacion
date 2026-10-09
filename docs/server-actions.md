@@ -116,8 +116,9 @@ El parser clasifica cada fila en `MovementCategory`; sólo `TRADE_BUY`/`TRADE_SE
 
 | Función | Auth | Comportamiento |
 |---|---|---|
-| `getMonthExpenses(monthKey)` | Sí | Pagos (`PAYMENT`) del mes `AAAA-MM` y del anterior, con su `ExpenseTag`. Cacheada con los tags `trades:<userId>` (los pagos vienen del libro de movimientos) y `expenses:<userId>`. Solo los pagos en ARS entran en `expenses`/`previous` (monto = −total: un total positivo es un reintegro y resta); `usdPayments` cuenta los de dólares del mes. |
+| `getMonthExpenses(monthKey)` | Sí | Pagos (`PAYMENT`) del mes `AAAA-MM` y del anterior, con su `ExpenseTag`. Cacheada con los tags `trades:<userId>` (los pagos vienen del libro de movimientos) y `expenses:<userId>`. Solo los pagos en ARS entran en `expenses`/`previous` (monto = −total: un total positivo es un reintegro y resta); `usdPayments` cuenta los de dólares del mes. También devuelve `suggestions` (categoría sugerida por id de pago, `suggestCategories` sobre los pagos categorizados desde 6 meses antes) y `budgets` (`ExpenseBudget` por categoría). |
 | `saveExpenseTag(movementId, category, note)` | Sí | Verifica que el movimiento sea un `PAYMENT` del usuario y valida la categoría contra `EXPENSE_CATEGORIES`. Upsert de `ExpenseTag` (nota recortada a 120 caracteres); sin categoría ni nota, borra el tag. `revalidateExpenses`. |
+| `saveExpenseBudgets(budgets)` | Sí | `{ categoría: monto \| null }`. Valida categorías y montos (≥ 0); en una transacción hace upsert de los montos positivos y borra los vacíos o en 0. `revalidateExpenses`. |
 
 ---
 

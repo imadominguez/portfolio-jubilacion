@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { requireAuth, requireUserId } from "@/lib/auth-session";
 import { userTags } from "@/lib/cache-tags";
 import { revalidateExpenses } from "@/lib/revalidate";
-import { isExpenseCategory, type Expense } from "@/lib/expenses";
+import { isExpenseCategory, suggestCategories, type Expense } from "@/lib/expenses";
 import { isMonthKey, shiftMonth } from "@/lib/local-date";
 
 export type MonthExpenses = {
@@ -13,11 +13,18 @@ export type MonthExpenses = {
   previous: Expense[];
   // Pagos en dólares del mes: no entran en los totales en pesos.
   usdPayments: number;
+  // Categoría sugerida por id de pago sin categoría (monto ya categorizado).
+  suggestions: Record<string, string>;
+  // Presupuesto mensual por categoría.
+  budgets: Record<string, number>;
 };
 
 export type ExpenseTagResult = { success: true } | { success: false; error: string };
 
 const NOTE_MAX = 120;
+// Meses hacia atrás que se miran para sugerir categorías (y todo lo posterior:
+// al revisar un mes viejo sirve lo que se categorizó después).
+const SUGGESTION_MONTHS = 6;
 
 function monthBounds(monthKey: string): { gte: Date; lt: Date } {
   const [year, month] = monthKey.split("-").map(Number);
@@ -38,11 +45,25 @@ async function cachedMonthExpenses(userId: string, monthKey: string): Promise<Mo
 
   const current = monthBounds(monthKey);
   const prev = monthBounds(shiftMonth(monthKey, -1));
-  const payments = await db.movement.findMany({
-    where: { userId, category: "PAYMENT", date: { gte: prev.gte, lt: current.lt } },
-    orderBy: [{ date: "desc" }, { nroTicket: "desc" }],
-    include: { expenseTag: { select: { category: true, note: true } } },
-  });
+  const [payments, tagged, budgets] = await Promise.all([
+    db.movement.findMany({
+      where: { userId, category: "PAYMENT", date: { gte: prev.gte, lt: current.lt } },
+      orderBy: [{ date: "desc" }, { nroTicket: "desc" }],
+      include: { expenseTag: { select: { category: true, note: true } } },
+    }),
+    // Pagos ya categorizados de los últimos meses, para sugerir por monto.
+    db.movement.findMany({
+      where: {
+        userId,
+        category: "PAYMENT",
+        currency: "ARS",
+        date: { gte: monthBounds(shiftMonth(monthKey, -SUGGESTION_MONTHS)).gte },
+        expenseTag: { category: { not: null } },
+      },
+      select: { id: true, date: true, total: true, expenseTag: { select: { category: true, note: true } } },
+    }),
+    db.expenseBudget.findMany({ where: { userId }, select: { category: true, amountArs: true } }),
+  ]);
 
   const toExpense = (p: (typeof payments)[number]): Expense => ({
     id: p.id,
@@ -53,9 +74,19 @@ async function cachedMonthExpenses(userId: string, monthKey: string): Promise<Mo
     note: p.expenseTag?.note ?? null,
   });
   const ars = payments.filter((p) => p.currency === "ARS");
+  const expenses = ars.filter((p) => p.date >= current.gte).map(toExpense);
+  const history = tagged.map((p) => ({
+    id: p.id,
+    date: p.date,
+    amount: -Number(p.total),
+    category: p.expenseTag?.category ?? null,
+    note: p.expenseTag?.note ?? null,
+  }));
 
   return {
-    expenses: ars.filter((p) => p.date >= current.gte).map(toExpense),
+    expenses,
+    suggestions: suggestCategories(expenses, history),
+    budgets: Object.fromEntries(budgets.map((b) => [b.category, Number(b.amountArs)])),
     previous: ars.filter((p) => p.date < current.gte).map(toExpense),
     usdPayments: payments.filter((p) => p.currency === "USD" && p.date >= current.gte).length,
   };
@@ -97,5 +128,39 @@ export async function saveExpenseTag(
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : "No se pudo guardar." };
+  }
+}
+
+export type BudgetResult = { success: true } | { success: false; error: string };
+
+// Presupuesto mensual por categoría: un monto por categoría, o null/0 para quitarlo.
+export async function saveExpenseBudgets(budgets: Record<string, number | null>): Promise<BudgetResult> {
+  try {
+    const session = await requireAuth();
+    const userId = session.user.id;
+
+    for (const [category, amount] of Object.entries(budgets)) {
+      if (!isExpenseCategory(category)) return { success: false, error: "Categoría inválida." };
+      if (amount !== null && (!Number.isFinite(amount) || amount < 0)) {
+        return { success: false, error: "El presupuesto tiene que ser un monto positivo." };
+      }
+    }
+
+    await db.$transaction(
+      Object.entries(budgets).map(([category, amount]) =>
+        amount && amount > 0
+          ? db.expenseBudget.upsert({
+              where: { userId_category: { userId, category } },
+              create: { userId, category, amountArs: amount },
+              update: { amountArs: amount },
+            })
+          : db.expenseBudget.deleteMany({ where: { userId, category } })
+      )
+    );
+
+    revalidateExpenses(userId);
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "No se pudieron guardar los presupuestos." };
   }
 }

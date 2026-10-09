@@ -1,6 +1,7 @@
 "use server";
 
 import { cacheLife, cacheTag } from "next/cache";
+import type { AlertKind } from "@/app/generated/prisma/client";
 import { db } from "@/lib/db";
 import { requireAuth, requireUserId } from "@/lib/auth-session";
 import { userTags } from "@/lib/cache-tags";
@@ -23,7 +24,7 @@ export type AlertSettingsData = {
 
 export type AlertLogRow = {
   id: string;
-  kind: "PRICE_DROP" | "REMINDER" | "MONTHLY_REPORT" | "MONTHLY_SUMMARY";
+  kind: AlertKind;
   key: string;
   value: number | null;
   sentAt: Date;

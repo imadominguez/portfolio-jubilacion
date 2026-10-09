@@ -82,13 +82,15 @@ async function Expenses({ searchParams }: { searchParams: TransactionsSearchPara
   const requested = Array.isArray(mes) ? mes[0] : mes;
   const monthKey = requested && isMonthKey(requested) && requested <= currentMonthKey ? requested : currentMonthKey;
 
-  const { expenses, previous, usdPayments } = await getMonthExpenses(monthKey);
+  const { expenses, previous, usdPayments, suggestions, budgets } = await getMonthExpenses(monthKey);
   return (
     <ExpensesSection
       summary={expenseSummary(expenses, previous, monthKey, today)}
       expenses={expenses}
       currentMonthKey={currentMonthKey}
       usdPayments={usdPayments}
+      suggestions={suggestions}
+      budgets={budgets}
     />
   );
 }

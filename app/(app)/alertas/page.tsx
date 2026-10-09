@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { AlertTriangle, Bell, CalendarClock, FileText, Mail, TrendingDown } from "lucide-react";
+import { AlertTriangle, Bell, CalendarClock, FileText, Mail, PiggyBank, TrendingDown } from "lucide-react";
 import { SiteHeader } from "@/components/layout/site-header";
 import { AlertSettingsForm } from "@/components/alerts/alert-settings-form";
 import { AlertsSkeleton } from "@/components/alerts/alerts-skeleton";
@@ -9,6 +9,7 @@ import { requireAuth } from "@/lib/auth-session";
 import { isAdminRole } from "@/lib/user-role";
 import { isMailerConfigured } from "@/lib/mailer";
 import { monthLabel } from "@/lib/local-date";
+import { expenseCategoryLabel } from "@/lib/expenses";
 
 export const metadata: Metadata = { title: "Alertas" };
 
@@ -39,6 +40,13 @@ export default function AlertsPage() {
               <span>
                 <span className="text-foreground font-medium">Carga del mes:</span> desde el día que elijas, si
                 falta el snapshot o los movimientos del mes anterior. Se repite cada 3 días hasta que los cargues.
+              </span>
+            </li>
+            <li className="flex gap-2">
+              <PiggyBank className="size-4 shrink-0 mt-0.5 text-foreground" />
+              <span>
+                <span className="text-foreground font-medium">Presupuestos:</span> si definiste un presupuesto
+                mensual para una categoría de gasto (en Transacciones), te avisa una vez por mes cuando lo pasás.
               </span>
             </li>
             <li className="flex gap-2">
@@ -117,6 +125,8 @@ async function AlertsContent() {
                       <Mail className="size-4 shrink-0 text-primary" />
                     ) : l.kind === "MONTHLY_REPORT" ? (
                       <FileText className="size-4 shrink-0 text-primary" />
+                    ) : l.kind === "BUDGET" ? (
+                      <PiggyBank className="size-4 shrink-0 text-warning" />
                     ) : (
                       <CalendarClock className="size-4 shrink-0 text-warning" />
                     )}
@@ -135,6 +145,11 @@ async function AlertsContent() {
                         <>Resumen de {monthLabel(l.key)}</>
                       ) : l.kind === "MONTHLY_REPORT" ? (
                         <>Reporte de oportunidades de {monthLabel(l.key)}</>
+                      ) : l.kind === "BUDGET" ? (
+                        <>
+                          Presupuesto de {expenseCategoryLabel(l.key.split(":")[1] ?? null)} superado en{" "}
+                          {monthLabel(l.key.split(":")[0])}
+                        </>
                       ) : (
                         <>Recordatorio de carga de {monthLabel(l.key)}</>
                       )}
