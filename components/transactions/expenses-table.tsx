@@ -3,16 +3,22 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { saveExpenseTag } from "@/app/actions/expenses";
 import { EXPENSE_CATEGORIES, type Expense } from "@/lib/expenses";
-import { formatARS, formatDateUTC } from "@/lib/format";
+import { formatARS } from "@/lib/format";
 
 // Lista de pagos del mes con su categoría y nota editables. Guarda al cambiar
 // la categoría o al salir del campo de nota; la página vuelve a leer los
 // totales con revalidateExpenses.
+
+// Radix Select no admite un ítem con valor vacío: "sin categoría" usa este.
+const NONE = "none";
+
+// El mes ya está en el título de la sección: alcanza con día y mes.
+const SHORT_DATE = new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "short", timeZone: "UTC" });
 export function ExpensesTable({ expenses }: { expenses: Expense[] }) {
   const [onlyUncategorized, setOnlyUncategorized] = useState(false);
   const rows = onlyUncategorized ? expenses.filter((e) => e.category === null) : expenses;
@@ -66,30 +72,37 @@ function ExpenseRow({ expense }: { expense: Expense }) {
   }
 
   return (
-    <li className="px-4 py-2.5 grid grid-cols-[1fr_auto] gap-x-3 gap-y-2 sm:grid-cols-[7rem_8rem_minmax(0,14rem)_1fr] sm:items-center">
-      <span className="text-xs font-mono text-muted-foreground">{formatDateUTC(expense.date)}</span>
+    <li className="px-4 py-2.5 grid grid-cols-[1fr_auto] gap-x-3 gap-y-2 sm:grid-cols-[4rem_8rem_minmax(0,14rem)_1fr] sm:items-center">
+      <span className="text-xs font-mono text-muted-foreground">{SHORT_DATE.format(expense.date)}</span>
       <span
         className={`text-sm font-mono tabular-nums text-right sm:text-left ${expense.amount < 0 ? "text-success" : "text-foreground"}`}
       >
         {expense.amount < 0 ? `+${formatARS(-expense.amount)}` : formatARS(expense.amount)}
       </span>
-      <NativeSelect
-        size="sm"
-        aria-label="Categoría"
-        value={category}
+      <Select
+        value={category || NONE}
         disabled={isPending}
-        onChange={(e) => {
-          setCategory(e.target.value);
-          save(e.target.value, note);
+        onValueChange={(value) => {
+          const next = value === NONE ? "" : value;
+          setCategory(next);
+          save(next, note);
         }}
       >
-        <NativeSelectOption value="">Sin categoría</NativeSelectOption>
-        {EXPENSE_CATEGORIES.map((c) => (
-          <NativeSelectOption key={c.id} value={c.id}>
-            {c.label}
-          </NativeSelectOption>
-        ))}
-      </NativeSelect>
+        <SelectTrigger size="sm" aria-label="Categoría" className="w-full text-xs">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent position="popper" align="start">
+          <SelectItem value={NONE} className="text-muted-foreground">
+            Sin categoría
+          </SelectItem>
+          <SelectSeparator />
+          {EXPENSE_CATEGORIES.map((c) => (
+            <SelectItem key={c.id} value={c.id}>
+              {c.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       <Input
         aria-label="Nota"
         placeholder="Nota (ej. Coto, luz)"

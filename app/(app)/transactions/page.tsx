@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { connection } from "next/server";
 import Link from "next/link";
 import { SiteHeader } from "@/components/layout/site-header";
 import { TransactionsClient } from "@/components/transactions/transactions-client";
@@ -73,9 +74,9 @@ export default function TransactionsPage({ searchParams }: { searchParams: Trans
 }
 
 async function Expenses({ searchParams }: { searchParams: TransactionsSearchParams }) {
-  const { mes } = await searchParams;
-  // Después de leer searchParams: con Cache Components, la hora no puede leerse
-  // durante el prerender del shell. El mes actual es el de Argentina.
+  const [{ mes }] = await Promise.all([searchParams, connection()]);
+  // La hora no puede leerse durante el prerender: connection() la difiere al
+  // request (searchParams sola no alcanza). El mes actual es el de Argentina.
   const today = localDateParts(new Date());
   const currentMonthKey = monthKeyOf(today);
   const requested = Array.isArray(mes) ? mes[0] : mes;
