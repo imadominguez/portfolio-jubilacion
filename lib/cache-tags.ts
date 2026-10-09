@@ -18,6 +18,7 @@ export const userTags = {
   rebalance: (userId: string) => `rebalance:${userId}`,
   setup: (userId: string) => `setup:${userId}`,
   alerts: (userId: string) => `alerts:${userId}`,
+  expenses: (userId: string) => `expenses:${userId}`,
 } as const;
 
 export const marketTags = {

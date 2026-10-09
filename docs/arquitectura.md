@@ -40,7 +40,7 @@ app/
     snapshots/                  Listado + [id] detalle
     analysis/                   Concentración
     rebalance/                  Objetivo vs real
-    transactions/               Compras/ventas, PPM, dividendos
+    transactions/               Gastos del mes, compras/ventas, PPM, dividendos
     retirement/                 Calculadora de retiro + Monte Carlo
     real-gains/                 Ganancia real USD vs impacto CCL
     impuestos/                  Tenencia al cierre, ventas y dividendos del año
@@ -94,6 +94,8 @@ lib/
   tax-report-data.ts            Datos del reporte para impuestos (Prisma, read-only)
   tax-report.ts                 Tenencia al cierre, resultado de ventas, dividendos y CSV (puro)
   alerts.ts                     Reglas de las alertas por mail y contenido del mail (puro)
+  expenses.ts                   Gastos del mes: categorías, totales por día y por categoría (puro)
+  local-date.ts                 Fecha y mes locales de Argentina, claves AAAA-MM (puro)
   alerts-runner.ts              Corre las alertas: datos del usuario + Yahoo + envío + AlertLog
   mailer.ts                     Envío por Gmail SMTP (nodemailer)
   map-limit.ts                  Promise.all con concurrencia acotada

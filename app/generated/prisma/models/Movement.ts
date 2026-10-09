@@ -382,6 +382,7 @@ export type MovementWhereInput = {
   userId?: Prisma.StringNullableFilter<"Movement"> | string | null
   user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   transaction?: Prisma.XOR<Prisma.TransactionNullableScalarRelationFilter, Prisma.TransactionWhereInput> | null
+  expenseTag?: Prisma.XOR<Prisma.ExpenseTagNullableScalarRelationFilter, Prisma.ExpenseTagWhereInput> | null
 }
 
 export type MovementOrderByWithRelationInput = {
@@ -409,6 +410,7 @@ export type MovementOrderByWithRelationInput = {
   userId?: Prisma.SortOrderInput | Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
   transaction?: Prisma.TransactionOrderByWithRelationInput
+  expenseTag?: Prisma.ExpenseTagOrderByWithRelationInput
 }
 
 export type MovementWhereUniqueInput = Prisma.AtLeast<{
@@ -440,6 +442,7 @@ export type MovementWhereUniqueInput = Prisma.AtLeast<{
   userId?: Prisma.StringNullableFilter<"Movement"> | string | null
   user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   transaction?: Prisma.XOR<Prisma.TransactionNullableScalarRelationFilter, Prisma.TransactionWhereInput> | null
+  expenseTag?: Prisma.XOR<Prisma.ExpenseTagNullableScalarRelationFilter, Prisma.ExpenseTagWhereInput> | null
 }, "id" | "userId_nroTicket">
 
 export type MovementOrderByWithAggregationInput = {
@@ -524,6 +527,7 @@ export type MovementCreateInput = {
   createdAt?: Date | string
   user?: Prisma.UserCreateNestedOneWithoutMovementsInput
   transaction?: Prisma.TransactionCreateNestedOneWithoutMovementInput
+  expenseTag?: Prisma.ExpenseTagCreateNestedOneWithoutMovementInput
 }
 
 export type MovementUncheckedCreateInput = {
@@ -550,6 +554,7 @@ export type MovementUncheckedCreateInput = {
   createdAt?: Date | string
   userId?: string | null
   transaction?: Prisma.TransactionUncheckedCreateNestedOneWithoutMovementInput
+  expenseTag?: Prisma.ExpenseTagUncheckedCreateNestedOneWithoutMovementInput
 }
 
 export type MovementUpdateInput = {
@@ -576,6 +581,7 @@ export type MovementUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneWithoutMovementsNestedInput
   transaction?: Prisma.TransactionUpdateOneWithoutMovementNestedInput
+  expenseTag?: Prisma.ExpenseTagUpdateOneWithoutMovementNestedInput
 }
 
 export type MovementUncheckedUpdateInput = {
@@ -602,6 +608,7 @@ export type MovementUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transaction?: Prisma.TransactionUncheckedUpdateOneWithoutMovementNestedInput
+  expenseTag?: Prisma.ExpenseTagUncheckedUpdateOneWithoutMovementNestedInput
 }
 
 export type MovementCreateManyInput = {
@@ -795,6 +802,11 @@ export type MovementSumOrderByAggregateInput = {
   total?: Prisma.SortOrder
 }
 
+export type MovementScalarRelationFilter = {
+  is?: Prisma.MovementWhereInput
+  isNot?: Prisma.MovementWhereInput
+}
+
 export type MovementCreateNestedManyWithoutUserInput = {
   create?: Prisma.XOR<Prisma.MovementCreateWithoutUserInput, Prisma.MovementUncheckedCreateWithoutUserInput> | Prisma.MovementCreateWithoutUserInput[] | Prisma.MovementUncheckedCreateWithoutUserInput[]
   connectOrCreate?: Prisma.MovementCreateOrConnectWithoutUserInput | Prisma.MovementCreateOrConnectWithoutUserInput[]
@@ -857,6 +869,20 @@ export type EnumMovementCategoryFieldUpdateOperationsInput = {
   set?: $Enums.MovementCategory
 }
 
+export type MovementCreateNestedOneWithoutExpenseTagInput = {
+  create?: Prisma.XOR<Prisma.MovementCreateWithoutExpenseTagInput, Prisma.MovementUncheckedCreateWithoutExpenseTagInput>
+  connectOrCreate?: Prisma.MovementCreateOrConnectWithoutExpenseTagInput
+  connect?: Prisma.MovementWhereUniqueInput
+}
+
+export type MovementUpdateOneRequiredWithoutExpenseTagNestedInput = {
+  create?: Prisma.XOR<Prisma.MovementCreateWithoutExpenseTagInput, Prisma.MovementUncheckedCreateWithoutExpenseTagInput>
+  connectOrCreate?: Prisma.MovementCreateOrConnectWithoutExpenseTagInput
+  upsert?: Prisma.MovementUpsertWithoutExpenseTagInput
+  connect?: Prisma.MovementWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.MovementUpdateToOneWithWhereWithoutExpenseTagInput, Prisma.MovementUpdateWithoutExpenseTagInput>, Prisma.MovementUncheckedUpdateWithoutExpenseTagInput>
+}
+
 export type MovementCreateWithoutUserInput = {
   id?: string
   nroTicket: string
@@ -880,6 +906,7 @@ export type MovementCreateWithoutUserInput = {
   sourceFile?: string | null
   createdAt?: Date | string
   transaction?: Prisma.TransactionCreateNestedOneWithoutMovementInput
+  expenseTag?: Prisma.ExpenseTagCreateNestedOneWithoutMovementInput
 }
 
 export type MovementUncheckedCreateWithoutUserInput = {
@@ -905,6 +932,7 @@ export type MovementUncheckedCreateWithoutUserInput = {
   sourceFile?: string | null
   createdAt?: Date | string
   transaction?: Prisma.TransactionUncheckedCreateNestedOneWithoutMovementInput
+  expenseTag?: Prisma.ExpenseTagUncheckedCreateNestedOneWithoutMovementInput
 }
 
 export type MovementCreateOrConnectWithoutUserInput = {
@@ -984,6 +1012,7 @@ export type MovementCreateWithoutTransactionInput = {
   sourceFile?: string | null
   createdAt?: Date | string
   user?: Prisma.UserCreateNestedOneWithoutMovementsInput
+  expenseTag?: Prisma.ExpenseTagCreateNestedOneWithoutMovementInput
 }
 
 export type MovementUncheckedCreateWithoutTransactionInput = {
@@ -1009,6 +1038,7 @@ export type MovementUncheckedCreateWithoutTransactionInput = {
   sourceFile?: string | null
   createdAt?: Date | string
   userId?: string | null
+  expenseTag?: Prisma.ExpenseTagUncheckedCreateNestedOneWithoutMovementInput
 }
 
 export type MovementCreateOrConnectWithoutTransactionInput = {
@@ -1050,6 +1080,7 @@ export type MovementUpdateWithoutTransactionInput = {
   sourceFile?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneWithoutMovementsNestedInput
+  expenseTag?: Prisma.ExpenseTagUpdateOneWithoutMovementNestedInput
 }
 
 export type MovementUncheckedUpdateWithoutTransactionInput = {
@@ -1075,6 +1106,127 @@ export type MovementUncheckedUpdateWithoutTransactionInput = {
   sourceFile?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  expenseTag?: Prisma.ExpenseTagUncheckedUpdateOneWithoutMovementNestedInput
+}
+
+export type MovementCreateWithoutExpenseTagInput = {
+  id?: string
+  nroTicket: string
+  nroComprobante?: string | null
+  date: Date | string
+  settlementDate?: Date | string | null
+  rawType: string
+  category: $Enums.MovementCategory
+  instrument?: string | null
+  ticker?: string | null
+  currency?: $Enums.Currency
+  market?: string | null
+  quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  grossAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  commission?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  ddmm?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  iva?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  other?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  total: runtime.Decimal | runtime.DecimalJsLike | number | string
+  sourceFile?: string | null
+  createdAt?: Date | string
+  user?: Prisma.UserCreateNestedOneWithoutMovementsInput
+  transaction?: Prisma.TransactionCreateNestedOneWithoutMovementInput
+}
+
+export type MovementUncheckedCreateWithoutExpenseTagInput = {
+  id?: string
+  nroTicket: string
+  nroComprobante?: string | null
+  date: Date | string
+  settlementDate?: Date | string | null
+  rawType: string
+  category: $Enums.MovementCategory
+  instrument?: string | null
+  ticker?: string | null
+  currency?: $Enums.Currency
+  market?: string | null
+  quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  grossAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  commission?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  ddmm?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  iva?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  other?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  total: runtime.Decimal | runtime.DecimalJsLike | number | string
+  sourceFile?: string | null
+  createdAt?: Date | string
+  userId?: string | null
+  transaction?: Prisma.TransactionUncheckedCreateNestedOneWithoutMovementInput
+}
+
+export type MovementCreateOrConnectWithoutExpenseTagInput = {
+  where: Prisma.MovementWhereUniqueInput
+  create: Prisma.XOR<Prisma.MovementCreateWithoutExpenseTagInput, Prisma.MovementUncheckedCreateWithoutExpenseTagInput>
+}
+
+export type MovementUpsertWithoutExpenseTagInput = {
+  update: Prisma.XOR<Prisma.MovementUpdateWithoutExpenseTagInput, Prisma.MovementUncheckedUpdateWithoutExpenseTagInput>
+  create: Prisma.XOR<Prisma.MovementCreateWithoutExpenseTagInput, Prisma.MovementUncheckedCreateWithoutExpenseTagInput>
+  where?: Prisma.MovementWhereInput
+}
+
+export type MovementUpdateToOneWithWhereWithoutExpenseTagInput = {
+  where?: Prisma.MovementWhereInput
+  data: Prisma.XOR<Prisma.MovementUpdateWithoutExpenseTagInput, Prisma.MovementUncheckedUpdateWithoutExpenseTagInput>
+}
+
+export type MovementUpdateWithoutExpenseTagInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  nroTicket?: Prisma.StringFieldUpdateOperationsInput | string
+  nroComprobante?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  settlementDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rawType?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.EnumMovementCategoryFieldUpdateOperationsInput | $Enums.MovementCategory
+  instrument?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ticker?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  market?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  grossAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  commission?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  ddmm?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  iva?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  other?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  sourceFile?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneWithoutMovementsNestedInput
+  transaction?: Prisma.TransactionUpdateOneWithoutMovementNestedInput
+}
+
+export type MovementUncheckedUpdateWithoutExpenseTagInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  nroTicket?: Prisma.StringFieldUpdateOperationsInput | string
+  nroComprobante?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  settlementDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rawType?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.EnumMovementCategoryFieldUpdateOperationsInput | $Enums.MovementCategory
+  instrument?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ticker?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  market?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  grossAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  commission?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  ddmm?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  iva?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  other?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  total?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  sourceFile?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  transaction?: Prisma.TransactionUncheckedUpdateOneWithoutMovementNestedInput
 }
 
 export type MovementCreateManyUserInput = {
@@ -1124,6 +1276,7 @@ export type MovementUpdateWithoutUserInput = {
   sourceFile?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transaction?: Prisma.TransactionUpdateOneWithoutMovementNestedInput
+  expenseTag?: Prisma.ExpenseTagUpdateOneWithoutMovementNestedInput
 }
 
 export type MovementUncheckedUpdateWithoutUserInput = {
@@ -1149,6 +1302,7 @@ export type MovementUncheckedUpdateWithoutUserInput = {
   sourceFile?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transaction?: Prisma.TransactionUncheckedUpdateOneWithoutMovementNestedInput
+  expenseTag?: Prisma.ExpenseTagUncheckedUpdateOneWithoutMovementNestedInput
 }
 
 export type MovementUncheckedUpdateManyWithoutUserInput = {
@@ -1202,6 +1356,7 @@ export type MovementSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   userId?: boolean
   user?: boolean | Prisma.Movement$userArgs<ExtArgs>
   transaction?: boolean | Prisma.Movement$transactionArgs<ExtArgs>
+  expenseTag?: boolean | Prisma.Movement$expenseTagArgs<ExtArgs>
 }, ExtArgs["result"]["movement"]>
 
 export type MovementSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1285,6 +1440,7 @@ export type MovementOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs =
 export type MovementInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.Movement$userArgs<ExtArgs>
   transaction?: boolean | Prisma.Movement$transactionArgs<ExtArgs>
+  expenseTag?: boolean | Prisma.Movement$expenseTagArgs<ExtArgs>
 }
 export type MovementIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.Movement$userArgs<ExtArgs>
@@ -1298,6 +1454,7 @@ export type $MovementPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
   objects: {
     user: Prisma.$UserPayload<ExtArgs> | null
     transaction: Prisma.$TransactionPayload<ExtArgs> | null
+    expenseTag: Prisma.$ExpenseTagPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1718,6 +1875,7 @@ export interface Prisma__MovementClient<T, Null = never, ExtArgs extends runtime
   readonly [Symbol.toStringTag]: "PrismaPromise"
   user<T extends Prisma.Movement$userArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Movement$userArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   transaction<T extends Prisma.Movement$transactionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Movement$transactionArgs<ExtArgs>>): Prisma.Prisma__TransactionClient<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  expenseTag<T extends Prisma.Movement$expenseTagArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Movement$expenseTagArgs<ExtArgs>>): Prisma.Prisma__ExpenseTagClient<runtime.Types.Result.GetResult<Prisma.$ExpenseTagPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2205,6 +2363,25 @@ export type Movement$transactionArgs<ExtArgs extends runtime.Types.Extensions.In
    */
   include?: Prisma.TransactionInclude<ExtArgs> | null
   where?: Prisma.TransactionWhereInput
+}
+
+/**
+ * Movement.expenseTag
+ */
+export type Movement$expenseTagArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ExpenseTag
+   */
+  select?: Prisma.ExpenseTagSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ExpenseTag
+   */
+  omit?: Prisma.ExpenseTagOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ExpenseTagInclude<ExtArgs> | null
+  where?: Prisma.ExpenseTagWhereInput
 }
 
 /**

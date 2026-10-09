@@ -238,6 +238,18 @@ Metadata de presentación del onboarding (1:1 con `User`). La completitud de cad
 | `lastStep` | `String?` | Paso para reanudar. |
 | `createdAt` / `updatedAt` | `DateTime` | |
 
+### `ExpenseTag` → `expense_tags`
+
+Categoría y nota que el usuario le pone a un pago (`PAYMENT`) para ver en qué gasta (1:1 con `Movement`). Va aparte del libro de movimientos, que no se edita (ADR-0012).
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `movementId` | `String @id` (FK a `Movement`, `onDelete: Cascade`) | El pago. |
+| `userId` | `String` (FK a `User`, `onDelete: Cascade`) | Índice. |
+| `category` | `String?` | Id de `EXPENSE_CATEGORIES` (`lib/expenses.ts`); `null` si solo tiene nota. |
+| `note` | `String?` | Hasta 120 caracteres (p. ej. el comercio). |
+| `updatedAt` | `DateTime @updatedAt` | |
+
 ### `AlertSettings` → `alert_settings`
 
 Configuración de las alertas por mail (1:1 con `User`, ADR-0020).
@@ -270,6 +282,7 @@ User 1─* RetirementSettings
 User 1─* PortfolioReport
 User 1─1 UserSetup
 User 1─1 AlertSettings
+User 1─* ExpenseTag  (Movement 1─1 ExpenseTag)
 User 1─* AlertLog
 User 1─* Session  /  Account
 
@@ -300,6 +313,8 @@ Ubicación: `prisma/migrations/`.
 | `20260920130000_target_allocation_per_user` | `TargetAllocation`: unique pasa de `ticker` a `[userId, ticker]`. |
 | `20260921120000_add_user_setup` | Tabla `user_setup` (onboarding por usuario). |
 | `20261009120000_add_alerts` | Enum `AlertKind`, tablas `alert_settings` y `alert_logs`. |
+| `20261009180000_add_expense_tags` | Tabla `expense_tags`. |
+| `20261009181000_expense_tag_optional_category` | `expense_tags.category` pasa a opcional. |
 
 Comandos (ver [desarrollo.md](./desarrollo.md)):
 

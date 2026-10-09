@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { connection } from "next/server";
 import Link from "next/link";
 import { SiteHeader } from "@/components/layout/site-header";
 import { TransactionsClient } from "@/components/transactions/transactions-client";
-import { TransactionsSkeleton } from "@/components/transactions/transactions-skeleton";
+import { ExpensesSkeleton, TransactionsSkeleton } from "@/components/transactions/transactions-skeleton";
+import { ExpensesSection } from "@/components/transactions/expenses-section";
 import { TransactionForm } from "@/components/transactions/transaction-form";
 import { DividendForm } from "@/components/transactions/dividend-form";
 import { CsvExportButton } from "@/components/export/csv-export-button";
@@ -15,12 +17,18 @@ import {
 } from "@/app/actions/transactions";
 import { getAllDividends } from "@/app/actions/dividends";
 import { getMovements } from "@/app/actions/import-movements";
+import { getMonthExpenses } from "@/app/actions/expenses";
+import { expenseSummary } from "@/lib/expenses";
+import { isMonthKey, localDateParts, monthKeyOf } from "@/lib/local-date";
 
 export const metadata: Metadata = { title: "Transacciones" };
 
-// El header (con sus acciones) y la explicación entran al static shell; las
-// operaciones del usuario se leen en request time detrás del skeleton.
-export default function TransactionsPage() {
+type TransactionsSearchParams = Promise<{ mes?: string | string[] }>;
+
+// El header (con sus acciones) y la explicación entran al static shell; los
+// gastos del mes (?mes=AAAA-MM) y las operaciones del usuario se leen en
+// request time, cada uno detrás de su skeleton.
+export default function TransactionsPage({ searchParams }: { searchParams: TransactionsSearchParams }) {
   return (
     <div className="flex flex-col min-h-svh">
       <SiteHeader
@@ -53,11 +61,35 @@ export default function TransactionsPage() {
           </p>
         </div>
 
+        <Suspense fallback={<ExpensesSkeleton />}>
+          <Expenses searchParams={searchParams} />
+        </Suspense>
+
         <Suspense fallback={<TransactionsSkeleton />}>
           <Transactions />
         </Suspense>
       </main>
     </div>
+  );
+}
+
+async function Expenses({ searchParams }: { searchParams: TransactionsSearchParams }) {
+  const [{ mes }] = await Promise.all([searchParams, connection()]);
+  // La hora no puede leerse durante el prerender: connection() la difiere al
+  // request (searchParams sola no alcanza). El mes actual es el de Argentina.
+  const today = localDateParts(new Date());
+  const currentMonthKey = monthKeyOf(today);
+  const requested = Array.isArray(mes) ? mes[0] : mes;
+  const monthKey = requested && isMonthKey(requested) && requested <= currentMonthKey ? requested : currentMonthKey;
+
+  const { expenses, previous, usdPayments } = await getMonthExpenses(monthKey);
+  return (
+    <ExpensesSection
+      summary={expenseSummary(expenses, previous, monthKey, today)}
+      expenses={expenses}
+      currentMonthKey={currentMonthKey}
+      usdPayments={usdPayments}
+    />
   );
 }
 
