@@ -45,10 +45,10 @@ Metadata raíz (`app/layout.tsx`): `title` por defecto `"Portfolio Jubilación"`
 
 ## `/portfolio` — Oportunidades con IA **(ADMIN)**
 
-- **Archivo:** `app/(app)/portfolio/page.tsx` (síncrona, sin lecturas en el servidor: entra entera al static shell).
+- **Archivo:** `app/(app)/portfolio/page.tsx` (síncrona: el analizador entra al static shell; el historial de señales se lee en el servidor dentro de su `<Suspense>`).
 - **Propósito:** revisar cada acción del último snapshot (precio y titulares de noticias) y decir si es oportunidad de **compra**, **mantener** o **venta** ([ADR-0018](./adr/0018-reporte-de-oportunidades-con-datos-preparados-por-la-app.md)). No habla de porcentajes de tenencia: el reparto del aporte está en `/plan`.
-- **Datos:** no hace fetch en el servidor; el cliente llama a `POST /api/analyze-portfolio` (`OpportunityAnalyzer`) y a las actions `listReports()` / `getReport(id)` (`ReportHistorial`).
-- **Componentes:** `OpportunityAnalyzer`, `OpportunityReportDisplay`, `ReportHistorial` (muestra los reportes anteriores con `ReporteDisplay`, de `legacy-report.tsx`).
+- **Datos:** `getSignalHistory()` en el servidor (tag `reports:<userId>`, lo invalida el route del análisis al guardar). El cliente llama a `POST /api/analyze-portfolio` (`OpportunityAnalyzer`, que hace `router.refresh()` al terminar) y a las actions `listReports()` / `getReport(id)` (`ReportHistorial`).
+- **Componentes:** `OpportunityAnalyzer`, `OpportunityReportDisplay`, `SignalHistoryTable` (señal y confianza de cada acción en los últimos 6 reportes, con las que cambiaron marcadas), `ReportHistorial` (muestra los reportes anteriores con `ReporteDisplay`, de `legacy-report.tsx`).
 - **Metadata:** `title: "Oportunidades"`.
 - **Nota:** no usa `SiteHeader` (excepción a la convención de UI). Requiere un snapshot importado; las acciones sin subyacente en Yahoo quedan fuera del análisis.
 

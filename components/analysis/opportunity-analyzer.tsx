@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useRouter } from "next/navigation";
 import { AlertCircle, Loader2, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,7 @@ export function OpportunityAnalyzer() {
   const [error, setError] = useState<string | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const abortRef = useRef<AbortController | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (!loading) return;
@@ -75,6 +77,8 @@ export function OpportunityAnalyzer() {
         // Sin almacenamiento local el reporte igual se muestra y queda en el historial.
       }
       setFresh(json);
+      // El historial de señales es del servidor: se vuelve a leer con el reporte nuevo.
+      router.refresh();
     } catch (e: unknown) {
       setError(controller.signal.aborted ? "Análisis cancelado." : e instanceof Error ? e.message : "Error inesperado.");
     } finally {
