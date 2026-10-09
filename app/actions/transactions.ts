@@ -5,6 +5,7 @@ import { revalidateTrades } from "@/lib/revalidate";
 import { userTags } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
 import { tradeGrossAmount } from "@/lib/trade-amount";
+import { getPpmForUser, type PpmRow as LibPpmRow } from "@/lib/portfolio-data";
 import { requireAuth, requireUserId } from "@/lib/auth-session";
 import type { TransactionType, Currency } from "@/app/generated/prisma/client";
 
@@ -117,74 +118,10 @@ async function cachedAllTransactions(userId: string): Promise<TransactionRow[]> 
   }));
 }
 
-export type PpmRow = {
-  ticker: string;
-  avgPrice: number;
-  totalQuantity: number;
-  totalCost: number;
-  currency: Currency;
-};
+export type PpmRow = LibPpmRow;
 
 export async function calculatePPM(): Promise<PpmRow[]> {
-  return cachedPPM(await requireUserId());
-}
-
-// No se exporta (sería una action invocable con cualquier userId): recibe el
-// usuario ya resuelto de la sesión (ADR-0017).
-async function cachedPPM(userId: string): Promise<PpmRow[]> {
-  "use cache";
-  cacheLife("hours");
-  cacheTag(userTags.trades(userId));
-
-  const txs = await db.transaction.findMany({
-    where: { type: "BUY", userId },
-    orderBy: { date: "asc" },
-    include: { movement: { select: { grossAmount: true } } },
-  });
-
-  const byTicker = new Map<string, { totalCost: number; totalQty: number; currency: Currency }>();
-
-  for (const tx of txs) {
-    const existing = byTicker.get(tx.ticker);
-    const cost = tradeGrossAmount({ quantity: Number(tx.quantity), price: Number(tx.price), movementGross: tx.movement?.grossAmount != null ? Number(tx.movement.grossAmount) : null }) + (tx.fee ? Number(tx.fee) : 0);
-    if (existing) {
-      existing.totalCost += cost;
-      existing.totalQty += Number(tx.quantity);
-    } else {
-      byTicker.set(tx.ticker, {
-        totalCost: cost,
-        totalQty: Number(tx.quantity),
-        currency: tx.currency,
-      });
-    }
-  }
-
-  const sells = await db.transaction.findMany({
-    where: { type: "SELL", userId },
-    orderBy: { date: "asc" },
-  });
-
-  for (const sell of sells) {
-    const entry = byTicker.get(sell.ticker);
-    if (entry) {
-      // Las ventas importadas antes de normalizar el signo tienen cantidad negativa.
-      const soldQty = Math.abs(Number(sell.quantity));
-      entry.totalQty = Math.max(0, entry.totalQty - soldQty);
-      const ppm = entry.totalQty > 0 ? entry.totalCost / (entry.totalQty + soldQty) : 0;
-      entry.totalCost = ppm * entry.totalQty;
-    }
-  }
-
-  return Array.from(byTicker.entries())
-    .filter(([, v]) => v.totalQty > 0)
-    .map(([ticker, v]) => ({
-      ticker,
-      avgPrice: v.totalQty > 0 ? v.totalCost / v.totalQty : 0,
-      totalQuantity: v.totalQty,
-      totalCost: v.totalCost,
-      currency: v.currency,
-    }))
-    .sort((a, b) => a.ticker.localeCompare(b.ticker));
+  return getPpmForUser(await requireUserId());
 }
 
 export type RealizedPnlRow = {

@@ -156,7 +156,7 @@ Metadata raíz (`app/layout.tsx`): `title` por defecto `"Portfolio Jubilación"`
 
 - **Archivo:** `app/(app)/alertas/page.tsx`. Decisión y motivos: [ADR-0020](./adr/0020-alertas-por-mail-con-cron-y-gmail-smtp.md).
 - **Datos (dentro de `<Suspense>`):** `requireAuth()` (email de destino) y `getAlertsPageData()` (`app/actions/alerts.ts`, tag `alerts:<userId>`): configuración y las últimas 20 alertas enviadas. `isMailerConfigured()` decide si avisa que faltan `GMAIL_USER` / `GMAIL_APP_PASSWORD`.
-- **Muestra:** explicación de las dos alertas (caídas y carga del mes), formulario `AlertSettingsForm` (activar, % de caída desde el máximo de 52 semanas, % de caída en 5 ruedas, día del recordatorio) con **Mandar mail de prueba** y **Revisar ahora**, e historial de lo enviado.
+- **Muestra:** explicación de las alertas (caídas, carga del mes y resumen mensual), formulario `AlertSettingsForm` (activar, resumen mensual, reporte de oportunidades automático —solo ADMIN—, % de caída desde el máximo de 52 semanas, % de caída en 5 ruedas, día del recordatorio) con **Mandar mail de prueba**, **Revisar ahora** y **Mandar el resumen ahora**, e historial de lo enviado (caídas, recordatorios, reportes y resúmenes).
 - **Revisión diaria:** la hace el cron (`/api/cron/alerts`), no la página.
 
 ---

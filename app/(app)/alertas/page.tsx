@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { AlertTriangle, Bell, CalendarClock, TrendingDown } from "lucide-react";
+import { AlertTriangle, Bell, CalendarClock, FileText, Mail, TrendingDown } from "lucide-react";
 import { SiteHeader } from "@/components/layout/site-header";
 import { AlertSettingsForm } from "@/components/alerts/alert-settings-form";
 import { AlertsSkeleton } from "@/components/alerts/alerts-skeleton";
 import { getAlertsPageData } from "@/app/actions/alerts";
 import { requireAuth } from "@/lib/auth-session";
+import { isAdminRole } from "@/lib/user-role";
 import { isMailerConfigured } from "@/lib/mailer";
 import { monthLabel } from "@/lib/local-date";
 
@@ -38,6 +39,13 @@ export default function AlertsPage() {
               <span>
                 <span className="text-foreground font-medium">Carga del mes:</span> desde el día que elijas, si
                 falta el snapshot o los movimientos del mes anterior. Se repite cada 3 días hasta que los cargues.
+              </span>
+            </li>
+            <li className="flex gap-2">
+              <Mail className="size-4 shrink-0 mt-0.5 text-foreground" />
+              <span>
+                <span className="text-foreground font-medium">Resumen mensual:</span> cuando el mes anterior está
+                cargado, un mail con el rendimiento del año, el flujo de caja, en qué gastaste y el Plan DCA del mes.
               </span>
             </li>
           </ul>
@@ -81,9 +89,10 @@ async function AlertsContent() {
           Los mails van a <span className="text-foreground font-medium">{session.user.email}</span>.
         </p>
         <AlertSettingsForm
-          key={`${settings.enabled}-${settings.dropFromHighPct}-${settings.weeklyDropPct}-${settings.reminderDay}`}
+          key={`${settings.enabled}-${settings.dropFromHighPct}-${settings.weeklyDropPct}-${settings.reminderDay}-${settings.monthlySummary}-${settings.monthlyReport}`}
           initial={settings}
           mailerReady={mailerReady}
+          isAdmin={isAdminRole(session.user.role)}
         />
       </section>
 
@@ -104,6 +113,10 @@ async function AlertsContent() {
                   <span className="flex items-center gap-2 min-w-0">
                     {l.kind === "PRICE_DROP" ? (
                       <TrendingDown className="size-4 shrink-0 text-destructive" />
+                    ) : l.kind === "MONTHLY_SUMMARY" ? (
+                      <Mail className="size-4 shrink-0 text-primary" />
+                    ) : l.kind === "MONTHLY_REPORT" ? (
+                      <FileText className="size-4 shrink-0 text-primary" />
                     ) : (
                       <CalendarClock className="size-4 shrink-0 text-warning" />
                     )}
@@ -118,6 +131,10 @@ async function AlertsContent() {
                             </span>
                           )}
                         </>
+                      ) : l.kind === "MONTHLY_SUMMARY" ? (
+                        <>Resumen de {monthLabel(l.key)}</>
+                      ) : l.kind === "MONTHLY_REPORT" ? (
+                        <>Reporte de oportunidades de {monthLabel(l.key)}</>
                       ) : (
                         <>Recordatorio de carga de {monthLabel(l.key)}</>
                       )}

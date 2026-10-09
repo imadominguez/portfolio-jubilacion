@@ -8,17 +8,22 @@ import { revalidateAlerts } from "@/lib/revalidate";
 import { DEFAULT_REMINDER_DAY, DEFAULT_THRESHOLDS } from "@/lib/alerts";
 import { runAlertsForUser } from "@/lib/alerts-runner";
 import { sendMail } from "@/lib/mailer";
+import { sendMonthlySummaryNow } from "@/lib/monthly-runner";
+import { monthLabel } from "@/lib/local-date";
 
 export type AlertSettingsData = {
   enabled: boolean;
   dropFromHighPct: number;
   weeklyDropPct: number;
   reminderDay: number;
+  monthlySummary: boolean;
+  // Solo cuenta para ADMIN: el reporte tiene costo en la API.
+  monthlyReport: boolean;
 };
 
 export type AlertLogRow = {
   id: string;
-  kind: "PRICE_DROP" | "REMINDER";
+  kind: "PRICE_DROP" | "REMINDER" | "MONTHLY_REPORT" | "MONTHLY_SUMMARY";
   key: string;
   value: number | null;
   sentAt: Date;
@@ -52,8 +57,16 @@ async function cachedAlertsPageData(userId: string): Promise<AlertsPageData> {
           dropFromHighPct: Number(settings.dropFromHighPct),
           weeklyDropPct: Number(settings.weeklyDropPct),
           reminderDay: settings.reminderDay,
+          monthlySummary: settings.monthlySummary,
+          monthlyReport: settings.monthlyReport,
         }
-      : { enabled: false, ...DEFAULT_THRESHOLDS, reminderDay: DEFAULT_REMINDER_DAY },
+      : {
+          enabled: false,
+          ...DEFAULT_THRESHOLDS,
+          reminderDay: DEFAULT_REMINDER_DAY,
+          monthlySummary: true,
+          monthlyReport: true,
+        },
     logs: logs.map((l) => ({
       id: l.id,
       kind: l.kind,
@@ -85,6 +98,8 @@ export async function saveAlertSettings(data: AlertSettingsData): Promise<AlertA
       dropFromHighPct: data.dropFromHighPct,
       weeklyDropPct: data.weeklyDropPct,
       reminderDay: data.reminderDay,
+      monthlySummary: data.monthlySummary,
+      monthlyReport: data.monthlyReport,
     };
     await db.alertSettings.upsert({ where: { userId }, create: { userId, ...values }, update: values });
 
@@ -131,5 +146,16 @@ export async function runAlertsNow(): Promise<AlertActionResult> {
     return { success: true, message: `Mail enviado a ${session.user.email}: ${parts.join(" y ")}.${unchecked}` };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : "No se pudieron revisar las alertas." };
+  }
+}
+
+// Manda ahora el resumen del mes anterior al usuario de la sesión.
+export async function sendMonthlySummary(): Promise<AlertActionResult> {
+  try {
+    const session = await requireAuth();
+    const monthKey = await sendMonthlySummaryNow(session.user.id, session.user.email);
+    return { success: true, message: `Resumen de ${monthLabel(monthKey)} enviado a ${session.user.email}.` };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "No se pudo mandar el resumen." };
   }
 }

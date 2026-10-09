@@ -326,6 +326,8 @@ Mail diario (9:00 de Argentina) solo si hay algo para avisar ([ADR-0020](./adr/0
 |---|---|
 | **Caída** | Una acción del último snapshot cae más que el umbral desde su máximo de 52 semanas (15 % por defecto) o en 5 ruedas (8 %), en USD del subyacente. Incluye titulares recientes de la empresa. No se repite salvo que caiga 5 puntos más; si sigue abajo, se recuerda a los 30 días. |
 | **Carga del mes** | Desde el día configurado (5 por defecto), si falta el snapshot o los movimientos del mes anterior. Se repite cada 3 días. |
+| **Resumen mensual** | Cuando el mes anterior está cargado (o desde el día 20): valor y rendimiento del año sin aportes, flujo de caja, en qué gastaste y el Plan DCA del mes. |
+| **Reporte automático** (ADMIN) | El 1° de cada mes, si no hay un reporte de oportunidades del mes, lo genera (unos US$ 0,07), así el Plan DCA usa señales nuevas. |
 
 En la página se activan, se ajustan los umbrales, se manda un mail de prueba y se ve el historial de lo enviado.
 
