@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { ArrowUpRight, ArrowDownRight, Activity } from "lucide-react";
+import { Activity } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { SiteHeader } from "@/components/layout/site-header";
 import { CCLChart } from "@/components/ccl/ccl-chart";
@@ -8,7 +8,8 @@ import { CclSkeleton } from "@/components/ccl/ccl-skeleton";
 import { CclUpdateButton } from "@/components/exchange-rate/ccl-update-button";
 import { getAllExchangeRates } from "@/app/actions/exchange-rate";
 import { getAllSnapshotPoints } from "@/lib/portfolio-data";
-import { formatDateMedium, formatARS } from "@/lib/format";
+import { formatDateMedium, formatARS, formatPct } from "@/lib/format";
+import { PageIntro, StatGrid } from "@/components/layout/page-parts";
 
 export const metadata: Metadata = { title: "Historial CCL" };
 
@@ -97,7 +98,7 @@ async function CclContent() {
     },
     {
       label: "Variación 1 mes",
-      value: change1m !== null ? `${change1m >= 0 ? "+" : ""}${change1m.toFixed(2)}%` : "—",
+      value: change1m !== null ? formatPct(change1m, { signed: true }) : "—",
       sub: ccl1m ? `vs ${formatARS(ccl1m)}` : "Sin datos",
       change: change1m,
     },
@@ -105,7 +106,7 @@ async function CclContent() {
       label: "Variación YTD",
       value:
         changeYTD !== null
-          ? `${changeYTD >= 0 ? "+" : ""}${changeYTD.toFixed(2)}%`
+          ? formatPct(changeYTD, { signed: true })
           : "—",
       sub: cclYTD ? `vs ${formatARS(cclYTD)}` : "Sin datos",
       change: changeYTD,
@@ -114,7 +115,7 @@ async function CclContent() {
       label: "Variación 1 año",
       value:
         change1y !== null
-          ? `${change1y >= 0 ? "+" : ""}${change1y.toFixed(2)}%`
+          ? formatPct(change1y, { signed: true })
           : "—",
       sub: ccl1y ? `vs ${formatARS(ccl1y)}` : "Sin datos",
       change: change1y,
@@ -123,47 +124,12 @@ async function CclContent() {
 
   return (
     <main className="flex-1 px-6 py-10 flex flex-col gap-6 max-w-6xl w-full mx-auto">
-      {/* KPI row */}
-      <section className="animate-fade-up grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {kpis.map(({ label, value, sub, change }) => (
-          <div
-            key={label}
-            className="rounded-xl border border-border bg-card shadow-sm px-5 py-4 flex flex-col gap-3"
-          >
-            <div className="flex flex-col gap-0.5">
-              <span className="text-sm font-semibold text-foreground">
-                {label}
-              </span>
-              <span className="text-xs text-muted-foreground">{sub}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              {change !== null && change >= 0 && (
-                <ArrowUpRight className="size-4 text-destructive shrink-0" />
-              )}
-              {change !== null && change < 0 && (
-                <ArrowDownRight className="size-4 text-success shrink-0" />
-              )}
-              <span
-                className={`text-xl font-bold font-mono tabular-nums leading-none ${
-                  change === null
-                    ? "text-foreground"
-                    : change >= 0
-                    ? "text-destructive"
-                    : "text-success"
-                }`}
-              >
-                {value}
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="size-2 rounded-full shrink-0 bg-chart-1/50" />
-              <span className="text-xs text-muted-foreground">
-                {label === "CCL Actual" ? "más reciente" : "del período"}
-              </span>
-            </div>
-          </div>
-        ))}
-      </section>
+      <PageIntro>
+        Que el CCL suba es que el peso se devalúa: tus CEDEARs valen más en pesos, pero eso no es ganancia en
+        dólares. Por eso las variaciones van sin color de ganancia o pérdida.
+      </PageIntro>
+
+      <StatGrid stats={kpis.map(({ label, value, sub }) => ({ label, value, sub }))} />
 
       <Separator className="opacity-30" />
 
@@ -172,10 +138,10 @@ async function CclContent() {
         className="animate-fade-up flex flex-col gap-4"
         style={{ animationDelay: "100ms" }}
       >
-        <p className="text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
+        <h2 className="text-base font-semibold text-foreground">
           Evolución del CCL
           {snapshots.length > 0 && " · Overlay Portfolio USD"}
-        </p>
+        </h2>
         <div className="rounded-xl border border-border bg-card shadow-sm p-5">
           <CCLChart rates={rates} snapshots={snapshots} />
         </div>
@@ -188,9 +154,9 @@ async function CclContent() {
         className="animate-fade-up flex flex-col gap-3"
         style={{ animationDelay: "200ms" }}
       >
-        <p className="text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
+        <h2 className="text-base font-semibold text-foreground">
           Registros recientes ({rates.length} total)
-        </p>
+        </h2>
         <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
           <div className="divide-y divide-border">
             {[...rates]
@@ -201,7 +167,6 @@ async function CclContent() {
                 const change = prev
                   ? ((r.ccl - prev.ccl) / prev.ccl) * 100
                   : null;
-                const pos = change !== null && change >= 0;
 
                 return (
                   <div
@@ -224,13 +189,8 @@ async function CclContent() {
                         {formatARS(r.ccl)}
                       </span>
                       {change !== null && (
-                        <span
-                          className={`text-xs font-mono tabular-nums ${
-                            pos ? "text-destructive" : "text-success"
-                          }`}
-                        >
-                          {pos ? "+" : ""}
-                          {change.toFixed(2)}%
+                        <span className="text-xs font-mono tabular-nums text-muted-foreground">
+                          {formatPct(change, { signed: true })}
                         </span>
                       )}
                     </div>

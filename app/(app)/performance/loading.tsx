@@ -4,7 +4,7 @@ import { PerformanceSkeleton } from "@/components/performance/performance-skelet
 export default function PerformanceLoading() {
   return (
     <div className="flex flex-col min-h-svh">
-      <SiteHeader title="Performance" description="Historial del portfolio" />
+      <SiteHeader title="Rendimiento" description="Cuánto rindió tu portfolio, sin contar aportes" />
       <PerformanceSkeleton />
     </div>
   );

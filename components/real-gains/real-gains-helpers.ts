@@ -1,6 +1,8 @@
+import { formatPct } from "@/lib/format";
+
 export function fmtPct(v: number | null): string {
   if (v === null) return "—";
-  return `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`;
+  return formatPct(v, { signed: true });
 }
 
 export function signColor(v: number | null): string {

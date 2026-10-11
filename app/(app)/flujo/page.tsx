@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { connection } from "next/server";
 import { ArrowLeftRight } from "lucide-react";
+import { StatGrid } from "@/components/layout/page-parts";
 import { SiteHeader } from "@/components/layout/site-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ImportMovimientosButton } from "@/components/transactions/import-movements-button";
@@ -10,7 +11,7 @@ import { CashFlowChart } from "@/components/cash-flow/cash-flow-chart";
 import { CashFlowSkeleton } from "@/components/cash-flow/cash-flow-skeleton";
 import { getCashFlow } from "@/app/actions/cash-flow";
 import { cashFlowSummary, type MonthCashFlow } from "@/lib/cash-flow";
-import { formatARS } from "@/lib/format";
+import { formatARS, formatPct } from "@/lib/format";
 import { localDateParts, monthKeyOf, monthLabel } from "@/lib/local-date";
 
 export const metadata: Metadata = { title: "Flujo de caja" };
@@ -23,10 +24,7 @@ export default function CashFlowPage() {
       <SiteHeader title="Flujo de caja" description="Depósitos, gastos y ahorro" />
 
       <main className="flex-1 px-6 py-10 flex flex-col gap-8 max-w-6xl w-full mx-auto">
-        <div className="animate-fade-up flex flex-col gap-1">
-          <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
-            Cuenta de Cocos
-          </p>
+        <div className="flex flex-col gap-1">
           <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
             Cuánto depositaste cada mes, cuánto gastaste desde la cuenta y cuánto quedó para invertir. Sale
             del CSV de Actividad, así que solo ve lo que pasa por Cocos: lo que cobrás o gastás por otro lado
@@ -43,24 +41,9 @@ export default function CashFlowPage() {
 }
 
 function pct(value: number | null): string {
-  return value === null ? "—" : `${value.toFixed(0)}%`;
+  return value === null ? "—" : formatPct(value, { decimals: 0 });
 }
 
-function Kpi({ label, value, sub, tone }: { label: string; value: string; sub: string; tone?: "good" | "bad" }) {
-  return (
-    <div className="rounded-xl border border-border bg-card shadow-sm px-5 py-4 flex flex-col gap-2">
-      <span className="text-sm font-semibold text-foreground">{label}</span>
-      <span
-        className={`text-xl font-bold font-mono tabular-nums leading-none ${
-          tone === "good" ? "text-success" : tone === "bad" ? "text-destructive" : "text-foreground"
-        }`}
-      >
-        {value}
-      </span>
-      <span className="text-xs text-muted-foreground">{sub}</span>
-    </div>
-  );
-}
 
 async function CashFlowContent() {
   const [months] = await Promise.all([getCashFlow(), connection()]);
@@ -85,25 +68,23 @@ async function CashFlowContent() {
 
   return (
     <div className="flex flex-col gap-8">
-      <section className="animate-fade-up flex flex-col gap-3">
+      <section className="flex flex-col gap-3">
         <h2 className="text-base font-semibold text-foreground">
           Últimos {summary.months} {summary.months === 1 ? "mes cerrado" : "meses cerrados"}
         </h2>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <Kpi label="Depositado" value={formatARS(summary.deposits)} sub={`${formatARS(summary.deposits / Math.max(1, summary.months))} por mes`} />
-          <Kpi
-            label="Gastado"
-            value={formatARS(summary.expenses)}
-            sub={`${formatARS(summary.averageMonthlyExpenses)} por mes`}
-          />
-          <Kpi
-            label="Tasa de ahorro"
-            value={pct(summary.savingsRate)}
-            sub={`Ahorro ${formatARS(summary.savings)} (depósitos − gastos)`}
-            tone={summary.savingsRate === null ? undefined : summary.savingsRate >= 0 ? "good" : "bad"}
-          />
-          <Kpi label="Invertido en CEDEARs y bonos" value={formatARS(summary.invested)} sub="Compras menos ventas, neto" />
-        </div>
+        <StatGrid
+          stats={[
+            { label: "Depositado", value: formatARS(summary.deposits), sub: `${formatARS(summary.deposits / Math.max(1, summary.months))} por mes` },
+            { label: "Gastado", value: formatARS(summary.expenses), sub: `${formatARS(summary.averageMonthlyExpenses)} por mes` },
+            {
+              label: "Tasa de ahorro",
+              value: pct(summary.savingsRate),
+              sub: `Ahorro ${formatARS(summary.savings)} (depósitos − gastos)`,
+              tone: summary.savingsRate === null ? null : summary.savingsRate >= 0 ? "positive" : "negative",
+            },
+            { label: "Invertido en CEDEARs y bonos", value: formatARS(summary.invested), sub: "Compras menos ventas, neto" },
+          ]}
+        />
       </section>
 
       <section className="animate-fade-up rounded-xl border border-border bg-card shadow-sm p-5 flex flex-col gap-2">

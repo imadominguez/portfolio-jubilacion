@@ -45,10 +45,7 @@ export default function TransactionsPage({ searchParams }: { searchParams: Trans
       />
 
       <main className="flex-1 px-6 py-10 flex flex-col gap-6 max-w-6xl w-full mx-auto">
-        <div className="animate-fade-up flex flex-col gap-1">
-          <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
-            Historial de operaciones
-          </p>
+        <div className="flex flex-col gap-1">
           <p className="text-sm text-muted-foreground max-w-lg leading-relaxed">
             Registrá manualmente tus compras, ventas y dividendos para calcular
             el precio promedio de compra y el P&amp;L realizado de tu portfolio.

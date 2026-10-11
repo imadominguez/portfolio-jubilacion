@@ -2,24 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Activity,
-  Bell,
-  Coins,
-  ArrowLeftRight,
-  BarChart3,
-  CalendarDays,
-  Database,
-  DollarSign,
-  HelpCircle,
-  Receipt,
-  LayoutDashboard,
-  Search,
-  Target,
-  TrendingUp,
-  Wallet,
-  type LucideIcon,
-} from "lucide-react";
+import { Search } from "lucide-react";
+import { COMMAND_ACTIONS, NAV_GROUPS } from "@/components/layout/nav-config";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -32,31 +16,9 @@ import {
 } from "@/components/ui/command";
 import { Kbd } from "@/components/ui/kbd";
 
-type CommandEntry = {
-  label: string;
-  href: string;
-  group: string;
-  icon: LucideIcon;
-};
-
-const COMMANDS: CommandEntry[] = [
-  { label: "Dashboard", href: "/", group: "Principal", icon: LayoutDashboard },
-  { label: "Snapshots", href: "/snapshots", group: "Principal", icon: CalendarDays },
-  { label: "Historial CCL", href: "/ccl", group: "Principal", icon: Activity },
-  { label: "Performance", href: "/performance", group: "Principal", icon: TrendingUp },
-  { label: "Análisis", href: "/analysis", group: "Análisis", icon: BarChart3 },
-  { label: "Ganancia Real", href: "/real-gains", group: "Análisis", icon: DollarSign },
-  { label: "Plan DCA", href: "/plan", group: "Análisis", icon: Wallet },
-  { label: "Jubilación", href: "/retirement", group: "Análisis", icon: Target },
-  { label: "Flujo de caja", href: "/flujo", group: "Análisis", icon: Coins },
-  { label: "Impuestos", href: "/impuestos", group: "Análisis", icon: Receipt },
-  { label: "Centro de Datos", href: "/datos", group: "Datos", icon: Database },
-  { label: "Alertas", href: "/alertas", group: "Datos", icon: Bell },
-  { label: "Transacciones", href: "/transactions", group: "Datos", icon: ArrowLeftRight },
-  { label: "Guía Cocos", href: "/guia", group: "Datos", icon: HelpCircle },
-];
-
-const GROUPS = ["Principal", "Análisis", "Datos"] as const;
+// Las secciones salen de la misma config que el sidebar (nav-config.ts); las
+// de admin quedan afuera porque el header no conoce el rol.
+const SECTION_GROUPS = NAV_GROUPS.map((g) => ({ heading: g.label ?? "Resumen", items: g.items }));
 
 export function CommandMenu() {
   const router = useRouter();
@@ -95,15 +57,23 @@ export function CommandMenu() {
         open={open}
         onOpenChange={setOpen}
         title="Buscar"
-        description="Navegá a cualquier sección de la app"
+        description="Navegá a una sección o empezá una tarea"
       >
         <Command>
-          <CommandInput placeholder="Buscar una sección…" />
+          <CommandInput placeholder="Buscar una sección o acción…" />
           <CommandList>
             <CommandEmpty>Sin resultados.</CommandEmpty>
-            {GROUPS.map((group) => (
-              <CommandGroup key={group} heading={group}>
-                {COMMANDS.filter((c) => c.group === group).map((c) => (
+            <CommandGroup heading="Acciones">
+              {COMMAND_ACTIONS.map((c) => (
+                <CommandItem key={c.label} value={c.label} onSelect={() => run(c.href)} className="gap-2">
+                  <c.icon className="size-4 text-muted-foreground" />
+                  {c.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            {SECTION_GROUPS.map((group) => (
+              <CommandGroup key={group.heading} heading={group.heading}>
+                {group.items.map((c) => (
                   <CommandItem
                     key={c.href}
                     value={`${c.label} ${c.href}`}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
-import { AlertTriangle, ArrowUpRight, ArrowDownRight, TrendingUp } from "lucide-react";
+import { AlertTriangle, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { getAllSnapshotPoints, getHoldingsFlows, getLatestSnapshot, getPreviousSnapshotFull } from "@/lib/portfolio-data";
@@ -16,18 +16,19 @@ import { getBenchmarkPoints } from "@/app/actions/benchmarks";
 import { getIndexPoints } from "@/app/actions/indices";
 import type { BenchmarkId, IndexBenchmarkId } from "@/lib/benchmarks-config";
 import { annualize, indexChangePct, realReturnPct } from "@/lib/inflation";
-import { formatARS, formatDateMedium, formatDateUTC, formatUSD } from "@/lib/format";
+import { formatARS, formatDateMedium, formatDateUTC, formatPct, formatUSD } from "@/lib/format";
+import { PageIntro, StatGrid, type Stat } from "@/components/layout/page-parts";
 import { performanceSeries } from "@/lib/snapshot-returns";
 import { returnSummary } from "@/lib/flow-returns";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Performance" };
+export const metadata: Metadata = { title: "Rendimiento" };
 
 type Currency = "ARS" | "USD";
 type PerformanceSearchParams = Promise<{ moneda?: string | string[] }>;
 
 function fmtSignedPct(value: number | null): string {
-  return value === null ? "—" : `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+  return value === null ? "—" : formatPct(value, { signed: true });
 }
 
 // El header entra al static shell; la moneda (searchParams), los snapshots, los
@@ -35,7 +36,7 @@ function fmtSignedPct(value: number | null): string {
 export default function PerformancePage({ searchParams }: { searchParams: PerformanceSearchParams }) {
   return (
     <div className="flex flex-col min-h-svh">
-      <SiteHeader title="Performance" description="Historial del portfolio" />
+      <SiteHeader title="Rendimiento" description="Cuánto rindió tu portfolio, sin contar aportes" />
       <Suspense fallback={<PerformanceSkeleton />}>
         <PerformanceContent searchParams={searchParams} />
       </Suspense>
@@ -179,31 +180,29 @@ async function PerformanceContent({ searchParams }: { searchParams: PerformanceS
   const yearReturn = summary?.yearReturnPct ?? null;
   const tir = summary?.tirPct ?? null;
 
-  const kpis = [
+  const toneOf = (v: number | null) => (v === null ? null : v >= 0 ? "positive" : "negative") as Stat["tone"];
+  const stats: Stat[] = [
     {
       label: `Rendimiento ${currentYear}`,
       value: fmtSignedPct(yearReturn),
-      sub: `Ganancia ${yearGain >= 0 ? "+" : ""}${formatMoney(yearGain)} sin aportes`,
-      accent: yearReturn !== null ? yearReturn >= 0 : null,
+      sub: `${yearGain >= 0 ? "+" : ""}${formatMoney(yearGain)} sin contar aportes`,
+      tone: toneOf(yearReturn),
     },
     {
-      label: currency === "USD" ? "TIR anual en USD" : "TIR anual",
+      label: currency === "USD" ? "TIR anual en dólares" : "TIR anual",
       value: fmtSignedPct(tir),
       sub: "Rendimiento anual, sin contar aportes",
-      accent: tir !== null ? tir >= 0 : null,
+      tone: toneOf(tir),
+      glossary: "cagr",
     },
-    thirdKpi,
+    { label: thirdKpi.label, value: thirdKpi.value, sub: thirdKpi.sub, tone: toneOf(thirdKpi.accent === null ? null : thirdKpi.accent ? 1 : -1) },
     {
-      label: "Máx. Drawdown",
-      value: maxDD > 0 ? `-${maxDD.toFixed(2)}%` : "—",
-      sub: "Mayor caída desde pico, sin aportes",
-      accent: false,
-    },
-    {
-      label: "Snapshots",
-      value: snapshots.length.toString(),
-      sub: `${snapshots.length === 1 ? "registro" : "registros"} importados`,
-      accent: null,
+      label: "Mayor caída",
+      value: maxDD > 0 ? formatPct(-maxDD) : "—",
+      // Con pocos snapshots no se ven las caídas entre uno y otro.
+      sub: `Desde un máximo, sin aportes · medida en ${snapshots.length} snapshots`,
+      tone: maxDD > 0 ? "negative" : null,
+      glossary: "drawdown",
     },
   ];
 
@@ -212,12 +211,12 @@ async function PerformanceContent({ searchParams }: { searchParams: PerformanceS
 
   return (
     <main className="flex-1 px-6 py-10 flex flex-col gap-6 max-w-6xl w-full mx-auto">
-      <div className="animate-fade-up flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs text-muted-foreground max-w-xl leading-relaxed">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <PageIntro>
           {currency === "USD"
             ? "En dólares: cada snapshot al CCL de su fecha y cada compra, venta o movimiento del FCI al CCL del día en que se hizo."
             : "En pesos. Para sacar la devaluación y compararte con el S&P 500 o el NASDAQ, mirá el análisis en dólares."}
-        </p>
+        </PageIntro>
         <nav aria-label="Moneda" className="flex gap-1.5">
           {(["ARS", "USD"] as Currency[]).map((c) => (
             <Button
@@ -260,49 +259,7 @@ async function PerformanceContent({ searchParams }: { searchParams: PerformanceS
         </div>
       )}
 
-      {/* KPI row */}
-      <section className="animate-fade-up grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        {kpis.map(({ label, value, sub, accent }) => (
-          <div
-            key={label}
-            className="rounded-xl border border-border bg-card shadow-sm px-5 py-4 flex flex-col gap-3"
-          >
-            <div className="flex flex-col gap-0.5">
-              <span className="text-sm font-semibold text-foreground">
-                {label}
-              </span>
-              <span className="text-xs text-muted-foreground">{sub}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              {accent === true && (
-                <ArrowUpRight className="size-4 text-success shrink-0" />
-              )}
-              {accent === false && (label !== "Máx. Drawdown" || maxDD > 0) && (
-                <ArrowDownRight className="size-4 text-destructive shrink-0" />
-              )}
-              <span
-                className={`text-xl font-bold font-mono tabular-nums leading-none ${accent === true
-                  ? "text-success"
-                  : accent === false &&
-                    (label === "Máx. Drawdown" ? maxDD > 0 : true)
-                    ? "text-destructive"
-                    : "text-foreground"
-                  }`}
-              >
-                {value}
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span
-                className={`size-2 rounded-full shrink-0 ${accent === false && (label !== "Máx. Drawdown" || maxDD > 0) ? "bg-destructive/50" : "bg-success/50"}`}
-              />
-              <span className="text-xs text-muted-foreground">
-                {accent === null ? "registros" : "del período"}
-              </span>
-            </div>
-          </div>
-        ))}
-      </section>
+      <StatGrid stats={stats} />
 
       <Separator className="opacity-30" />
 
@@ -312,9 +269,9 @@ async function PerformanceContent({ searchParams }: { searchParams: PerformanceS
         style={{ animationDelay: "100ms" }}
       >
         <div className="flex flex-col gap-3">
-          <p className="text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
+          <h2 className="text-base font-semibold text-foreground">
             Evolución del portfolio
-          </p>
+          </h2>
           <div className="rounded-xl border border-border bg-card shadow-sm p-5">
             {/* key: con <Activity> el estado sobrevive a la navegación; al cambiar
                 de moneda tiene que arrancar en la nueva. */}
@@ -323,9 +280,9 @@ async function PerformanceContent({ searchParams }: { searchParams: PerformanceS
         </div>
 
         <div className="flex flex-col gap-3">
-          <p className="text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
+          <h2 className="text-base font-semibold text-foreground">
             Comparación vs benchmarks
-          </p>
+          </h2>
           <p className="text-xs text-muted-foreground -mt-1">
             {currency === "USD"
               ? "Portfolio en dólares, sin aportes. El Merval está en pesos."
@@ -342,9 +299,9 @@ async function PerformanceContent({ searchParams }: { searchParams: PerformanceS
         </div>
 
         <div className="flex flex-col gap-3">
-          <p className="text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
+          <h2 className="text-base font-semibold text-foreground">
             Rendimiento real vs inflación{currency === "USD" ? " (en pesos)" : ""}
-          </p>
+          </h2>
           <div className="rounded-xl border border-border bg-card shadow-sm p-5">
             <InflationChart
               snapshots={series}
@@ -368,9 +325,9 @@ async function PerformanceContent({ searchParams }: { searchParams: PerformanceS
         className="animate-fade-up flex flex-col gap-3"
         style={{ animationDelay: "200ms" }}
       >
-        <p className="text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
+        <h2 className="text-base font-semibold text-foreground">
           Registros importados
-        </p>
+        </h2>
         <p className="text-xs text-muted-foreground -mt-1">
           El porcentaje es el rendimiento de cada período{currency === "USD" ? " en dólares" : ""}, sin contar compras, ventas ni movimientos del FCI.
         </p>

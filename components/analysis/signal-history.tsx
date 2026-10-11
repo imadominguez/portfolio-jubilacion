@@ -41,7 +41,7 @@ export function SignalHistoryTable({ history }: { history: SignalHistory }) {
   const changes = history.rows.filter((r) => r.changed).length;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 pb-8 space-y-4">
+    <div className="max-w-3xl space-y-4">
       <Separator />
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2">

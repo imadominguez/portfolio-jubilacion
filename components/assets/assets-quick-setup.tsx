@@ -123,7 +123,7 @@ export function AssetsQuickSetup({ missingTickers }: AssetsQuickSetupProps) {
             {missingTickers.length === 1 ? "ticker" : "tickers"} en tu snapshot sin
             datos completos. Completá el ratio (obligatorio) y, si podés, el
             subyacente, sector y país. Habilitan USD en vivo, Concentración y
-            Ganancia Real.
+            ganancia real.
           </p>
         </div>
       </div>

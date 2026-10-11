@@ -5,7 +5,7 @@ export default function PortfolioLoading() {
   return (
     <div className="flex flex-col min-h-svh">
       <SiteHeader title="Oportunidades" description="Precio, noticias y señal de cada acción" />
-      <main className="flex flex-col gap-8 px-6 py-10 max-w-5xl w-full mx-auto">
+      <main className="flex-1 flex flex-col gap-8 px-6 py-10 max-w-6xl w-full mx-auto">
         <div className="flex flex-col gap-3">
           <Skeleton className="h-6 w-64" />
           <Skeleton className="h-3 w-full max-w-lg" />

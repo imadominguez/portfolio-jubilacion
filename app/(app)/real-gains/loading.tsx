@@ -5,7 +5,7 @@ import { RealGainsSkeleton } from "@/components/real-gains/real-gains-skeleton";
 export default function RealGainsLoading() {
   return (
     <div className="flex flex-col min-h-svh">
-      <SiteHeader title="Ganancia Real" description="Desglose en USD · CCL · Apreciación" />
+      <SiteHeader title="Ganancia real" description="En dólares: cuánto vino de las acciones y cuánto del CCL" />
 
       <main className="flex-1 px-6 py-10 flex flex-col gap-8 max-w-6xl w-full mx-auto">
         <div className="flex flex-col gap-2">

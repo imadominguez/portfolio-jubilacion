@@ -19,11 +19,8 @@ export default function StrategyPage() {
         title="Estrategia"
         description="System prompt de la estrategia de inversión"
       />
-      <main className="flex-1 px-6 py-8 max-w-4xl w-full mx-auto flex flex-col gap-2">
+      <main className="flex-1 px-6 py-10 max-w-6xl w-full mx-auto flex flex-col gap-8">
         <div className="flex flex-col gap-1 mb-2">
-          <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
-            Gestión de estrategia
-          </p>
           <p className="text-sm text-muted-foreground max-w-lg leading-relaxed">
             Cada cambio crea una versión nueva inmutable. La versión activa se usa como system
             prompt al generar el reporte mensual con Claude.

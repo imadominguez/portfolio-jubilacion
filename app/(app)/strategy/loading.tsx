@@ -6,7 +6,7 @@ export default function StrategyLoading() {
   return (
     <div className="flex flex-col min-h-svh">
       <SiteHeader title="Estrategia" description="System prompt de la estrategia de inversión" />
-      <main className="flex-1 px-6 py-8 max-w-4xl w-full mx-auto flex flex-col gap-4">
+      <main className="flex-1 px-6 py-10 max-w-6xl w-full mx-auto flex flex-col gap-8">
         <Skeleton className="h-2.5 w-36" />
         <Skeleton className="h-4 w-full max-w-lg" />
         <StrategySkeleton />

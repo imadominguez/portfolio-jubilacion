@@ -37,7 +37,7 @@ export function ReportHistorial() {
 
   if (loadingList) {
     return (
-      <div className="max-w-4xl mx-auto px-4 pb-8 flex items-center gap-2 text-sm text-muted-foreground">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Loader2 className="w-4 h-4 animate-spin" />
         Cargando historial…
       </div>
@@ -47,7 +47,7 @@ export function ReportHistorial() {
   if (reports.length === 0) return null;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 pb-12 space-y-6">
+    <div className="space-y-6">
       <Separator />
 
       <div className="flex items-center gap-2">

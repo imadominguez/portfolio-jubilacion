@@ -3,29 +3,8 @@
 import { Suspense, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  LayoutDashboard,
-  TrendingUp,
-  CalendarDays,
-  Layers,
-  BarChart3,
-  ArrowLeftRight,
-  Target,
-  Settings,
-  DollarSign,
-  LogOut,
-  KeyRound,
-  Activity,
-  Bell,
-  Coins,
-  FileText,
-  BookOpen,
-  Database,
-  HelpCircle,
-  Receipt,
-  Wallet,
-  type LucideIcon,
-} from "lucide-react";
+import { KeyRound, LogOut } from "lucide-react";
+import { ADMIN_NAV_GROUP, NAV_GROUPS, type NavItem } from "@/components/layout/nav-config";
 import { signOut } from "@/lib/auth-client";
 import { ChangePasswordDialog } from "@/components/layout/change-password-dialog";
 import {
@@ -44,44 +23,8 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
-type NavItem = {
-  label: string;
-  href: string;
-  icon: LucideIcon;
-};
-
-const NAV_MAIN: NavItem[] = [
-  { label: "Dashboard", href: "/", icon: LayoutDashboard },
-  { label: "Snapshots", href: "/snapshots", icon: CalendarDays },
-  { label: "Historial CCL", href: "/ccl", icon: Activity },
-  { label: "Performance", href: "/performance", icon: TrendingUp },
-];
-
-const NAV_ANALYSIS: NavItem[] = [
-  { label: "Análisis", href: "/analysis", icon: BarChart3 },
-  { label: "Ganancia Real", href: "/real-gains", icon: DollarSign },
-  { label: "Plan DCA", href: "/plan", icon: Wallet },
-  { label: "Jubilación", href: "/retirement", icon: Target },
-  { label: "Flujo de caja", href: "/flujo", icon: Coins },
-  { label: "Impuestos", href: "/impuestos", icon: Receipt },
-];
-
-const NAV_DATA: NavItem[] = [
-  { label: "Centro de Datos", href: "/datos", icon: Database },
-  { label: "Alertas", href: "/alertas", icon: Bell },
-  { label: "Transacciones", href: "/transactions", icon: ArrowLeftRight },
-  { label: "Guía Cocos", href: "/guia", icon: HelpCircle },
-];
-
-const NAV_CONFIG: NavItem[] = [
-  { label: "Assets", href: "/assets", icon: Layers },
-  { label: "Estrategia", href: "/strategy", icon: BookOpen },
-  { label: "Configuración", href: "/settings", icon: Settings },
-  { label: "Oportunidades", href: "/portfolio", icon: FileText },
-];
-
 type AppSidebarProps = {
-  // Grupo "Configuración": lo resuelve el servidor según el rol, detrás de su
+  // Grupo "Administración": lo resuelve el servidor según el rol, detrás de su
   // propio <Suspense>, para que el resto del sidebar quede en el static shell.
   adminNav?: ReactNode;
 };
@@ -98,7 +41,7 @@ export function AppSidebar({ adminNav }: AppSidebarProps) {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="px-4 py-5">
+      <SidebarHeader className="px-4 py-4">
         <div className="flex items-center gap-3 overflow-hidden">
           <div
             className="size-8 shrink-0 rounded-xl bg-sidebar-primary shadow-sm ring-2 ring-sidebar-primary/35 ring-offset-2 ring-offset-sidebar flex items-center justify-center transition-shadow hover:shadow-md"
@@ -118,17 +61,17 @@ export function AppSidebar({ adminNav }: AppSidebarProps) {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-3 gap-1">
-        <NavGroup label={null} items={NAV_MAIN} />
-        <NavGroup label="Análisis" items={NAV_ANALYSIS} separated />
-        <NavGroup label="Datos" items={NAV_DATA} separated />
+      <SidebarContent className="px-3 gap-2">
+        {NAV_GROUPS.map((g) => (
+          <NavGroup key={g.label ?? "inicio"} label={g.label} items={g.items} />
+        ))}
         {adminNav}
       </SidebarContent>
 
       <SidebarSeparator className="opacity-80" />
 
       <SidebarFooter className="px-3 py-3">
-        <SidebarMenu className="gap-1">
+        <SidebarMenu className="gap-0.5">
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={() => setPasswordOpen(true)}
@@ -159,24 +102,16 @@ export function AppSidebar({ adminNav }: AppSidebarProps) {
 }
 
 export function AdminNavGroup() {
-  return <NavGroup label="Configuración" items={NAV_CONFIG} separated />;
+  return <NavGroup label={ADMIN_NAV_GROUP.label} items={ADMIN_NAV_GROUP.items} />;
 }
 
-function NavGroup({
-  label,
-  items,
-  separated = false,
-}: {
-  label: string | null;
-  items: NavItem[];
-  separated?: boolean;
-}) {
+function NavGroup({ label, items }: { label: string | null; items: NavItem[] }) {
   return (
+    // Los títulos de grupo ya separan; sin separadores entra todo en 900 px de alto.
     <div>
-      {separated ? <SidebarSeparator className="my-2 opacity-80" /> : null}
-      <SidebarGroup className="p-0 gap-1">
+      <SidebarGroup className="p-0 gap-0.5">
         {label ? (
-          <SidebarGroupLabel className="px-2 pb-1 text-[10px] font-semibold tracking-[0.2em] uppercase text-sidebar-foreground/38">
+          <SidebarGroupLabel className="h-6 px-2 text-xs font-medium text-sidebar-foreground/65">
             {label}
           </SidebarGroupLabel>
         ) : null}
@@ -206,7 +141,7 @@ const TOUR_IDS: Record<string, string> = {
 
 function NavMenu({ items, pathname }: { items: NavItem[]; pathname: string | null }) {
   return (
-    <SidebarMenu className="gap-1">
+    <SidebarMenu className="gap-0.5">
       {items.map(({ label, href, icon: Icon }) => {
         const isActive =
           pathname !== null && (href === "/" ? pathname === "/" : pathname.startsWith(href));
@@ -228,7 +163,7 @@ function NavMenu({ items, pathname }: { items: NavItem[]; pathname: string | nul
                 <Icon
                   className={cn(
                     "size-4 shrink-0 transition-colors duration-150",
-                    isActive ? "text-sidebar-accent-foreground" : "text-sidebar-foreground/55"
+                    isActive ? "text-sidebar-accent-foreground" : "text-sidebar-foreground/70"
                   )}
                 />
                 <span
@@ -236,7 +171,7 @@ function NavMenu({ items, pathname }: { items: NavItem[]; pathname: string | nul
                     "text-sm transition-colors duration-150",
                     isActive
                       ? "text-sidebar-accent-foreground font-semibold"
-                      : "text-sidebar-foreground/72 font-medium"
+                      : "text-sidebar-foreground/85 font-medium"
                   )}
                 >
                   {label}

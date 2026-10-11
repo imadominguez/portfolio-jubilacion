@@ -4,6 +4,7 @@ import { ReportHistorial } from "@/components/analysis/report-historial";
 import { SignalHistoryTable } from "@/components/analysis/signal-history";
 import { getSignalHistory } from "@/app/actions/reports";
 import { SiteHeader } from "@/components/layout/site-header";
+import { PAGE_MAIN } from "@/components/layout/page-parts";
 
 export const metadata = {
   title: "Oportunidades",
@@ -16,11 +17,13 @@ export default function PortfolioPage() {
   return (
     <div className="flex flex-col min-h-svh">
       <SiteHeader title="Oportunidades" description="Precio, noticias y señal de cada acción" />
-      <OpportunityAnalyzer />
-      <Suspense fallback={null}>
-        <SignalHistory />
-      </Suspense>
-      <ReportHistorial />
+      <main className={PAGE_MAIN}>
+        <OpportunityAnalyzer />
+        <Suspense fallback={null}>
+          <SignalHistory />
+        </Suspense>
+        <ReportHistorial />
+      </main>
     </div>
   );
 }

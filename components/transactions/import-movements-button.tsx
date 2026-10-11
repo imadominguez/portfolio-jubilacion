@@ -160,7 +160,7 @@ export function ImportMovimientosButton({ compact = false }: { compact?: boolean
       if (result.historyBackfillNeeded) {
         toast.warning("Datos históricos desactualizados", {
           description:
-            "Hay compras más antiguas que tus precios/CCL en caché. Actualizá en Ganancia Real para incluirlas.",
+            "Hay compras más antiguas que tus precios/CCL en caché. Actualizá en ganancia real para incluirlas.",
           action: { label: "Ir", onClick: () => router.push("/real-gains") },
         });
       }

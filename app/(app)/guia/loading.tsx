@@ -5,7 +5,7 @@ export default function GuiaLoading() {
   return (
     <div className="flex flex-col min-h-svh">
       <SiteHeader title="Guía Cocos" description="Cómo descargar CSV desde Cocos Capital" />
-      <main className="flex-1 px-4 py-6 sm:px-6 sm:py-10 max-w-5xl w-full mx-auto flex flex-col gap-8 sm:gap-10">
+      <main className="flex-1 px-4 py-6 sm:px-6 sm:py-10 max-w-6xl w-full mx-auto flex flex-col gap-8 sm:gap-10">
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-3">
             <Skeleton className="h-8 w-80 max-w-full" />
