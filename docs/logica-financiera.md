@@ -405,16 +405,18 @@ Las posiciones sin subyacente o sin dato (bonos, ONs, FCI) no entran y se listan
 
 | `tipoOperacion` | `MovementCategory` | ¿Genera `Transaction`? |
 |---|---|---|
-| `Compra`, `Compra Dolar Mep`, `Compra Registracion ARS` | `TRADE_BUY` | Sí |
-| `Venta`, `Venta Dolar Mep`, `Venta Registracion USD` | `TRADE_SELL` | Sí |
+| `Compra`, `Compra Dolar Mep`, `Compra Registracion ARS`/`USD`, `Compra Esp App Pesos`/`Dolares`, `Compra bono Operatoria dolar MEP ARS`/`USD` | `TRADE_BUY` | Sí |
+| `Venta`, `Venta Dolar Mep`, `Venta Registracion ARS`/`USD`, `Venta Esp App Pesos`/`Dolares`, `Venta bono Operatoria dolar MEP ARS`/`USD` | `TRADE_SELL` | Sí |
 | `Liquidacion Suscripcion Fci` | `FCI_SUBSCRIPTION` | No |
 | `Liquidacion Rescate Fci` | `FCI_REDEMPTION` | No |
 | `Orden De Pago`, `Orden De Pago Usd` | `PAYMENT` | No |
-| `Recibo De Cobro` | `RECEIPT` | No |
+| `Recibo De Cobro`, `Recibo De Cobro Dolares` | `RECEIPT` | No |
 | `Dividendos` | `DIVIDEND` | No (carga manual) |
 | `DIVIDENDOS EN ESPECIE` | `DIVIDEND_IN_KIND` | No (carga manual) |
 | `Nota De Credito Conversion` | `CONVERSION` | No |
 | desconocido | `OTHER` (+ warning) | No |
+
+Las variantes de bonos y ONs (registración, "Esp App", operatoria dólar MEP) se agregaron el 2026-10-11: antes caían en `OTHER` y no generaban `Transaction`. Las filas ya importadas conservan su categoría (los movimientos no se editan, ADR-0012); eran compras y ventas del mismo día sin tenencia remanente.
 
 - Sólo se crea una `Transaction` si la categoría es `TRADE_*` y hay `ticker`, `quantity` y `price`.
 - `fee = |comision| + |ddmm| + |iva| + |otros|` redondeado a 2 decimales.
