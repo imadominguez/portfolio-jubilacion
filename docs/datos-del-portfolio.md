@@ -23,8 +23,8 @@ Punto de entrada principal. Muestra el estado actual del portfolio basado en el 
 |---|---|
 | **Rendimiento vs snapshot anterior** | Rendimiento del período sin contar compras, ventas ni movimientos del FCI (Dietz modificado, [logica-financiera.md](./logica-financiera.md#rendimiento-de-un-período-dietz-modificado)). El monto es `valor_actual − valor_anterior − aportes netos`. |
 | **P&L no realizado (ARS)** | `Σ (precio_snapshot − PPM) × cantidad` para todas las posiciones con PPM disponible. Debajo, el mismo cálculo **hoy**, con el precio en pesos estimado del día (`subyacente / ratio × CCL`). |
-| **Dividendos cobrados (USD)** | Suma acumulada de todos los dividendos registrados en moneda USD. |
-| **Posiciones activas** | Cantidad de CEDEARs distintos en el snapshot actual. |
+| **Dividendos cobrados (USD)** | Total cobrado: los dividendos del libro de movimientos (`DIVIDEND` / `DIVIDEND_IN_KIND`, los de CEDEARs llegan como especie dólar) más los cargados a mano; los en pesos, al CCL de su fecha (`totalDividendsUsd`, `lib/tax-report.ts`). |
+| **Posiciones activas** | Cantidad de instrumentos distintos en el snapshot actual (CEDEARs, acciones, bonos y FCI). |
 
 ### Tabla de holdings
 
@@ -198,7 +198,7 @@ pnl_pct = (precio_venta - precio_promedio_compra) / precio_promedio_compra × 10
 
 ### Dividendos
 
-Registro de dividendos cobrados por ticker con monto, moneda (ARS/USD) y fecha. El total acumulado en USD se muestra en el Dashboard.
+Registro de dividendos cobrados por ticker con monto, moneda (ARS/USD) y fecha. Son los que no figuran en el CSV de Cocos: el total del Dashboard ya suma los del libro de movimientos.
 
 > Las ventas importadas de Cocos traen la cantidad en negativo; el PPM y el P&L realizado usan su valor absoluto (la importación nueva ya la guarda positiva).
 

@@ -278,15 +278,16 @@ newPct_i   = (valorActual_i + asignado_i) / (valorCartera + aporte) · 100
 
 ## Ganancia real en USD e impacto CCL (`lib/real-gains-data.ts`)
 
-Dos metodologías por posición, comparadas al final:
+Dos metodologías por posición, comparadas al final. El costo por ticker sale de `costBasisByTicker` (`lib/real-gains.ts`, puro): operaciones en orden cronológico y en CEDEARs del ratio actual. Las ventas descargan los tres costos a costo promedio, como el PPM; antes no se descontaban, y una venta parcial (AMD) dejaba el costo de todas las compras contra el valor de lo que quedaba.
 
 **Método A — valor ARS convertido por CCL**
 
-Costo de cada compra:
+Costo de cada compra (`bruto` = `|grossAmount|` del movimiento o `quantity × price`):
 ```
-costArs_tx  = quantity × price + fee
-costUsdCcl  = costArs_tx / cclEnCompra        (CCL más cercano ±7 días)
+compra en ARS:  costArs_tx = bruto + fee;          costUsdCcl = costArs_tx / cclEnCompra   (CCL más cercano ±7 días)
+compra en USD:  costUsdCcl = bruto + fee;          costArs_tx = costUsdCcl × cclEnCompra
 ```
+Las compras "Compra Dolar Mep" están en USD: antes se sumaban como si fueran pesos (NVDA figuraba con un costo de $55). Si un ticker tiene una compra en USD sin CCL, se omite.
 Valor actual:
 ```
 valueUsdCcl = valueArsActual / cclActual

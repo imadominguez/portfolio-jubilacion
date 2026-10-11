@@ -2,11 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   daysBeforeYearEnd,
   defaultTaxYear,
+  dividendRows,
   dividendsForYear,
   lastSnapshotPerYear,
   salesForYear,
   taxReportCsv,
   taxYears,
+  totalDividendsUsd,
   totalsByCurrency,
   type TradeForTax,
 } from "./tax-report";
@@ -129,6 +131,21 @@ describe("dividendsForYear", () => {
       ["KO", "USD", 1.2, 0, true],
     ]);
     expect(totalsByCurrency(rows, (r) => r.amount)).toEqual({ ARS: 6, USD: 1.56 });
+  });
+});
+
+describe("totalDividendsUsd", () => {
+  it("suma los USD y pasa los pesos al CCL de su fecha, sin filtrar por año", () => {
+    const rows = dividendRows(
+      [
+        { date: day("2025-08-01"), instrument: "Dólar estadounidense", ticker: null, currency: "ARS", quantity: 0.36, grossAmount: 0, total: -24.61 },
+        { date: day("2024-06-05"), instrument: "BCO DE VALORES (VALO)", ticker: "VALO", currency: "ARS", quantity: null, grossAmount: 6, total: 6 },
+        { date: day("2019-01-01"), instrument: "BCO DE VALORES (VALO)", ticker: "VALO", currency: "ARS", quantity: null, grossAmount: 9, total: 9 },
+      ],
+      [{ date: day("2026-09-01"), ticker: "KO", amount: 1.2, currency: "USD" }]
+    );
+    const cclAt = (date: Date) => (date.getUTCFullYear() < 2020 ? null : 1200);
+    expect(totalDividendsUsd(rows, cclAt)).toBeCloseTo(0.36 + 1.2 + 6 / 1200);
   });
 });
 
