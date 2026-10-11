@@ -5,6 +5,7 @@ import { connection } from "next/server";
 import { revalidateMarketPrices } from "@/lib/revalidate";
 import { marketTags } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
+import { requireAuth } from "@/lib/auth-session";
 import { saveMarketPrices } from "@/lib/market-refresh";
 
 export type MarketPriceResult =
@@ -23,6 +24,9 @@ export type MarketPriceRow = {
 
 export async function fetchAndSaveMarketPrices(): Promise<MarketPriceResult> {
   try {
+    // El proxy protege páginas, no Server Actions: sin esto cualquiera podría
+    // dispararla y gastar la cuota de las APIs externas.
+    await requireAuth();
     const result = await saveMarketPrices();
     revalidateMarketPrices();
     return { success: true, ...result };

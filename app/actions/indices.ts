@@ -3,7 +3,7 @@
 import { revalidateBenchmarks } from "@/lib/revalidate";
 import { db } from "@/lib/db";
 import { saveCer, saveInflation } from "@/lib/market-refresh";
-import { requireUserId } from "@/lib/auth-session";
+import { requireAuth, requireUserId } from "@/lib/auth-session";
 import { getBenchmarkPoints, type BenchmarkPoint } from "@/app/actions/benchmarks";
 import type { IndexBenchmarkId } from "@/lib/benchmarks-config";
 
@@ -17,6 +17,9 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export async function fetchAndSaveInflation(fromDate: Date): Promise<IndexFetchResult> {
   const indexId: IndexBenchmarkId = "inflacion";
   try {
+    // El proxy protege páginas, no Server Actions: sin esto cualquiera podría
+    // dispararla y gastar la cuota de las APIs externas.
+    await requireAuth();
     const saved = await saveInflation(fromDate);
     revalidateBenchmarks();
     return { success: true, indexId, saved };
@@ -30,6 +33,7 @@ export async function fetchAndSaveInflation(fromDate: Date): Promise<IndexFetchR
 export async function fetchAndSaveCer(fromDate: Date): Promise<IndexFetchResult> {
   const indexId: IndexBenchmarkId = "cer";
   try {
+    await requireAuth();
     const saved = await saveCer(fromDate);
     revalidateBenchmarks();
     return { success: true, indexId, saved };

@@ -213,10 +213,6 @@ pnpm db:seed
 - **Gestor de paquetes: solo pnpm.** El CI instala con `pnpm install --frozen-lockfile`: si `package.json` cambia sin actualizar `pnpm-lock.yaml`, falla. Agregar dependencias siempre con `pnpm add` (o `pnpm add -D`).
 - `xlsx` y `@types/xlsx` siguen en `dependencies` pero ya no se importan en ningún archivo (quedaron de la importación XLSX que se eliminó).
 
-### Seguridad
-
-- Las actions de refresco de mercado (`exchange-rate`, `market-prices`, `historical-prices`, `benchmarks`, `indices`) no validan sesión dentro de la action (dependen del proxy); solo escriben caches globales de datos públicos.
-
 ### Código
 
 - **`getPreviousSnapshot` y `getSnapshotCount`** (`lib/portfolio-data.ts`) no tienen consumidores.
@@ -228,6 +224,7 @@ pnpm db:seed
 - **MCP de Next:** `.mcp.json` usa `pnpm dlx next-devtools-mcp@latest`, que descarga el paquete en cada arranque y suele superar el timeout de conexión de 30 s. Mientras tanto se puede usar `/_next/mcp` del dev server (ver arriba).
 
 > **Resuelto:**
+> - (2026-10-11) Las actions de refresco de mercado (`exchange-rate`, `market-prices`, `historical-prices`, `benchmarks`, `indices`) exigen sesión con `requireAuth()`: el proxy no protege las Server Actions, y cualquiera podía dispararlas y gastar la cuota de Yahoo, dolarapi y argentinadatos. El cron no pasa por ellas (usa `lib/market-refresh.ts`).
 > - (2026-10-09) Bonos y ONs: el listado de transacciones, el PPM, el P&L realizado y el CSV usan el bruto del movimiento de Cocos (`tradeGrossAmount`), no cantidad × precio. El P&L realizado separa por moneda (la ON del dólar MEP queda afuera).
 > - (2026-10-09) Las 2 ventas guardadas con cantidad negativa se corrigieron en la base (respaldo en `__fixtures__/`); los lectores siguen usando `Math.abs`.
 > - (2026-10-09) `checkAndUpdateMilestones` recibe el id del snapshot y lee el valor de la base.
