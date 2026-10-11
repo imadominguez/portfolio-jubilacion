@@ -177,7 +177,7 @@ async function CclContent() {
                         {formatDateMedium(r.date)}
                       </span>
                       {r.source && (
-                        <span className="text-[10px] text-muted-foreground/60 hidden sm:inline">
+                        <span className="text-[10px] text-muted-foreground/80 hidden sm:inline">
                           {r.source}
                         </span>
                       )}

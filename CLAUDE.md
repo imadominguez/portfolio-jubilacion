@@ -86,7 +86,7 @@ Import pipeline: the Cocos movements CSV is parsed and categorized by `lib/cocos
 
 - Use shadcn components from `components/ui/` (don't hand-edit unless needed); `SiteHeader` for page headers (`title`, `description`, `actions`); `ChartContainer` + Recharts for charts (reference: `components/performance/performance-chart.tsx`).
 - Each route has `loading.tsx`; `(app)` has shared `error.tsx` / `not-found.tsx`.
-- Format numbers/dates with the helpers in `lib/format.ts` (`formatARS`, `formatUSD`, …): locale `"es-AR"` for numbers and dates, `"en-US"` for USD amounts.
+- Format numbers/dates with the helpers in `lib/format.ts` (`formatARS`, `formatUSD`, …): locale `"es-AR"` for numbers and dates, `"en-US"` for USD amounts (`formatUSD` prefixes `US$` so dollars never read as pesos); percentages with `formatPct`.
 - PDF export (`components/export/portfolio-pdf.tsx`) uses `@react-pdf/renderer` primitives + `StyleSheet.create()` — no Tailwind/shadcn there.
 - Next 16: `params` is async — `const { id } = await params;`.
 - No `console.log` in production code; comments explain *why*, not *what*.

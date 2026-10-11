@@ -48,7 +48,7 @@ export function EmptyDashboard() {
           { step: "03", label: "Repetí mensualmente para ver el historial" },
         ].map(({ step, label }) => (
           <div key={step} className="flex flex-col gap-2">
-            <span className="text-[10px] font-mono font-medium tracking-widest text-muted-foreground/50">
+            <span className="text-[10px] font-mono font-medium tracking-widest text-muted-foreground/80">
               {step}
             </span>
             <p className="text-[11px] text-muted-foreground leading-relaxed">
