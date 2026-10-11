@@ -54,3 +54,5 @@ scripts/*
 __fixtures__/*
 docs/movimientos/*.csv
 docs/portfolio_report/
+# Snapshots locales de las críticas de impeccable.
+.impeccable/

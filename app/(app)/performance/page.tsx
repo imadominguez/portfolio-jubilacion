@@ -15,7 +15,7 @@ import { getBenchmarkPoints } from "@/app/actions/benchmarks";
 import { getIndexPoints } from "@/app/actions/indices";
 import type { BenchmarkId, IndexBenchmarkId } from "@/lib/benchmarks-config";
 import { annualize, indexChangePct, realReturnPct } from "@/lib/inflation";
-import { formatARS, formatDateUTC, formatUSD } from "@/lib/format";
+import { formatARS, formatDateMedium, formatDateUTC, formatUSD } from "@/lib/format";
 import { performanceSeries } from "@/lib/snapshot-returns";
 import { returnSummary } from "@/lib/flow-returns";
 import { cn } from "@/lib/utils";
@@ -379,11 +379,7 @@ async function PerformanceContent({ searchParams }: { searchParams: PerformanceS
                   <div className="flex items-center gap-3">
                     <span className="size-2 rounded-full bg-success/50 shrink-0" />
                     <span className="text-sm font-mono text-foreground">
-                      {new Intl.DateTimeFormat("es-AR", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      }).format(new Date(s.snapshotDate))}
+                      {formatDateMedium(s.snapshotDate)}
                     </span>
                   </div>
                   <div className="flex items-center gap-4">

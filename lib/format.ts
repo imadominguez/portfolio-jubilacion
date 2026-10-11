@@ -37,16 +37,20 @@ const DATE_LONG = new Intl.DateTimeFormat("es-AR", {
   year: "numeric",
 });
 
+// En UTC: se usan para columnas @db.Date (medianoche UTC). Sin timeZone, un
+// navegador o un server en hora de Argentina mostraba el día anterior.
 const DATE_MEDIUM = new Intl.DateTimeFormat("es-AR", {
   day: "2-digit",
   month: "short",
   year: "numeric",
+  timeZone: "UTC",
 });
 
 const DATE_SHORT = new Intl.DateTimeFormat("es-AR", {
   day: "2-digit",
   month: "short",
   year: "2-digit",
+  timeZone: "UTC",
 });
 
 // Fechas de columnas @db.Date: Prisma las materializa como UTC midnight.

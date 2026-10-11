@@ -97,6 +97,7 @@ async function SnapshotsContent() {
                             day: "2-digit",
                             month: "long",
                             year: "numeric",
+                            timeZone: "UTC",
                           }).format(new Date(s.snapshotDate))}
                         </span>
                         <span className="text-[11px] text-muted-foreground">
