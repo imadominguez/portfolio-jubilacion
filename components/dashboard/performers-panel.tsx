@@ -1,81 +1,32 @@
-import { TrendingUp, TrendingDown } from "lucide-react";
 import type { PositionRow } from "@/lib/portfolio-data";
-import { formatARS } from "@/lib/format";
+import { formatARS, formatPct } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 interface PerformersPanelProps {
   currentPositions: PositionRow[];
   previousPositions: PositionRow[];
+  // "09 oct 2026": fecha del snapshot contra el que se compara.
+  sinceLabel: string;
 }
 
 type TickerPerf = {
   ticker: string;
   pricePct: number;
   currentPrice: number;
-  previousPrice: number;
 };
 
-function PerformerCard({ item }: { item: TickerPerf }) {
-  const isPositive = item.pricePct >= 0;
-
-  return (
-    <div className="flex items-center justify-between rounded-xl border border-border bg-card shadow-sm px-4 py-3 gap-3 hover:bg-muted/50 transition-colors">
-      <div className="flex items-center gap-3 min-w-0">
-        <div
-          className={`size-8 rounded-lg flex items-center justify-center shrink-0 ${
-            isPositive ? "bg-success/10" : "bg-destructive/10"
-          }`}
-        >
-          {isPositive ? (
-            <TrendingUp className="size-4 text-success" />
-          ) : (
-            <TrendingDown className="size-4 text-destructive" />
-          )}
-        </div>
-        <div className="flex flex-col min-w-0">
-          <span className="text-sm font-bold font-mono text-foreground">
-            {item.ticker}
-          </span>
-          <span className="text-[11px] font-mono text-muted-foreground tabular-nums">
-            {formatARS(item.currentPrice)}
-          </span>
-        </div>
-      </div>
-
-      <div
-        className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold tabular-nums shrink-0 ${
-          isPositive
-            ? "bg-success/10 text-success"
-            : "bg-destructive/10 text-destructive"
-        }`}
-      >
-        {isPositive ? "+" : ""}
-        {item.pricePct.toFixed(2)}%
-      </div>
-    </div>
-  );
-}
-
-export function PerformersPanel({
-  currentPositions,
-  previousPositions,
-}: PerformersPanelProps) {
-  const prevMap = new Map<string, number>(
-    previousPositions.map((p) => [p.ticker, p.price])
-  );
+// Variación del precio del CEDEAR entre los dos últimos snapshots. Es precio, no
+// rendimiento: no descuenta aportes ni dividendos, y a corto plazo es ruido para
+// una estrategia DCA, por eso vive en Performance y no en el Dashboard.
+export function PerformersPanel({ currentPositions, previousPositions, sinceLabel }: PerformersPanelProps) {
+  const prevMap = new Map<string, number>(previousPositions.map((p) => [p.ticker, p.price]));
 
   const performers: TickerPerf[] = currentPositions
-    .filter(
-      (p) =>
-        prevMap.has(p.ticker) &&
-        (prevMap.get(p.ticker) ?? 0) > 0 &&
-        p.price > 0
-    )
+    .filter((p) => (prevMap.get(p.ticker) ?? 0) > 0 && p.price > 0)
     .map((p) => ({
       ticker: p.ticker,
-      pricePct:
-        ((p.price - prevMap.get(p.ticker)!) / prevMap.get(p.ticker)!) * 100,
+      pricePct: ((p.price - prevMap.get(p.ticker)!) / prevMap.get(p.ticker)!) * 100,
       currentPrice: p.price,
-      previousPrice: prevMap.get(p.ticker)!,
     }));
 
   if (performers.length < 2) return null;
@@ -86,31 +37,45 @@ export function PerformersPanel({
   const worst = sorted.slice(-topN).reverse();
 
   return (
-    <section
-      className="animate-fade-up grid gap-4 sm:grid-cols-2"
-      style={{ animationDelay: "120ms" }}
-    >
-      <div>
-        <p className="mb-3 text-xs font-semibold tracking-widest text-muted-foreground uppercase">
-          Mejor rendimiento
+    <section aria-labelledby="performers-title" className="flex flex-col gap-3">
+      <div className="flex flex-col gap-1">
+        <h2 id="performers-title" className="text-base font-semibold text-foreground">
+          Variación de precio desde el {sinceLabel}
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Las que más subieron y bajaron entre los dos últimos snapshots. Es precio del CEDEAR, no rendimiento.
         </p>
-        <div className="flex flex-col gap-2">
-          {best.map((p) => (
-            <PerformerCard key={p.ticker} item={p} />
-          ))}
-        </div>
       </div>
-
-      <div>
-        <p className="mb-3 text-xs font-semibold tracking-widest text-muted-foreground uppercase">
-          Peor rendimiento
-        </p>
-        <div className="flex flex-col gap-2">
-          {worst.map((p) => (
-            <PerformerCard key={p.ticker} item={p} />
-          ))}
-        </div>
+      <div className="grid gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-2">
+        <PerformerList title="Más subieron" items={best} />
+        <PerformerList title="Más bajaron" items={worst} />
       </div>
     </section>
+  );
+}
+
+function PerformerList({ title, items }: { title: string; items: TickerPerf[] }) {
+  return (
+    <div className="flex flex-col bg-card">
+      <h3 className="px-5 pt-4 pb-2 text-sm text-muted-foreground">{title}</h3>
+      <ul className="divide-y divide-border/60">
+        {items.map((item) => (
+          <li key={item.ticker} className="flex items-center justify-between gap-3 px-5 py-3">
+            <div className="flex min-w-0 items-baseline gap-3">
+              <span className="font-mono text-sm font-semibold text-foreground">{item.ticker}</span>
+              <span className="font-mono text-xs tabular-nums text-muted-foreground">{formatARS(item.currentPrice)}</span>
+            </div>
+            <span
+              className={cn(
+                "font-mono text-sm font-semibold tabular-nums",
+                item.pricePct >= 0 ? "text-success" : "text-destructive"
+              )}
+            >
+              {formatPct(item.pricePct, { signed: true })}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

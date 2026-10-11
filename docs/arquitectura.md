@@ -64,7 +64,7 @@ app/
   generated/prisma/             Cliente Prisma generado (no editar a mano)
 components/
   layout/                       AppSidebar, SiteHeader, CommandMenu
-  dashboard/                    Hero, KpiStrip, AnalysisTools, HoldingsTable, AllocationPanel, PerformersPanel, MilestoneWidget, chart widget, empty
+  dashboard/                    Hero, KpiStrip, ThisMonth, HoldingsTable, AllocationPanel, PerformersPanel (usado en /performance), chart widget, empty
   performance/                  PerformanceChart, BenchmarkOverlayChart, InflationChart
   plan/                         DcaPlannerClient
   analysis/                     ConcentrationCharts, OpportunityAnalyzer, OpportunityReportDisplay, ReportHistorial, legacy-report

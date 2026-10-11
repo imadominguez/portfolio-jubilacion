@@ -48,3 +48,16 @@ export function monthLabel(monthKey: string): string {
   const [year, month] = monthKey.split("-").map(Number);
   return `${MONTHS[month - 1]} ${year}`;
 }
+
+// Días entre una columna @db.Date (medianoche UTC) y el día local de hoy.
+export function daysSince(date: Date, today: LocalDate): number {
+  const todayUtc = Date.UTC(today.year, today.month - 1, today.day);
+  return Math.round((todayUtc - date.getTime()) / 86_400_000);
+}
+
+// "hoy", "ayer", "hace 12 días".
+export function ageLabel(days: number): string {
+  if (days <= 0) return "hoy";
+  if (days === 1) return "ayer";
+  return `hace ${days} días`;
+}

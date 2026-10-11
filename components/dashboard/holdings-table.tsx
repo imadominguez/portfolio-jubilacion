@@ -34,35 +34,35 @@ export function HoldingsTable({ positions, ppmData = [], marketPrices = [] }: Ho
   const liveUsdFetchedAt = marketPrices.length > 0 ? marketPrices[0].fetchedAt : null;
 
   return (
-    <div className="animate-fade-up" style={{ animationDelay: "200ms" }}>
-      <p className="mb-3 text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+    <section aria-labelledby="holdings-title" className="flex flex-col gap-3">
+      <h2 id="holdings-title" className="text-base font-semibold text-foreground">
         Posiciones
-      </p>
-      <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+      </h2>
+      <div className="rounded-2xl border border-border bg-card overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent bg-muted/40">
-              <TableHead className="pl-4 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
+              <TableHead className="pl-4 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground h-9">
                 Activo
               </TableHead>
-              <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
+              <TableHead className="hidden sm:table-cell text-[11px] font-semibold tracking-wider uppercase text-muted-foreground text-right h-9">
                 Cantidad
               </TableHead>
-              <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
+              <TableHead className="hidden md:table-cell text-[11px] font-semibold tracking-wider uppercase text-muted-foreground text-right h-9">
                 Precio
               </TableHead>
               {hasPpm && (
-                <TableHead className="hidden lg:table-cell text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
+                <TableHead className="hidden md:table-cell text-[11px] font-semibold tracking-wider uppercase text-muted-foreground text-right h-9">
                   PPM / P&L
                 </TableHead>
               )}
-              <TableHead className="pr-4 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
+              <TableHead className="pr-4 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground text-right h-9">
                 Valor
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {positions.map((position, index) => {
+            {positions.map((position) => {
               const ppm = ppmMap.get(position.ticker);
               const market = marketMap.get(position.ticker);
               const unrealizedPnlPct =
@@ -77,16 +77,19 @@ export function HoldingsTable({ positions, ppmData = [], marketPrices = [] }: Ho
               return (
                 <TableRow
                   key={position.ticker}
-                  className="border-border/60 transition-colors animate-fade-up hover:bg-muted/30"
-                  style={{ animationDelay: `${220 + index * 35}ms` }}
+                  className="border-border/60 transition-colors hover:bg-muted/30"
                 >
                   <TableCell className="pl-4 py-3">
                     <div className="flex flex-col gap-0.5">
                       <span className="text-sm font-bold font-mono text-foreground">
                         {position.ticker}
                       </span>
+                      {/* En celular, cantidad y precio van debajo del ticker. */}
+                      <span className="sm:hidden text-[11px] font-mono tabular-nums text-muted-foreground">
+                        {position.quantity % 1 === 0 ? position.quantity.toFixed(0) : position.quantity.toFixed(2)} × {formatARS(position.price)}
+                      </span>
                       {position.instrumentName && (
-                        <span className="text-[11px] text-muted-foreground leading-tight">
+                        <span className="hidden sm:block text-[11px] text-muted-foreground leading-tight">
                           {position.instrumentName
                             .replace(/^CEDEAR\s+/i, "")
                             .replace(/\s*\([A-Z0-9]+\)\s*$/, "")}
@@ -94,25 +97,25 @@ export function HoldingsTable({ positions, ppmData = [], marketPrices = [] }: Ho
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="py-3 text-right text-sm font-mono tabular-nums text-muted-foreground">
+                  <TableCell className="hidden sm:table-cell py-3 text-right text-sm font-mono tabular-nums text-muted-foreground">
                     {position.quantity % 1 === 0
                       ? position.quantity.toFixed(0)
                       : position.quantity.toFixed(2)}
                   </TableCell>
-                  <TableCell className="py-3 text-right">
+                  <TableCell className="hidden md:table-cell py-3 text-right">
                     <div className="flex flex-col items-end gap-0.5">
                       <span className="text-sm font-mono tabular-nums text-foreground/80">
                         {formatARS(position.price)}
                       </span>
                       {market && (
-                        <span className="text-[11px] font-mono tabular-nums text-muted-foreground/60">
+                        <span className="text-[11px] font-mono tabular-nums text-muted-foreground">
                           {market.underlyingTicker} {formatUSD(market.priceUsd)}
                         </span>
                       )}
                     </div>
                   </TableCell>
                   {hasPpm && (
-                    <TableCell className="hidden lg:table-cell py-3 text-right">
+                    <TableCell className="hidden md:table-cell py-3 text-right">
                       {ppm ? (
                         <div className="flex flex-col items-end gap-0.5">
                           <span className="text-xs font-mono tabular-nums text-muted-foreground">
@@ -140,13 +143,23 @@ export function HoldingsTable({ positions, ppmData = [], marketPrices = [] }: Ho
                         {formatARS(position.positionValue)}
                       </span>
                       {usdPositionValue !== null && (
-                        <span className="text-[11px] font-mono tabular-nums text-muted-foreground/70">
+                        <span className="text-[11px] font-mono tabular-nums text-muted-foreground">
                           {formatUSD(usdPositionValue)}
+                        </span>
+                      )}
+                      {unrealizedPnlPct !== null && (
+                        <span
+                          className={`md:hidden text-[11px] font-mono tabular-nums ${
+                            unrealizedPnlPct >= 0 ? "text-success" : "text-destructive"
+                          }`}
+                        >
+                          {unrealizedPnlPct >= 0 ? "+" : ""}
+                          {unrealizedPnlPct.toFixed(2)}% vs PPM
                         </span>
                       )}
                       <div className="h-1 w-16 rounded-full bg-muted overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-chart-1/70 transition-all duration-700"
+                          className="h-full rounded-full bg-chart-1/70"
                           style={{ width: `${(position.positionValue / max) * 100}%` }}
                         />
                       </div>
@@ -160,8 +173,8 @@ export function HoldingsTable({ positions, ppmData = [], marketPrices = [] }: Ho
       </div>
 
       {totalLiveUsd !== null && (
-        <div className="mt-3 flex items-center justify-between px-1">
-          <span className="text-[11px] text-muted-foreground/60">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+          <span className="text-xs text-muted-foreground">
             {/* Los precios son los del último refresco (cron diario o botón), no en vivo. */}
             Precios del{" "}
             {liveUsdFetchedAt
@@ -175,13 +188,13 @@ export function HoldingsTable({ positions, ppmData = [], marketPrices = [] }: Ho
               : ""}
           </span>
           <div className="flex items-center gap-1.5">
-            <span className="text-[11px] text-muted-foreground/60">Total live</span>
+            <span className="text-xs text-muted-foreground">Total con precios del día</span>
             <span className="text-sm font-mono font-semibold tabular-nums text-foreground">
               {formatUSD(totalLiveUsd)}
             </span>
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 }

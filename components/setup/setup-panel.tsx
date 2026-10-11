@@ -12,6 +12,8 @@ type SetupPanelProps = {
   showChecklist?: boolean;
   /** El wizard sólo se auto-abre en el dashboard, no en `/datos`. */
   showWizard?: boolean;
+  /** Checklist en una línea, desplegable (dashboard). */
+  collapsible?: boolean;
 };
 
 // "Más tarde" posterga el wizard por la sesión del navegador. Es una
@@ -48,6 +50,7 @@ export function SetupPanel({
   status,
   showChecklist = true,
   showWizard = true,
+  collapsible = false,
 }: SetupPanelProps) {
   // En el servidor se asume postergado: el wizard se abre recién al hidratar,
   // sin mismatch de markup.
@@ -69,7 +72,7 @@ export function SetupPanel({
   return (
     <>
       {showChecklist && !status.allDone && (
-        <SetupChecklist status={status} onImportSnapshot={openSnapshotImport} />
+        <SetupChecklist status={status} onImportSnapshot={openSnapshotImport} collapsible={collapsible} />
       )}
 
       {showWizard && (

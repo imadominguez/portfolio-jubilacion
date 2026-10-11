@@ -58,12 +58,12 @@ export function AllocationPanel({ positions, totalArs }: AllocationPanelProps) {
   }));
 
   return (
-    <div className="animate-fade-up" style={{ animationDelay: "150ms" }}>
-      <p className="mb-3 text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+    <section aria-labelledby="allocation-title" className="flex flex-col gap-3">
+      <h2 id="allocation-title" className="text-base font-semibold text-foreground">
         Distribución
-      </p>
+      </h2>
 
-      <div className="rounded-xl border border-border bg-card shadow-sm p-4 flex flex-col gap-4">
+      <div className="rounded-2xl border border-border bg-card p-4 flex flex-col gap-4">
         {/* Donut chart */}
         <div className="h-[200px] w-full">
           <ResponsiveContainer width="100%" height="100%">
@@ -132,6 +132,6 @@ export function AllocationPanel({ positions, totalArs }: AllocationPanelProps) {
           </span>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

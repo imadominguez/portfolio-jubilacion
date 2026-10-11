@@ -1,141 +1,99 @@
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import type { GlossaryKey } from "@/lib/glossary";
-import { formatARS, formatUSD } from "@/lib/format";
+import { formatARS, formatPct, formatUSD } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 interface DashboardKpiStripProps {
-  totalValueUsd: number | null;
-  ccl: number | null;
-  positionCount: number;
-  gainPct: number | null;
-  isPositive: boolean;
-  totalUnrealizedPnlArs: number | null;
-  unrealizedIsPositive: boolean;
-  // Con los precios del día (lib/live-valuation.ts); null si no hay.
-  liveUnrealizedPnlArs: number | null;
-  totalDividendsUsd: number;
+  // Rendimiento vs el snapshot anterior, sin aportes; null con un solo snapshot.
+  period: { pct: number; gainArs: number; sinceLabel: string } | null;
+  // P&L no realizado contra el PPM: al precio del snapshot y con los precios del día.
+  unrealized: { snapshotArs: number; todayArs: number | null } | null;
+  // Ganancia real en USD (ver /real-gains): apreciación del subyacente + efecto CCL.
+  realGain: { usd: number; pct: number | null; appreciationUsd: number | null; cclUsd: number | null } | null;
+  dividendsUsd: number;
 }
 
-export function DashboardKpiStrip({
-  totalValueUsd,
-  ccl,
-  positionCount,
-  gainPct,
-  isPositive,
-  totalUnrealizedPnlArs,
-  unrealizedIsPositive,
-  liveUnrealizedPnlArs,
-  totalDividendsUsd,
-}: DashboardKpiStripProps) {
-  const kpis: {
-    label: string;
-    sub: string;
-    value: string;
-    status: string;
-    accent: boolean | null;
-    glossary: GlossaryKey | undefined;
-  }[] = [
-    {
-      label: "Equivalente USD",
-      sub: "Tipo de cambio CCL",
-      value: totalValueUsd ? formatUSD(totalValueUsd) : "—",
-      status: "calculado",
-      accent: null,
-      glossary: "ccl",
-    },
-    {
-      label: "Tipo de cambio",
-      sub: "CCL implícito",
-      value: ccl ? formatARS(ccl) : "—",
-      status: "del snapshot",
-      accent: null,
-      glossary: "ccl",
-    },
-    {
-      label: "Posiciones",
-      sub: "en el último snapshot",
-      value: `${positionCount}`,
-      status: "activos",
-      accent: null,
-      glossary: undefined,
-    },
-  ];
+type Kpi = {
+  label: string;
+  value: string;
+  sub: string | null;
+  tone: "positive" | "negative" | null;
+  glossary?: GlossaryKey;
+};
 
-  if (gainPct !== null) {
+function signedARS(v: number) {
+  return `${v >= 0 ? "+" : ""}${formatARS(v)}`;
+}
+function signedUSD(v: number) {
+  return `${v >= 0 ? "+" : ""}${formatUSD(v)}`;
+}
+const toneOf = (v: number) => (v >= 0 ? "positive" : "negative");
+
+// Las cuatro métricas que cambian de una semana a otra, en una sola superficie
+// dividida por líneas finas: sin tarjetas sueltas ni líneas de estado de relleno.
+export function DashboardKpiStrip({ period, unrealized, realGain, dividendsUsd }: DashboardKpiStripProps) {
+  const kpis: Kpi[] = [];
+
+  if (period) {
     kpis.push({
-      label: "Rendimiento",
-      sub: "vs snapshot anterior, sin aportes",
-      value: `${isPositive ? "+" : ""}${gainPct.toFixed(2)}%`,
-      status: "vs anterior",
-      accent: isPositive,
-      glossary: "cagr",
+      label: "Desde el snapshot anterior",
+      value: formatPct(period.pct, { signed: true }),
+      sub: `${signedARS(period.gainArs)} sin aportes · ${period.sinceLabel}`,
+      tone: toneOf(period.pct),
     });
   }
-
-  if (totalUnrealizedPnlArs !== null) {
+  if (unrealized) {
     kpis.push({
-      label: "P&L no realizado",
-      sub: "precio del snapshot vs PPM",
-      value: `${unrealizedIsPositive ? "+" : ""}${formatARS(totalUnrealizedPnlArs)}`,
-      status:
-        liveUnrealizedPnlArs !== null
-          ? `hoy: ${liveUnrealizedPnlArs >= 0 ? "+" : ""}${formatARS(liveUnrealizedPnlArs)}`
-          : unrealizedIsPositive
-            ? "ganancia latente"
-            : "pérdida latente",
-      accent: unrealizedIsPositive,
+      label: "Ganancia latente",
+      value: signedARS(unrealized.snapshotArs),
+      sub: unrealized.todayArs !== null ? `Con precios de hoy: ${signedARS(unrealized.todayArs)}` : "Precio del snapshot contra tu PPM",
+      tone: toneOf(unrealized.snapshotArs),
       glossary: "pnl",
     });
   }
-
-  if (totalDividendsUsd > 0) {
+  if (realGain) {
+    const parts = [
+      realGain.appreciationUsd !== null ? `acciones ${signedUSD(realGain.appreciationUsd)}` : null,
+      realGain.cclUsd !== null ? `CCL ${signedUSD(realGain.cclUsd)}` : null,
+    ].filter(Boolean);
     kpis.push({
-      label: "Dividendos",
-      sub: "total cobrado",
-      value: formatUSD(totalDividendsUsd),
-      status: "acumulado USD",
-      accent: true,
-      glossary: undefined,
+      label: "Ganancia real en dólares",
+      value: signedUSD(realGain.usd),
+      sub: parts.length ? parts.join(" · ") : null,
+      tone: toneOf(realGain.usd),
     });
   }
+  kpis.push({
+    label: "Dividendos cobrados",
+    value: formatUSD(dividendsUsd),
+    sub: "Desde la primera importación",
+    tone: null,
+  });
 
   return (
-    <div
-      className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6 animate-fade-up"
-      style={{ animationDelay: "80ms" }}
+    <dl
+      className={cn(
+        "grid gap-px overflow-hidden rounded-2xl border border-border bg-border grid-cols-1 sm:grid-cols-2",
+        kpis.length >= 4 ? "lg:grid-cols-4" : "lg:grid-cols-3"
+      )}
     >
-      {kpis.map(({ label, sub, value, status, accent, glossary }) => (
-        <div
-          key={label}
-          className="rounded-xl border border-border bg-card shadow-sm px-5 py-4 flex flex-col gap-3"
-        >
-          <div className="flex flex-col gap-0.5">
-            <span className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-              {label}
-              {glossary && <InfoTooltip term={glossary} />}
-            </span>
-            <span className="text-xs text-muted-foreground">{sub}</span>
-          </div>
-          <span
-            className={`text-xl font-bold font-mono tabular-nums leading-none ${
-              accent === true
-                ? "text-success"
-                : accent === false
-                  ? "text-destructive"
-                  : "text-foreground"
-            }`}
+      {kpis.map((k) => (
+        <div key={k.label} className="flex min-w-0 flex-col gap-1.5 bg-card px-5 py-4">
+          <dt className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            {k.label}
+            {k.glossary && <InfoTooltip term={k.glossary} />}
+          </dt>
+          <dd
+            className={cn(
+              "font-mono text-xl font-semibold tabular-nums",
+              k.tone === "positive" ? "text-success" : k.tone === "negative" ? "text-destructive" : "text-foreground"
+            )}
           >
-            {value}
-          </span>
-          <div className="flex items-center gap-1.5">
-            <span
-              className={`size-2 rounded-full shrink-0 ${
-                accent === false ? "bg-destructive" : "bg-success"
-              }`}
-            />
-            <span className="text-xs text-muted-foreground">{status}</span>
-          </div>
+            {k.value}
+          </dd>
+          {k.sub && <dd className="text-xs text-muted-foreground">{k.sub}</dd>}
         </div>
       ))}
-    </div>
+    </dl>
   );
 }
