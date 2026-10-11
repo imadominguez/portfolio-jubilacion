@@ -15,7 +15,7 @@ import {
   calculatePPM,
   getRealizedPnl,
 } from "@/app/actions/transactions";
-import { getAllDividends } from "@/app/actions/dividends";
+import { getAllDividends, getTotalDividendsUsd } from "@/app/actions/dividends";
 import { getMovements } from "@/app/actions/import-movements";
 import { getMonthExpenses } from "@/app/actions/expenses";
 import { expenseSummary } from "@/lib/expenses";
@@ -96,11 +96,12 @@ async function Expenses({ searchParams }: { searchParams: TransactionsSearchPara
 }
 
 async function Transactions() {
-  const [transactions, ppmData, realizedPnl, dividends, movements] = await Promise.all([
+  const [transactions, ppmData, realizedPnl, dividends, totalDividendsUsd, movements] = await Promise.all([
     getAllTransactions(),
     calculatePPM(),
     getRealizedPnl(),
     getAllDividends(),
+    getTotalDividendsUsd(),
     getMovements(),
   ]);
 
@@ -110,6 +111,7 @@ async function Transactions() {
       ppmData={ppmData}
       realizedPnl={realizedPnl}
       dividends={dividends}
+      totalDividendsUsd={totalDividendsUsd}
       movements={movements}
     />
   );

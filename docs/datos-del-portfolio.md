@@ -198,7 +198,7 @@ pnl_pct = (precio_venta - precio_promedio_compra) / precio_promedio_compra × 10
 
 ### Dividendos
 
-Registro de dividendos cobrados por ticker con monto, moneda (ARS/USD) y fecha. Son los que no figuran en el CSV de Cocos: el total del Dashboard ya suma los del libro de movimientos.
+Lista los cobros del libro de movimientos de Cocos (los de CEDEARs llegan como especie dólar, con los gastos en pesos en la nota) y los cargados a mano, que son los únicos que se pueden borrar desde acá. El total en USD pasa los dividendos en pesos al CCL de su fecha, igual que el KPI del Dashboard.
 
 > Las ventas importadas de Cocos traen la cantidad en negativo; el PPM y el P&L realizado usan su valor absoluto (la importación nueva ya la guarda positiva).
 
