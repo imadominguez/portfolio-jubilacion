@@ -9,13 +9,13 @@ export function PortfolioChartWidget({ snapshots }: PortfolioChartWidgetProps) {
   if (snapshots.length < 2) return null;
 
   return (
-    <div className="animate-fade-up" style={{ animationDelay: "100ms" }}>
-      <p className="mb-3 text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+    <section aria-labelledby="evolution-title" className="flex flex-col gap-3">
+      <h2 id="evolution-title" className="text-base font-semibold text-foreground">
         Evolución del portfolio
-      </p>
-      <div className="rounded-xl border border-border bg-card shadow-sm p-5">
+      </h2>
+      <div className="rounded-2xl border border-border bg-card p-5">
         <PerformanceChart snapshots={snapshots} />
       </div>
-    </div>
+    </section>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Circle, Info, PartyPopper } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronDown, Circle, Info, PartyPopper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -13,6 +14,8 @@ type SetupChecklistProps = {
   /** Si se provee, el paso de snapshot abre el import en vez de navegar. */
   onImportSnapshot?: () => void;
   compact?: boolean;
+  /** Una línea con el siguiente paso; la lista se despliega a pedido (dashboard). */
+  collapsible?: boolean;
   className?: string;
 };
 
@@ -20,23 +23,27 @@ export function SetupChecklist({
   status,
   onImportSnapshot,
   compact = false,
+  collapsible = false,
   className,
 }: SetupChecklistProps) {
+  const [expanded, setExpanded] = useState(!collapsible);
   const pct = status.totalCount
     ? (status.completedCount / status.totalCount) * 100
     : 0;
+
+  const nextStep = status.steps.find((s) => !s.done && s.actionable) ?? null;
 
   if (status.allDone) {
     return (
       <div
         className={cn(
-          "rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-5 py-4 flex items-center gap-3",
+          "rounded-xl border border-success/30 bg-success/5 px-5 py-4 flex items-center gap-3",
           className
         )}
       >
-        <PartyPopper className="size-4 text-emerald-500 shrink-0" />
+        <PartyPopper className="size-4 text-success shrink-0" />
         <div className="flex flex-col gap-0.5">
-          <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+          <p className="text-sm font-medium text-success">
             Configuración completa
           </p>
           <p className="text-xs text-muted-foreground">
@@ -56,22 +63,42 @@ export function SetupChecklist({
     >
       <div className="px-5 pt-5 pb-4 flex flex-col gap-3">
         <div className="flex items-start justify-between gap-4">
-          <div className="flex flex-col gap-0.5">
+          <div className="flex flex-col gap-0.5 min-w-0">
             <p className="text-sm font-semibold text-foreground">
               Puesta en marcha
             </p>
             <p className="text-xs text-muted-foreground">
               {status.completedCount} de {status.totalCount} pasos completados
+              {collapsible && nextStep && (
+                <>
+                  {" "}· siguiente: <span className="text-foreground/80">{nextStep.label}</span>
+                </>
+              )}
             </p>
           </div>
-          <Badge variant="secondary" className="font-mono text-[10px] shrink-0">
-            {Math.round(pct)}%
-          </Badge>
+          {collapsible ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="shrink-0 gap-1 text-xs"
+              aria-expanded={expanded}
+              aria-controls="setup-steps"
+              onClick={() => setExpanded((v) => !v)}
+            >
+              {expanded ? "Ocultar pasos" : "Ver pasos"}
+              <ChevronDown className={cn("size-3.5 transition-transform", expanded && "rotate-180")} />
+            </Button>
+          ) : (
+            <Badge variant="secondary" className="font-mono text-[10px] shrink-0">
+              {Math.round(pct)}%
+            </Badge>
+          )}
         </div>
         <Progress value={pct} />
       </div>
 
-      <ul className="border-t border-border/60 divide-y divide-border/40">
+      {expanded && (
+      <ul id="setup-steps" className="border-t border-border/60 divide-y divide-border/40">
         {status.steps.map((step) => {
           const Icon = step.done ? CheckCircle2 : step.actionable ? Circle : Info;
           const showCta = !step.done && step.actionable;
@@ -85,7 +112,7 @@ export function SetupChecklist({
               <Icon
                 className={cn(
                   "size-4 shrink-0 mt-0.5",
-                  step.done ? "text-emerald-500" : "text-muted-foreground/40"
+                  step.done ? "text-success" : "text-muted-foreground/70"
                 )}
               />
               <div className="flex flex-col gap-0.5 min-w-0 flex-1">
@@ -103,7 +130,7 @@ export function SetupChecklist({
                   {step.required && !step.done && (
                     <Badge
                       variant="outline"
-                      className="text-[10px] font-normal text-amber-600 dark:text-amber-400 border-amber-500/30"
+                      className="text-[10px] font-normal text-warning border-warning/30"
                     >
                       Requerido
                     </Badge>
@@ -152,6 +179,7 @@ export function SetupChecklist({
           );
         })}
       </ul>
+      )}
     </div>
   );
 }

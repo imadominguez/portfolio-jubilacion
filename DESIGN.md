@@ -18,11 +18,15 @@ Tailwind v4 + shadcn/ui (`radix-nova`) con tokens semánticos en oklch.
 3. **Semántica financiera explícita.** Verde = ganancia, rojo = pérdida, ámbar = atención. Siempre
    vía `success` / `destructive` / `warning`, nunca hardcodeado.
 4. **Profundidad por capas, no por sombras pesadas.** La elevación se logra con superficies
-   escalonadas + bordes + un glow sutil.
+   escalonadas y bordes finos. Sin glow en superficies de datos.
 5. **Datos primero.** Números en `font-mono` con `tabular-nums`; la UI se aparta y deja hablar a
    los datos.
-6. **Cero ruido.** Sin gradientes multicolor aleatorios. Gradientes y glows azulados, con
-   intención.
+6. **Cero ruido.** Sin gradientes multicolor aleatorios. Gradientes y glows quedan para las
+   pantallas de auth; el producto no los usa.
+7. **Sereno, no de trading (2026-10-11).** Es una herramienta de ahorro a 20 años: transmite
+   calma y contesta "¿voy bien?" antes que "¿qué se movió hoy?". Nada que late, sin rankings de
+   la semana en el Dashboard, color solo para ganancia/pérdida/atención. Títulos de sección en
+   oración (`text-base font-semibold`), no micro-labels en mayúsculas.
 
 ---
 
@@ -163,9 +167,12 @@ Los números siempre llevan `font-mono tabular-nums`.
 ## 6. Componentes
 
 ### 6.1 Hero (DashboardHero)
-Tarjeta oscura con gradiente azul profundo (`from-primary/25` → transparente), glow cian en la
-esquina, valor en `text-gradient`, badge de ganancia con `bg-success/20` / `bg-destructive/20`.
-Prohibido oklch crudo.
+Superficie plana `bg-card` con `rounded-2xl border`. Izquierda: valor del portfolio en
+`font-mono text-4xl/5xl font-semibold tracking-[-0.03em]`, toggle de moneda con `ToggleGroup`
+(`aria-label="Moneda"`), y una línea de contexto: "Snapshot del … · hace N días · CCL" (en
+`warning` pasados 35 días) y el valor con los precios del día. Derecha (separada por `border-l`):
+rendimiento del año sin aportes y la meta de jubilación (proyectado vs necesario, barra
+`success`/`warning`). Sin gradiente, glow, `text-gradient` ni punto que late.
 
 ### 6.2 Sidebar / AppSidebar
 - Fondo `bg-sidebar`.
@@ -178,9 +185,11 @@ Prohibido oklch crudo.
 Sticky, `bg-background/80 backdrop-blur-xl`, borde inferior `border-border`.
 
 ### 6.4 KPI / métricas
-`rounded-xl border border-border bg-card shadow-sm px-5 py-4`; valor en `font-mono` con color
-según semántica; punto de estado `bg-success` / `bg-warning` / `bg-destructive` /
-`bg-muted-foreground/40`.
+Una sola superficie con celdas divididas por líneas finas (`grid gap-px bg-border` con hijos
+`bg-card`, `rounded-2xl border`), no tarjetas sueltas. Cada celda: label `text-sm
+text-muted-foreground`, valor `font-mono text-xl font-semibold` con color según semántica y una
+línea de contexto `text-xs`. Sin puntos de estado ni líneas de relleno ("calculado",
+"del período"). Porcentajes con `formatPct` (coma decimal). Mismo patrón para "Este mes".
 
 ### 6.5 Badges y pills
 - Base: `shadcn badge` con tokens.

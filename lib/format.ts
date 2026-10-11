@@ -78,6 +78,12 @@ export function formatUSD(value: number): string {
   return USD.format(value);
 }
 
+// Porcentaje en es-AR (coma decimal): "+37,23 %". `signed` antepone + a los positivos.
+export function formatPct(value: number, { signed = false, decimals = 2 }: { signed?: boolean; decimals?: number } = {}): string {
+  const n = new Intl.NumberFormat("es-AR", { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(value);
+  return `${signed && value >= 0 ? "+" : ""}${n} %`;
+}
+
 export function formatARSCompact(value: number): string {
   return ARS_COMPACT.format(value);
 }

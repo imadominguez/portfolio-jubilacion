@@ -4,7 +4,8 @@ import Link from "next/link";
 import { AlertTriangle, ArrowUpRight, ArrowDownRight, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { getAllSnapshotPoints, getHoldingsFlows } from "@/lib/portfolio-data";
+import { getAllSnapshotPoints, getHoldingsFlows, getLatestSnapshot, getPreviousSnapshotFull } from "@/lib/portfolio-data";
+import { PerformersPanel } from "@/components/dashboard/performers-panel";
 import { SiteHeader } from "@/components/layout/site-header";
 import { PerformanceChart } from "@/components/performance/performance-chart";
 import { PerformanceSkeleton } from "@/components/performance/performance-skeleton";
@@ -43,11 +44,13 @@ export default function PerformancePage({ searchParams }: { searchParams: Perfor
 }
 
 async function PerformanceContent({ searchParams }: { searchParams: PerformanceSearchParams }) {
-  const [{ moneda }, snapshots, flows] = await Promise.all([
+  const [{ moneda }, snapshots, flows, latest] = await Promise.all([
     searchParams,
     getAllSnapshotPoints(),
     getHoldingsFlows(),
+    getLatestSnapshot(),
   ]);
+  const previousFull = latest ? await getPreviousSnapshotFull(latest.snapshotDate) : null;
   const currency: Currency = (Array.isArray(moneda) ? moneda[0] : moneda)?.toLowerCase() === "usd" ? "USD" : "ARS";
 
   // Las métricas de rendimiento y los gráficos normalizados arrancan en el
@@ -351,6 +354,14 @@ async function PerformanceContent({ searchParams }: { searchParams: PerformanceS
           </div>
         </div>
       </section>
+
+      {latest && previousFull && (
+        <PerformersPanel
+          currentPositions={latest.positions}
+          previousPositions={previousFull.positions}
+          sinceLabel={formatDateMedium(previousFull.snapshotDate)}
+        />
+      )}
 
       {/* Snapshot timeline */}
       <section

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Separator } from "@/components/ui/separator";
 import { DashboardSkeleton } from "@/components/dashboard/dashboard-skeleton";
 
 import {
@@ -8,17 +7,14 @@ import {
   getPreviousSnapshotFull,
   getAllSnapshotPoints,
   getHoldingsFlows,
-  type PositionRow,
 } from "@/lib/portfolio-data";
 import { DashboardHero } from "@/components/dashboard/dashboard-hero";
 import { DashboardKpiStrip } from "@/components/dashboard/dashboard-kpi-strip";
-import { AnalysisTools } from "@/components/dashboard/analysis-tools";
-import { PerformersPanel } from "@/components/dashboard/performers-panel";
+import { ThisMonth } from "@/components/dashboard/this-month";
 import { HoldingsTable } from "@/components/dashboard/holdings-table";
 import { AllocationPanel } from "@/components/dashboard/allocation-panel";
 import { EmptyDashboard } from "@/components/dashboard/empty-dashboard";
 import { PortfolioChartWidget } from "@/components/dashboard/portfolio-chart-widget";
-import { MilestoneWidget } from "@/components/dashboard/milestone-widget";
 import { SiteHeader } from "@/components/layout/site-header";
 import { ImportButton } from "@/components/snapshots/snapshots-client";
 import { calculatePPM } from "@/app/actions/transactions";
@@ -32,14 +28,24 @@ import { getRetirementSettings } from "@/app/actions/retirement";
 import { getLatestSignals } from "@/app/actions/reports";
 import { getConcentrationData } from "@/lib/analysis-data";
 import { getSetupStatus } from "@/app/actions/setup";
+import { getViewerRole } from "@/lib/auth-session";
+import { isAdminRole } from "@/lib/user-role";
 import { calculateRetirementGoal } from "@/lib/projections";
 import { SetupPanel } from "@/components/setup/setup-panel";
 import { formatDateMedium } from "@/lib/format";
-import { modifiedDietz, netContributions } from "@/lib/flow-returns";
+import { ageLabel, daysSince, localDateParts } from "@/lib/local-date";
+import { modifiedDietz, netContributions, returnSummary } from "@/lib/flow-returns";
+import { performanceSeries } from "@/lib/snapshot-returns";
 
 export const metadata: Metadata = {
   title: "Dashboard",
 };
+
+const AR_SHORT_DATE = new Intl.DateTimeFormat("es-AR", {
+  day: "2-digit",
+  month: "short",
+  timeZone: "America/Argentina/Buenos_Aires",
+});
 
 // El header entra al static shell; los datos del usuario se leen en request
 // time y se streamean detrás del skeleton.
@@ -55,9 +61,10 @@ export default function HomePage() {
 }
 
 async function DashboardContent() {
-  const [snapshot, setupStatus] = await Promise.all([
+  const [snapshot, setupStatus, role] = await Promise.all([
     getLatestSnapshot(),
     getSetupStatus(),
+    getViewerRole(),
   ]);
 
   // Sin snapshot inicial no tiene sentido consultar el resto de las métricas.
@@ -85,6 +92,7 @@ async function DashboardContent() {
     exchangeRates,
   ] = await Promise.all([
     calculatePPM(),
+    // Lee datos globales con connection(): después de esto la hora ya es usable.
     getMarketPrices(),
     getAllSnapshotPoints(),
     getTotalDividendsUsd(),
@@ -98,44 +106,57 @@ async function DashboardContent() {
     getAllExchangeRates(),
   ]);
 
-  let gainArs: number | null = null;
-  let gainPct: number | null = null;
-  let previousPositions: PositionRow[] = [];
+  const today = localDateParts(new Date());
+  const isAdmin = isAdminRole(role);
 
+  // Sin contar compras, ventas ni movimientos del FCI del período (ADR-0019):
+  // la diferencia de valor sola mezcla aportes con rendimiento.
+  let period: { pct: number; gainArs: number; sinceLabel: string } | null = null;
   if (previous) {
-    // Sin contar compras, ventas ni movimientos del FCI del período (ADR-0019):
-    // la diferencia de valor sola mezcla aportes con rendimiento.
     const start = { date: previous.snapshotDate, value: previous.totalValueArs };
     const end = { date: snapshot.snapshotDate, value: snapshot.totalValueArs };
     const periodFlows = holdingsFlows.flowsArs.filter(
       (f) => f.date > previous.snapshotDate && f.date <= snapshot.snapshotDate,
     );
-    gainArs =
-      end.value - start.value - netContributions(holdingsFlows.flowsArs, start.date, end.date);
-    gainPct = modifiedDietz(start, end, periodFlows);
-    previousPositions = previous.positions;
-  }
-
-  const isPositive = gainPct !== null ? gainPct >= 0 : true;
-
-  // Compute total unrealized P&L from PPM data vs current prices
-  let totalUnrealizedPnlArs: number | null = null;
-  if (ppmData.length > 0) {
-    const ppmMap = new Map(ppmData.map((p) => [p.ticker, p]));
-    let sum = 0;
-    let hasPpm = false;
-    for (const pos of snapshot.positions) {
-      const ppm = ppmMap.get(pos.ticker);
-      if (ppm && ppm.avgPrice > 0) {
-        sum += (pos.price - ppm.avgPrice) * pos.quantity;
-        hasPpm = true;
-      }
+    const pct = modifiedDietz(start, end, periodFlows);
+    if (pct !== null) {
+      period = {
+        pct,
+        gainArs: end.value - start.value - netContributions(holdingsFlows.flowsArs, start.date, end.date),
+        sinceLabel: `desde el ${formatDateMedium(previous.snapshotDate)}`,
+      };
     }
-    if (hasPpm) totalUnrealizedPnlArs = sum;
   }
 
-  const unrealizedIsPositive =
-    totalUnrealizedPnlArs !== null ? totalUnrealizedPnlArs >= 0 : true;
+  // Rendimiento del año en curso sin aportes, en pesos y en dólares (como en /performance).
+  const series = performanceSeries(allSnapshots);
+  const usdSeries = series.filter((s) => s.totalValueUsd !== null && s.totalValueUsd > 0);
+  const arsYear = returnSummary(
+    series.map((s) => ({ date: s.snapshotDate, value: s.totalValueArs })),
+    holdingsFlows.flowsArs,
+    today.year,
+  );
+  const usdYear = returnSummary(
+    usdSeries.map((s) => ({ date: s.snapshotDate, value: s.totalValueUsd! })),
+    holdingsFlows.flowsUsd,
+    today.year,
+  );
+  const year =
+    arsYear || usdYear
+      ? {
+          year: today.year,
+          ars: arsYear ? { pct: arsYear.yearReturnPct, gain: arsYear.yearGain } : null,
+          usd: usdYear ? { pct: usdYear.yearReturnPct, gain: usdYear.yearGain } : null,
+        }
+      : null;
+
+  // P&L no realizado contra el PPM, al precio del snapshot.
+  const ppmByTicker = new Map(ppmData.map((p) => [p.ticker, p.avgPrice]));
+  let unrealizedArs: number | null = null;
+  for (const pos of snapshot.positions) {
+    const avg = ppmByTicker.get(pos.ticker);
+    if (avg && avg > 0) unrealizedArs = (unrealizedArs ?? 0) + (pos.price - avg) * pos.quantity;
+  }
 
   // La misma tenencia con los precios del día (el snapshot puede tener semanas).
   const live = snapshot.ccl
@@ -147,136 +168,97 @@ async function DashboardContent() {
         currentCcl: exchangeRates.at(-1)?.ccl ?? null,
       })
     : null;
-  const liveAsOfLabel = live?.pricesAsOf
-    ? new Intl.DateTimeFormat("es-AR", {
-        day: "2-digit",
-        month: "short",
-        timeZone: "America/Argentina/Buenos_Aires",
-      }).format(live.pricesAsOf)
-    : null;
 
-  // Jubilación: con el retorno configurado, el mismo que usa /retirement (antes
-  // era un 10 % fijo y las dos pantallas no coincidían).
-  let retirementGoal = null;
-  if (retirementSettings && snapshot.totalValueUsd) {
-    retirementGoal = calculateRetirementGoal({
-      ...retirementSettings,
-      currentPortfolioUsd: snapshot.totalValueUsd,
-      annualReturnRate: retirementSettings.expectedReturnRate,
-    });
-  }
+  const retirementGoal =
+    retirementSettings && snapshot.totalValueUsd
+      ? calculateRetirementGoal({
+          ...retirementSettings,
+          currentPortfolioUsd: snapshot.totalValueUsd,
+          // El retorno configurado, el mismo que usa /retirement.
+          annualReturnRate: retirementSettings.expectedReturnRate,
+        })
+      : null;
 
-  // Concentración: sector dominante
-  const topSector = concentrationData?.bySector[0] ?? null;
-  const totalSectors = concentrationData
-    ? concentrationData.bySector.filter((s) => s.name !== "Sin clasificar").length
-    : 0;
+  const snapshotAgeDays = daysSince(snapshot.snapshotDate, today);
+  const nextMilestone = milestones.find((m) => !m.reached) ?? null;
+  const topSector = concentrationData?.bySector.find((s) => s.name !== "Sin clasificar") ?? null;
 
   return (
-    <main className="flex-1 px-6 py-10 flex flex-col gap-10 max-w-6xl w-full mx-auto">
-      <SetupPanel status={setupStatus} />
+    <main className="flex-1 px-6 py-10 flex flex-col gap-8 max-w-6xl w-full mx-auto">
+      <SetupPanel status={setupStatus} collapsible />
 
-      {/* Hero value section */}
-      <section className="animate-fade-up flex flex-col gap-6">
-        <DashboardHero
-          totalValueArs={snapshot.totalValueArs}
-          totalValueUsd={snapshot.totalValueUsd}
-          snapshotDateFormatted={formatDateMedium(snapshot.snapshotDate)}
-          gainArs={gainArs}
-          gainPct={gainPct}
-          live={live && liveAsOfLabel ? { valueArs: live.valueArs, valueUsd: live.valueUsd, asOfLabel: liveAsOfLabel } : null}
-        />
-
-        <DashboardKpiStrip
-          totalValueUsd={snapshot.totalValueUsd}
-          ccl={snapshot.ccl}
-          positionCount={snapshot.positions.length}
-          gainPct={gainPct}
-          isPositive={isPositive}
-          totalUnrealizedPnlArs={totalUnrealizedPnlArs}
-          unrealizedIsPositive={unrealizedIsPositive}
-          liveUnrealizedPnlArs={live?.unrealizedPnlArs ?? null}
-          totalDividendsUsd={totalDividendsUsd}
-        />
-      </section>
-
-      <Separator className="opacity-30" />
-
-      {/* Portfolio evolution chart */}
-      <PortfolioChartWidget snapshots={allSnapshots} />
-
-      <Separator className="opacity-30" />
-
-      <AnalysisTools
-        realGains={realGains}
-        retirementGoal={retirementGoal}
-        retirementSettings={retirementSettings}
-        latestSignals={
-          latestSignals
+      <DashboardHero
+        totalValueArs={snapshot.totalValueArs}
+        totalValueUsd={snapshot.totalValueUsd}
+        snapshotDateLabel={formatDateMedium(snapshot.snapshotDate)}
+        snapshotAgeDays={snapshotAgeDays}
+        snapshotAgeLabel={ageLabel(snapshotAgeDays)}
+        ccl={snapshot.ccl}
+        live={
+          live?.pricesAsOf
+            ? { valueArs: live.valueArs, valueUsd: live.valueUsd, asOfLabel: AR_SHORT_DATE.format(live.pricesAsOf) }
+            : null
+        }
+        year={year}
+        retirement={
+          retirementGoal && retirementSettings
             ? {
-                buy: Object.values(latestSignals.signals).filter((s) => s.senal === "compra").length,
-                dateLabel: new Intl.DateTimeFormat("es-AR", {
-                  day: "2-digit",
-                  month: "short",
-                  timeZone: "America/Argentina/Buenos_Aires",
-                }).format(latestSignals.createdAt),
+                retirementAge: retirementSettings.retirementAge,
+                projectedUsd: retirementGoal.capitalAtRetirement,
+                neededUsd: retirementGoal.capitalNeeded,
+                isOnTrack: retirementGoal.isOnTrack,
               }
             : null
         }
-        topSector={topSector}
-        totalSectors={totalSectors}
       />
 
-      {/* Performers section — only visible when there's a previous snapshot to compare */}
-      {previousPositions.length > 0 && (
-        <>
-          <Separator className="opacity-30" />
-          <PerformersPanel
-            currentPositions={snapshot.positions}
-            previousPositions={previousPositions}
-          />
-        </>
-      )}
+      <DashboardKpiStrip
+        period={period}
+        unrealized={
+          unrealizedArs !== null ? { snapshotArs: unrealizedArs, todayArs: live?.unrealizedPnlArs ?? null } : null
+        }
+        realGain={
+          realGains?.totalGainUsdReal != null
+            ? {
+                usd: realGains.totalGainUsdReal,
+                pct: realGains.totalGainPctUsdReal,
+                appreciationUsd: realGains.totalGainUsdAppreciation,
+                cclUsd: realGains.totalGainUsdCclImpact,
+              }
+            : null
+        }
+        dividendsUsd={totalDividendsUsd}
+      />
 
-      <Separator className="opacity-30" />
+      <ThisMonth
+        isAdmin={isAdmin}
+        dca={
+          latestSignals
+            ? {
+                buy: Object.values(latestSignals.signals).filter((s) => s.senal === "compra").length,
+                dateLabel: AR_SHORT_DATE.format(latestSignals.createdAt),
+              }
+            : null
+        }
+        milestone={
+          nextMilestone && snapshot.totalValueUsd !== null
+            ? { label: nextMilestone.label, targetUsd: nextMilestone.targetValueUsd, currentUsd: snapshot.totalValueUsd }
+            : null
+        }
+        allMilestonesReached={milestones.length > 0 && !nextMilestone}
+        topSector={topSector ? { name: topSector.name, pct: topSector.pct } : null}
+      />
 
-      {/* Main content grid */}
       <section className="grid gap-8 lg:grid-cols-5">
-        <div className="min-w-0 lg:col-span-2">
-          <AllocationPanel
-            positions={snapshot.positions}
-            totalArs={snapshot.totalValueArs}
-          />
-        </div>
         <div className="min-w-0 lg:col-span-3">
           <HoldingsTable positions={snapshot.positions} ppmData={ppmData} marketPrices={marketPrices} />
         </div>
-      </section>
-
-      {/* Milestone progress */}
-      {snapshot.totalValueUsd !== null && (
-        <MilestoneWidget
-          milestones={milestones}
-          currentValueUsd={snapshot.totalValueUsd}
-        />
-      )}
-
-      {/* Import hint */}
-      <section
-        className="animate-fade-up rounded-xl border border-dashed border-border bg-card/50 shadow-sm px-6 py-5 flex items-center justify-between gap-4"
-        style={{ animationDelay: "400ms" }}
-      >
-        <div className="flex flex-col gap-0.5">
-          <p className="text-sm font-medium text-foreground">
-            Actualizar portfolio
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Importá un nuevo CSV de Cocos Capital para registrar el estado
-            actual.
-          </p>
+        <div className="min-w-0 lg:col-span-2">
+          <AllocationPanel positions={snapshot.positions} totalArs={snapshot.totalValueArs} />
         </div>
-        <ImportButton />
       </section>
+
+      <PortfolioChartWidget snapshots={allSnapshots} />
     </main>
   );
 }

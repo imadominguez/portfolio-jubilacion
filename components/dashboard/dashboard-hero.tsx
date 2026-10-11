@@ -1,138 +1,205 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowUpRight, ArrowDownRight } from "lucide-react";
-import { formatARS, formatUSD } from "@/lib/format";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { formatARS, formatPct, formatUSD, formatUSDCompact } from "@/lib/format";
+import { cn } from "@/lib/utils";
+
+type Currency = "ARS" | "USD";
+
+// Rendimiento del año en curso, sin contar aportes (ADR-0019).
+export type HeroYear = {
+  year: number;
+  ars: { pct: number | null; gain: number } | null;
+  usd: { pct: number | null; gain: number } | null;
+};
+
+export type HeroRetirement = {
+  retirementAge: number;
+  projectedUsd: number;
+  neededUsd: number;
+  isOnTrack: boolean;
+};
 
 interface DashboardHeroProps {
   totalValueArs: number;
   totalValueUsd: number | null;
-  snapshotDateFormatted: string;
-  gainArs: number | null;
-  gainPct: number | null;
+  snapshotDateLabel: string;
+  // Días desde el snapshot; pasado un mes la foto deja de representar la cartera.
+  snapshotAgeDays: number;
+  snapshotAgeLabel: string;
+  ccl: number | null;
   // La tenencia del snapshot con los precios del día; null si no hay precios.
   live: { valueArs: number; valueUsd: number; asOfLabel: string } | null;
+  year: HeroYear | null;
+  retirement: HeroRetirement | null;
 }
 
+const STALE_DAYS = 35;
+
+function signed(pct: number): string {
+  return formatPct(pct, { signed: true });
+}
+
+// Contesta primero "¿cuánto tengo?" y al lado "¿voy bien?": el año sin aportes
+// y la meta de jubilación. Superficie plana, sin glow ni pulso (DESIGN.md §1).
 export function DashboardHero({
   totalValueArs,
   totalValueUsd,
-  snapshotDateFormatted,
-  gainArs,
-  gainPct,
+  snapshotDateLabel,
+  snapshotAgeDays,
+  snapshotAgeLabel,
+  ccl,
   live,
+  year,
+  retirement,
 }: DashboardHeroProps) {
-  const [currency, setCurrency] = useState<"ARS" | "USD">("ARS");
-
-  const isPositive = gainPct !== null ? gainPct >= 0 : true;
+  const [currency, setCurrency] = useState<Currency>("ARS");
   const hasUsd = totalValueUsd !== null;
+  const fmt = currency === "ARS" ? formatARS : formatUSD;
 
-  const displayValue =
-    currency === "ARS"
-      ? formatARS(totalValueArs)
-      : hasUsd
-        ? formatUSD(totalValueUsd!)
-        : "—";
-
-  const liveValue = live ? (currency === "ARS" ? live.valueArs : hasUsd ? live.valueUsd : null) : null;
-  const snapshotValue = currency === "ARS" ? totalValueArs : totalValueUsd;
-  const liveChangePct =
-    liveValue !== null && snapshotValue ? (liveValue / snapshotValue - 1) * 100 : null;
+  const value = currency === "ARS" ? totalValueArs : totalValueUsd;
+  const liveValue = live ? (currency === "ARS" ? live.valueArs : live.valueUsd) : null;
+  const liveChangePct = liveValue !== null && value ? (liveValue / value - 1) * 100 : null;
+  const yearData = year ? (currency === "ARS" ? year.ars : year.usd) : null;
+  const stale = snapshotAgeDays > STALE_DAYS;
+  const retirementPct = retirement && retirement.neededUsd > 0
+    ? Math.min(100, (retirement.projectedUsd / retirement.neededUsd) * 100)
+    : null;
 
   return (
-    /* Azure Tech hero — navy profundo con glow azul/cian (ver DESIGN.md) */
-    <div className="hero-surface relative overflow-hidden rounded-xl shadow-lg px-6 py-7 sm:px-8 sm:py-8">
-      {/* Subtle radial glow */}
-      <div
-        className="pointer-events-none absolute -top-24 -right-20 size-72 rounded-full opacity-20"
-        style={{
-          background:
-            "radial-gradient(circle, color-mix(in oklab, var(--accent) 60%, transparent) 0%, transparent 70%)",
-        }}
-      />
-
-      <div className="relative flex flex-col gap-5">
-        {/* Label + toggle row */}
+    <section
+      aria-labelledby="hero-title"
+      className="grid gap-8 rounded-2xl border border-border bg-card px-6 py-7 sm:px-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-10"
+    >
+      <div className="flex min-w-0 flex-col gap-4">
         <div className="flex items-center justify-between gap-3">
-          <span className="text-xs font-semibold tracking-widest text-white/50 uppercase">
-            Valor total del portfolio
-          </span>
-
-          {/* Segmented currency toggle */}
-          <div className="flex items-center bg-white/10 rounded-lg p-0.5 gap-0.5">
-            {(["ARS", "USD"] as const).map((c) => (
-              <button
-                key={c}
-                onClick={() => setCurrency(c)}
-                disabled={c === "USD" && !hasUsd}
-                className={`px-3 py-1 text-[11px] font-semibold rounded-md transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed ${
-                  currency === c
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-white/60 hover:text-white"
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
+          <h1 id="hero-title" className="text-sm font-medium text-muted-foreground">
+            Valor del portfolio
+          </h1>
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            size="sm"
+            value={currency}
+            onValueChange={(v) => v && setCurrency(v as Currency)}
+            aria-label="Moneda"
+          >
+            <ToggleGroupItem value="ARS" className="px-3 font-mono text-xs">
+              ARS
+            </ToggleGroupItem>
+            <ToggleGroupItem value="USD" disabled={!hasUsd} className="px-3 font-mono text-xs">
+              USD
+            </ToggleGroupItem>
+          </ToggleGroup>
         </div>
 
-        {/* Big number + meta */}
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <div className="flex flex-col gap-2">
-            <p className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white tabular-nums leading-none transition-all duration-150">
-              {displayValue}
-            </p>
-            {liveValue !== null && live && (
-              <p className="text-xs text-white/60">
-                Hoy, con precios del {live.asOfLabel}:{" "}
-                <span className="font-mono font-semibold tabular-nums text-white">
-                  {currency === "ARS" ? formatARS(liveValue) : formatUSD(liveValue)}
+        <p className="font-mono text-4xl font-semibold leading-none tracking-[-0.03em] tabular-nums text-foreground sm:text-5xl">
+          {value !== null ? fmt(value) : "—"}
+        </p>
+
+        <div className="flex flex-col gap-1.5 text-sm text-muted-foreground">
+          <p>
+            Snapshot del {snapshotDateLabel}
+            <span aria-hidden> · </span>
+            <span className={cn(stale && "font-medium text-warning")}>
+              {snapshotAgeLabel}
+              {stale && ": importá uno nuevo para ver tu cartera actual"}
+            </span>
+            {ccl !== null && (
+              <>
+                <span aria-hidden> · </span>
+                CCL <span className="font-mono tabular-nums text-foreground/80">{formatARS(ccl)}</span>
+              </>
+            )}
+          </p>
+          {liveValue !== null && live && (
+            <p>
+              Con precios del {live.asOfLabel}:{" "}
+              <span className="font-mono tabular-nums text-foreground/80">{fmt(liveValue)}</span>
+              {liveChangePct !== null && (
+                <span
+                  className={cn(
+                    "font-mono tabular-nums",
+                    liveChangePct >= 0 ? "text-success" : "text-destructive"
+                  )}
+                >
+                  {" "}
+                  ({signed(liveChangePct)})
                 </span>
-                {liveChangePct !== null && (
-                  <span className={`font-mono tabular-nums ${liveChangePct >= 0 ? "text-success" : "text-destructive"}`}>
-                    {" "}
-                    ({liveChangePct >= 0 ? "+" : ""}
-                    {liveChangePct.toFixed(2)}% vs snapshot)
-                  </span>
-                )}
-              </p>
-            )}
-          </div>
-
-          <div className="flex flex-col sm:items-end gap-2 pb-0.5">
-            {/* Date indicator */}
-            <div className="flex items-center gap-1.5">
-              <span className="size-1.5 rounded-full bg-success animate-pulse" />
-              <span className="text-xs font-mono text-white/50">
-                {snapshotDateFormatted}
-              </span>
-            </div>
-
-            {/* Gain badge */}
-            {gainPct !== null && gainArs !== null && (
-              <div
-                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono font-semibold tabular-nums ${
-                  isPositive
-                    ? "bg-success/20 text-success"
-                    : "bg-destructive/20 text-destructive"
-                }`}
-              >
-                {isPositive ? (
-                  <ArrowUpRight className="size-3.5 shrink-0" />
-                ) : (
-                  <ArrowDownRight className="size-3.5 shrink-0" />
-                )}
-                {isPositive ? "+" : ""}
-                {gainPct.toFixed(2)}%
-                <span className="opacity-40 mx-0.5">·</span>
-                {isPositive ? "+" : ""}
-                {formatARS(gainArs)}
-              </div>
-            )}
-          </div>
+              )}
+            </p>
+          )}
         </div>
       </div>
-    </div>
+
+      <div className="flex flex-col gap-6 border-border lg:border-l lg:pl-10">
+        {year && (
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-medium text-muted-foreground">Rendimiento {year.year}</p>
+            {yearData?.pct != null ? (
+              <>
+                <p
+                  className={cn(
+                    "font-mono text-2xl font-semibold tabular-nums",
+                    yearData.pct >= 0 ? "text-success" : "text-destructive"
+                  )}
+                >
+                  {signed(yearData.pct)}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {yearData.gain >= 0 ? "+" : ""}
+                  {fmt(yearData.gain)} sin contar aportes
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">Hace falta un snapshot de fin del año pasado.</p>
+            )}
+          </div>
+        )}
+
+        {retirement && retirementPct !== null ? (
+          <Link href="/retirement" className="group flex flex-col gap-2 rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-medium text-muted-foreground">Jubilación a los {retirement.retirementAge}</p>
+              <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+            </div>
+            <p className="text-sm text-foreground">
+              <span className="font-mono font-semibold tabular-nums">{formatUSDCompact(retirement.projectedUsd)}</span>{" "}
+              proyectados de{" "}
+              <span className="font-mono tabular-nums">{formatUSDCompact(retirement.neededUsd)}</span>
+            </p>
+            <div
+              className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
+              role="progressbar"
+              aria-label="Capital proyectado sobre el necesario"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(retirementPct)}
+            >
+              <div
+                className={cn("h-full rounded-full", retirement.isOnTrack ? "bg-success" : "bg-warning")}
+                style={{ width: `${retirementPct}%` }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {retirement.isOnTrack
+                ? "En camino: llegás a la meta con tu aporte actual."
+                : `Con tu aporte actual llegás al ${formatPct(retirementPct, { decimals: 0 })} de la meta.`}
+            </p>
+          </Link>
+        ) : (
+          <Link
+            href="/retirement"
+            className="inline-flex items-center gap-1 text-sm text-primary underline-offset-4 hover:underline"
+          >
+            Definí tu plan de retiro
+            <ArrowRight className="size-3.5" />
+          </Link>
+        )}
+      </div>
+    </section>
   );
 }

@@ -20,14 +20,13 @@ Organizados por dominio. Los componentes de `components/ui/` son primitivas shad
 
 | Componente | Tipo | Props / comportamiento |
 |---|---|---|
-| `dashboard-hero.tsx` | CC | `totalValueArs`, `totalValueUsd`, `snapshotDateFormatted`, `gainArs`, `gainPct`, `live` (valor de hoy en ARS y USD y fecha de los precios, o `null`). Toggle ARS/USD (USD deshabilitado si es null); badge verde/rojo según la ganancia; debajo del valor, "Hoy, con precios del …" con la variación contra el snapshot. |
-| `dashboard-kpi-strip.tsx` | SC | `totalValueUsd`, `ccl`, `positionCount`, `gainPct`, `totalUnrealizedPnlArs`, `liveUnrealizedPnlArs`, `totalDividendsUsd` y flags de signo. Tira de KPIs secundarios; el P&L no realizado muestra el de hoy en la línea de estado. |
-| `analysis-tools.tsx` | SC | `realGains`, `retirementGoal`, `retirementSettings`, `latestSignals` (acciones en "compra" y fecha del último reporte, o `null`), `topSector`, `totalSectors`. Tarjetas resumen que enlazan a Ganancia Real, Jubilación, Plan DCA y Concentración. |
+| `dashboard-hero.tsx` | CC | `totalValueArs`, `totalValueUsd`, `snapshotDateLabel`, `snapshotAgeDays`/`snapshotAgeLabel`, `ccl`, `live` (valor con precios del día o `null`), `year` (rendimiento del año sin aportes en ARS y USD) y `retirement` (proyectado vs necesario a la edad de retiro). Toggle de moneda con `ToggleGroup`; aviso en `warning` si el snapshot tiene más de 35 días. |
+| `dashboard-kpi-strip.tsx` | SC | `period` (vs snapshot anterior, sin aportes), `unrealized` (P&L latente al snapshot y hoy), `realGain` (USD, apreciación y efecto CCL), `dividendsUsd`. Hasta 4 celdas en una superficie con divisiones finas. |
+| `this-month.tsx` | SC | `dca` (señales de compra del último reporte), `milestone` / `allMilestonesReached`, `topSector`, `isAdmin` (los links a páginas de admin solo para admin). Bloque "Este mes" con Plan DCA, próximo hito y mayor concentración. |
 | `holdings-table.tsx` | SC | `positions`, `ppmData?`, `marketPrices?`. Tabla con barra de peso, PPM/P&L (solo si hay PPM en ARS) y valor USD en vivo (`(quantity / cedearRatio) × priceUsd`); pie con "total live USD" y timestamp. |
 | `allocation-panel.tsx` | CC | `positions`, `totalArs`. Donut Recharts (`innerRadius 55%`) + leyenda con barras de progreso. |
-| `performers-panel.tsx` | SC | `currentPositions`, `previousPositions`. Calcula `Δ%` de precio por ticker y muestra hasta 3 mejores y 3 peores. Retorna `null` si hay < 2 performers. |
+| `performers-panel.tsx` | SC | `currentPositions`, `previousPositions`, `sinceLabel`. Variación de precio entre los dos últimos snapshots (hasta 3 que más subieron y 3 que más bajaron); se muestra en `/performance`, no en el Dashboard. `null` si hay < 2. |
 | `portfolio-chart-widget.tsx` | SC | `snapshots`. Envuelve `PerformanceChart` en una tarjeta; `null` si hay < 2 snapshots. |
-| `milestone-widget.tsx` | SC | `milestones`, `currentValueUsd`. Badges alcanzados y barra de progreso al próximo hito. |
 | `empty-dashboard.tsx` | CC | Estado sin snapshots: CTA importar, link a la guía y 3 pasos. |
 
 ---
