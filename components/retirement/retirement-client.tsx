@@ -367,7 +367,9 @@ export function RetirementClient({
               {
                 label: "Capital necesario",
                 value: formatUSDCompact(goal.capitalNeeded),
-                sub: `Para retirar ${formatUSDCompact(settings.monthlyExpensesUsd)}/mes`,
+                // Nominal a la edad de retiro: el gasto de hoy con la inflación de
+                // los años que faltan; sin aclararlo, el capital parece desmedido.
+                sub: `Para gastar ${formatUSDCompact(settings.monthlyExpensesUsd)}/mes de hoy (${formatUSDCompact(goal.monthlyExpensesAtRetirement)}/mes a los ${settings.retirementAge})`,
                 icon: Target,
                 accent: null as boolean | null,
               },

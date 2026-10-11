@@ -332,10 +332,12 @@ gastosAnuales   = gastosRetiro × 12
 capitalNeeded   = gastosAnuales / withdrawalRate          (0 si withdrawalRate ≤ 0)
 ```
 
+`capitalNeeded` es nominal a la edad de retiro, igual que el retorno (nominal en USD). La tarjeta lo aclara con `monthlyExpensesAtRetirement` (`gastosRetiro`). El capital para vivir de dividendos (más abajo) está en dólares de hoy.
+
 Capital proyectado al retiro con `r = annualReturnRate / 12`, `n = añosRestantes × 12`:
 
 ```
-si r = 0:  capitalAtRetirement = currentPortfolioUsd × n + monthlyContribution × n
+si r = 0:  capitalAtRetirement = currentPortfolioUsd + monthlyContribution × n   (antes multiplicaba el portfolio por n)
 si r ≠ 0:  capitalAtRetirement = currentPortfolioUsd × (1+r)^n
                                 + monthlyContribution × ((1+r)^n − 1) / r
 ```

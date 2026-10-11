@@ -40,7 +40,7 @@ export function DividendProjectionCard({
             <Stat
               label="Para vivir de dividendos"
               value={capitalNeeded === null ? "—" : formatUSDCompact(capitalNeeded)}
-              hint={monthlyExpensesUsd ? `cubre ${formatUSD(monthlyExpensesUsd)}/mes` : "cargá tus gastos mensuales"}
+              hint={monthlyExpensesUsd ? `cubre ${formatUSD(monthlyExpensesUsd)}/mes, en dólares de hoy` : "cargá tus gastos mensuales"}
             />
           </div>
 
