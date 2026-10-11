@@ -3,7 +3,7 @@ import type { RealGainsSummary } from "@/lib/real-gains-data";
 
 export function MethodologyNote({ summary }: { summary: RealGainsSummary }) {
   return (
-    <div className="rounded-xl border border-border/50 bg-muted/30 px-5 py-4 flex gap-3 animate-fade-up">
+    <div className="rounded-xl border border-border/50 bg-muted/30 px-5 py-4 flex gap-3">
       <Info className="size-4 text-muted-foreground/60 shrink-0 mt-0.5" />
       <div className="flex flex-col gap-2 text-xs text-muted-foreground leading-relaxed">
         <p>

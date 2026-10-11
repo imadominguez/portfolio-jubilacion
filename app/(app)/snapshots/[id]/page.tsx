@@ -122,7 +122,7 @@ async function SnapshotDetailContent({ params }: { params: SnapshotParams }) {
   return (
     <main className="flex-1 px-6 py-10 flex flex-col gap-10 max-w-6xl w-full mx-auto">
       {/* Back + date header */}
-      <section className="animate-fade-up flex flex-col gap-4">
+      <section className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-2">
           <Button
             asChild
@@ -157,8 +157,7 @@ async function SnapshotDetailContent({ params }: { params: SnapshotParams }) {
 
       {/* KPI strip */}
       <section
-        className="animate-fade-up grid grid-cols-2 gap-3 sm:grid-cols-4"
-        style={{ animationDelay: "60ms" }}
+        className="grid grid-cols-2 gap-3 sm:grid-cols-4"
       >
         {kpis.map(({ label, value }) => (
           <div

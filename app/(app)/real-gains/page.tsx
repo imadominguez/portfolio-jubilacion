@@ -92,7 +92,7 @@ async function RealGainsContent() {
 
       {/* Aviso de históricos desactualizados */}
       {readiness.needsBackfill && (
-        <div className="animate-fade-up rounded-xl border border-warning/30 bg-warning/5 px-5 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="rounded-xl border border-warning/30 bg-warning/5 px-5 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex gap-2">
             <AlertTriangle className="size-4 text-warning shrink-0 mt-0.5" />
             <div className="flex flex-col gap-0.5">

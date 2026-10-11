@@ -23,7 +23,7 @@ export function PositionsTable({
   const incompletePositions = summary.positions.filter((p) => p.missingReason !== null);
 
   return (
-    <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden animate-fade-up">
+    <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow className="border-border hover:bg-transparent bg-muted/40">
@@ -58,11 +58,10 @@ export function PositionsTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {summary.positions.map((pos, i) => (
+          {summary.positions.map((pos) => (
             <TableRow
               key={pos.ticker}
-              className="border-border/60 hover:bg-muted/30 transition-colors animate-fade-up"
-              style={{ animationDelay: `${i * 30}ms` }}
+              className="border-border/60 hover:bg-muted/30 transition-colors"
             >
               <TableCell className="pl-4 py-3">
                 <div className="flex flex-col gap-0.5">

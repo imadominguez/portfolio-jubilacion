@@ -96,7 +96,10 @@ export function DashboardHero({
           </ToggleGroup>
         </div>
 
-        <p className="font-mono text-4xl font-semibold leading-none tracking-[-0.03em] tabular-nums text-foreground sm:text-5xl">
+        <p
+          key={currency}
+          className="value-swap font-mono text-4xl font-semibold leading-none tracking-[-0.03em] tabular-nums text-foreground sm:text-5xl"
+        >
           {value !== null ? fmt(value) : "—"}
         </p>
 
@@ -180,7 +183,7 @@ export function DashboardHero({
               aria-valuenow={Math.round(retirementPct)}
             >
               <div
-                className={cn("h-full rounded-full", retirement.isOnTrack ? "bg-success" : "bg-warning")}
+                className={cn("progress-fill h-full rounded-full", retirement.isOnTrack ? "bg-success" : "bg-warning")}
                 style={{ width: `${retirementPct}%` }}
               />
             </div>

@@ -15,7 +15,7 @@ export function BreakdownBar({ summary }: { summary: RealGainsSummary }) {
   const cclIsPositive = (totalGainUsdCclImpact ?? 0) >= 0;
 
   return (
-    <div className="rounded-xl border border-border bg-card shadow-sm p-5 flex flex-col gap-4 animate-fade-up">
+    <div className="rounded-xl border border-border bg-card shadow-sm p-5 flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
         <p className="text-xs font-semibold text-foreground">
           Desglose de la ganancia en USD

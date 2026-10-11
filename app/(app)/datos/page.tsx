@@ -69,7 +69,7 @@ function DataCard({
   action: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-card shadow-sm p-5 flex flex-col gap-4 animate-fade-up">
+    <div className="rounded-xl border border-border bg-card shadow-sm p-5 flex flex-col gap-4">
       <div className="flex items-start gap-3">
         <div className="rounded-lg bg-muted/50 p-2 shrink-0">
           <Icon className="size-4 text-muted-foreground" />

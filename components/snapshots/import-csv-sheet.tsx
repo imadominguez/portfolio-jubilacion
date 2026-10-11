@@ -452,7 +452,7 @@ export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
         {/* Step 2: Preview parsed positions                                  */}
         {/* ---------------------------------------------------------------- */}
         {step === "preview" && preview && (
-          <div className="flex flex-col flex-1 min-h-0">
+          <div className="step-in flex flex-col flex-1 min-h-0">
             {/* Summary bar */}
             <div className="px-6 py-3 border-b border-border/40 flex items-center justify-between gap-4 bg-muted/20">
               <div className="flex flex-col gap-0.5">
@@ -591,7 +591,7 @@ export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
         {/* Step 3: Done                                                      */}
         {/* ---------------------------------------------------------------- */}
         {step === "done" && (
-          <div className="flex flex-col flex-1 items-center justify-center gap-5 px-6 py-10 text-center">
+          <div role="status" className="step-in flex flex-col flex-1 items-center justify-center gap-5 px-6 py-10 text-center">
             <div className="flex size-12 items-center justify-center rounded-full border border-success/20 bg-success/10">
               <CheckCircle className="size-5 text-success" />
             </div>

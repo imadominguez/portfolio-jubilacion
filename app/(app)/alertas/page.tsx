@@ -21,7 +21,7 @@ export default function AlertsPage() {
       <SiteHeader title="Alertas" description="Avisos por mail" />
 
       <main className="flex-1 px-6 py-10 flex flex-col gap-8 max-w-6xl w-full mx-auto">
-        <div className="animate-fade-up flex flex-col gap-3">
+        <div className="flex flex-col gap-3">
           <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
             La app revisa tu portfolio todos los días y te manda un mail solo si pasa algo:
           </p>
@@ -92,7 +92,7 @@ async function AlertsContent() {
         </div>
       )}
 
-      <section className="animate-fade-up rounded-xl border border-border bg-card shadow-sm p-5 flex flex-col gap-4">
+      <section className="rounded-xl border border-border bg-card shadow-sm p-5 flex flex-col gap-4">
         <p className="text-xs text-muted-foreground">
           Los mails van a <span className="text-foreground font-medium">{session.user.email}</span>.
         </p>
@@ -104,7 +104,7 @@ async function AlertsContent() {
         />
       </section>
 
-      <section className="animate-fade-up flex flex-col gap-3">
+      <section className="flex flex-col gap-3">
         <h2 className="text-base font-semibold text-foreground">
           Últimas alertas enviadas
         </h2>

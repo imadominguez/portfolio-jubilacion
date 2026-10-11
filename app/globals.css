@@ -240,6 +240,39 @@
 }
 
 @layer utilities {
+  /* Curvas de movimiento (DESIGN.md §5). Las de CSS por defecto son demasiado blandas. */
+  :root {
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  }
+
+  /* Barra de progreso que se llena una sola vez al aparecer (clip-path, sin layout). */
+  .progress-fill {
+    animation: progress-fill 500ms var(--ease-out) both;
+  }
+
+  /* Un valor que cambia de contenido (p. ej. ARS ↔ USD): el elemento lleva key y
+     entra con un fundido corto en lugar de saltar. */
+  .value-swap {
+    transition:
+      opacity 160ms var(--ease-out),
+      filter 160ms var(--ease-out);
+    @starting-style {
+      opacity: 0;
+      filter: blur(2px);
+    }
+  }
+
+  /* Progreso sin porcentaje conocido (reporte IA): movimiento constante, lineal. */
+  .progress-indeterminate {
+    animation: progress-indeterminate 1.4s linear infinite;
+  }
+
+  /* Contenido que reemplaza a un paso anterior (pasos del import). */
+  .step-in {
+    animation: step-in 220ms var(--ease-out) both;
+  }
+
   .animate-fade-up {
     animation: fade-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
@@ -336,6 +369,35 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes progress-fill {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes progress-indeterminate {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 

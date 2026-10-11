@@ -152,15 +152,28 @@ Los números siempre llevan `font-mono tabular-nums`.
 
 ## 5. Movimiento
 
+Movimiento con propósito (estado, continuidad, feedback), nunca la misma entrada en cada sección.
+Curvas en `globals.css`: `--ease-out: cubic-bezier(0.23, 1, 0.32, 1)` para entrar o cambiar y
+`--ease-in-out: cubic-bezier(0.77, 0, 0.175, 1)` para lo que se desplaza en pantalla. Nunca `ease-in`.
+
 | Utilidad | Duración / curva | Uso |
 |---|---|---|
-| `.animate-fade-up` | 0.4s `cubic-bezier(0.16,1,0.3,1)` | Entrada de secciones (con `animationDelay` escalonado) |
-| `.animate-fade-in` | 0.25s ease | Apariciones simples |
-| `.animate-tour-card-in` | 0.4s | Card del tour |
-| `.animate-guide-stagger` | 0.55s | Stagger de la guía |
+| `.value-swap` | 160 ms `--ease-out`, `@starting-style` | Un valor que cambia de contenido (el número del hero al pasar ARS ↔ USD; el elemento lleva `key`) |
+| `.progress-fill` | 500 ms `--ease-out`, `clip-path` | Barras de progreso que se llenan una vez al aparecer (meta de jubilación, próximo hito) |
+| `.progress-indeterminate` | 1,4 s `linear` infinito | Espera sin etapas reales (reporte IA). No inventar pasos |
+| `.step-in` | 220 ms `--ease-out` | Paso que reemplaza a otro (import de snapshot) |
+| Indicador de pestañas | Motion `layoutId`, 250 ms `--ease-in-out` | Línea activa de las pestañas de Transacciones (`MotionConfig reducedMotion="user"`) |
+| `.animate-fade-up` | 0.4 s | Solo superficies raras: auth, errores, estados vacíos, guía |
 
-- Transiciones de hover/estado: `duration-150` o `duration-200`.
-- Respetar `prefers-reduced-motion` (las animaciones son decorativas y cortas).
+- **No se anima:** lo que cambia con cada tecla (montos del Plan DCA), ⌘K, filas de tablas de trabajo.
+- Hover: `duration-150`; en Tailwind v4 `hover:` ya aplica solo con puntero.
+- `prefers-reduced-motion`: las duraciones caen a ~0 (regla global en `globals.css`).
+
+### 5.1 Celular
+
+Filas de métricas (`StatGrid` con 3+ celdas) y "Este mes" pasan a scroll-snap horizontal bajo `sm`
+(`MOBILE_SNAP_ROW` / `MOBILE_SNAP_CELL`, celdas al 80 % para que asome la siguiente). Tablas, Plan DCA y
+gráficos de comparación no van en carrusel: hay que verlos completos.
 
 ---
 

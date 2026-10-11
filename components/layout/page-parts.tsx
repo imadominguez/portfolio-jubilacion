@@ -55,20 +55,27 @@ const TONE: Record<NonNullable<Stat["tone"]>, string> = {
 };
 
 // Métricas en una sola superficie con divisiones finas, en lugar de tarjetas
-// sueltas. Columnas: 2 en tablet, hasta 4 (o las que haya) en escritorio.
+// sueltas. Columnas: 2 en tablet, hasta 4 (o las que haya) en escritorio. En
+// celular, con 3 o más, es una fila con scroll-snap: la celda siguiente asoma y
+// se lee de un vistazo en lugar de apilar todo en vertical.
+export const MOBILE_SNAP_ROW = "flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain [scrollbar-width:none] sm:grid sm:overflow-visible";
+export const MOBILE_SNAP_CELL = "min-w-[80%] shrink-0 snap-start sm:min-w-0";
+
 export function StatGrid({ stats, className }: { stats: Stat[]; className?: string }) {
   const lg = { 1: "lg:grid-cols-1", 2: "lg:grid-cols-2", 3: "lg:grid-cols-3" }[stats.length] ?? "lg:grid-cols-4";
+  const snap = stats.length >= 3;
   return (
     <dl
       className={cn(
-        "grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border bg-border",
+        "gap-px overflow-hidden rounded-2xl border border-border bg-border",
+        snap ? MOBILE_SNAP_ROW : "grid grid-cols-1",
         stats.length > 1 && "sm:grid-cols-2",
         lg,
         className
       )}
     >
       {stats.map((s, i) => (
-        <div key={i} className="flex min-w-0 flex-col gap-1.5 bg-card px-5 py-4">
+        <div key={i} className={cn("flex min-w-0 flex-col gap-1.5 bg-card px-5 py-4", snap && MOBILE_SNAP_CELL)}>
           <dt className="flex items-center gap-1.5 text-sm text-muted-foreground">
             {s.label}
             {s.glossary && <InfoTooltip term={s.glossary} />}

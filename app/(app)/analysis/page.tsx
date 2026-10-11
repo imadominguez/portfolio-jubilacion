@@ -49,14 +49,14 @@ async function AnalysisContent() {
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2">
-            <div className="rounded-xl border border-border bg-card shadow-sm p-6 animate-fade-up">
+            <div className="rounded-xl border border-border bg-card shadow-sm p-6">
               <h3 className="text-sm font-semibold text-foreground mb-5">
                 Concentración por sector y país
               </h3>
               <ConcentrationCharts data={data} />
             </div>
 
-            <div className="rounded-xl border border-border bg-card shadow-sm p-6 animate-fade-up">
+            <div className="rounded-xl border border-border bg-card shadow-sm p-6">
               <h3 className="text-sm font-semibold text-foreground mb-4">
                 Top 10 posiciones
               </h3>

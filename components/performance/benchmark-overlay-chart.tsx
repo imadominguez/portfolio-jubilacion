@@ -14,7 +14,7 @@ import {
 import { ChartContainer } from "@/components/ui/chart";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Download } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import type { SnapshotPoint } from "@/lib/portfolio-data";
 import { fetchAndSaveBenchmark, getBenchmarkPoints } from "@/app/actions/benchmarks";
 import { BENCHMARKS } from "@/lib/benchmarks-config";
@@ -133,7 +133,7 @@ export function BenchmarkOverlayChart({
                 disabled={isPending}
               >
                 {isPending && !activeBenchmarks.has(id) ? (
-                  <Download className="size-3 animate-bounce" />
+                  <Loader2 className="size-3 animate-spin" />
                 ) : null}
                 {label}
               </Button>
