@@ -211,19 +211,16 @@ pnpm db:seed
 - **Scripts:** `scripts/*` está ignorado salvo las excepciones explícitas en `.gitignore`. Un script nuevo que se use desde `package.json` o la doc necesita su línea `!scripts/<nombre>`.
 - Las exportaciones reales de la cuenta en `docs/movimientos/*.csv` y `docs/portfolio_report/` están ignoradas: no versionarlas.
 - **Gestor de paquetes: solo pnpm.** El CI instala con `pnpm install --frozen-lockfile`: si `package.json` cambia sin actualizar `pnpm-lock.yaml`, falla. Agregar dependencias siempre con `pnpm add` (o `pnpm add -D`).
-- `xlsx` y `@types/xlsx` siguen en `dependencies` pero ya no se importan en ningún archivo (quedaron de la importación XLSX que se eliminó).
 
 ### Código
 
-- **`getPreviousSnapshot` y `getSnapshotCount`** (`lib/portfolio-data.ts`) no tienen consumidores.
-- **Tolerancias documentadas vs código:** el `missingReason` de ganancia real (`lib/real-gains-data.ts`) dice "±3 días" para el precio histórico, pero `PRICE_TOLERANCE_DAYS = 5`.
 - **Monte Carlo** usa volatilidad mensual fija (4%) independiente de los inputs.
 - **Dividendos en especie:** en el rendimiento sin aportes (`flowsFromMovements`), los dividendos de CEDEARs acreditados en dólares solo cuentan por sus gastos en pesos, no como salida de las tenencias. El efecto es de centavos de dólar.
-- `/portfolio` no usa `SiteHeader` (excepción a la convención de UI).
 - **Sin tests end-to-end.** La guía de Next sugiere un test `instant()` (`@next/playwright`) por ruta para que el static shell no se degrade sin que nadie lo note.
 - **MCP de Next:** `.mcp.json` usa `pnpm dlx next-devtools-mcp@latest`, que descarga el paquete en cada arranque y suele superar el timeout de conexión de 30 s. Mientras tanto se puede usar `/_next/mcp` del dev server (ver arriba).
 
 > **Resuelto:**
+> - (2026-10-11) Limpieza: sin `xlsx` ni `@types/xlsx`; sin `getPreviousSnapshot` ni `getSnapshotCount`; los avisos de ganancia real toman las tolerancias de las constantes; `/portfolio` usa `SiteHeader` (sin él no había botón del sidebar en el celular).
 > - (2026-10-11) Las actions de refresco de mercado (`exchange-rate`, `market-prices`, `historical-prices`, `benchmarks`, `indices`) exigen sesión con `requireAuth()`: el proxy no protege las Server Actions, y cualquiera podía dispararlas y gastar la cuota de Yahoo, dolarapi y argentinadatos. El cron no pasa por ellas (usa `lib/market-refresh.ts`).
 > - (2026-10-09) Bonos y ONs: el listado de transacciones, el PPM, el P&L realizado y el CSV usan el bruto del movimiento de Cocos (`tradeGrossAmount`), no cantidad × precio. El P&L realizado separa por moneda (la ON del dólar MEP queda afuera).
 > - (2026-10-09) Las 2 ventas guardadas con cantidad negativa se corrigieron en la base (respaldo en `__fixtures__/`); los lectores siguen usando `Math.abs`.

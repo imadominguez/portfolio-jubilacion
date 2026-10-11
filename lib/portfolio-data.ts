@@ -67,20 +67,6 @@ async function cachedLatestSnapshot(userId: string): Promise<SnapshotData | null
   };
 }
 
-export async function getPreviousSnapshot(
-  beforeDate: Date
-): Promise<{ totalValueArs: number } | null> {
-  const userId = await requireUserId();
-  const snapshot = await db.portfolioSnapshot.findFirst({
-    where: { snapshotDate: { lt: beforeDate }, userId },
-    orderBy: { snapshotDate: "desc" },
-    select: { totalValueArs: true },
-  });
-
-  if (!snapshot) return null;
-  return { totalValueArs: Number(snapshot.totalValueArs) };
-}
-
 export type PreviousSnapshotData = {
   snapshotDate: Date;
   totalValueArs: number;
@@ -125,11 +111,6 @@ async function cachedPreviousSnapshotFull(
       allocationPct: Number(p.allocationPct) * 100,
     })),
   };
-}
-
-export async function getSnapshotCount(): Promise<number> {
-  const userId = await requireUserId();
-  return db.portfolioSnapshot.count({ where: { userId } });
 }
 
 export type SnapshotPoint = {
