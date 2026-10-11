@@ -52,7 +52,7 @@ export function DashboardKpiStrip({
     },
     {
       label: "Posiciones",
-      sub: "CEDEARs activos",
+      sub: "en el último snapshot",
       value: `${positionCount}`,
       status: "activos",
       accent: null,

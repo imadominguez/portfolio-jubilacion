@@ -158,9 +158,29 @@ export function dividendsForYear(
   manual: ManualDividendForTax[],
   year: number
 ): TaxDividend[] {
+  return dividendRows(
+    movements.filter((m) => yearOf(m.date) === year),
+    manual.filter((d) => yearOf(d.date) === year)
+  );
+}
+
+// Total cobrado en USD: los dividendos en dólares por su monto y los en pesos
+// al CCL de su fecha (sin CCL quedan afuera). Es el bruto, como lo informa Cocos.
+export function totalDividendsUsd(rows: TaxDividend[], cclAt: (date: Date) => number | null): number {
+  let total = 0;
+  for (const r of rows) {
+    if (r.currency === "USD") total += r.amount;
+    else {
+      const ccl = cclAt(r.date);
+      if (ccl) total += r.amount / ccl;
+    }
+  }
+  return total;
+}
+
+export function dividendRows(movements: DividendMovementForTax[], manual: ManualDividendForTax[]): TaxDividend[] {
   const rows: TaxDividend[] = [];
   for (const m of movements) {
-    if (yearOf(m.date) !== year) continue;
     const source = m.ticker ?? m.instrument ?? "Sin instrumento";
     if (m.instrument && USD_INSTRUMENT.test(m.instrument)) {
       const amount = m.quantity ?? 0;
@@ -173,7 +193,7 @@ export function dividendsForYear(
     }
   }
   for (const d of manual) {
-    if (yearOf(d.date) !== year || d.amount <= 0) continue;
+    if (d.amount <= 0) continue;
     rows.push({ date: d.date, source: d.ticker, currency: d.currency, amount: d.amount, costsArs: 0, manual: true });
   }
   return rows.sort((a, b) => a.date.getTime() - b.date.getTime());

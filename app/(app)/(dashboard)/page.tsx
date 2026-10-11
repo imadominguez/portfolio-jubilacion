@@ -155,13 +155,14 @@ async function DashboardContent() {
       }).format(live.pricesAsOf)
     : null;
 
-  // Jubilación: calcular si va en camino con tasa conservadora 10% USD anual
+  // Jubilación: con el retorno configurado, el mismo que usa /retirement (antes
+  // era un 10 % fijo y las dos pantallas no coincidían).
   let retirementGoal = null;
   if (retirementSettings && snapshot.totalValueUsd) {
     retirementGoal = calculateRetirementGoal({
       ...retirementSettings,
       currentPortfolioUsd: snapshot.totalValueUsd,
-      annualReturnRate: 0.1,
+      annualReturnRate: retirementSettings.expectedReturnRate,
     });
   }
 

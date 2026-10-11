@@ -3,7 +3,8 @@ import { db } from "@/lib/db";
 import { requireUserId } from "@/lib/auth-session";
 import { marketTags, userTags } from "@/lib/cache-tags";
 import { loadRatioChanges } from "@/lib/portfolio-data";
-import { ratioFactor } from "@/lib/ratio-changes";
+import { adjustForRatioChanges } from "@/lib/ratio-changes";
+import { costBasisByTicker } from "@/lib/real-gains";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -244,13 +245,14 @@ async function cachedRealGains(userId: string): Promise<RealGainsSummary | null>
 
   const cclActual = snapshot.ccl ? Number(snapshot.ccl) : null;
 
-  // 2. Transacciones BUY
-  const buys = await db.transaction.findMany({
-    where: { type: "BUY", userId },
+  // 2. Compras y ventas (las ventas descargan costo)
+  const trades = await db.transaction.findMany({
+    where: { userId },
     orderBy: { date: "asc" },
+    include: { movement: { select: { grossAmount: true } } },
   });
 
-  if (buys.length === 0) return null;
+  if (!trades.some((t) => t.type === "BUY")) return null;
   const ratioChanges = await loadRatioChanges();
 
   // 3. Assets (para cedearRatio y underlyingTicker)
@@ -287,75 +289,40 @@ async function cachedRealGains(userId: string): Promise<RealGainsSummary | null>
     currentMarketPrices.map((p) => [p.ticker, Number(p.price)])
   );
 
-  // 7. Agrupar BUYs por ticker para calcular costo acumulado
-  type TickerCost = {
-    costArs: number;
-    costUsdCcl: number | null;
-    costUsdStock: number | null;
-    totalQty: number;
-    cclApproximate: boolean;
-    stockPriceAvailable: boolean;
-    cclHits: number;
-    cclMisses: number;
-  };
-
-  const byTicker = new Map<string, TickerCost>();
-
-  for (const buy of buys) {
-    const price = Number(buy.price);
-    const costArs = Number(buy.quantity) * price + (buy.fee ? Number(buy.fee) : 0);
-    // En CEDEARs del ratio actual (ADR-0023): las acciones subyacentes se
-    // calculan con el `cedearRatio` de hoy.
-    const qty = Number(buy.quantity) * ratioFactor(ratioChanges, buy.ticker, buy.date);
-
-    // CCL en fecha de compra (Método A)
-    const cclAtBuy = findNearest(cclHistory, buy.date, 7);
-    const costUsdCclTx = cclAtBuy ? costArs / cclAtBuy.value : null;
-
-    // Precio USD del subyacente en fecha de compra (Método B)
-    const asset = assetMap.get(buy.ticker);
-    const underlyingTicker = asset?.underlyingTicker ?? null;
-    const cedearRatio = asset ? Number(asset.cedearRatio) : 1;
-
-    let costUsdStockTx: number | null = null;
-    if (underlyingTicker && cedearRatio > 0) {
-      const priceHistory = priceHistoryByTicker.get(underlyingTicker) ?? [];
-      const priceAtBuy = findNearest(priceHistory, buy.date, 5);
-      if (priceAtBuy) {
-        costUsdStockTx = (qty / cedearRatio) * priceAtBuy.value;
-      }
+  // 7. Costo por ticker (lib/real-gains.ts), con las cantidades en CEDEARs del
+  // ratio actual (ADR-0023): las acciones subyacentes usan el `cedearRatio` de hoy.
+  const byTicker = costBasisByTicker(
+    trades.map((t) =>
+      adjustForRatioChanges(
+        {
+          ticker: t.ticker,
+          type: t.type,
+          date: t.date,
+          quantity: Number(t.quantity),
+          price: Number(t.price),
+          currency: t.currency,
+          fee: t.fee ? Number(t.fee) : null,
+          movementGross: t.movement?.grossAmount != null ? Number(t.movement.grossAmount) : null,
+        },
+        ratioChanges
+      )
+    ),
+    {
+      cclNear: (date) => {
+        const hit = findNearest(cclHistory, date, CCL_TOLERANCE_DAYS);
+        return hit ? { value: hit.value, exact: Math.abs(hit.date.getTime() - date.getTime()) <= 1000 * 60 * 60 * 24 } : null;
+      },
+      stockPriceNear: (ticker, date) => {
+        const underlying = assetMap.get(ticker)?.underlyingTicker;
+        if (!underlying) return null;
+        return findNearest(priceHistoryByTicker.get(underlying) ?? [], date, PRICE_TOLERANCE_DAYS)?.value ?? null;
+      },
+      cedearRatio: (ticker) => {
+        const asset = assetMap.get(ticker);
+        return asset?.underlyingTicker ? Number(asset.cedearRatio) : null;
+      },
     }
-
-    const existing = byTicker.get(buy.ticker);
-    if (existing) {
-      existing.costArs += costArs;
-      existing.costUsdCcl =
-        existing.costUsdCcl !== null && costUsdCclTx !== null
-          ? existing.costUsdCcl + costUsdCclTx
-          : existing.costUsdCcl ?? costUsdCclTx;
-      existing.costUsdStock =
-        existing.costUsdStock !== null && costUsdStockTx !== null
-          ? existing.costUsdStock + costUsdStockTx
-          : existing.costUsdStock ?? costUsdStockTx;
-      existing.totalQty += qty;
-      if (!cclAtBuy) existing.cclMisses++;
-      else existing.cclHits++;
-      if (!costUsdStockTx) existing.stockPriceAvailable = false;
-    } else {
-      byTicker.set(buy.ticker, {
-        costArs,
-        costUsdCcl: costUsdCclTx,
-        costUsdStock: costUsdStockTx,
-        totalQty: qty,
-        cclApproximate: cclAtBuy
-          ? Math.abs(cclAtBuy.date.getTime() - buy.date.getTime()) > 1000 * 60 * 60 * 24
-          : true,
-        stockPriceAvailable: costUsdStockTx !== null,
-        cclHits: cclAtBuy ? 1 : 0,
-        cclMisses: cclAtBuy ? 0 : 1,
-      });
-    }
-  }
+  );
 
   // 8. Construir posiciones combinando costos con posiciones del snapshot
   const positionMap = new Map(snapshot.positions.map((p) => [p.ticker, p]));
@@ -515,8 +482,8 @@ async function cachedRealGains(userId: string): Promise<RealGainsSummary | null>
       ? (totalGainUsdAppreciation / totalCostUsdStock) * 100
       : null;
 
-  const cclTransactions = buys.length;
   const cclHits = Array.from(byTicker.values()).reduce((s, v) => s + v.cclHits, 0);
+  const cclTransactions = cclHits + Array.from(byTicker.values()).reduce((s, v) => s + v.cclMisses, 0);
   const cclCoverage = cclTransactions > 0 ? (cclHits / cclTransactions) * 100 : 0;
 
   return {

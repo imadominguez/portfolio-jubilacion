@@ -2,7 +2,9 @@
 
 import { cacheLife, cacheTag } from "next/cache";
 import { revalidateDividends } from "@/lib/revalidate";
-import { userTags } from "@/lib/cache-tags";
+import { marketTags, userTags } from "@/lib/cache-tags";
+import { cclLookup } from "@/lib/cash-flow";
+import { dividendRows, totalDividendsUsd } from "@/lib/tax-report";
 import { db } from "@/lib/db";
 import { requireAuth, requireUserId } from "@/lib/auth-session";
 import type { Currency } from "@/app/generated/prisma/client";
@@ -102,13 +104,30 @@ export async function getTotalDividendsUsd(): Promise<number> {
 }
 
 // No se exporta: recibe el userId ya resuelto de la sesión (ADR-0017).
+// Los dividendos de Cocos llegan en el libro de movimientos (la importación
+// invalida `trades`); la tabla Dividend son solo los cargados a mano.
 async function cachedTotalDividendsUsd(userId: string): Promise<number> {
   "use cache";
   cacheLife("hours");
-  cacheTag(userTags.dividends(userId));
+  cacheTag(userTags.dividends(userId), userTags.trades(userId), marketTags.ccl);
 
-  const divs = await db.dividend.findMany({
-    where: { currency: "USD", userId },
-  });
-  return divs.reduce((sum, d) => sum + Number(d.amount), 0);
+  const [movements, manual, rates] = await Promise.all([
+    db.movement.findMany({
+      where: { userId, category: { in: ["DIVIDEND", "DIVIDEND_IN_KIND"] } },
+      select: { date: true, instrument: true, ticker: true, currency: true, quantity: true, grossAmount: true, total: true },
+    }),
+    db.dividend.findMany({ where: { userId }, select: { date: true, ticker: true, amount: true, currency: true } }),
+    db.exchangeRate.findMany({ orderBy: { date: "asc" }, select: { date: true, ccl: true } }),
+  ]);
+
+  const rows = dividendRows(
+    movements.map((m) => ({
+      ...m,
+      quantity: m.quantity !== null ? Number(m.quantity) : null,
+      grossAmount: m.grossAmount !== null ? Number(m.grossAmount) : null,
+      total: Number(m.total),
+    })),
+    manual.map((d) => ({ ...d, amount: Number(d.amount) }))
+  );
+  return totalDividendsUsd(rows, cclLookup(rates.map((r) => ({ date: r.date, ccl: Number(r.ccl) }))));
 }
