@@ -40,7 +40,7 @@ totalValueUsd = totalValueArs / CCL                    (solo si CCL válido)
 
 ## PPM — Precio Promedio Ponderado (`calculatePPM`)
 
-Lógica pura en `lib/ppm.ts` (`computePpm`); la lectura es `getPpmForUser` (`lib/portfolio-data.ts`). El PPM es siempre **en pesos**: las compras en dólares (las primeras de Cocos son "Compra Dolar Mep") se pasan al CCL de su fecha (`cclLookup`). Antes se sumaban dólares y pesos sin convertir, y los paneles descartaban el resultado; por eso NVDA, AAPL y SPY quedaban sin P&L. Un ticker con una compra en USD sin CCL para esa fecha se omite.
+Lógica pura en `lib/ppm.ts` (`computePpm`); la lectura es `getPpmForUser` (`lib/portfolio-data.ts`). El PPM es siempre **en pesos**: las compras en dólares (las primeras de Cocos son "Compra Dolar Mep") se pasan al CCL de su fecha (`cclLookup`). Antes se sumaban dólares y pesos sin convertir, y los paneles descartaban el resultado: los tickers con alguna compra en dólares quedaban sin P&L. Un ticker con una compra en USD sin CCL para esa fecha se omite.
 
 Antes de calcular, cada operación se expresa en CEDEARs del ratio actual (`adjustForRatioChanges`, ADR-0023): si después hubo un split del CEDEAR (SPY 20:1 → 60:1 en junio 2026), la cantidad se multiplica por `nuevo/viejo` y el precio se divide por lo mismo. Lo mismo hacen el P&L realizado, la ganancia real y el reporte para impuestos.
 
@@ -278,7 +278,7 @@ newPct_i   = (valorActual_i + asignado_i) / (valorCartera + aporte) · 100
 
 ## Ganancia real en USD e impacto CCL (`lib/real-gains-data.ts`)
 
-Dos metodologías por posición, comparadas al final. El costo por ticker sale de `costBasisByTicker` (`lib/real-gains.ts`, puro): operaciones en orden cronológico y en CEDEARs del ratio actual. Las ventas descargan los tres costos a costo promedio, como el PPM; antes no se descontaban, y una venta parcial (AMD) dejaba el costo de todas las compras contra el valor de lo que quedaba.
+Dos metodologías por posición, comparadas al final. El costo por ticker sale de `costBasisByTicker` (`lib/real-gains.ts`, puro): operaciones en orden cronológico y en CEDEARs del ratio actual. Las ventas descargan los tres costos a costo promedio, como el PPM; antes no se descontaban, y una venta parcial dejaba el costo de todas las compras contra el valor de lo que quedaba.
 
 **Método A — valor ARS convertido por CCL**
 
@@ -287,7 +287,7 @@ Costo de cada compra (`bruto` = `|grossAmount|` del movimiento o `quantity × pr
 compra en ARS:  costArs_tx = bruto + fee;          costUsdCcl = costArs_tx / cclEnCompra   (CCL más cercano ±7 días)
 compra en USD:  costUsdCcl = bruto + fee;          costArs_tx = costUsdCcl × cclEnCompra
 ```
-Las compras "Compra Dolar Mep" están en USD: antes se sumaban como si fueran pesos (NVDA figuraba con un costo de $55). Si un ticker tiene una compra en USD sin CCL, se omite.
+Las compras "Compra Dolar Mep" están en USD: antes se sumaban como si fueran pesos (el costo en ARS quedaba en el monto en dólares). Si un ticker tiene una compra en USD sin CCL, se omite.
 Valor actual:
 ```
 valueUsdCcl = valueArsActual / cclActual

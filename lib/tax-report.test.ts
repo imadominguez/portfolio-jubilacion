@@ -35,7 +35,7 @@ describe("tenencia al cierre", () => {
 });
 
 describe("salesForYear", () => {
-  const t = (iso: string, type: "BUY" | "SELL", quantity: number, price: number, fee = 0, ticker = "AMD"): TradeForTax => ({
+  const t = (iso: string, type: "BUY" | "SELL", quantity: number, price: number, fee = 0, ticker = "AAA"): TradeForTax => ({
     date: day(iso),
     ticker,
     type,
@@ -73,28 +73,28 @@ describe("salesForYear", () => {
   });
 
   it("acepta ventas con cantidad negativa, como las exporta Cocos", () => {
-    const [sale] = salesForYear([t("2025-04-08", "BUY", 6, 11975, 69.55), t("2026-05-04", "SELL", -3, 52125, 946.07)], 2026);
+    const [sale] = salesForYear([t("2025-03-10", "BUY", 6, 1000, 60), t("2026-04-15", "SELL", -3, 3000, 90)], 2026);
     expect(sale.quantity).toBe(3);
-    expect(sale.proceeds).toBeCloseTo(155428.93);
-    expect(sale.cost).toBeCloseTo(35959.78);
-    expect(sale.result).toBeCloseTo(119469.155);
+    expect(sale.proceeds).toBeCloseTo(8910);
+    expect(sale.cost).toBeCloseTo(3030);
+    expect(sale.result).toBeCloseTo(5880);
   });
 
   it("usa el monto bruto de Cocos: en bonos y ONs el precio es cada 100 nominales", () => {
     const [sale] = salesForYear(
       [
-        { ...t("2026-07-20", "BUY", 5132, 103.95, 0, "T661O"), amount: -5334.714 },
-        { ...t("2026-07-20", "SELL", -5132, 0.068, 0, "T661O"), currency: "USD", amount: 3.4898 },
+        { ...t("2026-07-01", "BUY", 1000, 100, 0, "ON1"), amount: -1000 },
+        { ...t("2026-07-01", "SELL", -1000, 0.07, 0, "ON1"), currency: "USD", amount: 0.7 },
       ],
       2026
     );
-    expect(sale.proceeds).toBeCloseTo(3.4898);
-    expect(sale.cost).toBeCloseTo(5334.714);
+    expect(sale.proceeds).toBeCloseTo(0.7);
+    expect(sale.cost).toBeCloseTo(1000);
   });
 
   it("no calcula el resultado si se compró en otra moneda (dólar MEP)", () => {
     const [sale] = salesForYear(
-      [t("2026-07-20", "BUY", 10, 500, 0, "T661O"), { ...t("2026-07-20", "SELL", -10, 0.35, 0, "T661O"), currency: "USD" }],
+      [t("2026-07-01", "BUY", 10, 500, 0, "ON1"), { ...t("2026-07-01", "SELL", -10, 0.35, 0, "ON1"), currency: "USD" }],
       2026
     );
     expect(sale.currency).toBe("USD");
@@ -117,20 +117,20 @@ describe("dividendsForYear", () => {
   it("lee el monto en USD de la cantidad y los gastos del total en pesos", () => {
     const rows = dividendsForYear(
       [
-        { date: day("2025-08-01"), instrument: "Dólar estadounidense", ticker: null, currency: "ARS", quantity: 0.36, grossAmount: 0, total: -24.61 },
+        { date: day("2025-08-01"), instrument: "Dólar estadounidense", ticker: null, currency: "ARS", quantity: 0.25, grossAmount: 0, total: -12.5 },
         { date: day("2025-07-07"), instrument: "Dólar estadounidense", ticker: null, currency: "ARS", quantity: 0, grossAmount: 0, total: -0.02 },
-        { date: day("2025-06-05"), instrument: "BCO DE VALORES (VALO)", ticker: "VALO", currency: "ARS", quantity: null, grossAmount: 6, total: 5.5 },
-        { date: day("2024-06-05"), instrument: "BCO DE VALORES (VALO)", ticker: "VALO", currency: "ARS", quantity: null, grossAmount: 6, total: 6 },
+        { date: day("2025-06-05"), instrument: "ACCION LOCAL (ACC1)", ticker: "ACC1", currency: "ARS", quantity: null, grossAmount: 6, total: 5.5 },
+        { date: day("2024-06-05"), instrument: "ACCION LOCAL (ACC1)", ticker: "ACC1", currency: "ARS", quantity: null, grossAmount: 6, total: 6 },
       ],
       [{ date: day("2025-09-01"), ticker: "KO", amount: 1.2, currency: "USD" }],
       2025
     );
     expect(rows.map((r) => [r.source, r.currency, r.amount, r.costsArs, r.manual])).toEqual([
-      ["VALO", "ARS", 6, 0.5, false],
-      ["Dólar estadounidense", "USD", 0.36, 24.61, false],
+      ["ACC1", "ARS", 6, 0.5, false],
+      ["Dólar estadounidense", "USD", 0.25, 12.5, false],
       ["KO", "USD", 1.2, 0, true],
     ]);
-    expect(totalsByCurrency(rows, (r) => r.amount)).toEqual({ ARS: 6, USD: 1.56 });
+    expect(totalsByCurrency(rows, (r) => r.amount)).toEqual({ ARS: 6, USD: 1.45 });
   });
 });
 
@@ -138,14 +138,14 @@ describe("totalDividendsUsd", () => {
   it("suma los USD y pasa los pesos al CCL de su fecha, sin filtrar por año", () => {
     const rows = dividendRows(
       [
-        { date: day("2025-08-01"), instrument: "Dólar estadounidense", ticker: null, currency: "ARS", quantity: 0.36, grossAmount: 0, total: -24.61 },
-        { date: day("2024-06-05"), instrument: "BCO DE VALORES (VALO)", ticker: "VALO", currency: "ARS", quantity: null, grossAmount: 6, total: 6 },
-        { date: day("2019-01-01"), instrument: "BCO DE VALORES (VALO)", ticker: "VALO", currency: "ARS", quantity: null, grossAmount: 9, total: 9 },
+        { date: day("2025-08-01"), instrument: "Dólar estadounidense", ticker: null, currency: "ARS", quantity: 0.25, grossAmount: 0, total: -12.5 },
+        { date: day("2024-06-05"), instrument: "ACCION LOCAL (ACC1)", ticker: "ACC1", currency: "ARS", quantity: null, grossAmount: 6, total: 6 },
+        { date: day("2019-01-01"), instrument: "ACCION LOCAL (ACC1)", ticker: "ACC1", currency: "ARS", quantity: null, grossAmount: 9, total: 9 },
       ],
       [{ date: day("2026-09-01"), ticker: "KO", amount: 1.2, currency: "USD" }]
     );
     const cclAt = (date: Date) => (date.getUTCFullYear() < 2020 ? null : 1200);
-    expect(totalDividendsUsd(rows, cclAt)).toBeCloseTo(0.36 + 1.2 + 6 / 1200);
+    expect(totalDividendsUsd(rows, cclAt)).toBeCloseTo(0.25 + 1.2 + 6 / 1200);
   });
 });
 
@@ -171,11 +171,11 @@ describe("taxReportCsv", () => {
         positions: [{ ticker: "AMD", instrumentName: "CEDEAR AMD; INC", quantity: 1.5, price: 1000.33, value: 1500.5 }],
       },
       sales: [],
-      dividends: [{ date: day("2025-08-01"), source: "Dólar estadounidense", currency: "USD", amount: 0.36, costsArs: 24.61, manual: false }],
+      dividends: [{ date: day("2025-08-01"), source: "Dólar estadounidense", currency: "USD", amount: 0.25, costsArs: 12.5, manual: false }],
     });
     expect(csv.startsWith("﻿")).toBe(true);
     expect(csv).toContain('AMD;"CEDEAR AMD; INC";1,5;1000,3300;1500,50');
-    expect(csv).toContain("2025-08-01;Dólar estadounidense;USD;0,36;24,61;Cocos");
+    expect(csv).toContain("2025-08-01;Dólar estadounidense;USD;0,25;12,50;Cocos");
     expect(csv).toContain("Ventas 2025");
   });
 });

@@ -6,9 +6,9 @@
 
 ## Contexto
 
-BYMA a veces cambia el ratio de un CEDEAR. Por ejemplo, SPY pasó de 20:1 a 60:1 entre el 29/05 y el 01/06/2026, y acreditó 2 CEDEARs más por cada uno. Cocos acredita esas unidades sin dejar ningún movimiento en el CSV de actividad, así que el libro dice que hay 7 SPY mientras la tenencia (el snapshot) muestra 21. Con ese desfasaje:
+BYMA a veces cambia el ratio de un CEDEAR. Por ejemplo, SPY pasó de 20:1 a 60:1 entre el 29/05 y el 01/06/2026, y acreditó 2 CEDEARs más por cada uno. Cocos acredita esas unidades sin dejar ningún movimiento en el CSV de actividad, así que el libro tiene un tercio de los SPY que muestra la tenencia (el snapshot). Con ese desfasaje:
 
-- el PPM reparte el costo entre 7 unidades y da el triple (SPY figuraba con −45 % en lugar de +66 %);
+- el PPM reparte el costo entre un tercio de las unidades y da el triple, y la posición figura con pérdida aunque tenga ganancia;
 - la ganancia real calcula las acciones subyacentes como `cantidad / ratio de hoy` y le quedan un tercio;
 - una venta posterior al split descontaría unidades que las compras no tienen (P&L realizado e impuestos).
 
