@@ -2,7 +2,7 @@
 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import type { PositionRow } from "@/lib/portfolio-data";
-import { formatARS } from "@/lib/format";
+import { formatARS, formatPct } from "@/lib/format";
 
 interface AllocationPanelProps {
   positions: PositionRow[];
@@ -44,7 +44,7 @@ function CustomTooltip({
     <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-md text-xs font-mono">
       <p className="font-bold text-foreground">{item.name}</p>
       <p className="text-muted-foreground">
-        {formatARS(item.value)} · {item.payload.allocationPct.toFixed(1)}%
+        {formatARS(item.value)} · {formatPct(item.payload.allocationPct, { decimals: 1 })}
       </p>
     </div>
   );
@@ -114,7 +114,7 @@ export function AllocationPanel({ positions, totalArs }: AllocationPanelProps) {
                   />
                 </div>
                 <span className="text-xs font-mono font-semibold tabular-nums text-muted-foreground w-10 text-right">
-                  {position.allocationPct.toFixed(1)}%
+                  {formatPct(position.allocationPct, { decimals: 1 })}
                 </span>
               </div>
             </div>

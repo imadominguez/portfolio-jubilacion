@@ -30,7 +30,7 @@ import type { MovementRow } from "@/app/actions/import-movements";
 import { deleteTransaction } from "@/app/actions/transactions";
 import { deleteDividend } from "@/app/actions/dividends";
 import { CATEGORY_LABELS, type MovementCategory } from "@/lib/cocos-movements";
-import { formatDateUTC, formatCurrency, formatARS } from "@/lib/format";
+import { formatDateUTC, formatCurrency, formatARS, formatPct } from "@/lib/format";
 
 interface TransactionsClientProps {
   transactions: TransactionRow[];
@@ -339,7 +339,7 @@ export function TransactionsClient({
                       : "text-destructive"
                   }`}
                 >
-                  {(realizedPnl.reduce((sum, r) => sum + r.pnlPct, 0) / realizedPnl.length).toFixed(2)}%
+                  {formatPct((realizedPnl.reduce((sum, r) => sum + r.pnlPct, 0) / realizedPnl.length), { decimals: 2 })}
                 </p>
               </div>
             </div>
@@ -413,7 +413,7 @@ export function TransactionsClient({
                           }`}
                         >
                           {row.pnlPct >= 0 ? "+" : ""}
-                          {row.pnlPct.toFixed(2)}%
+                          {formatPct(row.pnlPct, { decimals: 2 })}
                         </span>
                       </TableCell>
                     </TableRow>

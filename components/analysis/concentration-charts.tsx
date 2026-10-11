@@ -10,7 +10,7 @@ import {
   Legend,
 } from "recharts";
 import type { ConcentrationData, ConcentrationItem } from "@/lib/analysis-data";
-import { formatARSCompact } from "@/lib/format";
+import { formatARSCompact, formatPct } from "@/lib/format";
 
 const CHART_COLORS = [
   "var(--color-chart-1)",
@@ -92,7 +92,7 @@ function ConcentrationChart({ items, label }: ConcentrationChartProps) {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <span className="text-xs font-mono text-foreground">
-                {item.pct.toFixed(1)}%
+                {formatPct(item.pct, { decimals: 1 })}
               </span>
               <span className="text-xs text-muted-foreground">{formatARSCompact(item.value)}</span>
             </div>
@@ -120,10 +120,12 @@ export function ConcentrationCharts({ data }: ConcentrationChartsProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-1 border-b border-border">
+      <div role="tablist" aria-label="Agrupar por" className="flex items-center gap-1 border-b border-border">
         {tabs.map((tab) => (
           <button
             key={tab.id}
+            role="tab"
+            aria-selected={activeTab === tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`px-4 py-2 text-xs font-medium transition-colors border-b-2 -mb-px ${
               activeTab === tab.id
@@ -144,7 +146,7 @@ export function ConcentrationCharts({ data }: ConcentrationChartsProps) {
       {data.unclassified > 0 && (
         <p className="text-xs text-muted-foreground">
           * {formatARSCompact(data.unclassified)} sin clasificar — completá el sector/país en la
-          página de Assets para ver el análisis completo.
+          página de Activos para ver el análisis completo.
         </p>
       )}
     </div>

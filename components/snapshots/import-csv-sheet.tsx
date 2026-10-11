@@ -54,7 +54,7 @@ const GENERIC_DATE_PATTERN = /(\d{4})[_-]?(\d{2})[_-]?(\d{2})/;
 // Helpers
 // ---------------------------------------------------------------------------
 
-import { formatARS, formatDateUTC } from "@/lib/format";
+import { formatARS, formatDateUTC, formatPct } from "@/lib/format";
 
 function formatUSD(value: number): string {
   return new Intl.NumberFormat("es-AR", {
@@ -542,7 +542,7 @@ export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
                           </td>
                           <td className="py-2.5 text-right">
                             <Badge variant="secondary" className="font-mono text-[10px] tabular-nums">
-                              {(p.allocationPct * 100).toFixed(1)}%
+                              {formatPct((p.allocationPct * 100), { decimals: 1 })}
                             </Badge>
                           </td>
                         </tr>

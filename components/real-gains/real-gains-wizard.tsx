@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { RefreshCw, Database, TrendingUp, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { fetchHistoricalCCL } from "@/app/actions/exchange-rate";
 import { fetchAndCacheStockHistory } from "@/app/actions/historical-prices";
 import type { DataReadiness } from "@/lib/real-gains-data";
@@ -21,6 +22,10 @@ export function RealGainsWizard({ readiness }: RealGainsWizardProps) {
 
   const hasCcl = readiness.hasCclHistory > 0 || cclDone;
   const hasStocks = readiness.hasStockHistory > 0 || stocksDone;
+  // Con los históricos completos, los dos pasos ocupaban la mitad de la página:
+  // quedan en una línea y se despliegan para volver a actualizar.
+  const complete = hasCcl && hasStocks && !readiness.needsBackfill;
+  const [expanded, setExpanded] = useState(!complete);
 
   async function handleLoadCcl() {
     if (!readiness.firstBuyDate) return;
@@ -64,6 +69,21 @@ export function RealGainsWizard({ readiness }: RealGainsWizardProps) {
 
   // El aviso confirma una carga hecha en esta visita; si los datos ya estaban, sobra.
   const justLoaded = (cclDone || stocksDone) && hasCcl && hasStocks;
+
+  if (!expanded) {
+    return (
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card px-5 py-3">
+        <p className="text-sm text-muted-foreground">
+          Datos históricos cargados:{" "}
+          <span className="font-mono tabular-nums text-foreground/80">{readiness.hasCclHistory}</span> fechas de CCL y{" "}
+          <span className="font-mono tabular-nums text-foreground/80">{readiness.hasStockHistory}</span> precios de acciones.
+        </p>
+        <Button variant="ghost" size="sm" className="text-xs" onClick={() => setExpanded(true)}>
+          Actualizar históricos
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">

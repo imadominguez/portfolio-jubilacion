@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatARS } from "@/lib/format";
+import { formatARS, formatPct } from "@/lib/format";
 import {
   planDca,
   type DcaAssetInfo,
@@ -159,7 +159,7 @@ export function DcaPlannerClient({
                     )}
                   </TableCell>
                   <TableCell className="py-3 text-right text-xs font-mono tabular-nums text-foreground">
-                    {row.currentPct.toFixed(1)}%
+                    {formatPct(row.currentPct, { decimals: 1 })}
                   </TableCell>
                   <TableCell className="py-3 text-right text-sm font-mono font-semibold tabular-nums text-foreground">
                     {isBuy ? formatARS(row.amountArs) : "—"}
@@ -168,7 +168,7 @@ export function DcaPlannerClient({
                     {isBuy && row.estimatedCedears !== null ? row.estimatedCedears : "—"}
                   </TableCell>
                   <TableCell className="pr-4 py-3 text-right text-xs font-mono tabular-nums text-muted-foreground">
-                    {row.newPct.toFixed(1)}%
+                    {formatPct(row.newPct, { decimals: 1 })}
                   </TableCell>
                 </TableRow>
               );

@@ -150,7 +150,7 @@ async function PerformanceContent({ searchParams }: { searchParams: PerformanceS
       value: fmtSignedPct(realTir),
       sub:
         inflationPct !== null
-          ? `vs inflación ${inflationPct >= 0 ? "+" : ""}${inflationPct.toFixed(1)}%`
+          ? `vs inflación ${inflationPct >= 0 ? "+" : ""}${formatPct(inflationPct, { decimals: 1 })}`
           : "Sin índices cargados",
       accent: realTir !== null ? realTir >= 0 : null,
     };
@@ -358,7 +358,7 @@ async function PerformanceContent({ searchParams }: { searchParams: PerformanceS
                           }`}
                       >
                         {pos ? "+" : ""}
-                        {change.toFixed(2)}%
+                        {formatPct(change, { decimals: 2 })}
                       </span>
                     )}
                   </div>

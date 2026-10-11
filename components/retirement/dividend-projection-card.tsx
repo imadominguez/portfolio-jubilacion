@@ -1,4 +1,4 @@
-import { formatCurrency, formatUSD, formatUSDCompact } from "@/lib/format";
+import { formatCurrency, formatUSD, formatUSDCompact, formatPct } from "@/lib/format";
 import { DIVIDEND_WITHHOLDING, capitalForDividendIncome, type DividendProjection } from "@/lib/dividend-projection";
 
 // Cuánto rinde hoy el portfolio en dividendos y cuánto capital haría falta para
@@ -36,7 +36,7 @@ export function DividendProjectionCard({
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <Stat label="Por mes, neto" value={usd(projection.monthlyNetUsd)} />
             <Stat label="Por año, neto" value={usd(projection.annualNetUsd)} hint={`${usd(projection.annualGrossUsd)} bruto`} />
-            <Stat label="Rendimiento" value={`${projection.yieldPct.toFixed(2)} %`} hint="bruto sobre el portfolio" />
+            <Stat label="Rendimiento" value={`${formatPct(projection.yieldPct, { decimals: 2 })}`} hint="bruto sobre el portfolio" />
             <Stat
               label="Para vivir de dividendos"
               value={capitalNeeded === null ? "—" : formatUSDCompact(capitalNeeded)}
@@ -52,7 +52,7 @@ export function DividendProjectionCard({
                   <div className="flex items-baseline justify-between gap-2 text-sm">
                     <span className="text-foreground">
                       {r.ticker}
-                      <span className="text-muted-foreground text-xs"> · {r.yieldPct.toFixed(2)} %</span>
+                      <span className="text-muted-foreground text-xs"> · {formatPct(r.yieldPct, { decimals: 2 })}</span>
                     </span>
                     <span className="font-mono tabular-nums text-xs">
                       {usd(r.annualGrossUsd)}

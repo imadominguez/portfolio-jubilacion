@@ -17,6 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import type { MilestoneRow } from "@/app/actions/milestones";
 import { createMilestone, deleteMilestone } from "@/app/actions/milestones";
+import { formatPct } from "@/lib/format";
 
 interface MilestonesClientProps {
   initialMilestones: MilestoneRow[];
@@ -138,7 +139,7 @@ export function MilestonesClient({
             />
           </div>
           <p className="text-xs text-muted-foreground mt-1.5">
-            {((currentPortfolioUsd / nextMilestone.targetValueUsd) * 100).toFixed(1)}% completado
+            {formatPct(((currentPortfolioUsd / nextMilestone.targetValueUsd) * 100), { decimals: 1 })} completado
           </p>
         </div>
       )}

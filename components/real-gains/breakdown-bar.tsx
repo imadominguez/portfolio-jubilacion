@@ -1,4 +1,4 @@
-import { formatUSD } from "@/lib/format";
+import { formatUSD, formatPct } from "@/lib/format";
 import type { RealGainsSummary } from "@/lib/real-gains-data";
 import { fmtPct, signColor } from "./real-gains-helpers";
 
@@ -33,21 +33,21 @@ export function BreakdownBar({ summary }: { summary: RealGainsSummary }) {
         <div
           className={`flex items-center justify-center text-[10px] font-semibold transition-all ${appIsPositive ? "bg-success text-success-foreground" : "bg-warning text-warning-foreground"
             }`}
-          style={{ width: `${(appPct * 100).toFixed(1)}%`, minWidth: appPct > 0 ? "2px" : "0" }}
+          style={{ width: `${formatPct((appPct * 100), { decimals: 1 })}`, minWidth: appPct > 0 ? "2px" : "0" }}
           title={`Apreciación acciones: ${formatUSD(totalGainUsdAppreciation)}`}
         >
-          {appPct > 0.15 && `${(appPct * 100).toFixed(0)}%`}
+          {appPct > 0.15 && `${formatPct((appPct * 100), { decimals: 0 })}`}
         </div>
         <div
           className={`flex items-center justify-center text-[10px] font-semibold transition-all ${cclIsPositive ? "bg-info text-info-foreground" : "bg-destructive text-destructive-foreground"
             }`}
           style={{
-            width: `${(cclPct * 100).toFixed(1)}%`,
+            width: `${formatPct((cclPct * 100), { decimals: 1 })}`,
             minWidth: cclPct > 0 ? "2px" : "0",
           }}
           title={`Impacto CCL: ${formatUSD(totalGainUsdCclImpact ?? 0)}`}
         >
-          {cclPct > 0.15 && `${(cclPct * 100).toFixed(0)}%`}
+          {cclPct > 0.15 && `${formatPct((cclPct * 100), { decimals: 0 })}`}
         </div>
       </div>
 
