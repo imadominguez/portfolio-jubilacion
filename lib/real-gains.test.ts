@@ -19,48 +19,48 @@ const lookups = (over: Partial<CostLookups> = {}): CostLookups => ({
 describe("costBasisByTicker", () => {
   it("una compra en dólares cuesta lo pagado en USD y eso × CCL en pesos", () => {
     const res = costBasisByTicker(
-      [trade({ ticker: "NVDA", date: d("2024-10-01"), quantity: 11, price: 5, currency: "USD", fee: 0.22, movementGross: -55 })],
-      lookups({ cclNear: () => ({ value: 1245.8, exact: true }) })
+      [trade({ ticker: "AAA", date: d("2024-03-01"), quantity: 10, price: 4, currency: "USD", fee: 0.5, movementGross: -40 })],
+      lookups({ cclNear: () => ({ value: 1200, exact: true }) })
     );
-    const nvda = res.get("NVDA")!;
-    expect(nvda.costUsdCcl).toBeCloseTo(55.22);
-    expect(nvda.costArs).toBeCloseTo(55.22 * 1245.8);
+    const aaa = res.get("AAA")!;
+    expect(aaa.costUsdCcl).toBeCloseTo(40.5);
+    expect(aaa.costArs).toBeCloseTo(40.5 * 1200);
   });
 
   it("una venta descarga los tres costos a costo promedio", () => {
     const res = costBasisByTicker(
       [
-        trade({ ticker: "AMD", date: d("2025-04-08"), quantity: 6, price: 12000 }),
-        trade({ ticker: "AMD", date: d("2026-05-04"), quantity: -3, price: 52000, type: "SELL" }),
+        trade({ ticker: "BBB", date: d("2025-01-10"), quantity: 4, price: 1000 }),
+        trade({ ticker: "BBB", date: d("2025-03-10"), quantity: -2, price: 3000, type: "SELL" }),
       ],
       lookups()
     );
-    const amd = res.get("AMD")!;
-    expect(amd.totalQty).toBe(3);
-    expect(amd.costArs).toBe(36000);
-    expect(amd.costUsdCcl).toBe(36);
-    expect(amd.costUsdStock).toBe(30); // 3 / 10 × 100
+    const bbb = res.get("BBB")!;
+    expect(bbb.totalQty).toBe(2);
+    expect(bbb.costArs).toBe(2000);
+    expect(bbb.costUsdCcl).toBe(2);
+    expect(bbb.costUsdStock).toBe(20); // 2 / 10 × 100
   });
 
   it("omite el ticker si una compra en USD no tiene CCL", () => {
     const res = costBasisByTicker(
       [
-        trade({ ticker: "SPY", date: d("2019-01-01"), quantity: 1, price: 30, currency: "USD" }),
-        trade({ ticker: "KO", date: d("2025-01-01"), quantity: 2, price: 100 }),
+        trade({ ticker: "CCC", date: d("2019-01-01"), quantity: 1, price: 30, currency: "USD" }),
+        trade({ ticker: "DDD", date: d("2025-01-01"), quantity: 2, price: 100 }),
       ],
       lookups({ cclNear: () => null })
     );
-    expect([...res.keys()]).toEqual(["KO"]);
-    expect(res.get("KO")!.costUsdCcl).toBeNull();
-    expect(res.get("KO")!.cclMisses).toBe(1);
+    expect([...res.keys()]).toEqual(["DDD"]);
+    expect(res.get("DDD")!.costUsdCcl).toBeNull();
+    expect(res.get("DDD")!.cclMisses).toBe(1);
   });
 
   it("sin precio del subyacente el método B queda sin dato", () => {
     const res = costBasisByTicker(
-      [trade({ ticker: "KO", date: d("2025-01-01"), quantity: 2, price: 100 })],
+      [trade({ ticker: "DDD", date: d("2025-01-01"), quantity: 2, price: 100 })],
       lookups({ stockPriceNear: () => null })
     );
-    expect(res.get("KO")!.costUsdStock).toBeNull();
-    expect(res.get("KO")!.stockPriceAvailable).toBe(false);
+    expect(res.get("DDD")!.costUsdStock).toBeNull();
+    expect(res.get("DDD")!.stockPriceAvailable).toBe(false);
   });
 });
