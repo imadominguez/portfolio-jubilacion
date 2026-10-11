@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ExpensesDailyChart } from "@/components/transactions/expenses-daily-chart";
 import { ExpensesTable } from "@/components/transactions/expenses-table";
 import { BudgetsDialog } from "@/components/transactions/budgets-dialog";
-import { formatARS } from "@/lib/format";
+import { formatARS, formatPct } from "@/lib/format";
 import { monthLabel, shiftMonth } from "@/lib/local-date";
 import { budgetStatus, type Expense, type ExpenseSummary } from "@/lib/expenses";
 
@@ -119,7 +119,7 @@ export function ExpensesSection({
             )}
             <Kpi
               label="Contra el mes anterior"
-              value={diffPct === null ? "—" : `${diffPct >= 0 ? "+" : ""}${diffPct.toFixed(1)}%`}
+              value={diffPct === null ? "—" : `${diffPct >= 0 ? "+" : ""}${formatPct(diffPct, { decimals: 1 })}`}
               sub={comparison > 0 ? comparisonLabel : "Sin pagos el mes anterior"}
               tone={diffPct === null ? undefined : diffPct > 0 ? "up" : "down"}
             />
@@ -162,7 +162,7 @@ export function ExpensesSection({
                         <span className="font-mono tabular-nums text-xs">
                           {formatARS(c.total)}
                           <span className="text-muted-foreground">
-                            {budget ? ` de ${formatARS(budget.budget)}` : ` · ${c.pct.toFixed(0)}%`}
+                            {budget ? ` de ${formatARS(budget.budget)}` : ` · ${formatPct(c.pct, { decimals: 0 })}`}
                           </span>
                         </span>
                       </div>

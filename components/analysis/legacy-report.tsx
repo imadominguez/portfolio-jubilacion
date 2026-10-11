@@ -4,6 +4,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { formatPct } from "@/lib/format";
 import {
   TrendingUp, TrendingDown, AlertTriangle, Info, Zap,
   FileText, DollarSign, Calendar, ArrowRight,
@@ -151,13 +152,13 @@ function PosicionRow({ p }: { p: Posicion }) {
             )}
           </div>
           <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2 flex-wrap">
-            <span>Actual <strong className="text-foreground">{p.peso_actual.toFixed(1)}%</strong></span>
-            <span>Obj. <strong className="text-foreground">{p.peso_objetivo.toFixed(1)}%</strong></span>
+            <span>Actual <strong className="text-foreground">{formatPct(p.peso_actual, { decimals: 1 })}</strong></span>
+            <span>Obj. <strong className="text-foreground">{formatPct(p.peso_objetivo, { decimals: 1 })}</strong></span>
             {p.diferencia !== 0 && <span className={p.diferencia < 0 ? "text-warning" : "text-destructive"}>{p.diferencia > 0 ? "+" : ""}{p.diferencia.toFixed(1)}pp</span>}
-            {p.ganancia_pct !== 0 && <span className={p.ganancia_pct >= 0 ? "text-success" : "text-destructive"}>{p.ganancia_pct >= 0 ? "▲" : "▼"} {Math.abs(p.ganancia_pct).toFixed(1)}%</span>}
+            {p.ganancia_pct !== 0 && <span className={p.ganancia_pct >= 0 ? "text-success" : "text-destructive"}>{p.ganancia_pct >= 0 ? "▲" : "▼"} {formatPct(Math.abs(p.ganancia_pct), { decimals: 1 })}</span>}
             {p.variacion_mensual_pct !== undefined && p.variacion_mensual_pct !== 0 && (
               <span className={p.variacion_mensual_pct >= 0 ? "text-success" : "text-destructive"}>
-                {p.variacion_mensual_pct >= 0 ? "▲" : "▼"} {Math.abs(p.variacion_mensual_pct).toFixed(1)}% mes
+                {p.variacion_mensual_pct >= 0 ? "▲" : "▼"} {formatPct(Math.abs(p.variacion_mensual_pct), { decimals: 1 })} mes
               </span>
             )}
           </div>
@@ -284,9 +285,9 @@ export function ReporteDisplay({ reporte, footer }: { reporte: ReportePortafolio
                   <p className="text-xs text-muted-foreground">{a.razon}</p>
                   {(a.peso_objetivo !== undefined || a.peso_asignado_mes !== undefined) && (
                     <p className="text-[11px] text-muted-foreground mt-0.5">
-                      Obj. modelo {a.peso_objetivo !== undefined ? `${a.peso_objetivo.toFixed(1)}%` : "—"}
+                      Obj. modelo {a.peso_objetivo !== undefined ? `${formatPct(a.peso_objetivo, { decimals: 1 })}` : "—"}
                       {" · "}
-                      Asign. mes {a.peso_asignado_mes !== undefined ? `${a.peso_asignado_mes.toFixed(1)}%` : "—"}
+                      Asign. mes {a.peso_asignado_mes !== undefined ? `${formatPct(a.peso_asignado_mes, { decimals: 1 })}` : "—"}
                     </p>
                   )}
                 </div>

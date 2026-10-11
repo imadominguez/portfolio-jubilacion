@@ -8,7 +8,7 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { SnapshotsSkeleton } from "@/components/snapshots/snapshots-skeleton";
 import { ImportButton } from "@/components/snapshots/snapshots-client";
 import { getAllSnapshotPoints, getHoldingsFlows } from "@/lib/portfolio-data";
-import { formatARS, formatUSD } from "@/lib/format";
+import { formatARS, formatUSD, formatPct } from "@/lib/format";
 import { periodReturns } from "@/lib/flow-returns";
 
 export const metadata: Metadata = { title: "Snapshots" };
@@ -114,7 +114,7 @@ async function SnapshotsContent() {
                           }`}
                         >
                           {isPos ? "+" : ""}
-                          {change.toFixed(2)}%
+                          {formatPct(change, { decimals: 2 })}
                         </Badge>
                       )}
 

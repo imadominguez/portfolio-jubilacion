@@ -19,6 +19,8 @@ const NONE = "none";
 
 // El mes ya está en el título de la sección: alcanza con día y mes.
 const SHORT_DATE = new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "short", timeZone: "UTC" });
+const PREVIEW_ROWS = 8;
+
 export function ExpensesTable({
   expenses,
   suggestions,
@@ -28,7 +30,13 @@ export function ExpensesTable({
   suggestions: Record<string, string>;
 }) {
   const [onlyUncategorized, setOnlyUncategorized] = useState(false);
-  const rows = onlyUncategorized ? expenses.filter((e) => e.category === null) : expenses;
+  const [showAll, setShowAll] = useState(false);
+  const filtered = onlyUncategorized ? expenses.filter((e) => e.category === null) : expenses;
+  // Un mes tiene decenas de pagos y la lista empujaba las operaciones más de
+  // 1.000 px abajo: se ven los primeros y el resto a pedido. Para categorizar
+  // ("Solo sin categoría") se muestran todos.
+  const collapsed = !showAll && !onlyUncategorized && filtered.length > PREVIEW_ROWS;
+  const rows = collapsed ? filtered.slice(0, PREVIEW_ROWS) : filtered;
 
   return (
     <div className="flex flex-col gap-3">
@@ -55,6 +63,15 @@ export function ExpensesTable({
               <ExpenseRow key={`${e.id}-${e.category}-${e.note}`} expense={e} suggestion={suggestions[e.id] ?? null} />
             ))}
           </ul>
+        )}
+        {collapsed && (
+          <button
+            type="button"
+            onClick={() => setShowAll(true)}
+            className="w-full border-t border-border px-4 py-2.5 text-xs font-medium text-primary transition-colors hover:bg-muted/40 outline-none focus-visible:bg-muted/40"
+          >
+            Ver los {filtered.length - PREVIEW_ROWS} pagos restantes
+          </button>
         )}
       </div>
     </div>

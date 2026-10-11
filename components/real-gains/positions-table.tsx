@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatARS, formatUSD } from "@/lib/format";
+import { formatARS, formatUSD, formatPct } from "@/lib/format";
 import type { RealGainsSummary } from "@/lib/real-gains-data";
 import { fmtPct, signColor } from "./real-gains-helpers";
 
@@ -163,7 +163,7 @@ export function PositionsTable({
           <span>
             CCL:{" "}
             <span className="font-semibold text-foreground">
-              {summary.cclCoverage.toFixed(0)}%
+              {formatPct(summary.cclCoverage, { decimals: 0 })}
             </span>{" "}
             de transacciones
           </span>

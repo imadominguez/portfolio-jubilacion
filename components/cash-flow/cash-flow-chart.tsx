@@ -2,7 +2,7 @@
 
 import { Bar, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
-import { formatARS, formatARSCompact } from "@/lib/format";
+import { formatARS, formatARSCompact, formatPct } from "@/lib/format";
 import type { MonthCashFlow } from "@/lib/cash-flow";
 
 const chartConfig = {
@@ -54,7 +54,7 @@ export function CashFlowChart({ months }: { months: MonthCashFlow[] }) {
               <ChartTooltipContent
                 formatter={(value, name) =>
                   name === "savingsRate"
-                    ? `Tasa de ahorro: ${value === null ? "—" : `${Number(value).toFixed(0)}%`}`
+                    ? `Tasa de ahorro: ${value === null ? "—" : `${formatPct(Number(value), { decimals: 0 })}`}`
                     : `${chartConfig[name as keyof typeof chartConfig]?.label}: ${formatARS(Number(value))}`
                 }
               />

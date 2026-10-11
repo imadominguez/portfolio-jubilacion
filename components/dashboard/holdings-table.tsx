@@ -9,7 +9,7 @@ import {
 import type { PositionRow } from "@/lib/portfolio-data";
 import type { PpmRow } from "@/app/actions/transactions";
 import type { MarketPriceRow } from "@/app/actions/market-prices";
-import { formatARS, formatUSD } from "@/lib/format";
+import { formatARS, formatUSD, formatPct } from "@/lib/format";
 
 interface HoldingsTableProps {
   positions: PositionRow[];
@@ -128,7 +128,7 @@ export function HoldingsTable({ positions, ppmData = [], marketPrices = [] }: Ho
                               }`}
                             >
                               {unrealizedPnlPct >= 0 ? "+" : ""}
-                              {unrealizedPnlPct.toFixed(2)}%
+                              {formatPct(unrealizedPnlPct, { decimals: 2 })}
                             </span>
                           )}
                         </div>
@@ -154,7 +154,7 @@ export function HoldingsTable({ positions, ppmData = [], marketPrices = [] }: Ho
                           }`}
                         >
                           {unrealizedPnlPct >= 0 ? "+" : ""}
-                          {unrealizedPnlPct.toFixed(2)}% vs PPM
+                          {formatPct(unrealizedPnlPct, { decimals: 2 })} vs PPM
                         </span>
                       )}
                       <div className="h-1 w-16 rounded-full bg-muted overflow-hidden">

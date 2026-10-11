@@ -56,7 +56,7 @@ export function ThisMonth({ dca, isAdmin, milestone, allMilestonesReached, topSe
 
         {milestone && milestonePct !== null ? (
           <MaybeLink href={isAdmin ? "/settings" : null} className={cell}>
-            <CellHead label={`Próximo hito: ${milestone.label}`} />
+            <CellHead label={`Próximo hito: ${milestone.label}`} arrow={isAdmin} />
             <div
               className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
               role="progressbar"
@@ -74,7 +74,7 @@ export function ThisMonth({ dca, isAdmin, milestone, allMilestonesReached, topSe
           </MaybeLink>
         ) : (
           <MaybeLink href={isAdmin ? "/settings" : null} className={cell}>
-            <CellHead label="Hitos" />
+            <CellHead label="Hitos" arrow={isAdmin} />
             <p className="text-sm text-muted-foreground">
               {allMilestonesReached ? "Alcanzaste todos tus hitos." : "Todavía no hay hitos definidos."}
             </p>
@@ -92,7 +92,7 @@ export function ThisMonth({ dca, isAdmin, milestone, allMilestonesReached, topSe
           </Link>
         ) : (
           <MaybeLink href={isAdmin ? "/assets" : null} className={cell}>
-            <CellHead label="Concentración" />
+            <CellHead label="Concentración" arrow={isAdmin} />
             <p className="text-sm text-muted-foreground">Falta el sector de tus activos para verla</p>
           </MaybeLink>
         )}
@@ -111,11 +111,14 @@ function MaybeLink({ href, className, children }: { href: string | null; classNa
   );
 }
 
-function CellHead({ label }: { label: string }) {
+// La flecha solo en celdas navegables: en las demás prometía un link que no hay.
+function CellHead({ label, arrow = true }: { label: string; arrow?: boolean }) {
   return (
     <div className="flex items-center justify-between gap-2">
       <span className="text-sm text-muted-foreground">{label}</span>
-      <ArrowRight className="size-4 shrink-0 text-muted-foreground/70 transition-transform group-hover:translate-x-0.5" />
+      {arrow && (
+        <ArrowRight className="size-4 shrink-0 text-muted-foreground/70 transition-transform group-hover:translate-x-0.5" />
+      )}
     </div>
   );
 }

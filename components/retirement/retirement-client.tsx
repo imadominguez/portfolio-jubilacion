@@ -28,7 +28,7 @@ import {
   buildProjectionCurve,
   runMonteCarlo,
 } from "@/lib/projections";
-import { formatUSDCompact } from "@/lib/format";
+import { formatUSDCompact, formatPct } from "@/lib/format";
 
 interface RetirementClientProps {
   initialSettings: RetirementSettingsData | null;
@@ -286,9 +286,9 @@ export function RetirementClient({
               { label: "Retiro a los", value: settings.retirementAge },
               { label: "Gastos/mes", value: formatUSDCompact(settings.monthlyExpensesUsd) },
               { label: "Aporte/mes", value: formatUSDCompact(settings.monthlyContribution) },
-              { label: "Inflación", value: `${(settings.inflationRate * 100).toFixed(1)}%` },
-              { label: "Tasa retiro", value: `${(settings.withdrawalRate * 100).toFixed(1)}%` },
-              { label: "Retorno anual", value: `${(settings.expectedReturnRate * 100).toFixed(1)}%` },
+              { label: "Inflación", value: `${formatPct((settings.inflationRate * 100), { decimals: 1 })}` },
+              { label: "Tasa retiro", value: `${formatPct((settings.withdrawalRate * 100), { decimals: 1 })}` },
+              { label: "Retorno anual", value: `${formatPct((settings.expectedReturnRate * 100), { decimals: 1 })}` },
             ].map(({ label, value }) => (
               <div key={label} className="flex flex-col gap-0.5">
                 <span className="text-[10px] text-muted-foreground">{label}</span>
@@ -300,9 +300,9 @@ export function RetirementClient({
 
         <div className="mt-3 pt-3 border-t border-border flex items-center gap-2">
           <span className="text-[10px] text-muted-foreground">
-            Retorno anual usado: {(inputs.annualReturnRate * 100).toFixed(1)}% (configurado)
+            Retorno anual usado: {formatPct((inputs.annualReturnRate * 100), { decimals: 1 })} (configurado)
             {historicalCagr !== 0 &&
-              ` · Tu TIR histórica en USD es ${historicalCagr.toFixed(1)}%: sirve de referencia, pero con pocos años de historia no conviene proyectarla a largo plazo`}
+              ` · Tu TIR histórica en USD es ${formatPct(historicalCagr, { decimals: 1 })}: sirve de referencia, pero con pocos años de historia no conviene proyectarla a largo plazo`}
           </span>
           {currentPortfolioUsd && (
             <span className="text-[10px] text-muted-foreground">
@@ -537,7 +537,7 @@ export function RetirementClient({
                         : "text-destructive"
                   }`}
                 >
-                  {monteCarloData.successProbability.toFixed(1)}%
+                  {formatPct(monteCarloData.successProbability, { decimals: 1 })}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">de 500 simulaciones</p>
               </div>

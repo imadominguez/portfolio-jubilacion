@@ -10,6 +10,7 @@ import { isAdminRole } from "@/lib/user-role";
 import { isMailerConfigured } from "@/lib/mailer";
 import { monthLabel } from "@/lib/local-date";
 import { expenseCategoryLabel } from "@/lib/expenses";
+import { formatPct } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Alertas" };
 
@@ -137,7 +138,7 @@ async function AlertsContent() {
                           {l.value !== null && (
                             <span className="text-muted-foreground">
                               {" "}
-                              {l.value.toFixed(1)} % desde el máximo
+                              {formatPct(l.value, { decimals: 1 })} desde el máximo
                             </span>
                           )}
                         </>
