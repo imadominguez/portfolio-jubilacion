@@ -66,7 +66,7 @@ export function RealGainsWizard({ readiness }: RealGainsWizardProps) {
   const justLoaded = (cclDone || stocksDone) && hasCcl && hasStocks;
 
   return (
-    <div className="flex flex-col gap-6 animate-fade-up">
+    <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
         <p className="text-sm text-muted-foreground max-w-lg leading-relaxed">
           Actualizá el CCL histórico y los precios de acciones. Los datos se

@@ -109,7 +109,7 @@ export function AssetsQuickSetup({ missingTickers }: AssetsQuickSetupProps) {
   }
 
   return (
-    <div className="rounded-xl border border-primary/20 bg-primary/[0.03] shadow-sm overflow-hidden animate-fade-up">
+    <div className="rounded-xl border border-primary/20 bg-primary/[0.03] shadow-sm overflow-hidden">
       <div className="px-5 py-4 border-b border-border/50 flex items-start gap-3">
         <div className="rounded-lg bg-primary/10 p-2 shrink-0">
           <Sparkles className="size-4 text-primary" />

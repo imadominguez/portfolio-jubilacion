@@ -78,7 +78,7 @@ export function AssetsTableClient({ assets }: AssetsTableClientProps) {
           </Button>
         </div>
       ) : (
-        <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden animate-fade-up">
+        <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow className="border-border hover:bg-transparent bg-muted/40">

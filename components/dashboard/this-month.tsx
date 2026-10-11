@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { formatPct, formatUSD } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { MOBILE_SNAP_CELL, MOBILE_SNAP_ROW } from "@/components/layout/page-parts";
 
 interface ThisMonthProps {
   // Señales del último reporte de oportunidades; null si no hay reporte.
@@ -18,14 +19,17 @@ interface ThisMonthProps {
 // concentración), en una fila con divisiones finas en lugar de tarjetas.
 export function ThisMonth({ dca, isAdmin, milestone, allMilestonesReached, topSector }: ThisMonthProps) {
   const milestonePct = milestone ? Math.min(100, (milestone.currentUsd / milestone.targetUsd) * 100) : null;
-  const cell = "group flex min-w-0 flex-col gap-2 bg-card px-5 py-4 transition-colors hover:bg-muted/40 outline-none focus-visible:bg-muted/40";
+  const cell = cn(
+    "group flex min-w-0 flex-col gap-2 bg-card px-5 py-4 transition-colors hover:bg-muted/40 outline-none focus-visible:bg-muted/40",
+    MOBILE_SNAP_CELL
+  );
 
   return (
     <section aria-labelledby="this-month-title" className="flex flex-col gap-3">
       <h2 id="this-month-title" className="text-base font-semibold text-foreground">
         Este mes
       </h2>
-      <div className="grid gap-px overflow-hidden rounded-2xl border border-border bg-border grid-cols-1 md:grid-cols-3">
+      <div className={cn("gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-3", MOBILE_SNAP_ROW)}>
         {dca ? (
           <Link href="/plan" className={cell}>
             <CellHead label="Plan DCA" />
@@ -61,7 +65,7 @@ export function ThisMonth({ dca, isAdmin, milestone, allMilestonesReached, topSe
               aria-valuemax={100}
               aria-valuenow={Math.round(milestonePct)}
             >
-              <div className="h-full rounded-full bg-primary" style={{ width: `${milestonePct}%` }} />
+              <div className="progress-fill h-full rounded-full bg-primary" style={{ width: `${milestonePct}%` }} />
             </div>
             <p className="text-xs text-muted-foreground">
               <span className="font-mono tabular-nums text-foreground/80">{formatPct(milestonePct, { decimals: 1 })}</span> · faltan{" "}

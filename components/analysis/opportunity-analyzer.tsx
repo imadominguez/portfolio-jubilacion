@@ -118,10 +118,19 @@ export function OpportunityAnalyzer() {
             )}
           </div>
           {loading && (
-            <p className="text-center text-xs text-muted-foreground">
-              Bajando precios y noticias de cada acción y analizándolas. Suele tardar menos de un minuto.
-            </p>
+            <div className="flex flex-col gap-2">
+              {/* Sin etapas reales que reportar (es un solo pedido): barra indeterminada. */}
+              <div className="h-1 w-full overflow-hidden rounded-full bg-muted" aria-hidden>
+                <div className="progress-indeterminate h-full w-2/5 rounded-full bg-primary/70" />
+              </div>
+              <p className="text-center text-xs text-muted-foreground">
+                Bajando precios y noticias de cada acción y analizándolas. Suele tardar menos de un minuto.
+              </p>
+            </div>
           )}
+          <p className="sr-only" aria-live="polite">
+            {loading ? "Generando el reporte de oportunidades." : reporte ? "Reporte listo." : ""}
+          </p>
           {error && (
             <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 px-4 py-3 rounded-lg border border-destructive/30">
               <AlertCircle className="w-4 h-4 shrink-0" />

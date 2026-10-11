@@ -135,8 +135,7 @@ async function CclContent() {
 
       {/* Chart */}
       <section
-        className="animate-fade-up flex flex-col gap-4"
-        style={{ animationDelay: "100ms" }}
+        className="flex flex-col gap-4"
       >
         <h2 className="text-base font-semibold text-foreground">
           Evolución del CCL
@@ -151,8 +150,7 @@ async function CclContent() {
 
       {/* Timeline */}
       <section
-        className="animate-fade-up flex flex-col gap-3"
-        style={{ animationDelay: "200ms" }}
+        className="flex flex-col gap-3"
       >
         <h2 className="text-base font-semibold text-foreground">
           Registros recientes ({rates.length} total)

@@ -87,12 +87,12 @@ async function CashFlowContent() {
         />
       </section>
 
-      <section className="animate-fade-up rounded-xl border border-border bg-card shadow-sm p-5 flex flex-col gap-2">
+      <section className="rounded-xl border border-border bg-card shadow-sm p-5 flex flex-col gap-2">
         <p className="text-xs text-muted-foreground">Depósitos y gastos por mes, con la tasa de ahorro</p>
         <CashFlowChart months={months} />
       </section>
 
-      <section className="animate-fade-up flex flex-col gap-3">
+      <section className="flex flex-col gap-3">
         <h2 className="text-base font-semibold text-foreground">Mes a mes</h2>
         <p className="text-xs text-muted-foreground -mt-1 max-w-2xl">
           Una tasa negativa es un mes en que gastaste más de lo que depositaste: la diferencia salió del FCI o

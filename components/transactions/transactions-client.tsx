@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
+import { motion, MotionConfig } from "motion/react";
 import { toast } from "sonner";
 import { Trash2, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -52,6 +53,7 @@ export function TransactionsClient({
   movements,
 }: TransactionsClientProps) {
   const [tab, setTab] = useState<Tab>("transactions");
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [movementView, setMovementView] = useState<"all" | "fci">("all");
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [deleteDivTarget, setDeleteDivTarget] = useState<string | null>(null);
@@ -111,26 +113,58 @@ export function TransactionsClient({
     <>
       {/* En celular las pestañas no entran: la barra se desliza de costado. La línea
           de abajo es una sombra interna porque overflow-x recorta el -mb-px. */}
-      <div className="flex items-center gap-1 overflow-x-auto [scrollbar-width:none] shadow-[inset_0_-1px_0_var(--color-border)]">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={`shrink-0 whitespace-nowrap px-4 py-2.5 text-xs font-medium transition-colors border-b-2 flex items-center gap-1.5 ${
-              tab === t.id
-                ? "border-foreground text-foreground"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {t.label}
-            {t.count > 0 && (
-              <span className="text-[10px] bg-muted rounded px-1 py-0.5 font-mono">
-                {t.count}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
+      {/* Pestañas con semántica ARIA y flechas del teclado; la línea activa se
+          desliza entre pestañas (Motion layoutId, transform) y respeta reduced-motion. */}
+      <MotionConfig reducedMotion="user">
+        <div
+          role="tablist"
+          aria-label="Secciones de transacciones"
+          className="flex items-center gap-1 overflow-x-auto [scrollbar-width:none] shadow-[inset_0_-1px_0_var(--color-border)]"
+        >
+          {tabs.map((t, i) => (
+            <button
+              key={t.id}
+              ref={(el) => {
+                tabRefs.current[i] = el;
+              }}
+              role="tab"
+              id={`tab-${t.id}`}
+              aria-selected={tab === t.id}
+              aria-controls={`panel-${t.id}`}
+              tabIndex={tab === t.id ? 0 : -1}
+              onClick={() => setTab(t.id)}
+              onKeyDown={(e) => {
+                const delta = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+                if (!delta) return;
+                e.preventDefault();
+                const next = (i + delta + tabs.length) % tabs.length;
+                setTab(tabs[next].id);
+                tabRefs.current[next]?.focus();
+              }}
+              className={`relative shrink-0 whitespace-nowrap px-4 py-2.5 text-xs font-medium transition-colors flex items-center gap-1.5 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 rounded-t-md ${
+                tab === t.id ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {t.label}
+              {t.count > 0 && (
+                <span className="text-[10px] bg-muted rounded px-1 py-0.5 font-mono">
+                  {t.count}
+                </span>
+              )}
+              {tab === t.id && (
+                <motion.span
+                  layoutId="transactions-tab-indicator"
+                  aria-hidden
+                  className="absolute inset-x-0 bottom-0 h-0.5 bg-foreground"
+                  transition={{ duration: 0.25, ease: [0.77, 0, 0.175, 1] }}
+                />
+              )}
+            </button>
+          ))}
+        </div>
+      </MotionConfig>
+
+      <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className="contents">
 
       {tab === "transactions" && (
         transactions.length === 0 ? (
@@ -692,6 +726,8 @@ export function TransactionsClient({
             ))}
         </>
       )}
+
+      </div>
 
       <AlertDialog
         open={!!deleteTarget}

@@ -58,7 +58,7 @@ async function Planner() {
 
   if (!snapshot) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-20 text-center animate-fade-up">
+      <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
         <Wallet className="size-8 text-muted-foreground/40" />
         <p className="text-sm font-medium text-foreground">Sin datos de portfolio</p>
         <p className="text-xs text-muted-foreground max-w-xs leading-relaxed">

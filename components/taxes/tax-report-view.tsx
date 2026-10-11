@@ -37,7 +37,7 @@ function Section({
   children: ReactNode;
 }) {
   return (
-    <section className="animate-fade-up flex flex-col gap-3">
+    <section className="flex flex-col gap-3">
       <div className="flex flex-col gap-1">
         <h2 className="text-base font-semibold text-foreground">{title}</h2>
         <p className="text-xs text-muted-foreground leading-relaxed max-w-2xl">{description}</p>

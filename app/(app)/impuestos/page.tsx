@@ -66,7 +66,7 @@ async function TaxContent({ searchParams }: { searchParams: TaxSearchParams }) {
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="animate-fade-up flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <nav aria-label="Año" className="flex flex-wrap gap-1.5">
           {data.years.map((y) => (
             <Button

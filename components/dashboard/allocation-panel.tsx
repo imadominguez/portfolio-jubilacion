@@ -96,8 +96,7 @@ export function AllocationPanel({ positions, totalArs }: AllocationPanelProps) {
           {positions.map((position, index) => (
             <div
               key={position.ticker}
-              className="flex items-center justify-between gap-3 animate-fade-up"
-              style={{ animationDelay: `${180 + index * 35}ms` }}
+              className="flex items-center justify-between gap-3"
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 <div

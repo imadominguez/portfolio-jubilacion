@@ -265,8 +265,7 @@ async function PerformanceContent({ searchParams }: { searchParams: PerformanceS
 
       {/* Charts */}
       <section
-        className="animate-fade-up flex flex-col gap-6"
-        style={{ animationDelay: "100ms" }}
+        className="flex flex-col gap-6"
       >
         <div className="flex flex-col gap-3">
           <h2 className="text-base font-semibold text-foreground">
@@ -322,8 +321,7 @@ async function PerformanceContent({ searchParams }: { searchParams: PerformanceS
 
       {/* Snapshot timeline */}
       <section
-        className="animate-fade-up flex flex-col gap-3"
-        style={{ animationDelay: "200ms" }}
+        className="flex flex-col gap-3"
       >
         <h2 className="text-base font-semibold text-foreground">
           Registros importados
