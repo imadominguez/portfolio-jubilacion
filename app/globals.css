@@ -320,17 +320,10 @@
     border: 1px solid color-mix(in oklab, var(--primary) 30%, transparent);
   }
 
-  /* Item activo del sidebar — superficie azulada con glow */
+  /* Item activo del sidebar: superficie azulada plana, sin glow (DESIGN.md §1.7) */
   .sidebar-active-item {
-    background: linear-gradient(
-      to bottom,
-      color-mix(in oklab, var(--primary) 22%, var(--sidebar)),
-      color-mix(in oklab, var(--primary) 12%, var(--sidebar))
-    ) !important;
-    box-shadow:
-      inset 0 1px 0 color-mix(in oklab, white 12%, transparent),
-      0 0 18px -4px color-mix(in oklab, var(--primary) 55%, transparent) !important;
-    border-color: color-mix(in oklab, var(--primary) 35%, transparent) !important;
+    background: color-mix(in oklab, var(--primary) 16%, var(--sidebar)) !important;
+    border-color: color-mix(in oklab, var(--primary) 30%, transparent) !important;
     color: var(--sidebar-foreground) !important;
   }
 }

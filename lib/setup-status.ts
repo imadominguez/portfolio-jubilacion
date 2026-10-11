@@ -129,8 +129,8 @@ export function deriveSetupStatus(input: SetupInput): SetupStatus {
       id: "assets",
       label: "Completar los datos de tus activos",
       description: input.canManageAssets
-        ? "Ratio CEDEAR, subyacente, sector y país para habilitar USD en vivo, Concentración y Ganancia Real."
-        : "El catálogo de activos lo mantiene el administrador. Hasta que lo complete, USD en vivo, Concentración y Ganancia Real pueden verse incompletos.",
+        ? "Ratio CEDEAR, subyacente, sector y país para habilitar USD en vivo, Concentración y ganancia real."
+        : "El catálogo de activos lo mantiene el administrador. Hasta que lo complete, USD en vivo, Concentración y ganancia real pueden verse incompletos.",
       required: input.canManageAssets,
       actionable: input.canManageAssets,
       done: assetsDone,
@@ -152,7 +152,7 @@ export function deriveSetupStatus(input: SetupInput): SetupStatus {
       id: "historicals",
       label: "Cargar datos históricos",
       description:
-        "CCL y precios de acciones desde tu primera compra para calcular la Ganancia Real en USD.",
+        "CCL y precios de acciones desde tu primera compra para calcular la ganancia real en USD.",
       required: false,
       actionable: true,
       done: historicalsDone,
