@@ -193,7 +193,7 @@ rendimiento del año sin aportes y la meta de jubilación (proyectado vs necesar
 
 ### 6.2 Sidebar / AppSidebar
 - Fondo `bg-sidebar`. La navegación sale de `components/layout/nav-config.ts` (también ⌘K):
-  grupos por tarea de hasta 4 ítems (Resumen sin título, Análisis, Cuenta, Datos y, para admin,
+  grupos por tarea de hasta 4 ítems (Resumen sin título: Dashboard, Cartera, Plan DCA, Jubilación; Análisis, Cuenta, Datos y, para admin,
   Administración). Títulos de grupo en oración (`text-xs font-medium /65`), sin separadores.
 - Item activo: `.sidebar-active-item`, superficie plana `primary` 16 % + borde `primary/30`, sin glow.
 - Item inactivo: sin fondo (`data-active` solo se pone cuando es `true`: con `"false"` la variante

@@ -41,7 +41,7 @@ export function AppSidebar({ adminNav }: AppSidebarProps) {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="px-4 py-4">
+      <SidebarHeader className="px-4 py-3">
         <div className="flex items-center gap-3 overflow-hidden">
           <div
             className="size-8 shrink-0 rounded-xl bg-sidebar-primary shadow-sm ring-2 ring-sidebar-primary/35 ring-offset-2 ring-offset-sidebar flex items-center justify-center transition-shadow hover:shadow-md"
@@ -61,7 +61,7 @@ export function AppSidebar({ adminNav }: AppSidebarProps) {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-3 gap-2">
+      <SidebarContent className="px-3 gap-1.5">
         {NAV_GROUPS.map((g) => (
           <NavGroup key={g.label ?? "inicio"} label={g.label} items={g.items} />
         ))}
@@ -111,7 +111,7 @@ function NavGroup({ label, items }: { label: string | null; items: NavItem[] }) 
     <div>
       <SidebarGroup className="p-0 gap-0.5">
         {label ? (
-          <SidebarGroupLabel className="h-6 px-2 text-xs font-medium text-sidebar-foreground/65">
+          <SidebarGroupLabel className="h-5 px-2 text-xs font-medium text-sidebar-foreground/65">
             {label}
           </SidebarGroupLabel>
         ) : null}

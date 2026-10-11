@@ -1,7 +1,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Fallback del contenido del Dashboard (loading.tsx y el <Suspense> de la página).
-// Repite la estructura real: hero, métricas, "Este mes", posiciones y gráfico.
+// Repite la estructura real: hero, métricas, "Este mes", posiciones principales y gráfico.
 export function DashboardSkeleton() {
   return (
     <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-10 flex flex-col gap-8">
@@ -54,35 +54,19 @@ export function DashboardSkeleton() {
         </div>
       </section>
 
-      {/* Posiciones + distribución */}
-      <section className="grid gap-8 lg:grid-cols-5">
-        <div className="lg:col-span-3 flex flex-col gap-3">
-          <Skeleton className="h-4 w-24" />
-          <div className="rounded-2xl border border-border/60 overflow-hidden">
-            {Array.from({ length: 7 }).map((_, i) => (
-              <div key={i} className="px-5 py-4 border-b border-border/40 last:border-0 flex items-center gap-6">
-                <div className="flex-1 flex flex-col gap-1.5">
-                  <Skeleton className="h-3.5 w-12" />
-                  <Skeleton className="h-2.5 w-24" />
-                </div>
-                <Skeleton className="hidden sm:block h-3 w-8" />
-                <Skeleton className="hidden md:block h-3 w-20" />
-                <Skeleton className="h-3 w-24" />
-              </div>
-            ))}
-          </div>
+      {/* Posiciones principales */}
+      <section className="flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-3.5 w-36" />
         </div>
-        <div className="lg:col-span-2 flex flex-col gap-3">
-          <Skeleton className="h-4 w-24" />
-          <div className="rounded-2xl border border-border/60 p-5 flex flex-col gap-4">
-            <Skeleton className="mx-auto size-40 rounded-full" />
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex items-center justify-between">
-                <Skeleton className="h-3 w-12" />
-                <Skeleton className="h-3 w-10" />
-              </div>
-            ))}
-          </div>
+        <div className="rounded-2xl border border-border/60 overflow-hidden">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="px-5 py-3.5 border-b border-border/40 last:border-0 flex items-center justify-between gap-6">
+              <Skeleton className="h-3.5 w-32" />
+              <Skeleton className="h-3.5 w-24" />
+            </div>
+          ))}
         </div>
       </section>
     </main>

@@ -11,8 +11,7 @@ import {
 import { DashboardHero } from "@/components/dashboard/dashboard-hero";
 import { DashboardKpiStrip } from "@/components/dashboard/dashboard-kpi-strip";
 import { ThisMonth } from "@/components/dashboard/this-month";
-import { HoldingsTable } from "@/components/dashboard/holdings-table";
-import { AllocationPanel } from "@/components/dashboard/allocation-panel";
+import { TopHoldings } from "@/components/dashboard/top-holdings";
 import { EmptyDashboard } from "@/components/dashboard/empty-dashboard";
 import { PortfolioChartWidget } from "@/components/dashboard/portfolio-chart-widget";
 import { SiteHeader } from "@/components/layout/site-header";
@@ -249,14 +248,7 @@ async function DashboardContent() {
         topSector={topSector ? { name: topSector.name, pct: topSector.pct } : null}
       />
 
-      <section className="grid gap-8 lg:grid-cols-5">
-        <div className="min-w-0 lg:col-span-3">
-          <HoldingsTable positions={snapshot.positions} ppmData={ppmData} marketPrices={marketPrices} />
-        </div>
-        <div className="min-w-0 lg:col-span-2">
-          <AllocationPanel positions={snapshot.positions} totalArs={snapshot.totalValueArs} />
-        </div>
-      </section>
+      <TopHoldings positions={snapshot.positions} ppmData={ppmData} />
 
       <PortfolioChartWidget snapshots={allSnapshots} />
     </main>

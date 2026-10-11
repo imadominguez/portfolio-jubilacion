@@ -1,5 +1,6 @@
 import {
   LayoutDashboard,
+  Briefcase,
   TrendingUp,
   CalendarDays,
   Layers,
@@ -44,6 +45,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: null,
     items: [
       { label: "Dashboard", href: "/", icon: LayoutDashboard },
+      { label: "Cartera", href: "/cartera", icon: Briefcase },
       { label: "Plan DCA", href: "/plan", icon: Wallet },
       { label: "Jubilación", href: "/retirement", icon: Target },
     ],
