@@ -193,3 +193,17 @@ export function runMonteCarlo(
     years: yearsArray,
   };
 }
+
+// Aporte mensual que hace falta para llegar al capital necesario a la edad de
+// retiro, con el mismo modelo que calculateRetirementGoal (capitalización
+// mensual). 0 si el portfolio actual ya alcanza solo.
+export function requiredMonthlyContribution(inputs: RetirementInputs, capitalNeeded: number): number {
+  const months = (inputs.retirementAge - inputs.currentAge) * 12;
+  if (months <= 0) return 0;
+  const r = inputs.annualReturnRate / 12;
+  const growth = r === 0 ? 1 : Math.pow(1 + r, months);
+  const fromPortfolio = inputs.currentPortfolioUsd * growth;
+  const gap = capitalNeeded - fromPortfolio;
+  if (gap <= 0) return 0;
+  return r === 0 ? gap / months : (gap * r) / (growth - 1);
+}

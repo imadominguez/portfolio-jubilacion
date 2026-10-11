@@ -35,6 +35,9 @@ export function PerformanceChart({ snapshots, initialCurrency = "ARS" }: Perform
 
   const data = snapshots.map((s) => ({
     date: formatDateShort(s.snapshotDate),
+    // Eje de tiempo real: con snapshots irregulares (años al principio, días al
+    // final) un eje por categoría comprimía años y exageraba la pendiente.
+    ts: new Date(s.snapshotDate).getTime(),
     value:
       currency === "ARS"
         ? s.totalValueArs
@@ -74,10 +77,15 @@ export function PerformanceChart({ snapshots, initialCurrency = "ARS" }: Perform
               opacity={0.4}
             />
             <XAxis
-              dataKey="date"
+              dataKey="ts"
+              type="number"
+              scale="time"
+              domain={["dataMin", "dataMax"]}
+              tickFormatter={(ts: number) => formatDateShort(new Date(ts))}
               tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
               tickLine={false}
               axisLine={false}
+              minTickGap={24}
             />
             <YAxis
               tickFormatter={(v) =>
@@ -91,24 +99,17 @@ export function PerformanceChart({ snapshots, initialCurrency = "ARS" }: Perform
             <Tooltip
               content={
                 <ChartTooltipContent
-                  formatter={(value) =>
-                    currency === "ARS"
-                      ? new Intl.NumberFormat("es-AR", {
-                          style: "currency",
-                          currency: "ARS",
-                          minimumFractionDigits: 0,
-                        }).format(Number(value))
-                      : new Intl.NumberFormat("en-US", {
-                          style: "currency",
-                          currency: "USD",
-                          minimumFractionDigits: 0,
-                        }).format(Number(value))
-                  }
+                  labelFormatter={(_, payload) => {
+                    const ts = payload?.[0]?.payload?.ts;
+                    return typeof ts === "number" ? formatDateShort(new Date(ts)) : "";
+                  }}
+                  formatter={(value) => (currency === "ARS" ? formatARS(Number(value)) : formatUSD(Number(value)))}
                 />
               }
             />
             <Line
-              type="monotone"
+              // Recta entre snapshots: con puntos irregulares la curva inventaba picos.
+              type="linear"
               dataKey="value"
               stroke="var(--color-chart-1)"
               strokeWidth={2}

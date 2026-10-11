@@ -17,8 +17,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel, FieldDescription } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
-import { Badge } from "@/components/ui/badge";
-import { Target, TrendingUp, AlertTriangle, CheckCircle } from "lucide-react";
 import type { RetirementSettingsData } from "@/app/actions/retirement";
 import type { ContributionStats } from "@/lib/cash-flow";
 import { monthLabel } from "@/lib/local-date";
@@ -26,9 +24,11 @@ import { saveRetirementSettings } from "@/app/actions/retirement";
 import {
   calculateRetirementGoal,
   buildProjectionCurve,
+  requiredMonthlyContribution,
   runMonteCarlo,
 } from "@/lib/projections";
-import { formatUSDCompact, formatPct } from "@/lib/format";
+import { StatGrid } from "@/components/layout/page-parts";
+import { formatUSD, formatUSDCompact, formatPct } from "@/lib/format";
 
 interface RetirementClientProps {
   initialSettings: RetirementSettingsData | null;
@@ -38,7 +38,8 @@ interface RetirementClientProps {
   realContribution: ContributionStats | null;
 }
 
-const usd0 = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+// Montos en dólares con US$ (DESIGN.md §3): "$19" se leía como pesos.
+const usd0 = { format: formatUSD };
 
 const DEFAULT_SETTINGS: RetirementSettingsData = {
   currentAge: 35,
@@ -84,6 +85,11 @@ export function RetirementClient({
   );
 
   const goal = useMemo(() => calculateRetirementGoal(inputs), [inputs]);
+  const neededContribution = useMemo(
+    () => requiredMonthlyContribution(inputs, goal.capitalNeeded),
+    [inputs, goal.capitalNeeded]
+  );
+  const reachedPct = goal.capitalNeeded > 0 ? Math.min(100, (goal.capitalAtRetirement / goal.capitalNeeded) * 100) : 100;
   const projectionData = useMemo(() => buildProjectionCurve(inputs), [inputs]);
 
   const monteCarloData = useMemo(() => {
@@ -146,11 +152,11 @@ export function RetirementClient({
   return (
     <div className="flex flex-col gap-8">
       {/* Config panel */}
-      <div className="rounded-xl border border-border bg-card shadow-sm p-6">
+      <div className="rounded-2xl border border-border bg-card p-6">
         <div className="flex items-center justify-between mb-5">
           <div className="flex flex-col gap-0.5">
-            <h3 className="text-sm font-semibold text-foreground">Parámetros</h3>
-            <p className="text-[11px] text-muted-foreground">
+            <h2 className="text-base font-semibold text-foreground">Parámetros</h2>
+            <p className="text-xs text-muted-foreground">
               Todos los valores monetarios en USD · Inflación y tasa de retiro basadas en mercado EE.UU.
             </p>
           </div>
@@ -362,88 +368,63 @@ export function RetirementClient({
         </div>
 
         {tab === "calculator" && (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                label: "Capital necesario",
-                value: formatUSDCompact(goal.capitalNeeded),
-                // Nominal a la edad de retiro: el gasto de hoy con la inflación de
-                // los años que faltan; sin aclararlo, el capital parece desmedido.
-                sub: `Para gastar ${formatUSDCompact(settings.monthlyExpensesUsd)}/mes de hoy (${formatUSDCompact(goal.monthlyExpensesAtRetirement)}/mes a los ${settings.retirementAge})`,
-                icon: Target,
-                accent: null as boolean | null,
-              },
-              {
-                label: "Capital proyectado",
-                value: formatUSDCompact(goal.capitalAtRetirement),
-                sub: `Al jubilarme a los ${settings.retirementAge}`,
-                icon: TrendingUp,
-                accent: goal.isOnTrack,
-              },
-              {
-                label: "Brecha actual",
-                value: goal.currentGap > 0 ? formatUSDCompact(goal.currentGap) : "¡Meta alcanzada!",
-                sub: `Faltan ${goal.yearsRemaining} años`,
-                icon: goal.isOnTrack ? CheckCircle : AlertTriangle,
-                accent: goal.isOnTrack,
-              },
-              {
-                label: "Años para la meta",
-                value:
-                  goal.yearsToGoal <= goal.yearsRemaining
-                    ? `${goal.yearsToGoal.toFixed(1)} años`
-                    : "Ajustar aportes",
-                sub: goal.yearsToGoal <= goal.yearsRemaining ? "En camino" : "Revisar parámetros",
-                icon: TrendingUp,
-                accent: goal.yearsToGoal <= goal.yearsRemaining,
-              },
-            ].map(({ label, value, sub, icon: Icon, accent }) => (
-              <div
-                key={label}
-                className={`rounded-xl border bg-card shadow-sm px-5 py-4 flex flex-col gap-3 ${
-                  accent === true
-                    ? "border-success/30"
-                    : accent === false
-                      ? "border-warning/30"
-                      : "border-border"
-                }`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-sm font-semibold text-foreground">{label}</span>
-                    <span className="text-xs text-muted-foreground">{sub}</span>
-                  </div>
-                  <Icon
-                    className={`size-4 shrink-0 ${
-                      accent === true
-                        ? "text-success"
-                        : accent === false
-                          ? "text-warning"
-                          : "text-muted-foreground"
-                    }`}
-                  />
-                </div>
-                <span
-                  className={`text-xl font-bold font-mono tabular-nums leading-none ${
-                    accent === true
-                      ? "text-success"
-                      : accent === false
-                        ? "text-warning"
-                        : "text-foreground"
-                  }`}
-                >
-                  {value}
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <Badge
-                    variant={goal.isOnTrack ? "default" : "secondary"}
-                    className="text-[10px] h-4"
-                  >
-                    {goal.isOnTrack ? "En camino" : "Ajustar"}
-                  </Badge>
-                </div>
-              </div>
-            ))}
+          <div className="flex flex-col gap-4">
+            {/* Un solo mensaje de estado con lo accionable (el aporte), en lugar de
+                cuatro tarjetas en ámbar con el mismo "Ajustar". */}
+            <div
+              role="status"
+              className={`rounded-2xl border px-5 py-4 ${goal.isOnTrack ? "border-success/30 bg-success/5" : "border-border bg-card"}`}
+            >
+              {goal.isOnTrack ? (
+                <p className="text-sm text-foreground">
+                  <span className="font-semibold">Vas en camino.</span> Con {usd0.format(settings.monthlyContribution)}/mes
+                  llegás a la meta en unos {goal.yearsToGoal.toFixed(0)} años, antes de los {settings.retirementAge}.
+                </p>
+              ) : (
+                <p className="text-sm text-foreground">
+                  Con {usd0.format(settings.monthlyContribution)}/mes llegás al{" "}
+                  <span className="font-mono font-semibold tabular-nums">{formatPct(reachedPct, { decimals: 0 })}</span> de la
+                  meta. Para llegar a los {settings.retirementAge} necesitás aportar{" "}
+                  <span className="font-mono font-semibold tabular-nums">{usd0.format(neededContribution)}</span>/mes
+                  {settings.monthlyContribution > 0 && (
+                    <> ({usd0.format(neededContribution - settings.monthlyContribution)} más)</>
+                  )}
+                  , o ajustar la edad, los gastos o el retorno esperado.
+                </p>
+              )}
+            </div>
+
+            <StatGrid
+              stats={[
+                {
+                  label: "Capital necesario",
+                  value: formatUSDCompact(goal.capitalNeeded),
+                  // Nominal a la edad de retiro: el gasto de hoy con la inflación de los
+                  // años que faltan; sin aclararlo, el capital parece desmedido.
+                  sub: `Para gastar ${formatUSDCompact(settings.monthlyExpensesUsd)}/mes de hoy (${formatUSDCompact(goal.monthlyExpensesAtRetirement)}/mes a los ${settings.retirementAge})`,
+                },
+                {
+                  label: "Capital proyectado",
+                  value: formatUSDCompact(goal.capitalAtRetirement),
+                  sub: `A los ${settings.retirementAge}, con el aporte actual`,
+                  tone: goal.isOnTrack ? "positive" : null,
+                },
+                {
+                  label: "Aporte necesario",
+                  value: `${formatUSD(neededContribution)}/mes`,
+                  sub: `Hoy aportás ${formatUSD(settings.monthlyContribution)}/mes`,
+                  tone: goal.isOnTrack ? "positive" : "warning",
+                },
+                {
+                  label: "Años para la meta",
+                  value: goal.yearsToGoal <= goal.yearsRemaining ? `${goal.yearsToGoal.toFixed(1)} años` : "—",
+                  sub:
+                    goal.yearsToGoal <= goal.yearsRemaining
+                      ? `Faltan ${goal.yearsRemaining} para el retiro`
+                      : "No llega con el aporte actual",
+                },
+              ]}
+            />
           </div>
         )}
 
