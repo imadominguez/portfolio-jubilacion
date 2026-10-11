@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidateHistoricalPrices } from "@/lib/revalidate";
+import { requireAuth } from "@/lib/auth-session";
 import { saveStockHistory } from "@/lib/market-refresh";
 
 export type StockHistoryResult =
@@ -12,6 +13,9 @@ export type StockHistoryResult =
 // historical_price_cache. El cron diario lo hace de forma incremental (ADR-0021).
 export async function fetchAndCacheStockHistory(): Promise<StockHistoryResult> {
   try {
+    // El proxy protege páginas, no Server Actions: sin esto cualquiera podría
+    // dispararla y gastar la cuota de las APIs externas.
+    await requireAuth();
     const results = await saveStockHistory();
     revalidateHistoricalPrices();
     return { success: true, results };

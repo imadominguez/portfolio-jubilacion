@@ -6,6 +6,7 @@ import { revalidateBenchmarks } from "@/lib/revalidate";
 import { marketTags } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
 import { saveBenchmark } from "@/lib/market-refresh";
+import { requireAuth } from "@/lib/auth-session";
 import { BENCHMARKS, type BenchmarkId } from "@/lib/benchmarks-config";
 
 export type BenchmarkFetchResult =
@@ -23,6 +24,9 @@ export async function fetchAndSaveBenchmark(
   }
 
   try {
+    // El proxy protege páginas, no Server Actions: sin esto cualquiera podría
+    // dispararla y gastar la cuota de las APIs externas.
+    await requireAuth();
     const saved = await saveBenchmark(benchmarkId, fromDate, toDate);
     revalidateBenchmarks();
     return { success: true, benchmarkId, saved };

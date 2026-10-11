@@ -6,6 +6,7 @@ import { revalidateCcl } from "@/lib/revalidate";
 import { marketTags } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
 import { saveCurrentCcl } from "@/lib/market-refresh";
+import { requireAuth } from "@/lib/auth-session";
 import { fetchWithTimeout } from "@/lib/http";
 
 export type ExchangeRateResult =
@@ -14,6 +15,9 @@ export type ExchangeRateResult =
 
 export async function fetchAndSaveCCL(): Promise<ExchangeRateResult> {
   try {
+    // El proxy protege páginas, no Server Actions: sin esto cualquiera podría
+    // dispararla y gastar la cuota de las APIs externas.
+    await requireAuth();
     const result = await saveCurrentCcl();
     revalidateCcl();
     return { success: true, ...result };
@@ -94,6 +98,7 @@ export async function fetchHistoricalCCL(
   to: Date = new Date()
 ): Promise<HistoricalCCLResult> {
   try {
+    await requireAuth();
     const res = await fetchWithTimeout(
       "https://api.argentinadatos.com/v1/cotizaciones/dolares/contadoconliqui",
       { service: "argentinadatos.com", cache: "no-store" }
