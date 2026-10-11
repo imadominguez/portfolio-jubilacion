@@ -6,6 +6,8 @@ import { requireAuth, requireUserId } from "@/lib/auth-session";
 import { checkAndUpdateMilestones } from "@/app/actions/milestones";
 import { parseCocosNumber } from "@/lib/number-parsing";
 import { getSetupStatus } from "@/app/actions/setup";
+import { loadRatioChanges } from "@/lib/portfolio-data";
+import { reconcileHoldings, type HoldingMismatch } from "@/lib/holdings-reconciliation";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -29,6 +31,11 @@ export type PreviewResult =
       totalValueArs: number;
       hasUsdPositions: boolean;
       missingCcl: boolean;
+      // CEDEARs cuya cantidad no coincide con las transacciones (vacío si no hay
+      // transacciones importadas): split sin registrar o movimientos faltantes.
+      holdingMismatches: HoldingMismatch[];
+      // Fecha del último movimiento importado, para sugerir reimportar el CSV.
+      lastMovementDate: Date | null;
     }
   | { success: false; error: string };
 
@@ -197,6 +204,36 @@ function computeTotalsAndAllocations(
 // parseSnapshotPreview — parse CSV and return positions WITHOUT saving to DB
 // ---------------------------------------------------------------------------
 
+// Sin transacciones no hay con qué comparar (el usuario todavía no importó el
+// CSV de actividad): no se avisa nada.
+async function checkHoldingsAgainstLedger(
+  userId: string,
+  positions: ParsedPosition[],
+  asOf: Date
+): Promise<{ holdingMismatches: HoldingMismatch[]; lastMovementDate: Date | null }> {
+  const [trades, cedears, ratioChanges, lastMovement] = await Promise.all([
+    db.transaction.findMany({
+      where: { userId },
+      select: { ticker: true, type: true, date: true, quantity: true },
+    }),
+    db.asset.findMany({ where: { assetKind: "CEDEAR" }, select: { ticker: true } }),
+    loadRatioChanges(),
+    db.movement.findFirst({ where: { userId }, orderBy: { date: "desc" }, select: { date: true } }),
+  ]);
+  if (trades.length === 0) return { holdingMismatches: [], lastMovementDate: null };
+
+  return {
+    holdingMismatches: reconcileHoldings({
+      holdings: positions,
+      trades: trades.map((t) => ({ ...t, quantity: Number(t.quantity) })),
+      changes: ratioChanges,
+      asOf,
+      tickers: new Set(cedears.map((a) => a.ticker)),
+    }),
+    lastMovementDate: lastMovement?.date ?? null,
+  };
+}
+
 export async function parseSnapshotPreview(
   formData: FormData
 ): Promise<PreviewResult> {
@@ -227,12 +264,17 @@ export async function parseSnapshotPreview(
     const { positions, totalValueArs, hasUsdPositions } =
       computeTotalsAndAllocations(raw, validCcl);
 
+    const asOf = dateStr && !isNaN(new Date(dateStr).getTime()) ? new Date(dateStr) : new Date();
+    const { holdingMismatches, lastMovementDate } = await checkHoldingsAgainstLedger(userId, positions, asOf);
+
     return {
       success: true,
       positions,
       totalValueArs,
       hasUsdPositions,
       missingCcl: hasUsdPositions && !validCcl,
+      holdingMismatches,
+      lastMovementDate,
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error inesperado al leer el archivo.";
