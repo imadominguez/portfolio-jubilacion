@@ -54,7 +54,7 @@ export function AppSidebar({ adminNav }: AppSidebarProps) {
             <span className="text-sm font-bold text-sidebar-foreground truncate leading-snug tracking-tight">
               Portfolio
             </span>
-            <span className="text-[11px] font-medium text-sidebar-foreground/45 truncate leading-tight">
+            <span className="text-[11px] font-medium text-sidebar-foreground/80 truncate leading-tight">
               Jubilación
             </span>
           </div>
@@ -76,7 +76,7 @@ export function AppSidebar({ adminNav }: AppSidebarProps) {
             <SidebarMenuButton
               onClick={() => setPasswordOpen(true)}
               tooltip="Cambiar contraseña"
-              className="rounded-lg border border-transparent text-sidebar-foreground/60 transition-colors duration-150 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+              className="rounded-lg border border-transparent text-sidebar-foreground/80 transition-colors duration-150 hover:text-sidebar-foreground hover:bg-sidebar-accent"
             >
               <KeyRound className="size-4 shrink-0" />
               <span className="text-sm font-medium">Cambiar contraseña</span>
@@ -86,7 +86,7 @@ export function AppSidebar({ adminNav }: AppSidebarProps) {
             <SidebarMenuButton
               onClick={handleSignOut}
               tooltip="Cerrar sesión"
-              className="rounded-lg border border-transparent text-sidebar-foreground/60 transition-colors duration-150 hover:text-destructive hover:bg-destructive/12"
+              className="rounded-lg border border-transparent text-sidebar-foreground/80 transition-colors duration-150 hover:text-destructive hover:bg-destructive/12"
             >
               <LogOut className="size-4 shrink-0" />
               <span className="text-sm font-medium">Cerrar sesión</span>

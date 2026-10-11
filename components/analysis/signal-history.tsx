@@ -20,7 +20,7 @@ const timeLabel = new Intl.DateTimeFormat("es-AR", {
 });
 
 function Cell({ cell }: { cell: SignalCell }) {
-  if (!cell) return <span className="text-xs text-muted-foreground/50">—</span>;
+  if (!cell) return <span className="text-xs text-muted-foreground/80">—</span>;
   return (
     <span className="inline-flex flex-col items-center gap-0.5">
       <span className={`rounded px-1.5 py-0.5 text-[11px] font-medium capitalize ${SIGNAL_STYLE[cell.senal]}`}>

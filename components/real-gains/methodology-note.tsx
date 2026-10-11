@@ -24,7 +24,7 @@ export function MethodologyNote({ summary }: { summary: RealGainsSummary }) {
             Para mejorar la cobertura, cargá más fechas de CCL histórico.
           </p>
         )}
-        <p className="text-muted-foreground/60">
+        <p className="text-muted-foreground/80">
           Fuentes: precios de acciones de Yahoo Finance · tipo de cambio de dolarapi.com ·
           posiciones del snapshot más reciente importado desde Cocos Capital.
         </p>

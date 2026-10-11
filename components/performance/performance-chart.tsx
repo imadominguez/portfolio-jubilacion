@@ -13,7 +13,7 @@ import {
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { Button } from "@/components/ui/button";
 import type { SnapshotPoint } from "@/lib/portfolio-data";
-import { formatARSCompact, formatUSDCompact, formatDateShort } from "@/lib/format";
+import { formatARS, formatARSCompact, formatDateShort, formatUSD, formatUSDCompact } from "@/lib/format";
 
 type Currency = "ARS" | "USD";
 
@@ -55,6 +55,7 @@ export function PerformanceChart({ snapshots, initialCurrency = "ARS" }: Perform
             className="h-7 px-3 text-xs font-mono"
             onClick={() => setCurrency(c)}
             disabled={c === "USD" && !hasUsdData}
+            aria-pressed={currency === c}
           >
             {c}
           </Button>
@@ -117,6 +118,24 @@ export function PerformanceChart({ snapshots, initialCurrency = "ARS" }: Perform
           </LineChart>
         </ResponsiveContainer>
       </ChartContainer>
+      {/* El SVG de Recharts no se lee con lector de pantalla: la misma serie en una tabla. */}
+      <table className="sr-only">
+        <caption>Valor del portfolio por snapshot, en {currency === "ARS" ? "pesos" : "dólares"}</caption>
+        <thead>
+          <tr>
+            <th scope="col">Fecha</th>
+            <th scope="col">Valor</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((d) => (
+            <tr key={d.date}>
+              <td>{d.date}</td>
+              <td>{d.value === null ? "sin dato" : currency === "ARS" ? formatARS(d.value) : formatUSD(d.value)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

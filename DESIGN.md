@@ -133,6 +133,10 @@ Series distinguibles entre sí, siempre dentro de la familia azul/cian con acent
 
 Los números siempre llevan `font-mono tabular-nums`.
 
+**Monedas:** pesos con `formatARS` ("$ 2.854.487", es-AR) y dólares con `formatUSD` ("US$ 1,764", en-US).
+El "US$" no se omite: al lado de un monto en pesos, un "$1,764" se lee como pesos. Porcentajes con
+`formatPct` (coma decimal).
+
 ---
 
 ## 4. Radios, sombras y efectos

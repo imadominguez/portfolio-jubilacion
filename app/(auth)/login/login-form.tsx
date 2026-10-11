@@ -35,7 +35,18 @@ export function LoginForm({
     setLoading(false);
 
     if (result.error) {
-      setError("Email o contraseña incorrectos.");
+      // Antes todo error decía "contraseña incorrecta", también un origen no
+      // permitido (403, p. ej. BETTER_AUTH_URL de otro puerto) o el rate limit.
+      const status = result.error.status;
+      setError(
+        status === 429
+          ? "Demasiados intentos. Esperá un minuto y volvé a probar."
+          : status === 403
+            ? "El servidor rechazó el inicio de sesión desde esta dirección. Revisá que la URL de la app coincida con BETTER_AUTH_URL."
+            : status >= 500
+              ? "No se pudo conectar con el servidor. Probá de nuevo en unos segundos."
+              : "Email o contraseña incorrectos."
+      );
       return;
     }
 

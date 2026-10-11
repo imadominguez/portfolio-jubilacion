@@ -132,7 +132,7 @@ export function ConcentrationCharts({ data }: ConcentrationChartsProps) {
             }`}
           >
             {tab.label}
-            <span className="ml-1.5 text-[10px] text-muted-foreground/60">
+            <span className="ml-1.5 text-[10px] text-muted-foreground/80">
               ({tab.items.length})
             </span>
           </button>

@@ -122,7 +122,7 @@ export function PositionsTable({
                         )}
                       </div>
                     ) : (
-                      <span className="text-xs text-muted-foreground/40">—</span>
+                      <span className="text-xs text-muted-foreground/80">—</span>
                     )}
                   </TableCell>
                   <TableCell className="hidden xl:table-cell py-3 text-right">
@@ -133,7 +133,7 @@ export function PositionsTable({
                         {formatUSD(pos.gainUsdCclImpact)}
                       </span>
                     ) : (
-                      <span className="text-xs text-muted-foreground/40">—</span>
+                      <span className="text-xs text-muted-foreground/80">—</span>
                     )}
                   </TableCell>
                 </>

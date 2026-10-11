@@ -133,7 +133,7 @@ export function HoldingsTable({ positions, ppmData = [], marketPrices = [] }: Ho
                           )}
                         </div>
                       ) : (
-                        <span className="text-xs text-muted-foreground/40">—</span>
+                        <span className="text-xs text-muted-foreground/80">—</span>
                       )}
                     </TableCell>
                   )}

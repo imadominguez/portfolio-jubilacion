@@ -74,8 +74,13 @@ export function formatARS(value: number): string {
   return ARS.format(value);
 }
 
+// Con "US$": junto a montos en pesos ("$"), un "$1,764" se leía como pesos.
+function usdPrefix(formatted: string): string {
+  return formatted.replace("$", "US$ ");
+}
+
 export function formatUSD(value: number): string {
-  return USD.format(value);
+  return usdPrefix(USD.format(value));
 }
 
 // Porcentaje en es-AR (coma decimal): "+37,23 %". `signed` antepone + a los positivos.
@@ -89,17 +94,18 @@ export function formatARSCompact(value: number): string {
 }
 
 export function formatUSDCompact(value: number): string {
-  return USD_COMPACT.format(value);
+  return usdPrefix(USD_COMPACT.format(value));
 }
 
 // Monto con decimales y locale según la moneda (USD → en-US, resto → es-AR).
 export function formatCurrency(amount: number, currency: string): string {
-  return new Intl.NumberFormat(currency === "USD" ? "en-US" : "es-AR", {
+  const formatted = new Intl.NumberFormat(currency === "USD" ? "en-US" : "es-AR", {
     style: "currency",
     currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);
+  return currency === "USD" ? usdPrefix(formatted) : formatted;
 }
 
 export function formatDateLong(value: Date | string): string {
