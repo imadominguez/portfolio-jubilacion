@@ -28,19 +28,19 @@ const HEADER =
 // tipo de operación que exporta Cocos, en el formato real de cada una.
 const SYNTHETIC_CSV = [
   HEADER,
-  "1001;5001;02-01-2026;02-01-2026;Orden De Pago;;ARS;;;;-40.000,44;0;0;0;0;-40.000,44",
-  "1002;5002;02-01-2026;02-01-2026;Liquidacion Rescate Fci;FCI COCOS RENDIMIENTO CL. A $ ESC (COCORMA);ARS;;-3.978,9739;10.052,843;40.000;0;0;0;0;40.000",
-  "1003;5003;05-01-2026;05-01-2026;Liquidacion Suscripcion Fci;FCI COCOS RENDIMIENTO CL. A $ ESC (COCORMA);ARS;;3.141,068;11.142,707;-35.000;0;0;0;0;-35.000",
-  "1004;5004;06-01-2026;07-01-2026;Compra;CEDEAR MERCADOLIBRE INC. (MELI);ARS;BYMA;5;20.110;-100.550;-452,475;-50,275;-105,5775;0;-101.158,33",
-  "1005;5005;06-01-2026;07-01-2026;Compra;CEDEAR NVIDIA CORPORATION (NVDA);ARS;BYMA;11;11.100;-122.100;-549,45;-61,05;-128,2;0;-122.838,7",
-  "1006;5006;08-01-2026;09-01-2026;Venta;CEDEAR ADVANCED MICRO DEVICES, INC. (AMD);ARS;BYMA;-3;52.125;156.375;-703,6875;-78,1875;-164,1938;0;155.428,93",
-  "1007;5007;10-01-2026;10-01-2026;Compra Registracion ARS;ON TARJETA NARANJA CL.66 S.1 30/11/26 $ (T661O);ARS;MAE;5.132;103,95;-5.334,714;0;0;0;0;-5.334,71",
-  "1008;5008;12-01-2026;12-01-2026;Venta Registracion USD;ON TARJETA NARANJA CL.66 S.1 30/11/26 $ (T661O);USD;MAE;-5.132;0,068;3,4898;0;0;0;0;3,49",
-  "1009;5009;15-01-2026;15-01-2026;Recibo De Cobro;;ARS;;;;6.629,44;0;0;0;0;6.629,44",
-  "1010;5010;15-01-2026;15-01-2026;Orden De Pago Usd;;USD;;;;-7,51;0;0;0;0;-7,51",
-  "1011;5011;20-01-2026;20-01-2026;Dividendos;Peso argentino;ARS;;;;0,48;0;-0,0005;-0,0001;0;0,45",
-  "1012;5012;20-01-2026;20-01-2026;DIVIDENDOS EN ESPECIE;Dólar estadounidense;ARS;;0,48;0;0;0;-28,128;-5,9069;0;-34,03",
-  "1013;5013;21-01-2026;21-01-2026;Nota De Credito Conversion;;USD;;;;0,58;0;0;0;0;0,58",
+  "1001;5001;02-01-2026;02-01-2026;Orden De Pago;;ARS;;;;-12.345,67;0;0;0;0;-12.345,67",
+  "1002;5002;02-01-2026;02-01-2026;Liquidacion Rescate Fci;FCI COCOS RENDIMIENTO CL. A $ ESC (COCORMA);ARS;;-1.000,5;10.000;10.005;0;0;0;0;10.005",
+  "1003;5003;05-01-2026;05-01-2026;Liquidacion Suscripcion Fci;FCI COCOS RENDIMIENTO CL. A $ ESC (COCORMA);ARS;;2.000;10.000;-20.000;0;0;0;0;-20.000",
+  "1004;5004;06-01-2026;07-01-2026;Compra;CEDEAR MERCADOLIBRE INC. (MELI);ARS;BYMA;4;25.000;-100.000;-450;-50;-105;0;-100.605",
+  "1005;5005;06-01-2026;07-01-2026;Compra;CEDEAR NVIDIA CORPORATION (NVDA);ARS;BYMA;10;15.000;-150.000;-675;-75;-157,5;0;-150.907,5",
+  "1006;5006;08-01-2026;09-01-2026;Venta;CEDEAR ADVANCED MICRO DEVICES, INC. (AMD);ARS;BYMA;-2;80.000;160.000;-720;-80;-168;0;159.032",
+  "1007;5007;10-01-2026;10-01-2026;Compra Registracion ARS;ON EJEMPLO CL.1 S.1 $ (ONX1);ARS;MAE;1.000;100;-1.000;0;0;0;0;-1.000",
+  "1008;5008;12-01-2026;12-01-2026;Venta Registracion USD;ON EJEMPLO CL.1 S.1 $ (ONX1);USD;MAE;-1.000;0,07;0,7;0;0;0;0;0,7",
+  "1009;5009;15-01-2026;15-01-2026;Recibo De Cobro;;ARS;;;;50.000;0;0;0;0;50.000",
+  "1010;5010;15-01-2026;15-01-2026;Orden De Pago Usd;;USD;;;;-5;0;0;0;0;-5",
+  "1011;5011;20-01-2026;20-01-2026;Dividendos;Peso argentino;ARS;;;;0,30;0;0;0;0;0,30",
+  "1012;5012;20-01-2026;20-01-2026;DIVIDENDOS EN ESPECIE;Dólar estadounidense;ARS;;0,25;0;0;0;-12,5;-2,625;0;-15,13",
+  "1013;5013;21-01-2026;21-01-2026;Nota De Credito Conversion;;USD;;;;0,25;0;0;0;0;0,25",
 ].join("\n");
 
 const EXPECTED_SYNTHETIC: Record<MovementCategory, number> = {
@@ -90,7 +90,7 @@ describe("parseArNumber", () => {
 describe("extractTicker", () => {
   it("extrae el ticker del paréntesis", () => {
     expect(extractTicker("CEDEAR NVIDIA CORPORATION (NVDA)")).toBe("NVDA");
-    expect(extractTicker("ON TARJETA NARANJA CL.66 S.1 30/11/26 $ (T661O)")).toBe("T661O");
+    expect(extractTicker("ON EJEMPLO CL.1 S.1 $ (ONX1)")).toBe("ONX1");
   });
 
   it("devuelve null si no hay ticker", () => {
@@ -105,6 +105,13 @@ describe("classifyTipoOperacion", () => {
     expect(classifyTipoOperacion("Venta")).toBe("TRADE_SELL");
     expect(classifyTipoOperacion("Compra Registracion ARS")).toBe("TRADE_BUY");
     expect(classifyTipoOperacion("Venta Registracion USD")).toBe("TRADE_SELL");
+    expect(classifyTipoOperacion("Compra Registracion USD")).toBe("TRADE_BUY");
+    expect(classifyTipoOperacion("Venta Registracion ARS")).toBe("TRADE_SELL");
+    expect(classifyTipoOperacion("Compra Esp App Pesos")).toBe("TRADE_BUY");
+    expect(classifyTipoOperacion("Venta Esp App Dolares")).toBe("TRADE_SELL");
+    expect(classifyTipoOperacion("Compra bono Operatoria dolar MEP ARS")).toBe("TRADE_BUY");
+    expect(classifyTipoOperacion("Venta bono Operatoria dolar MEP USD")).toBe("TRADE_SELL");
+    expect(classifyTipoOperacion("Recibo De Cobro Dolares")).toBe("RECEIPT");
     expect(classifyTipoOperacion("Liquidacion Suscripcion Fci")).toBe("FCI_SUBSCRIPTION");
     expect(classifyTipoOperacion("Liquidacion Rescate Fci")).toBe("FCI_REDEMPTION");
     expect(classifyTipoOperacion("Orden De Pago")).toBe("PAYMENT");
@@ -164,9 +171,9 @@ describe("parseMovementCsv", () => {
     const trades = result.movements.filter(
       (m) => m.category === "TRADE_BUY" || m.category === "TRADE_SELL"
     );
-    expect(trades.map((t) => t.ticker)).toEqual(["MELI", "NVDA", "AMD", "T661O", "T661O"]);
+    expect(trades.map((t) => t.ticker)).toEqual(["MELI", "NVDA", "AMD", "ONX1", "ONX1"]);
 
-    const registraciones = trades.filter((t) => t.ticker === "T661O");
+    const registraciones = trades.filter((t) => t.ticker === "ONX1");
     expect(registraciones.map((t) => t.category)).toEqual(["TRADE_BUY", "TRADE_SELL"]);
     expect(registraciones[1].currency).toBe("USD");
   });
@@ -180,12 +187,12 @@ describe("parseMovementCsv", () => {
       date: "2026-01-06",
       settlementDate: "2026-01-07",
       market: "BYMA",
-      quantity: 5,
-      price: 20110,
-      grossAmount: -100550,
-      total: -101158.33,
+      quantity: 4,
+      price: 25000,
+      grossAmount: -100000,
+      total: -100605,
     });
-    expect(meli?.commission).toBeCloseTo(-452.475);
+    expect(meli?.commission).toBeCloseTo(-450);
   });
 
   it("asigna el ticker del fondo a las operaciones FCI", () => {
@@ -286,7 +293,7 @@ describe.skipIf(!hasRealFixtures)("parseMovementCsv (CSV reales)", () => {
     expect(trades).toHaveLength(11);
     for (const t of trades) expect(t.ticker).not.toBeNull();
 
-    const registraciones = trades.filter((t) => t.ticker === "T661O");
+    const registraciones = trades.filter((t) => t.instrument?.startsWith("ON "));
     expect(registraciones).toHaveLength(2);
     expect(registraciones.map((t) => t.category).sort()).toEqual(["TRADE_BUY", "TRADE_SELL"]);
 
