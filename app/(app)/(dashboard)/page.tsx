@@ -126,7 +126,7 @@ async function DashboardContent() {
     let hasPpm = false;
     for (const pos of snapshot.positions) {
       const ppm = ppmMap.get(pos.ticker);
-      if (ppm && ppm.currency === "ARS" && ppm.avgPrice > 0) {
+      if (ppm && ppm.avgPrice > 0) {
         sum += (pos.price - ppm.avgPrice) * pos.quantity;
         hasPpm = true;
       }
@@ -142,7 +142,7 @@ async function DashboardContent() {
     ? liveValuation({
         positions: snapshot.positions,
         prices: marketPrices,
-        ppm: ppmData.filter((p) => p.currency === "ARS"),
+        ppm: ppmData,
         snapshotCcl: snapshot.ccl,
         currentCcl: exchangeRates.at(-1)?.ccl ?? null,
       })

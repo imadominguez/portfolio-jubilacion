@@ -1,7 +1,6 @@
 import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db";
-import { tradeGrossAmount } from "@/lib/trade-amount";
-import type { Currency } from "@/app/generated/prisma/client";
+import { computePpm, type PpmRow } from "@/lib/ppm";
 import { requireUserId } from "@/lib/auth-session";
 import { marketTags, userTags } from "@/lib/cache-tags";
 import { flowsFromMovements, type CashFlow } from "@/lib/flow-returns";
@@ -317,13 +316,7 @@ async function cachedContributionStats(
 // PPM (precio promedio ponderado de compra)
 // ---------------------------------------------------------------------------
 
-export type PpmRow = {
-  ticker: string;
-  avgPrice: number;
-  totalQuantity: number;
-  totalCost: number;
-  currency: Currency;
-};
+export type { PpmRow };
 
 // Recibe el userId ya resuelto: la acción calculatePPM (sesión) o el cron, que
 // corre sin sesión. Este archivo no es "use server", así que exportarla no la
@@ -331,57 +324,30 @@ export type PpmRow = {
 export async function getPpmForUser(userId: string): Promise<PpmRow[]> {
   "use cache";
   cacheLife("hours");
-  cacheTag(userTags.trades(userId));
+  cacheTag(userTags.trades(userId), marketTags.ccl);
 
-  const txs = await db.transaction.findMany({
-    where: { type: "BUY", userId },
-    orderBy: { date: "asc" },
-    include: { movement: { select: { grossAmount: true } } },
-  });
+  const [txs, rates] = await Promise.all([
+    db.transaction.findMany({
+      where: { userId },
+      include: { movement: { select: { grossAmount: true } } },
+    }),
+    db.exchangeRate.findMany({ orderBy: { date: "asc" }, select: { date: true, ccl: true } }),
+  ]);
 
-  const byTicker = new Map<string, { totalCost: number; totalQty: number; currency: Currency }>();
-
-  for (const tx of txs) {
-    const existing = byTicker.get(tx.ticker);
-    const cost = tradeGrossAmount({ quantity: Number(tx.quantity), price: Number(tx.price), movementGross: tx.movement?.grossAmount != null ? Number(tx.movement.grossAmount) : null }) + (tx.fee ? Number(tx.fee) : 0);
-    if (existing) {
-      existing.totalCost += cost;
-      existing.totalQty += Number(tx.quantity);
-    } else {
-      byTicker.set(tx.ticker, {
-        totalCost: cost,
-        totalQty: Number(tx.quantity),
-        currency: tx.currency,
-      });
-    }
-  }
-
-  const sells = await db.transaction.findMany({
-    where: { type: "SELL", userId },
-    orderBy: { date: "asc" },
-  });
-
-  for (const sell of sells) {
-    const entry = byTicker.get(sell.ticker);
-    if (entry) {
+  return computePpm(
+    txs.map((tx) => ({
+      ticker: tx.ticker,
+      type: tx.type,
+      date: tx.date,
       // Las ventas importadas antes de normalizar el signo tienen cantidad negativa.
-      const soldQty = Math.abs(Number(sell.quantity));
-      entry.totalQty = Math.max(0, entry.totalQty - soldQty);
-      const ppm = entry.totalQty > 0 ? entry.totalCost / (entry.totalQty + soldQty) : 0;
-      entry.totalCost = ppm * entry.totalQty;
-    }
-  }
-
-  return Array.from(byTicker.entries())
-    .filter(([, v]) => v.totalQty > 0)
-    .map(([ticker, v]) => ({
-      ticker,
-      avgPrice: v.totalQty > 0 ? v.totalCost / v.totalQty : 0,
-      totalQuantity: v.totalQty,
-      totalCost: v.totalCost,
-      currency: v.currency,
-    }))
-    .sort((a, b) => a.ticker.localeCompare(b.ticker));
+      quantity: Number(tx.quantity),
+      price: Number(tx.price),
+      currency: tx.currency,
+      fee: tx.fee ? Number(tx.fee) : null,
+      movementGross: tx.movement?.grossAmount != null ? Number(tx.movement.grossAmount) : null,
+    })),
+    cclLookup(rates.map((r) => ({ date: r.date, ccl: Number(r.ccl) })))
+  );
 }
 
 // ---------------------------------------------------------------------------

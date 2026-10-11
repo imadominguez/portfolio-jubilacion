@@ -29,7 +29,7 @@ import type { MovementRow } from "@/app/actions/import-movements";
 import { deleteTransaction } from "@/app/actions/transactions";
 import { deleteDividend } from "@/app/actions/dividends";
 import { CATEGORY_LABELS, type MovementCategory } from "@/lib/cocos-movements";
-import { formatDateUTC, formatCurrency } from "@/lib/format";
+import { formatDateUTC, formatCurrency, formatARS } from "@/lib/format";
 
 interface TransactionsClientProps {
   transactions: TransactionRow[];
@@ -254,7 +254,7 @@ export function TransactionsClient({
                     </TableCell>
                     <TableCell className="py-3.5 text-right">
                       <span className="text-sm font-mono tabular-nums text-foreground">
-                        {formatCurrency(row.avgPrice, row.currency)}
+                        {formatARS(row.avgPrice)}
                       </span>
                     </TableCell>
                     <TableCell className="py-3.5 text-right">
@@ -264,7 +264,7 @@ export function TransactionsClient({
                     </TableCell>
                     <TableCell className="pr-5 py-3.5 text-right">
                       <span className="text-sm font-mono tabular-nums text-foreground">
-                        {formatCurrency(row.totalCost, row.currency)}
+                        {formatARS(row.totalCost)}
                       </span>
                     </TableCell>
                   </TableRow>

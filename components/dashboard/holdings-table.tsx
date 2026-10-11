@@ -66,7 +66,7 @@ export function HoldingsTable({ positions, ppmData = [], marketPrices = [] }: Ho
               const ppm = ppmMap.get(position.ticker);
               const market = marketMap.get(position.ticker);
               const unrealizedPnlPct =
-                ppm && ppm.currency === "ARS" && ppm.avgPrice > 0
+                ppm && ppm.avgPrice > 0
                   ? ((position.price - ppm.avgPrice) / ppm.avgPrice) * 100
                   : null;
               const usdPositionValue =

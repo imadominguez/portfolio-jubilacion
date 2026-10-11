@@ -40,21 +40,21 @@ totalValueUsd = totalValueArs / CCL                    (solo si CCL válido)
 
 ## PPM — Precio Promedio Ponderado (`calculatePPM`)
 
-Definido en `app/actions/transactions.ts`.
+Lógica pura en `lib/ppm.ts` (`computePpm`); la lectura es `getPpmForUser` (`lib/portfolio-data.ts`). El PPM es siempre **en pesos**: las compras en dólares (las primeras de Cocos son "Compra Dolar Mep") se pasan al CCL de su fecha (`cclLookup`). Antes se sumaban dólares y pesos sin convertir, y los paneles descartaban el resultado; por eso NVDA, AAPL y SPY quedaban sin P&L. Un ticker con una compra en USD sin CCL para esa fecha se omite.
 
-Por cada compra (en orden cronológico):
+Operaciones en orden cronológico (el mismo día, compras antes que ventas). Por cada compra:
 
 ```
-cost      = quantity × price + (fee ?? 0)
+cost      = (|grossAmount| ?? quantity × price) + (fee ?? 0)     // × CCL de la fecha si es en USD
 totalCost += cost
 totalQty  += quantity
 ```
 
-Al vender, se descarga costo a costo promedio:
+Al vender, se descarga costo a costo promedio (el PPM no cambia):
 
 ```
+ppm       = totalCost / totalQty
 totalQty  = max(0, totalQty − vendido)
-ppm       = totalCost / (totalQty + vendido)      // = PPM previo
 totalCost = ppm × totalQty
 ```
 
@@ -76,7 +76,7 @@ avgPrice = totalCost / totalQty
 P&L_no_realizado = Σ (precio_actual − PPM) × cantidad
 ```
 
-solo posiciones con PPM en ARS y `avgPrice > 0`. El `precio_actual` es el del snapshot más reciente (no el de Yahoo).
+solo posiciones con PPM y `avgPrice > 0`. El `precio_actual` es el del snapshot más reciente (no el de Yahoo).
 
 ### Realizado (`getRealizedPnl`)
 
@@ -452,7 +452,7 @@ Si no hay cierre anterior a la fecha buscada, esa variación es `null` ("s/d" en
 vs_promedio = (precio CEDEAR ARS del snapshot − PPM ARS) / PPM ARS × 100
 ```
 
-Solo con PPM en ARS (`calculatePPM`); sin PPM se informa "s/d".
+Solo con PPM (`calculatePPM`, siempre en ARS); sin PPM se informa "s/d".
 
 ### Filtro de noticias (`selectNews`)
 
