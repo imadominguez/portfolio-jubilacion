@@ -50,12 +50,25 @@ function CustomTooltip({
   );
 }
 
+// Cinco colores de serie y el resto agrupado: con 16 porciones los colores se
+// repetían y la leyenda no permitía reconocer cuál era cuál. El detalle completo
+// está en la tabla de posiciones.
+const TOP = 5;
+const OTHERS_COLOR = "color-mix(in oklab, var(--color-muted-foreground) 45%, transparent)";
+
 export function AllocationPanel({ positions, totalArs }: AllocationPanelProps) {
-  const data = positions.map((p) => ({
-    name: p.ticker,
-    value: p.positionValue,
-    allocationPct: p.allocationPct,
-  }));
+  const sorted = [...positions].sort((a, b) => b.positionValue - a.positionValue);
+  const top = sorted.slice(0, TOP);
+  const rest = sorted.slice(TOP);
+  const restValue = rest.reduce((sum, p) => sum + p.positionValue, 0);
+  const restPct = rest.reduce((sum, p) => sum + p.allocationPct, 0);
+
+  const data = [
+    ...top.map((p, i) => ({ name: p.ticker, value: p.positionValue, allocationPct: p.allocationPct, color: COLORS[i], dot: LEGEND_BG_COLORS[i] })),
+    ...(rest.length
+      ? [{ name: `Otras ${rest.length}`, value: restValue, allocationPct: restPct, color: OTHERS_COLOR, dot: "bg-muted-foreground/45" }]
+      : []),
+  ];
 
   return (
     <section aria-labelledby="allocation-title" className="flex flex-col gap-3">
@@ -64,26 +77,12 @@ export function AllocationPanel({ positions, totalArs }: AllocationPanelProps) {
       </h2>
 
       <div className="rounded-2xl border border-border bg-card p-4 flex flex-col gap-4">
-        {/* Donut chart */}
-        <div className="h-[200px] w-full">
+        <div className="h-[200px] w-full" aria-hidden>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Pie
-                data={data}
-                cx="50%"
-                cy="50%"
-                innerRadius="55%"
-                outerRadius="80%"
-                dataKey="value"
-                nameKey="name"
-                paddingAngle={2}
-                strokeWidth={0}
-              >
-                {data.map((_, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
+              <Pie data={data} cx="50%" cy="50%" innerRadius="55%" outerRadius="80%" dataKey="value" nameKey="name" paddingAngle={2} strokeWidth={0}>
+                {data.map((d) => (
+                  <Cell key={d.name} fill={d.color} />
                 ))}
               </Pie>
               <Tooltip content={<CustomTooltip />} />
@@ -91,44 +90,23 @@ export function AllocationPanel({ positions, totalArs }: AllocationPanelProps) {
           </ResponsiveContainer>
         </div>
 
-        {/* Legend rows */}
-        <div className="flex flex-col gap-3">
-          {positions.map((position, index) => (
-            <div
-              key={position.ticker}
-              className="flex items-center justify-between gap-3"
-            >
+        <ul className="flex flex-col gap-3">
+          {data.map((d) => (
+            <li key={d.name} className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div
-                  className={`size-2 rounded-full shrink-0 ${LEGEND_BG_COLORS[index % LEGEND_BG_COLORS.length]}`}
-                />
-                <span className="text-sm font-mono font-semibold text-foreground truncate">
-                  {position.ticker}
-                </span>
+                <span aria-hidden className={`size-2 rounded-full shrink-0 ${d.dot}`} />
+                <span className="text-sm font-mono font-semibold text-foreground truncate">{d.name}</span>
               </div>
-              <div className="flex items-center gap-3 shrink-0">
-                <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden">
-                  <div
-                    className={`h-full rounded-full ${LEGEND_BG_COLORS[index % LEGEND_BG_COLORS.length]} opacity-70 transition-all duration-700`}
-                    style={{ width: `${position.allocationPct}%` }}
-                  />
-                </div>
-                <span className="text-xs font-mono font-semibold tabular-nums text-muted-foreground w-10 text-right">
-                  {formatPct(position.allocationPct, { decimals: 1 })}
-                </span>
-              </div>
-            </div>
+              <span className="whitespace-nowrap text-xs font-mono font-semibold tabular-nums text-muted-foreground">
+                {formatPct(d.allocationPct, { decimals: 1 })}
+              </span>
+            </li>
           ))}
-        </div>
+        </ul>
 
-        {/* Total */}
         <div className="pt-2 border-t border-border/60 flex items-center justify-between">
-          <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-            Total
-          </span>
-          <span className="text-sm font-mono font-bold tabular-nums text-foreground">
-            {formatARS(totalArs)}
-          </span>
+          <span className="text-sm text-muted-foreground">Total</span>
+          <span className="text-sm font-mono font-bold tabular-nums text-foreground">{formatARS(totalArs)}</span>
         </div>
       </div>
     </section>

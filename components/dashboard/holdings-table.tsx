@@ -18,7 +18,6 @@ interface HoldingsTableProps {
 }
 
 export function HoldingsTable({ positions, ppmData = [], marketPrices = [] }: HoldingsTableProps) {
-  const max = Math.max(...positions.map((p) => p.positionValue));
   const ppmMap = new Map(ppmData.map((p) => [p.ticker, p]));
   const marketMap = new Map(marketPrices.map((m) => [m.ticker, m]));
   const hasPpm = ppmData.length > 0;
@@ -157,12 +156,6 @@ export function HoldingsTable({ positions, ppmData = [], marketPrices = [] }: Ho
                           {formatPct(unrealizedPnlPct, { decimals: 2 })} vs PPM
                         </span>
                       )}
-                      <div className="h-1 w-16 rounded-full bg-muted overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-chart-1/70"
-                          style={{ width: `${(position.positionValue / max) * 100}%` }}
-                        />
-                      </div>
                     </div>
                   </TableCell>
                 </TableRow>
