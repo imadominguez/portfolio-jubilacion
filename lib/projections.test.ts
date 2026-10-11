@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildProjectionCurve, calculateRetirementGoal, type RetirementInputs } from "./projections";
+import { buildProjectionCurve, calculateRetirementGoal, requiredMonthlyContribution, type RetirementInputs } from "./projections";
 
 const base: RetirementInputs = {
   currentAge: 40,
@@ -49,5 +49,22 @@ describe("buildProjectionCurve", () => {
     expect(curve[0]).toEqual({ year: 0, age: 40, projected: 10000 });
     const at65 = curve.find((p) => p.age === 65)!;
     expect(at65.projected).toBe(Math.round(calculateRetirementGoal(base).capitalAtRetirement));
+  });
+});
+
+describe("requiredMonthlyContribution", () => {
+  it("con ese aporte el capital al retiro llega justo al necesario", () => {
+    const { capitalNeeded } = calculateRetirementGoal(base);
+    const needed = requiredMonthlyContribution(base, capitalNeeded);
+    const goal = calculateRetirementGoal({ ...base, monthlyContribution: needed });
+    expect(goal.capitalAtRetirement).toBeCloseTo(capitalNeeded, 0);
+  });
+
+  it("con retorno 0 % reparte la brecha en los meses que faltan", () => {
+    expect(requiredMonthlyContribution({ ...base, annualReturnRate: 0 }, 70000)).toBeCloseTo((70000 - 10000) / 300);
+  });
+
+  it("es 0 si el portfolio actual ya alcanza", () => {
+    expect(requiredMonthlyContribution({ ...base, currentPortfolioUsd: 5_000_000 }, 1_000_000)).toBe(0);
   });
 });
