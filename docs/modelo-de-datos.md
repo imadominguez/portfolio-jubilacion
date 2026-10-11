@@ -110,6 +110,18 @@ Catálogo de referencia **mutable** de CEDEARs (sin FK desde `Position`).
 | `assetKind` | `AssetKind @default(CEDEAR)` | `CEDEAR`, `FCI` u `OTHER`. Los fondos de Cocos (COCORMA/COCOUSDPA) son `FCI`. |
 | `createdAt` / `updatedAt` | `DateTime` | |
 
+### `CedearRatioChange` → `cedear_ratio_changes`
+
+Splits de CEDEAR (ADR-0023), un dato global. Las operaciones anteriores a `effectiveDate` se leen con `cantidad × newRatio/oldRatio` y `precio ÷ newRatio/oldRatio`. Se cargan desde Assets, editando el ratio con una fecha de vigencia.
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `id` | `String @id @default(cuid())` | |
+| `ticker` | `String` | Ticker del CEDEAR. |
+| `effectiveDate` | `DateTime @db.Date` | Primer día con el ratio nuevo. `@@unique([ticker, effectiveDate])`. |
+| `oldRatio` / `newRatio` | `Decimal(8,4)` | |
+| `createdAt` | `DateTime` | |
+
 ### `ExchangeRate` → `exchange_rates`
 
 Historial de CCL por fecha (global, sin `userId`).
@@ -302,7 +314,7 @@ BenchmarkPoint (independiente, por benchmarkId)
 InvestmentStrategy (independiente, versionada)
 ```
 
-Modelos **globales sin `userId`**: `Asset`, `ExchangeRate`, `MarketPriceCache`, `HistoricalPriceCache`, `BenchmarkPoint`, `InvestmentStrategy`.
+Modelos **globales sin `userId`**: `Asset`, `CedearRatioChange`, `ExchangeRate`, `MarketPriceCache`, `HistoricalPriceCache`, `BenchmarkPoint`, `InvestmentStrategy`.
 
 ---
 
@@ -327,6 +339,7 @@ Ubicación: `prisma/migrations/`.
 | `20261010120000_monthly_tasks` | `AlertKind` suma `MONTHLY_REPORT` y `MONTHLY_SUMMARY`; `alert_settings.monthlySummary` y `monthlyReport`. |
 | `20261010140000_expense_budgets` | `AlertKind` suma `BUDGET`; tabla `expense_budgets`. |
 | `20261010160000_market_dividend_rate` | `market_price_cache.dividendRate`. |
+| `20261011160000_cedear_ratio_changes` | Tabla `cedear_ratio_changes` con el split de SPY (20:1 → 60:1, 01/06/2026), ADR-0023. |
 | `20261009220000_drop_target_allocations` | Borra la tabla `target_allocations` (sin pesos objetivo, ADR-0022). |
 | `20261009200000_retirement_expected_return` | `retirement_settings.expectedReturnRate` (`Decimal(6,4)`, por defecto 0.07). |
 

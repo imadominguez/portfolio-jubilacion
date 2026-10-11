@@ -42,6 +42,8 @@ totalValueUsd = totalValueArs / CCL                    (solo si CCL válido)
 
 Lógica pura en `lib/ppm.ts` (`computePpm`); la lectura es `getPpmForUser` (`lib/portfolio-data.ts`). El PPM es siempre **en pesos**: las compras en dólares (las primeras de Cocos son "Compra Dolar Mep") se pasan al CCL de su fecha (`cclLookup`). Antes se sumaban dólares y pesos sin convertir, y los paneles descartaban el resultado; por eso NVDA, AAPL y SPY quedaban sin P&L. Un ticker con una compra en USD sin CCL para esa fecha se omite.
 
+Antes de calcular, cada operación se expresa en CEDEARs del ratio actual (`adjustForRatioChanges`, ADR-0023): si después hubo un split del CEDEAR (SPY 20:1 → 60:1 en junio 2026), la cantidad se multiplica por `nuevo/viejo` y el precio se divide por lo mismo. Lo mismo hacen el P&L realizado, la ganancia real y el reporte para impuestos.
+
 Operaciones en orden cronológico (el mismo día, compras antes que ventas). Por cada compra:
 
 ```

@@ -404,6 +404,7 @@ export const ModelName = {
   PortfolioSnapshot: 'PortfolioSnapshot',
   Position: 'Position',
   Asset: 'Asset',
+  CedearRatioChange: 'CedearRatioChange',
   ExchangeRate: 'ExchangeRate',
   MarketPriceCache: 'MarketPriceCache',
   BenchmarkPoint: 'BenchmarkPoint',
@@ -435,7 +436,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "portfolioSnapshot" | "position" | "asset" | "exchangeRate" | "marketPriceCache" | "benchmarkPoint" | "transaction" | "dividend" | "retirementSettings" | "historicalPriceCache" | "milestoneAlert" | "userSetup" | "investmentStrategy" | "portfolioReport" | "movement" | "alertSettings" | "alertLog" | "expenseTag" | "expenseBudget"
+    modelProps: "user" | "session" | "account" | "verification" | "portfolioSnapshot" | "position" | "asset" | "cedearRatioChange" | "exchangeRate" | "marketPriceCache" | "benchmarkPoint" | "transaction" | "dividend" | "retirementSettings" | "historicalPriceCache" | "milestoneAlert" | "userSetup" | "investmentStrategy" | "portfolioReport" | "movement" | "alertSettings" | "alertLog" | "expenseTag" | "expenseBudget"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -954,6 +955,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.AssetCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.AssetCountAggregateOutputType> | number
+        }
+      }
+    }
+    CedearRatioChange: {
+      payload: Prisma.$CedearRatioChangePayload<ExtArgs>
+      fields: Prisma.CedearRatioChangeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CedearRatioChangeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearRatioChangePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CedearRatioChangeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearRatioChangePayload>
+        }
+        findFirst: {
+          args: Prisma.CedearRatioChangeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearRatioChangePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CedearRatioChangeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearRatioChangePayload>
+        }
+        findMany: {
+          args: Prisma.CedearRatioChangeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearRatioChangePayload>[]
+        }
+        create: {
+          args: Prisma.CedearRatioChangeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearRatioChangePayload>
+        }
+        createMany: {
+          args: Prisma.CedearRatioChangeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CedearRatioChangeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearRatioChangePayload>[]
+        }
+        delete: {
+          args: Prisma.CedearRatioChangeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearRatioChangePayload>
+        }
+        update: {
+          args: Prisma.CedearRatioChangeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearRatioChangePayload>
+        }
+        deleteMany: {
+          args: Prisma.CedearRatioChangeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CedearRatioChangeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CedearRatioChangeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearRatioChangePayload>[]
+        }
+        upsert: {
+          args: Prisma.CedearRatioChangeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearRatioChangePayload>
+        }
+        aggregate: {
+          args: Prisma.CedearRatioChangeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCedearRatioChange>
+        }
+        groupBy: {
+          args: Prisma.CedearRatioChangeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CedearRatioChangeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CedearRatioChangeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CedearRatioChangeCountAggregateOutputType> | number
         }
       }
     }
@@ -2287,6 +2362,18 @@ export const AssetScalarFieldEnum = {
 export type AssetScalarFieldEnum = (typeof AssetScalarFieldEnum)[keyof typeof AssetScalarFieldEnum]
 
 
+export const CedearRatioChangeScalarFieldEnum = {
+  id: 'id',
+  ticker: 'ticker',
+  effectiveDate: 'effectiveDate',
+  oldRatio: 'oldRatio',
+  newRatio: 'newRatio',
+  createdAt: 'createdAt'
+} as const
+
+export type CedearRatioChangeScalarFieldEnum = (typeof CedearRatioChangeScalarFieldEnum)[keyof typeof CedearRatioChangeScalarFieldEnum]
+
+
 export const ExchangeRateScalarFieldEnum = {
   id: 'id',
   date: 'date',
@@ -2882,6 +2969,7 @@ export type GlobalOmitConfig = {
   portfolioSnapshot?: Prisma.PortfolioSnapshotOmit
   position?: Prisma.PositionOmit
   asset?: Prisma.AssetOmit
+  cedearRatioChange?: Prisma.CedearRatioChangeOmit
   exchangeRate?: Prisma.ExchangeRateOmit
   marketPriceCache?: Prisma.MarketPriceCacheOmit
   benchmarkPoint?: Prisma.BenchmarkPointOmit

@@ -58,6 +58,7 @@ export const ModelName = {
   PortfolioSnapshot: 'PortfolioSnapshot',
   Position: 'Position',
   Asset: 'Asset',
+  CedearRatioChange: 'CedearRatioChange',
   ExchangeRate: 'ExchangeRate',
   MarketPriceCache: 'MarketPriceCache',
   BenchmarkPoint: 'BenchmarkPoint',
@@ -197,6 +198,18 @@ export const AssetScalarFieldEnum = {
 } as const
 
 export type AssetScalarFieldEnum = (typeof AssetScalarFieldEnum)[keyof typeof AssetScalarFieldEnum]
+
+
+export const CedearRatioChangeScalarFieldEnum = {
+  id: 'id',
+  ticker: 'ticker',
+  effectiveDate: 'effectiveDate',
+  oldRatio: 'oldRatio',
+  newRatio: 'newRatio',
+  createdAt: 'createdAt'
+} as const
+
+export type CedearRatioChangeScalarFieldEnum = (typeof CedearRatioChangeScalarFieldEnum)[keyof typeof CedearRatioChangeScalarFieldEnum]
 
 
 export const ExchangeRateScalarFieldEnum = {

@@ -77,6 +77,11 @@ export type Position = Prisma.PositionModel
  */
 export type Asset = Prisma.AssetModel
 /**
+ * Model CedearRatioChange
+ * 
+ */
+export type CedearRatioChange = Prisma.CedearRatioChangeModel
+/**
  * Model ExchangeRate
  * 
  */

@@ -63,7 +63,10 @@ export function AssetDialog({ open, onOpenChange, asset }: AssetDialogProps) {
 
     startTransition(async () => {
       const result = isEdit
-        ? await updateAsset(asset!.id, data)
+        ? await updateAsset(asset!.id, {
+            ...data,
+            ratioChangeDate: (fd.get("ratioChangeDate") as string | null) ?? undefined,
+          })
         : await createAsset(data);
 
       if (result.success) {
@@ -137,6 +140,20 @@ export function AssetDialog({ open, onOpenChange, asset }: AssetDialogProps) {
                 Cantidad de CEDEARs por 1 acción subyacente (ej: AAPL → 10)
               </FieldDescription>
             </Field>
+
+            {isEdit && (
+              <Field>
+                <FieldLabel className="text-xs font-medium">
+                  Vigencia del nuevo ratio{" "}
+                  <span className="font-normal text-muted-foreground">opcional</span>
+                </FieldLabel>
+                <Input name="ratioChangeDate" type="date" className="text-sm font-mono" />
+                <FieldDescription className="text-xs text-muted-foreground">
+                  Si BYMA cambió el ratio (split del CEDEAR), indicá desde qué día rige: las compras
+                  anteriores se ajustan a la nueva cantidad. Vacío si solo corregís un dato mal cargado.
+                </FieldDescription>
+              </Field>
+            )}
 
             <Field>
               <FieldLabel className="text-xs font-medium">

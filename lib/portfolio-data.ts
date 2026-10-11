@@ -1,6 +1,7 @@
 import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db";
 import { computePpm, type PpmRow } from "@/lib/ppm";
+import { adjustForRatioChanges, type RatioChange } from "@/lib/ratio-changes";
 import { requireUserId } from "@/lib/auth-session";
 import { marketTags, userTags } from "@/lib/cache-tags";
 import { flowsFromMovements, type CashFlow } from "@/lib/flow-returns";
@@ -318,34 +319,52 @@ async function cachedContributionStats(
 
 export type { PpmRow };
 
+// Splits de CEDEAR para ajustar las operaciones (ADR-0023). Se llama desde
+// funciones cacheadas, que declaran `marketTags.assets` (se editan desde Assets).
+export async function loadRatioChanges(): Promise<RatioChange[]> {
+  const rows = await db.cedearRatioChange.findMany({ orderBy: { effectiveDate: "asc" } });
+  return rows.map((r) => ({
+    ticker: r.ticker,
+    effectiveDate: r.effectiveDate,
+    oldRatio: Number(r.oldRatio),
+    newRatio: Number(r.newRatio),
+  }));
+}
+
 // Recibe el userId ya resuelto: la acción calculatePPM (sesión) o el cron, que
 // corre sin sesión. Este archivo no es "use server", así que exportarla no la
 // vuelve invocable desde el cliente.
 export async function getPpmForUser(userId: string): Promise<PpmRow[]> {
   "use cache";
   cacheLife("hours");
-  cacheTag(userTags.trades(userId), marketTags.ccl);
+  cacheTag(userTags.trades(userId), marketTags.ccl, marketTags.assets);
 
-  const [txs, rates] = await Promise.all([
+  const [txs, rates, ratioChanges] = await Promise.all([
     db.transaction.findMany({
       where: { userId },
       include: { movement: { select: { grossAmount: true } } },
     }),
     db.exchangeRate.findMany({ orderBy: { date: "asc" }, select: { date: true, ccl: true } }),
+    loadRatioChanges(),
   ]);
 
   return computePpm(
-    txs.map((tx) => ({
-      ticker: tx.ticker,
-      type: tx.type,
-      date: tx.date,
-      // Las ventas importadas antes de normalizar el signo tienen cantidad negativa.
-      quantity: Number(tx.quantity),
-      price: Number(tx.price),
-      currency: tx.currency,
-      fee: tx.fee ? Number(tx.fee) : null,
-      movementGross: tx.movement?.grossAmount != null ? Number(tx.movement.grossAmount) : null,
-    })),
+    txs.map((tx) =>
+      adjustForRatioChanges(
+        {
+          ticker: tx.ticker,
+          type: tx.type,
+          date: tx.date,
+          // Las ventas importadas antes de normalizar el signo tienen cantidad negativa.
+          quantity: Number(tx.quantity),
+          price: Number(tx.price),
+          currency: tx.currency,
+          fee: tx.fee ? Number(tx.fee) : null,
+          movementGross: tx.movement?.grossAmount != null ? Number(tx.movement.grossAmount) : null,
+        },
+        ratioChanges
+      )
+    ),
     cclLookup(rates.map((r) => ({ date: r.date, ccl: Number(r.ccl) })))
   );
 }
