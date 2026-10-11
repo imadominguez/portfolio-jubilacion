@@ -6,7 +6,8 @@ import { marketTags, userTags } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
 import { tradeGrossAmount } from "@/lib/trade-amount";
 import { getPpmForUser, loadRatioChanges, type PpmRow as LibPpmRow } from "@/lib/portfolio-data";
-import { ratioFactor } from "@/lib/ratio-changes";
+import { adjustForRatioChanges } from "@/lib/ratio-changes";
+import { salesForYear, type TradeForTax } from "@/lib/tax-report";
 import { requireAuth, requireUserId } from "@/lib/auth-session";
 import type { TransactionType, Currency } from "@/app/generated/prisma/client";
 
@@ -139,74 +140,56 @@ export async function getRealizedPnl(): Promise<RealizedPnlRow[]> {
   return cachedRealizedPnl(await requireUserId());
 }
 
-// No se exporta: recibe el userId ya resuelto de la sesión (ADR-0017).
+// No se exporta: recibe el userId ya resuelto de la sesión (ADR-0017). Es el
+// mismo cálculo que el reporte para impuestos (salesForYear): costo promedio con
+// las comisiones de compra y la venta neta de su comisión. Antes se ignoraban las
+// comisiones y la misma venta daba un resultado distinto en cada pantalla.
 async function cachedRealizedPnl(userId: string): Promise<RealizedPnlRow[]> {
   "use cache";
   cacheLife("hours");
   cacheTag(userTags.trades(userId), marketTags.assets);
 
-  // Cantidades en CEDEARs del ratio actual: una venta posterior a un split
-  // descuenta unidades que las compras anteriores no tenían (ADR-0023).
-  const ratioChanges = await loadRatioChanges();
-  const adjustedQty = (t: { ticker: string; date: Date; quantity: unknown }) =>
-    Math.abs(Number(t.quantity)) * ratioFactor(ratioChanges, t.ticker, t.date);
+  const [txs, ratioChanges] = await Promise.all([
+    db.transaction.findMany({
+      where: { userId },
+      include: { movement: { select: { grossAmount: true } } },
+    }),
+    loadRatioChanges(),
+  ]);
 
-  const sells = await db.transaction.findMany({
-    where: { type: "SELL", userId },
-    orderBy: { date: "asc" },
-    include: { movement: { select: { grossAmount: true } } },
-  });
+  // En CEDEARs del ratio actual: una venta posterior a un split descuenta
+  // unidades que las compras anteriores no tenían (ADR-0023).
+  const trades: TradeForTax[] = txs.map((t) =>
+    adjustForRatioChanges(
+      {
+        date: t.date,
+        ticker: t.ticker,
+        type: t.type,
+        quantity: Number(t.quantity),
+        price: Number(t.price),
+        fee: t.fee ? Number(t.fee) : 0,
+        amount: t.movement?.grossAmount != null ? Number(t.movement.grossAmount) : null,
+        currency: t.currency,
+      },
+      ratioChanges
+    )
+  );
 
-  const buys = await db.transaction.findMany({
-    where: { type: "BUY", userId },
-    orderBy: { date: "asc" },
-    include: { movement: { select: { grossAmount: true } } },
-  });
-
-  const tickerBuys = new Map<
-    string,
-    { qty: number; totalCost: number }
-  >();
-
-  // Por ticker y moneda: una ON comprada en pesos y vendida en dólares (dólar
-  // MEP) no tiene un resultado comparable y queda afuera, como en el reporte
-  // para impuestos.
-  const lotKey = (t: { ticker: string; currency: Currency }) => `${t.ticker}|${t.currency}`;
-  for (const buy of buys) {
-    const existing = tickerBuys.get(lotKey(buy));
-    const cost = tradeGrossAmount({ quantity: Number(buy.quantity), price: Number(buy.price), movementGross: buy.movement?.grossAmount != null ? Number(buy.movement.grossAmount) : null });
-    if (existing) {
-      existing.qty += adjustedQty(buy);
-      existing.totalCost += cost;
-    } else {
-      tickerBuys.set(lotKey(buy), { qty: adjustedQty(buy), totalCost: cost });
-    }
-  }
-
+  const years = [...new Set(trades.filter((t) => t.type === "SELL").map((t) => t.date.getUTCFullYear()))];
   const rows: RealizedPnlRow[] = [];
-
-  for (const sell of sells) {
-    const entry = tickerBuys.get(lotKey(sell));
-    if (!entry || entry.qty <= 0) continue;
-
-    const avgBuyPrice = entry.qty > 0 ? entry.totalCost / entry.qty : 0;
-    const soldQty = adjustedQty(sell);
-    const sellPrice = soldQty > 0 ? tradeGrossAmount({ quantity: Number(sell.quantity), price: Number(sell.price), movementGross: sell.movement?.grossAmount != null ? Number(sell.movement.grossAmount) : null }) / soldQty : Number(sell.price);
-    const pnl = (sellPrice - avgBuyPrice) * soldQty;
-    const pnlPct = avgBuyPrice > 0 ? ((sellPrice - avgBuyPrice) / avgBuyPrice) * 100 : 0;
-
+  // Una ON comprada en pesos y vendida en dólares (dólar MEP) no tiene un
+  // resultado comparable (result null) y queda afuera, como en impuestos.
+  for (const sale of years.flatMap((y) => salesForYear(trades, y))) {
+    if (sale.result === null || sale.cost === null || sale.quantity <= 0) continue;
     rows.push({
-      ticker: sell.ticker,
-      quantity: soldQty,
-      sellPrice,
-      buyPrice: avgBuyPrice,
-      pnl,
-      pnlPct,
-      date: sell.date,
+      ticker: sale.ticker,
+      quantity: sale.quantity,
+      sellPrice: sale.proceeds / sale.quantity,
+      buyPrice: sale.cost / sale.quantity,
+      pnl: sale.result,
+      pnlPct: sale.cost > 0 ? (sale.result / sale.cost) * 100 : 0,
+      date: sale.date,
     });
-
-    entry.qty -= soldQty;
-    entry.totalCost -= avgBuyPrice * soldQty;
   }
 
   return rows.sort((a, b) => b.date.getTime() - a.date.getTime());

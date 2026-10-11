@@ -149,7 +149,7 @@ Adopción completa (2026-10-07), una PR por feature ([ADR-0017](./adr/0017-cache
 | #8 | `/portfolio` (sin lecturas en el servidor), `/login` y `/register` con `AuthCardSkeleton` como fallback |
 | #9 | `/snapshots`, `/settings`, `/retirement`, `/analysis` (lecturas ya cacheadas); `key` en `MilestonesClient` por `<Activity>` |
 | #10 | `/plan` y `/rebalance`; `getTargetAllocations` cacheado con el tag `rebalance:<userId>` |
-| #11 | `/transactions`; `getAllTransactions`, `getRealizedPnl`, `getMovements` (tag `trades`) y `getAllDividends` (tag `dividends`) cacheados |
+| #11 | `/transactions`; `getAllTransactions`, `getRealizedPnl`, `getMovements` (tag `trades`) y `getAllDividends` (tags `dividends` y `trades`) cacheados |
 | #12 | `/performance`; `getBenchmarkPoints` (y `getIndexPoints`, que delega) cacheado con el tag `benchmarks` |
 | #13 | `/real-gains` (botón del header en su propio `<Suspense>`) y `/datos` (Suspense finos por sección/tarjeta); `getDataReadiness` cacheado |
 | #14 | `/assets` (`getAssetCatalog`, tag `assets`) y `/strategy` (tag `strategy`), con `requireAdmin()` fuera del caché; `key` en `StrategyEditor` |

@@ -66,7 +66,7 @@ Solo se devuelven tickers con `totalQty > 0`:
 avgPrice = totalCost / totalQty
 ```
 
-> `getRealizedPnl` usa una variante que **no incluye `fee`** en el costo, por lo que el P&L realizado puede diferir levemente del PPM.
+> `getRealizedPnl` usa el mismo costo promedio con comisiones (vía `salesForYear`), así que el costo de lo vendido coincide con el PPM vigente.
 
 ---
 
@@ -82,19 +82,19 @@ solo posiciones con PPM y `avgPrice > 0`. El `precio_actual` es el del snapshot 
 
 ### Realizado (`getRealizedPnl`)
 
-Para cada venta contra el costo promedio vigente:
+Es el mismo cálculo que el reporte para impuestos ([`salesForYear`](#ventas-salesforyear)), aplicado a todos los años con ventas. Antes ignoraba las comisiones, y la misma venta daba otro resultado en Impuestos:
 
 ```
-avgBuyPrice = totalCost / qty
-pnl         = (sellPrice − avgBuyPrice) × cantidadVendida
-pnlPct      = ((sellPrice − avgBuyPrice) / avgBuyPrice) × 100
+buyPrice  = costo promedio de lo vendido (con comisiones de compra) / cantidad
+sellPrice = (bruto de la venta − comisión) / cantidad
+pnl       = result de salesForYear;   pnlPct = pnl / costo × 100
 ```
 
-Luego se descuenta la cantidad y el costo del estado del ticker. Se ordena por fecha descendente.
+Se ordena por fecha descendente.
 
 Las ventas importadas antes de normalizar el signo tenían cantidad negativa (así las exporta Cocos; se corrigieron en la base): `calculatePPM`, `getRealizedPnl`, `getAllTransactions` y el CSV siguen usando el valor absoluto por las dudas.
 
-Los montos (costo de compra, ingreso de venta) salen de `tradeGrossAmount` (`lib/trade-amount.ts`): el bruto del movimiento de Cocos si existe, porque en bonos y ONs el precio es cada 100 nominales; si no, cantidad × precio. El P&L realizado agrupa por ticker **y moneda**: una venta en otra moneda que la compra (dólar MEP) no tiene resultado.
+Los montos (costo de compra, ingreso de venta) salen de `tradeGrossAmount` (`lib/trade-amount.ts`): el bruto del movimiento de Cocos si existe, porque en bonos y ONs el precio es cada 100 nominales; si no, cantidad × precio. Una venta en otra moneda que la compra (dólar MEP) no tiene resultado (`result` null) y no se lista.
 
 ---
 
@@ -505,7 +505,7 @@ venta:    cubierto   = mín(q, cantidad)
 - **Compra y venta en distinta moneda** (p. ej. ON comprada en pesos y vendida en dólares para hacer dólar MEP): `resultado = null`. Convertir el costo pide elegir un tipo de cambio, y eso queda para la declaración. Si el costo mezcla las dos monedas, también `costo = null`.
 - `missingBuys`: se vendió más de lo comprado; esa diferencia no tiene costo y el resultado está inflado.
 
-A diferencia de `getRealizedPnl`, incluye las comisiones de compra y de venta.
+`getRealizedPnl` usa esta misma función, así que P&L realizado e impuestos coinciden.
 
 ### Dividendos (`dividendsForYear`)
 

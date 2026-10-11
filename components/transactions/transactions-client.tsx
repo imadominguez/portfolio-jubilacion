@@ -36,6 +36,8 @@ interface TransactionsClientProps {
   ppmData: PpmRow[];
   realizedPnl: RealizedPnlRow[];
   dividends: DividendRow[];
+  // Los en pesos, al CCL de su fecha (getTotalDividendsUsd).
+  totalDividendsUsd: number;
   movements: MovementRow[];
 }
 
@@ -46,6 +48,7 @@ export function TransactionsClient({
   ppmData,
   realizedPnl,
   dividends,
+  totalDividendsUsd,
   movements,
 }: TransactionsClientProps) {
   const [tab, setTab] = useState<Tab>("transactions");
@@ -55,9 +58,6 @@ export function TransactionsClient({
   const [isPending, startTransition] = useTransition();
 
   const totalRealizedPnl = realizedPnl.reduce((sum, r) => sum + r.pnl, 0);
-  const totalDividendsUsd = dividends
-    .filter((d) => d.currency === "USD")
-    .reduce((sum, d) => sum + d.amount, 0);
 
   const fciMovements = movements.filter(
     (m) => m.category === "FCI_SUBSCRIPTION" || m.category === "FCI_REDEMPTION"
@@ -396,7 +396,7 @@ export function TransactionsClient({
           {dividends.length > 0 && (
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-xl border border-border bg-card shadow-sm px-5 py-4">
-                <p className="text-xs text-muted-foreground mb-1">Total dividendos USD</p>
+                <p className="text-xs text-muted-foreground mb-1">Total dividendos USD (los en pesos, al CCL de su fecha)</p>
                 <p className="text-lg font-bold font-mono text-success">
                   +{formatCurrency(totalDividendsUsd, "USD")}
                 </p>
@@ -433,7 +433,7 @@ export function TransactionsClient({
                 </TableHeader>
                 <TableBody>
                   {dividends.map((div) => (
-                    <TableRow key={div.id} className="border-border hover:bg-muted/30">
+                    <TableRow key={`${div.manual ? "m" : "c"}-${div.id}`} className="border-border hover:bg-muted/30">
                       <TableCell className="pl-5 py-3 text-xs text-muted-foreground">
                         {formatDateUTC(div.date)}
                       </TableCell>
@@ -451,14 +451,16 @@ export function TransactionsClient({
                         <span className="text-xs text-muted-foreground">{div.notes ?? "—"}</span>
                       </TableCell>
                       <TableCell className="pr-5 py-3">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="size-7 p-0"
-                          onClick={() => setDeleteDivTarget(div.id)}
-                        >
-                          <Trash2 className="size-3.5 text-muted-foreground" />
-                        </Button>
+                        {div.manual && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="size-7 p-0"
+                            onClick={() => setDeleteDivTarget(div.id)}
+                          >
+                            <Trash2 className="size-3.5 text-muted-foreground" />
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
