@@ -66,7 +66,7 @@ export async function generateOpportunityReport(
     }
 
     const underlyingByTicker = new Map(assets.map((a) => [a.ticker, a.underlyingTicker]));
-    const avgPriceByTicker = new Map(ppm.filter((p) => p.currency === "ARS").map((p) => [p.ticker, p.avgPrice]));
+    const avgPriceByTicker = new Map(ppm.map((p) => [p.ticker, p.avgPrice]));
     const from = new Date(Date.now() - HISTORY_DAYS * 24 * 60 * 60 * 1000);
 
     // Precio y noticias por posición; una acción que falla no tumba el reporte.
