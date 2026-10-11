@@ -2,10 +2,11 @@
 
 import { cacheLife, cacheTag } from "next/cache";
 import { revalidateTrades } from "@/lib/revalidate";
-import { userTags } from "@/lib/cache-tags";
+import { marketTags, userTags } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
 import { tradeGrossAmount } from "@/lib/trade-amount";
-import { getPpmForUser, type PpmRow as LibPpmRow } from "@/lib/portfolio-data";
+import { getPpmForUser, loadRatioChanges, type PpmRow as LibPpmRow } from "@/lib/portfolio-data";
+import { ratioFactor } from "@/lib/ratio-changes";
 import { requireAuth, requireUserId } from "@/lib/auth-session";
 import type { TransactionType, Currency } from "@/app/generated/prisma/client";
 
@@ -142,7 +143,13 @@ export async function getRealizedPnl(): Promise<RealizedPnlRow[]> {
 async function cachedRealizedPnl(userId: string): Promise<RealizedPnlRow[]> {
   "use cache";
   cacheLife("hours");
-  cacheTag(userTags.trades(userId));
+  cacheTag(userTags.trades(userId), marketTags.assets);
+
+  // Cantidades en CEDEARs del ratio actual: una venta posterior a un split
+  // descuenta unidades que las compras anteriores no tenían (ADR-0023).
+  const ratioChanges = await loadRatioChanges();
+  const adjustedQty = (t: { ticker: string; date: Date; quantity: unknown }) =>
+    Math.abs(Number(t.quantity)) * ratioFactor(ratioChanges, t.ticker, t.date);
 
   const sells = await db.transaction.findMany({
     where: { type: "SELL", userId },
@@ -169,10 +176,10 @@ async function cachedRealizedPnl(userId: string): Promise<RealizedPnlRow[]> {
     const existing = tickerBuys.get(lotKey(buy));
     const cost = tradeGrossAmount({ quantity: Number(buy.quantity), price: Number(buy.price), movementGross: buy.movement?.grossAmount != null ? Number(buy.movement.grossAmount) : null });
     if (existing) {
-      existing.qty += Number(buy.quantity);
+      existing.qty += adjustedQty(buy);
       existing.totalCost += cost;
     } else {
-      tickerBuys.set(lotKey(buy), { qty: Number(buy.quantity), totalCost: cost });
+      tickerBuys.set(lotKey(buy), { qty: adjustedQty(buy), totalCost: cost });
     }
   }
 
@@ -183,7 +190,7 @@ async function cachedRealizedPnl(userId: string): Promise<RealizedPnlRow[]> {
     if (!entry || entry.qty <= 0) continue;
 
     const avgBuyPrice = entry.qty > 0 ? entry.totalCost / entry.qty : 0;
-    const soldQty = Math.abs(Number(sell.quantity));
+    const soldQty = adjustedQty(sell);
     const sellPrice = soldQty > 0 ? tradeGrossAmount({ quantity: Number(sell.quantity), price: Number(sell.price), movementGross: sell.movement?.grossAmount != null ? Number(sell.movement.grossAmount) : null }) / soldQty : Number(sell.price);
     const pnl = (sellPrice - avgBuyPrice) * soldQty;
     const pnlPct = avgBuyPrice > 0 ? ((sellPrice - avgBuyPrice) / avgBuyPrice) * 100 : 0;

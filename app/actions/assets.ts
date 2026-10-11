@@ -100,41 +100,80 @@ export async function createAsset(data: AssetFormData): Promise<AssetResult> {
 
 export async function updateAsset(
   id: string,
-  data: Partial<AssetFormData>
+  data: Partial<AssetFormData> & {
+    // YYYY-MM-DD. Con fecha, un ratio distinto es un split del CEDEAR y las
+    // operaciones anteriores se ajustan (ADR-0023); sin fecha, una corrección.
+    ratioChangeDate?: string;
+  }
 ): Promise<AssetResult> {
   try {
     await requireAdmin();
-    await db.asset.update({
-      where: { id },
-      data: {
-        ...(data.instrumentName !== undefined && {
-          instrumentName: data.instrumentName?.trim() || null,
-        }),
-        ...(data.cedearRatio !== undefined && {
-          cedearRatio: data.cedearRatio,
-        }),
-        ...(data.description !== undefined && {
-          description: data.description?.trim() || null,
-        }),
-        ...(data.sector !== undefined && {
-          sector: data.sector?.trim() || null,
-        }),
-        ...(data.industry !== undefined && {
-          industry: data.industry?.trim() || null,
-        }),
-        ...(data.country !== undefined && {
-          country: data.country?.trim() || null,
-        }),
-        ...(data.underlyingTicker !== undefined && {
-          underlyingTicker: data.underlyingTicker?.trim().toUpperCase() || null,
-        }),
-      },
-    });
+    if (data.cedearRatio !== undefined && !(data.cedearRatio > 0)) {
+      return { success: false, error: "El ratio debe ser mayor a 0." };
+    }
+
+    const current = await db.asset.findUnique({ where: { id }, select: { ticker: true, cedearRatio: true } });
+    if (!current) return { success: false, error: "El activo no existe." };
+
+    const ratioChangeDate = data.ratioChangeDate?.trim();
+    const ratioChanged = data.cedearRatio !== undefined && data.cedearRatio !== Number(current.cedearRatio);
+    if (ratioChangeDate && !ratioChanged) {
+      return { success: false, error: "Indicaste una fecha de cambio de ratio pero el ratio no cambió." };
+    }
+    if (ratioChangeDate && !/^\d{4}-\d{2}-\d{2}$/.test(ratioChangeDate)) {
+      return { success: false, error: "La fecha del cambio de ratio no es válida." };
+    }
+
+    const recordChange = ratioChangeDate && ratioChanged
+      ? [
+          db.cedearRatioChange.create({
+            data: {
+              ticker: current.ticker,
+              effectiveDate: new Date(`${ratioChangeDate}T00:00:00Z`),
+              oldRatio: current.cedearRatio,
+              newRatio: data.cedearRatio!,
+            },
+          }),
+        ]
+      : [];
+
+    await db.$transaction([
+      ...recordChange,
+      db.asset.update({
+        where: { id },
+        data: {
+          ...(data.instrumentName !== undefined && {
+            instrumentName: data.instrumentName?.trim() || null,
+          }),
+          ...(data.cedearRatio !== undefined && {
+            cedearRatio: data.cedearRatio,
+          }),
+          ...(data.description !== undefined && {
+            description: data.description?.trim() || null,
+          }),
+          ...(data.sector !== undefined && {
+            sector: data.sector?.trim() || null,
+          }),
+          ...(data.industry !== undefined && {
+            industry: data.industry?.trim() || null,
+          }),
+          ...(data.country !== undefined && {
+            country: data.country?.trim() || null,
+          }),
+          ...(data.underlyingTicker !== undefined && {
+            underlyingTicker: data.underlyingTicker?.trim().toUpperCase() || null,
+          }),
+        },
+      }),
+    ]);
 
     revalidateAssets();
     return { success: true };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Error inesperado.";
+    if (msg.includes("Unique constraint")) {
+      return { success: false, error: "Ya hay un cambio de ratio registrado para ese activo en esa fecha." };
+    }
     return { success: false, error: msg };
   }
 }

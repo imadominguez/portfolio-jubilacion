@@ -209,6 +209,28 @@ model Asset {
 }
 
 // ---------------------------------------------------------------------------
+// CedearRatioChange
+//
+// Splits del CEDEAR (p. ej. SPY 20:1 → 60:1 en junio 2026). Cocos acredita los
+// CEDEARs nuevos sin dejar movimiento, así que las compras anteriores se ajustan
+// al leerlas (cantidad × nuevo/viejo, precio ÷ nuevo/viejo): el libro de
+// movimientos no se edita. Dato de mercado global, como Asset (ADR-0008).
+// ---------------------------------------------------------------------------
+
+model CedearRatioChange {
+  id            String   @id @default(cuid())
+  ticker        String
+  // Primer día con el ratio nuevo; las operaciones anteriores se ajustan.
+  effectiveDate DateTime @db.Date
+  oldRatio      Decimal  @db.Decimal(8, 4)
+  newRatio      Decimal  @db.Decimal(8, 4)
+  createdAt     DateTime @default(now())
+
+  @@unique([ticker, effectiveDate])
+  @@map("cedear_ratio_changes")
+}
+
+// ---------------------------------------------------------------------------
 // ExchangeRate
 //
 // Almacena el historial de la tasa CCL (Contado con Liquidación) por fecha.

@@ -2,6 +2,8 @@ import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db";
 import { requireUserId } from "@/lib/auth-session";
 import { marketTags, userTags } from "@/lib/cache-tags";
+import { loadRatioChanges } from "@/lib/portfolio-data";
+import { ratioFactor } from "@/lib/ratio-changes";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -249,6 +251,7 @@ async function cachedRealGains(userId: string): Promise<RealGainsSummary | null>
   });
 
   if (buys.length === 0) return null;
+  const ratioChanges = await loadRatioChanges();
 
   // 3. Assets (para cedearRatio y underlyingTicker)
   const assets = await db.asset.findMany({
@@ -299,9 +302,11 @@ async function cachedRealGains(userId: string): Promise<RealGainsSummary | null>
   const byTicker = new Map<string, TickerCost>();
 
   for (const buy of buys) {
-    const qty = Number(buy.quantity);
     const price = Number(buy.price);
-    const costArs = qty * price + (buy.fee ? Number(buy.fee) : 0);
+    const costArs = Number(buy.quantity) * price + (buy.fee ? Number(buy.fee) : 0);
+    // En CEDEARs del ratio actual (ADR-0023): las acciones subyacentes se
+    // calculan con el `cedearRatio` de hoy.
+    const qty = Number(buy.quantity) * ratioFactor(ratioChanges, buy.ticker, buy.date);
 
     // CCL en fecha de compra (Método A)
     const cclAtBuy = findNearest(cclHistory, buy.date, 7);

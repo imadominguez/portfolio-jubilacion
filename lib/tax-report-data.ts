@@ -1,7 +1,9 @@
 import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db";
 import { requireUserId } from "@/lib/auth-session";
-import { userTags } from "@/lib/cache-tags";
+import { marketTags, userTags } from "@/lib/cache-tags";
+import { loadRatioChanges } from "@/lib/portfolio-data";
+import { adjustForRatioChanges } from "@/lib/ratio-changes";
 import {
   daysBeforeYearEnd,
   dividendsForYear,
@@ -36,7 +38,7 @@ export async function getTaxData(): Promise<TaxData> {
 async function cachedTaxData(userId: string): Promise<TaxData> {
   "use cache";
   cacheLife("hours");
-  cacheTag(userTags.snapshots(userId), userTags.trades(userId), userTags.dividends(userId));
+  cacheTag(userTags.snapshots(userId), userTags.trades(userId), userTags.dividends(userId), marketTags.assets);
 
   const [snapshots, transactions, movements, dividends] = await Promise.all([
     db.portfolioSnapshot.findMany({
@@ -81,16 +83,24 @@ async function cachedTaxData(userId: string): Promise<TaxData> {
     };
   }
 
-  const trades: TradeForTax[] = transactions.map((t) => ({
-    date: t.date,
-    ticker: t.ticker,
-    type: t.type,
-    quantity: Number(t.quantity),
-    price: Number(t.price),
-    fee: t.fee ? Number(t.fee) : 0,
-    amount: t.movement?.grossAmount != null ? Number(t.movement.grossAmount) : null,
-    currency: t.currency,
-  }));
+  // En CEDEARs del ratio actual, para que una venta posterior a un split
+  // encuentre sus lotes de compra (ADR-0023).
+  const ratioChanges = await loadRatioChanges();
+  const trades: TradeForTax[] = transactions.map((t) =>
+    adjustForRatioChanges(
+      {
+        date: t.date,
+        ticker: t.ticker,
+        type: t.type,
+        quantity: Number(t.quantity),
+        price: Number(t.price),
+        fee: t.fee ? Number(t.fee) : 0,
+        amount: t.movement?.grossAmount != null ? Number(t.movement.grossAmount) : null,
+        currency: t.currency,
+      },
+      ratioChanges
+    )
+  );
   const dividendMovements: DividendMovementForTax[] = movements.map((m) => ({
     date: m.date,
     instrument: m.instrument,
