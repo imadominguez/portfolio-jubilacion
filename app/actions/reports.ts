@@ -23,7 +23,7 @@ export async function listReports(): Promise<ReportListItem[]> {
   });
   return rows.map((r) => ({
     id: r.id,
-    label: `${r.fechaReporte} — ${r.createdAt.toLocaleString("es-AR", { hour: "2-digit", minute: "2-digit" })}`,
+    label: `${r.fechaReporte} — ${r.createdAt.toLocaleString("es-AR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Argentina/Buenos_Aires" })}`,
   }));
 }
 

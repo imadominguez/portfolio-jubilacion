@@ -74,7 +74,7 @@ export async function GET(
   const ccl = snapshot.ccl
     ? `$ ${new Intl.NumberFormat("es-AR", { minimumFractionDigits: 0 }).format(Number(snapshot.ccl))}`
     : null;
-  const generatedAt = new Date().toLocaleDateString("es-AR");
+  const generatedAt = new Date().toLocaleDateString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" });
 
   const pdfElement = createElement(PortfolioPDF, {
     snapshotDate,

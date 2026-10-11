@@ -143,7 +143,7 @@ export async function GET(
 </table>
 
 <div class="footer">
-  Generado el ${new Date().toLocaleDateString("es-AR")} · Portfolio Jubilación
+  Generado el ${new Date().toLocaleDateString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" })} · Portfolio Jubilación
 </div>
 </body>
 </html>`;

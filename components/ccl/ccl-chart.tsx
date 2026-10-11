@@ -33,7 +33,7 @@ interface CCLChartProps {
 }
 
 function formatDateShort(dateStr: string): string {
-  return formatDateShortBase(new Date(dateStr + "T00:00:00"));
+  return formatDateShortBase(new Date(dateStr + "T00:00:00Z"));
 }
 
 const chartConfig = {

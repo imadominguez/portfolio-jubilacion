@@ -162,13 +162,15 @@ export function HoldingsTable({ positions, ppmData = [], marketPrices = [] }: Ho
       {totalLiveUsd !== null && (
         <div className="mt-3 flex items-center justify-between px-1">
           <span className="text-[11px] text-muted-foreground/60">
-            Precios en tiempo real ·{" "}
+            {/* Los precios son los del último refresco (cron diario o botón), no en vivo. */}
+            Precios del{" "}
             {liveUsdFetchedAt
               ? new Intl.DateTimeFormat("es-AR", {
                   hour: "2-digit",
                   minute: "2-digit",
                   day: "2-digit",
                   month: "short",
+                  timeZone: "America/Argentina/Buenos_Aires",
                 }).format(liveUsdFetchedAt)
               : ""}
           </span>
