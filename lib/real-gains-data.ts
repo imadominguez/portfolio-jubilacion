@@ -405,9 +405,9 @@ async function cachedRealGains(userId: string): Promise<RealGainsSummary | null>
       } else if (!currentUsdPrice) {
         missingReason = "Sin precio actual en Yahoo Finance — actualizá precios en Assets";
       } else if (gainUsdAppreciation === null) {
-        missingReason = "Sin precio histórico en la fecha de compra (±3 días)";
+        missingReason = `Sin precio histórico en la fecha de compra (±${PRICE_TOLERANCE_DAYS} días)`;
       } else if (gainUsdReal === null) {
-        missingReason = "Sin CCL disponible para la fecha de compra (±7 días)";
+        missingReason = `Sin CCL disponible para la fecha de compra (±${CCL_TOLERANCE_DAYS} días)`;
       }
     }
 

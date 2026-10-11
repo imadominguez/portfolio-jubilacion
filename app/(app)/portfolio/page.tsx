@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { ReportHistorial } from "@/components/analysis/report-historial";
 import { SignalHistoryTable } from "@/components/analysis/signal-history";
 import { getSignalHistory } from "@/app/actions/reports";
+import { SiteHeader } from "@/components/layout/site-header";
 
 export const metadata = {
   title: "Oportunidades",
@@ -10,14 +11,17 @@ export const metadata = {
 };
 
 export default function PortfolioPage() {
+  // SiteHeader como en el resto de las páginas: trae el botón del sidebar, sin
+  // el que en el celular no había forma de navegar desde acá.
   return (
-    <>
+    <div className="flex flex-col min-h-svh">
+      <SiteHeader title="Oportunidades" description="Precio, noticias y señal de cada acción" />
       <OpportunityAnalyzer />
       <Suspense fallback={null}>
         <SignalHistory />
       </Suspense>
       <ReportHistorial />
-    </>
+    </div>
   );
 }
 
