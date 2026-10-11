@@ -68,7 +68,7 @@ Organizados por dominio. Los componentes de `components/ui/` son primitivas shad
 | Componente | Tipo | Descripción |
 |---|---|---|
 | `snapshots-client.tsx` — `ImportButton` | CC | Botón "Importar CSV" (`id="tour-import-snapshot"`) que abre el sheet. |
-| `import-csv-sheet.tsx` | CC | Flujo de 3 pasos: seleccionar → previsualizar → completado. Valida el nombre `portfolio_report_AAAAMMDD.csv`, deriva la fecha, autocompleta el CCL (`getExchangeRateForDate`), muestra la tabla de posiciones y bloquea la confirmación si `missingCcl`. |
+| `import-csv-sheet.tsx` | CC | Flujo de 3 pasos: seleccionar → previsualizar → completado. Valida el nombre `portfolio_report_AAAAMMDD.csv`, deriva la fecha, autocompleta el CCL (`getExchangeRateForDate`), muestra la tabla de posiciones y bloquea la confirmación si `missingCcl`. Si `holdingMismatches` no está vacío avisa (sin bloquear) que la tenencia no coincide con las transacciones: posible split sin registrar (múltiplo exacto, ADR-0023) o movimientos sin importar. |
 
 ---
 

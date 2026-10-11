@@ -26,6 +26,7 @@ import {
   type NextSetupStep,
 } from "@/app/actions/snapshots";
 import { getExchangeRateForDate } from "@/app/actions/exchange-rate";
+import type { HoldingMismatch } from "@/lib/holdings-reconciliation";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -38,6 +39,8 @@ interface PreviewData {
   totalValueArs: number;
   hasUsdPositions: boolean;
   missingCcl: boolean;
+  holdingMismatches: HoldingMismatch[];
+  lastMovementDate: Date | null;
 }
 
 // Cocos Capital exporta el snapshot con el formato: portfolio_report_YYYYMMDD.csv
@@ -51,7 +54,7 @@ const GENERIC_DATE_PATTERN = /(\d{4})[_-]?(\d{2})[_-]?(\d{2})/;
 // Helpers
 // ---------------------------------------------------------------------------
 
-import { formatARS } from "@/lib/format";
+import { formatARS, formatDateUTC } from "@/lib/format";
 
 function formatUSD(value: number): string {
   return new Intl.NumberFormat("es-AR", {
@@ -255,6 +258,8 @@ export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
           totalValueArs: result.totalValueArs,
           hasUsdPositions: result.hasUsdPositions,
           missingCcl: result.missingCcl,
+          holdingMismatches: result.holdingMismatches,
+          lastMovementDate: result.lastMovementDate,
         });
         setStep("preview");
       } else {
@@ -477,6 +482,16 @@ export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
               </div>
             )}
 
+            {preview.holdingMismatches.length > 0 && savedValues && (
+              <div className="px-6 pt-4">
+                <HoldingMismatchAlert
+                  mismatches={preview.holdingMismatches}
+                  lastMovementDate={preview.lastMovementDate}
+                  snapshotDate={savedValues.date}
+                />
+              </div>
+            )}
+
             {/* Position table */}
             <ScrollArea className="flex-1 min-h-0">
               <div className="px-6 py-4">
@@ -663,14 +678,70 @@ function ErrorAlert({ message }: { message: string }) {
   );
 }
 
-function WarningAlert({ message }: { message: string }) {
+function WarningAlert({
+  title = "CCL faltante",
+  message,
+  children,
+}: {
+  title?: string;
+  message: string;
+  children?: React.ReactNode;
+}) {
   return (
     <div className="flex items-start gap-3 rounded-lg border border-warning/20 bg-warning/5 px-4 py-3">
       <AlertCircle className="size-4 text-warning shrink-0 mt-0.5" />
-      <div className="flex flex-col gap-0.5">
-        <p className="text-xs font-medium text-warning">CCL faltante</p>
+      <div className="flex min-w-0 flex-col gap-1">
+        <p className="text-xs font-medium text-warning">{title}</p>
         <p className="text-xs text-muted-foreground">{message}</p>
+        {children}
       </div>
     </div>
+  );
+}
+
+const formatQty = (n: number) => n.toLocaleString("es-AR", { maximumFractionDigits: 4 });
+
+// La tenencia de Cocos no coincide con las transacciones: un split del CEDEAR
+// que no figura en Assets (Cocos no deja movimiento, ADR-0023) o movimientos
+// sin importar. No bloquea el import: el snapshot es la foto real de Cocos.
+function HoldingMismatchAlert({
+  mismatches,
+  lastMovementDate,
+  snapshotDate,
+}: {
+  mismatches: HoldingMismatch[];
+  lastMovementDate: Date | null;
+  snapshotDate: string;
+}) {
+  const hasSplit = mismatches.some((m) => m.likelySplitFactor !== null);
+  const staleLedger =
+    lastMovementDate !== null && lastMovementDate.getTime() < new Date(`${snapshotDate}T00:00:00Z`).getTime();
+  const causes = [
+    hasSplit && "un cambio de ratio del CEDEAR (Cocos acredita los CEDEARs nuevos sin movimiento): registralo en Assets editando el ratio con su fecha de vigencia",
+    staleLedger
+      ? `movimientos sin importar: el último importado es del ${formatDateUTC(lastMovementDate)}, importá el CSV de actividad de Cocos hasta la fecha del snapshot`
+      : "movimientos sin importar: revisá que el CSV de actividad de Cocos cubra hasta la fecha del snapshot",
+  ].filter(Boolean);
+
+  return (
+    <WarningAlert
+      title="La tenencia no coincide con tus transacciones"
+      message={`Posibles causas: ${causes.join("; o ")}. Mientras tanto, el PPM y el P&L de estos CEDEARs no son confiables. Podés importar igual: el snapshot es la foto de Cocos.`}
+    >
+      <ul className="mt-1 flex flex-col gap-0.5 text-xs font-mono tabular-nums text-foreground/80">
+        {mismatches.map((m) => (
+          <li key={m.ticker}>
+            {m.ticker}: tenencia {formatQty(m.holding)} · transacciones {formatQty(m.ledger)}
+            {m.likelySplitFactor !== null && (
+              <span className="text-warning">
+                {" "}
+                → posible split{" "}
+                {m.likelySplitFactor >= 1 ? `×${m.likelySplitFactor}` : `÷${Math.round(1 / m.likelySplitFactor)}`}
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+    </WarningAlert>
   );
 }

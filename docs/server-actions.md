@@ -58,7 +58,7 @@ El catálogo es **global (compartido)**: lectura para todos, **escritura sólo A
 | Función | Auth | Comportamiento |
 |---|---|---|
 | `checkSnapshotDate(dateStr)` | No | Devuelve `{ exists }` si el usuario ya tiene un snapshot en esa fecha. El sheet de import lo consulta al elegir la fecha para avisar antes de previsualizar. |
-| `parseSnapshotPreview(formData)` | No | Parsea el CSV (`file`), calcula totales y allocations, informa `hasUsdPositions` y `missingCcl`. Si recibe `date` y ya existe un snapshot ese día, devuelve el error de duplicado. No escribe. |
+| `parseSnapshotPreview(formData)` | No | Parsea el CSV (`file`), calcula totales y allocations, informa `hasUsdPositions` y `missingCcl`, y en `holdingMismatches` los CEDEARs cuya cantidad no coincide con las transacciones hasta esa fecha (`reconcileHoldings`, `lib/holdings-reconciliation.ts`; vacío si no hay transacciones), con `lastMovementDate`. Si recibe `date` y ya existe un snapshot ese día, devuelve el error de duplicado. No escribe. |
 | `importSnapshot(formData)` | Sí | Valida archivo/fecha; rechaza posiciones USD sin CCL; verifica que no exista un snapshot para esa fecha (inmutabilidad); crea `PortfolioSnapshot` con `positions` anidadas; `totalValueUsd = totalValueArs / ccl`; llama a `checkAndUpdateMilestones`. Devuelve `positionCount`, `totalValueArs` y `nextStep` (primer paso accionable pendiente del checklist) para la pantalla de éxito. |
 | `deleteSnapshot(id)` | Sí | `deleteMany({ id, userId })`. Los snapshots son inmutables (no se editan), pero el usuario puede borrar los propios. UI: botón "Eliminar snapshot" con confirmación en `/snapshots/[id]`. |
 
