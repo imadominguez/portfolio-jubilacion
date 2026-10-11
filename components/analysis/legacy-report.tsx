@@ -229,7 +229,7 @@ export function ReporteDisplay({ reporte, footer }: { reporte: ReportePortafolio
 
       {alertasSafe.length > 0 && (
         <div className="space-y-2">
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Alertas</h2>
+          <h2 className="text-base font-semibold text-foreground">Alertas</h2>
           {alertasSafe.map((a, i) => {
             const cfg = alertaConfig[a.tipo];
             const Icon = cfg.icon || Info;

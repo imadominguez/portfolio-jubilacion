@@ -46,9 +46,9 @@ export function AssetsTableClient({ assets }: AssetsTableClientProps) {
     <>
       {/* Toolbar */}
       <div className="flex items-center justify-between mb-3">
-        <p className="text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
+        <h2 className="text-base font-semibold text-foreground">
           Catálogo de CEDEARs
-        </p>
+        </h2>
         <Button
           size="sm"
           variant="outline"

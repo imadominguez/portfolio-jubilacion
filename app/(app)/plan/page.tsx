@@ -32,10 +32,7 @@ export default function PlanPage() {
       <SiteHeader title="Plan DCA" description="Qué comprar este mes según el reporte de oportunidades" />
 
       <main className="flex-1 px-6 py-10 flex flex-col gap-6 max-w-6xl w-full mx-auto">
-        <div className="animate-fade-up flex flex-col gap-1">
-          <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
-            Aporte mensual
-          </p>
+        <div className="flex flex-col gap-1">
           <p className="text-sm text-muted-foreground max-w-xl leading-relaxed">
             Reparte el aporte del mes según las señales del último reporte de oportunidades: más a las
             acciones marcadas &quot;compra&quot; con mayor confianza, nada a las marcadas &quot;venta&quot;. Sin

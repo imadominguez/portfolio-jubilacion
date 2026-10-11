@@ -78,7 +78,7 @@ const WIZARD_STEPS: WizardStep[] = [
       <>
         Al importar el snapshot detectamos tus tickers. Sólo falta el{" "}
         <strong>ratio CEDEAR</strong>, el subyacente, sector y país. Habilita USD
-        en vivo, Concentración y Ganancia Real.
+        en vivo, Concentración y ganancia real.
       </>
     ),
     setupId: "assets",

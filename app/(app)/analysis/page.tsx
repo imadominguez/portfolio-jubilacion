@@ -12,7 +12,7 @@ import { BarChart3 } from "lucide-react";
 import { getSession } from "@/lib/auth-session";
 import { isAdminRole } from "@/lib/user-role";
 
-export const metadata: Metadata = { title: "Análisis de concentración" };
+export const metadata: Metadata = { title: "Concentración" };
 
 // El header entra al static shell; la concentración y el rol se leen en
 // request time y se streamean detrás del skeleton.
@@ -20,8 +20,8 @@ export default function AnalysisPage() {
   return (
     <div className="flex flex-col min-h-svh">
       <SiteHeader
-        title="Análisis"
-        description="Concentración por sector, país e industria"
+        title="Concentración"
+        description="Peso por sector, país e industria"
       />
       <Suspense fallback={<AnalysisSkeleton />}>
         <AnalysisContent />
@@ -38,13 +38,10 @@ async function AnalysisContent() {
   const isAdmin = isAdminRole(session?.user.role);
 
   return (
-    <main className="flex-1 px-6 py-10 flex flex-col gap-6  w-full mx-auto">
+    <main className="flex-1 px-6 py-10 flex flex-col gap-8 max-w-6xl w-full mx-auto">
       {data ? (
         <>
-          <div className="animate-fade-up flex flex-col gap-1">
-            <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
-              Distribución del portfolio
-            </p>
+          <div className="flex flex-col gap-1">
             <p className="text-sm text-muted-foreground max-w-lg leading-relaxed">
               Análisis de concentración basado en el snapshot más reciente.
               Asegurate de completar sector, país e industria en la página de Assets.

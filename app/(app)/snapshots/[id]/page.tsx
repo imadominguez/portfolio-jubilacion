@@ -143,12 +143,10 @@ async function SnapshotDetailContent({ params }: { params: SnapshotParams }) {
         </div>
 
         <div className="flex flex-col gap-1">
-          <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
-            Snapshot del
-          </p>
-          <p className="text-4xl sm:text-5xl font-mono font-light tabular-nums tracking-tight text-foreground">
+          <h1 className="text-3xl font-semibold tracking-[-0.02em] text-foreground sm:text-4xl">
+            <span className="font-normal text-muted-foreground">Snapshot del </span>
             {formattedDate}
-          </p>
+          </h1>
           {snapshot.sourceFile && (
             <p className="text-xs text-muted-foreground font-mono mt-1">
               Archivo: {snapshot.sourceFile}

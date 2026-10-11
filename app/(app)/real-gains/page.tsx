@@ -1,19 +1,12 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import {
-  TrendingUp,
-  DollarSign,
-  ArrowUpRight,
-  ArrowDownRight,
-  BarChart3,
-  AlertTriangle,
-} from "lucide-react";
+import { TrendingUp, AlertTriangle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { SiteHeader } from "@/components/layout/site-header";
 import { RealGainsWizard } from "@/components/real-gains/real-gains-wizard";
 import { RealGainsSkeleton } from "@/components/real-gains/real-gains-skeleton";
 import { RealGainsUpdateButton } from "@/components/real-gains/real-gains-update-button";
-import { KpiCard } from "@/components/real-gains/kpi-card";
+import { StatGrid, type Stat } from "@/components/layout/page-parts";
 import { BreakdownBar } from "@/components/real-gains/breakdown-bar";
 import { PositionsTable } from "@/components/real-gains/positions-table";
 import { MethodologyNote } from "@/components/real-gains/methodology-note";
@@ -23,7 +16,7 @@ import { formatARS, formatUSD } from "@/lib/format";
 import { getSession } from "@/lib/auth-session";
 import { isAdminRole } from "@/lib/user-role";
 
-export const metadata: Metadata = { title: "Ganancia Real en USD" };
+export const metadata: Metadata = { title: "Ganancia real" };
 
 // ---------------------------------------------------------------------------
 // Page
@@ -35,8 +28,8 @@ export default function RealGainsPage() {
   return (
     <div className="flex flex-col min-h-svh">
       <SiteHeader
-        title="Ganancia Real"
-        description="Desglose en USD · CCL · Apreciación"
+        title="Ganancia real"
+        description="En dólares: cuánto vino de las acciones y cuánto del CCL"
         actions={
           <Suspense fallback={null}>
             <HeaderUpdateButton />
@@ -46,10 +39,7 @@ export default function RealGainsPage() {
 
       <main className="flex-1 px-6 py-10 flex flex-col gap-6 max-w-6xl w-full mx-auto">
         {/* Intro */}
-        <div className="animate-fade-up flex flex-col gap-1">
-          <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
-            Análisis avanzado
-          </p>
+        <div className="flex flex-col gap-1">
           <p className="text-sm text-muted-foreground max-w-xl leading-relaxed">
             Cuánto ganaste realmente en dólares, separando lo que subieron las acciones
             en USD de lo que aportó (o costó) la variación del tipo de cambio CCL.
@@ -70,6 +60,8 @@ async function HeaderUpdateButton() {
   const summary = await calculateRealGains();
   return summary ? <RealGainsUpdateButton /> : null;
 }
+
+const toneOf = (v: number | null): Stat["tone"] => (v === null ? null : v >= 0 ? "positive" : "negative");
 
 async function RealGainsContent() {
   const [session, readiness, summary] = await Promise.all([
@@ -131,80 +123,35 @@ async function RealGainsContent() {
         <>
           <Separator className="opacity-30" />
 
-          {/* KPIs */}
-          <section className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <KpiCard
-              label="Ganancia en ARS"
-              sub="valor actual vs costo total"
-              value={formatARS(summary.totalGainArs)}
-              pct={fmtPct(summary.totalGainPctArs)}
-              positive={summary.totalGainArs >= 0 ? true : false}
-              icon={BarChart3}
-              delay={0}
-            />
-            <KpiCard
-              label="Ganancia USD real"
-              sub="conversión por CCL histórico"
-              value={summary.totalGainUsdReal !== null ? formatUSD(summary.totalGainUsdReal) : "—"}
-              pct={
-                summary.totalGainPctUsdReal !== null
-                  ? fmtPct(summary.totalGainPctUsdReal)
-                  : null
-              }
-              positive={
-                summary.totalGainUsdReal !== null
-                  ? summary.totalGainUsdReal >= 0
-                  : null
-              }
-              icon={DollarSign}
-              delay={60}
-            />
-            <KpiCard
-              label="Apreciación acciones"
-              sub="suba del subyacente en USD"
-              value={
-                summary.totalGainUsdAppreciation !== null
-                  ? formatUSD(summary.totalGainUsdAppreciation)
-                  : "—"
-              }
-              pct={
-                summary.totalGainPctUsdAppreciation !== null
-                  ? fmtPct(summary.totalGainPctUsdAppreciation)
-                  : null
-              }
-              positive={
-                summary.totalGainUsdAppreciation !== null
-                  ? summary.totalGainUsdAppreciation >= 0
-                  : null
-              }
-              icon={TrendingUp}
-              delay={120}
-            />
-            <KpiCard
-              label="Impacto CCL"
-              sub={
-                (summary.totalGainUsdCclImpact ?? 0) < 0
-                  ? "CCL diluyó ganancias"
-                  : "CCL aportó ganancias"
-              }
-              value={
-                summary.totalGainUsdCclImpact !== null
-                  ? formatUSD(summary.totalGainUsdCclImpact)
-                  : "—"
-              }
-              positive={
-                summary.totalGainUsdCclImpact !== null
-                  ? summary.totalGainUsdCclImpact >= 0
-                  : null
-              }
-              icon={
-                (summary.totalGainUsdCclImpact ?? 0) >= 0
-                  ? ArrowUpRight
-                  : ArrowDownRight
-              }
-              delay={180}
-            />
-          </section>
+          <StatGrid
+            stats={[
+              {
+                label: "Ganancia en pesos",
+                value: formatARS(summary.totalGainArs),
+                sub: `${fmtPct(summary.totalGainPctArs)} · valor actual contra costo`,
+                tone: toneOf(summary.totalGainArs),
+              },
+              {
+                label: "Ganancia real en dólares",
+                value: summary.totalGainUsdReal !== null ? formatUSD(summary.totalGainUsdReal) : "—",
+                sub: summary.totalGainPctUsdReal !== null ? `${fmtPct(summary.totalGainPctUsdReal)} · cada compra al CCL de su fecha` : "Cada compra al CCL de su fecha",
+                tone: toneOf(summary.totalGainUsdReal),
+              },
+              {
+                label: "Suba de las acciones",
+                value: summary.totalGainUsdAppreciation !== null ? formatUSD(summary.totalGainUsdAppreciation) : "—",
+                sub: summary.totalGainPctUsdAppreciation !== null ? `${fmtPct(summary.totalGainPctUsdAppreciation)} · precio del subyacente en dólares` : "Precio del subyacente en dólares",
+                tone: toneOf(summary.totalGainUsdAppreciation),
+              },
+              {
+                label: "Efecto del CCL",
+                value: summary.totalGainUsdCclImpact !== null ? formatUSD(summary.totalGainUsdCclImpact) : "—",
+                sub: (summary.totalGainUsdCclImpact ?? 0) < 0 ? "El CCL te restó ganancia" : "El CCL te sumó ganancia",
+                tone: toneOf(summary.totalGainUsdCclImpact),
+                glossary: "ccl" as const,
+              },
+            ]}
+          />
 
           <Separator className="opacity-30" />
 
@@ -215,9 +162,9 @@ async function RealGainsContent() {
 
           {/* Tabla de posiciones */}
           <div className="flex flex-col gap-3">
-            <p className="text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
+            <h2 className="text-base font-semibold text-foreground">
               Detalle por posición
-            </p>
+            </h2>
             <PositionsTable
               summary={summary}
               canManageAssets={isAdminRole(session?.user.role)}

@@ -25,10 +25,7 @@ export default function TaxesPage({ searchParams }: { searchParams: TaxSearchPar
       <SiteHeader title="Impuestos" description="Datos para Bienes Personales y Ganancias" />
 
       <main className="flex-1 px-6 py-10 flex flex-col gap-8 max-w-6xl w-full mx-auto">
-        <div className="animate-fade-up flex flex-col gap-1">
-          <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
-            Declaración anual
-          </p>
+        <div className="flex flex-col gap-1">
           <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
             Lo que la app sabe de tu cuenta para la declaración de un año: la tenencia al cierre, las
             ventas con su resultado y los dividendos cobrados. Es información para vos o tu contador, no

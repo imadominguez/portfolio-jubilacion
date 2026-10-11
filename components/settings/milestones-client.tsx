@@ -104,9 +104,9 @@ export function MilestonesClient({
     <>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <p className="text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
+          <h2 className="text-base font-semibold text-foreground">
             Hitos del portfolio
-          </p>
+          </h2>
           {reachedCount > 0 && (
             <Badge variant="default" className="text-[10px] h-5 gap-1">
               <Trophy className="size-3" />

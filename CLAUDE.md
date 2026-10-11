@@ -64,7 +64,7 @@ Layering rules:
 
 Auth and roles:
 - Better Auth (email/password). `User.role` is `USER` (default) or `ADMIN`, exposed via `additionalFields` with `input: false`; promotion only via DB (SQL/Prisma Studio/seed). Helper: `lib/user-role.ts` (`isAdminRole`).
-- `proxy.ts` (Next 16's replacement for `middleware.ts`, always Node runtime) redirects unauthenticated users to `/login` and non-admins away from `ADMIN_PATH_PREFIXES` (`/assets`, `/strategy`, `/settings`, `/portfolio`). Admin pages must also be listed under `NAV_CONFIG` in `components/layout/app-sidebar.tsx`, and both lists must stay in sync.
+- `proxy.ts` (Next 16's replacement for `middleware.ts`, always Node runtime) redirects unauthenticated users to `/login` and non-admins away from `ADMIN_PATH_PREFIXES` (`/assets`, `/strategy`, `/settings`, `/portfolio`). Admin pages must also be listed under `ADMIN_NAV_GROUP` in `components/layout/nav-config.ts` (the single source for the sidebar and ⌘K), and both lists must stay in sync.
 - The proxy guards pages, not Server Actions: an action can be invoked from any page the user can reach. Admin-only actions must check the role themselves with `requireAdmin()` from `lib/auth-session.ts` (used by `assets.ts` and `strategy.ts`; `/api/analyze-portfolio` returns 403 to non-admins).
 - Public signup is closed unless `ALLOW_PUBLIC_SIGNUP=true`.
 

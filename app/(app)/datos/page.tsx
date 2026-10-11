@@ -134,10 +134,7 @@ export default function DataHubPage() {
       />
 
       <main className="flex-1 px-6 py-10 flex flex-col gap-8 max-w-6xl w-full mx-auto">
-        <section className="animate-fade-up flex flex-col gap-1">
-          <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
-            Todo en un solo lugar
-          </p>
+        <section className="flex flex-col gap-1">
           <p className="text-sm text-muted-foreground max-w-xl leading-relaxed">
             Desde acá cargás y actualizás cada tipo de dato del portfolio. Seguí el
             checklist para no olvidarte de nada.

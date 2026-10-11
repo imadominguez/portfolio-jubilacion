@@ -6,6 +6,7 @@ import { AlertCircle, Loader2, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { OpportunityReportDisplay } from "@/components/analysis/opportunity-report";
+import { PageIntro } from "@/components/layout/page-parts";
 import { isOpportunityReport, type OpportunityReport } from "@/lib/opportunity-report";
 
 // Último reporte en el navegador para volver a verlo sin regenerarlo (y pagarlo).
@@ -88,14 +89,11 @@ export function OpportunityAnalyzer() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Oportunidades de tu cartera</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Revisa el precio y las últimas noticias de cada acción de tu último snapshot y dice si es momento de comprar,
-          mantener o vender.
-        </p>
-      </div>
+    <div className="space-y-6">
+      <PageIntro>
+        Revisa el precio y las últimas noticias de cada acción de tu último snapshot y dice si es momento de comprar,
+        mantener o vender. Cada reporte usa la API de Anthropic y tiene un costo.
+      </PageIntro>
 
       <Card>
         <CardContent className="space-y-4">

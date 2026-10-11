@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarDays, ChevronRight } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+import { PageIntro, SectionHeading } from "@/components/layout/page-parts";
 import { Badge } from "@/components/ui/badge";
 import { Suspense } from "react";
 import { SiteHeader } from "@/components/layout/site-header";
@@ -39,17 +39,10 @@ async function SnapshotsContent() {
 
   return (
     <main className="flex-1 px-6 py-10 flex flex-col gap-8 max-w-6xl w-full mx-auto">
-      {/* Top row */}
-      <div className="animate-fade-up flex flex-col gap-0.5">
-        <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
-          Total registrados
-        </p>
-        <p className="text-3xl font-mono font-light tabular-nums text-foreground">
-          {snapshots.length}
-        </p>
-      </div>
-
-      <Separator className="opacity-30" />
+      <PageIntro>
+        Cada snapshot es la foto de tu tenencia en Cocos el día que la exportaste. Los snapshots no se
+        sobrescriben: si uno quedó mal, se elimina desde su detalle y se vuelve a importar.
+      </PageIntro>
 
       {snapshots.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
@@ -63,17 +56,11 @@ async function SnapshotsContent() {
           </div>
         </div>
       ) : (
-        <section
-          className="animate-fade-up flex flex-col gap-3"
-          style={{ animationDelay: "80ms" }}
-        >
-          <p className="text-[10px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
-            Registros
-          </p>
-          <p className="text-xs text-muted-foreground">
-            El porcentaje es el rendimiento de cada período, sin contar compras, ventas ni
-            movimientos del FCI.
-          </p>
+        <section className="flex flex-col gap-3">
+          <SectionHeading
+            title={`${snapshots.length} ${snapshots.length === 1 ? "snapshot importado" : "snapshots importados"}`}
+            description="El porcentaje es el rendimiento de cada período, sin contar compras, ventas ni movimientos del FCI."
+          />
           <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
             <div className="divide-y divide-border">
               {sorted.map((s) => {

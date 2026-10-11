@@ -175,10 +175,12 @@ rendimiento del año sin aportes y la meta de jubilación (proyectado vs necesar
 `success`/`warning`). Sin gradiente, glow, `text-gradient` ni punto que late.
 
 ### 6.2 Sidebar / AppSidebar
-- Fondo `bg-sidebar`.
-- Item activo: `.sidebar-active-item` reconstruido con tokens (`--primary/15`, borde
-  `--primary/30`, texto `--sidebar-foreground`, acento `--accent`), con glow azul sutil.
-- Item inactivo: `text-sidebar-foreground/60`, hover `bg-sidebar-accent/50`.
+- Fondo `bg-sidebar`. La navegación sale de `components/layout/nav-config.ts` (también ⌘K):
+  grupos por tarea de hasta 4 ítems (Resumen sin título, Análisis, Cuenta, Datos y, para admin,
+  Administración). Títulos de grupo en oración (`text-xs font-medium /65`), sin separadores.
+- Item activo: `.sidebar-active-item`, superficie plana `primary` 16 % + borde `primary/30`, sin glow.
+- Item inactivo: sin fondo (`data-active` solo se pone cuando es `true`: con `"false"` la variante
+  `data-active:` de Tailwind v4 igual aplica), texto `/85`, ícono `/70`, hover `bg-sidebar-accent/50`.
 - Logo "PJ": cuadrado `bg-primary` + `ring-primary/35`.
 
 ### 6.3 SiteHeader
@@ -213,6 +215,14 @@ título con `text-gradient`.
 Acento azul `#1d4ed8` sobre fondo claro, consistente con `--primary` light.
 
 ---
+
+### 6.10 Anatomía de página (`components/layout/page-parts.tsx`)
+- Contenedor único `PAGE_MAIN`: `max-w-6xl px-6 py-10 gap-8`, también en páginas de formulario.
+- El título vive en `SiteHeader`. Debajo, `PageIntro` (bajada `text-sm`, máx. 2xl). **Sin kickers**
+  en mayúsculas encima.
+- Secciones con `SectionHeading` (`h2 text-base font-semibold` + descripción opcional).
+- Métricas con `StatGrid` (§6.4); no se arman tarjetas KPI a mano.
+- Nombres en castellano: Rendimiento, Concentración, Activos, Ganancia real.
 
 ## 7. Accesibilidad
 

@@ -17,7 +17,7 @@ type TickerPerf = {
 
 // Variación del precio del CEDEAR entre los dos últimos snapshots. Es precio, no
 // rendimiento: no descuenta aportes ni dividendos, y a corto plazo es ruido para
-// una estrategia DCA, por eso vive en Performance y no en el Dashboard.
+// una estrategia DCA, por eso vive en Rendimiento y no en el Dashboard.
 export function PerformersPanel({ currentPositions, previousPositions, sinceLabel }: PerformersPanelProps) {
   const prevMap = new Map<string, number>(previousPositions.map((p) => [p.ticker, p.price]));
 

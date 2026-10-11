@@ -68,9 +68,6 @@ export function RealGainsWizard({ readiness }: RealGainsWizardProps) {
   return (
     <div className="flex flex-col gap-6 animate-fade-up">
       <div className="flex flex-col gap-1">
-        <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
-          Datos históricos
-        </p>
         <p className="text-sm text-muted-foreground max-w-lg leading-relaxed">
           Actualizá el CCL histórico y los precios de acciones. Los datos se
           cargan desde tu primera compra hasta hoy.

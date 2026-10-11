@@ -25,10 +25,7 @@ export default function RetirementPage() {
       />
 
       <main className="flex-1 px-6 py-10 flex flex-col gap-8 max-w-6xl w-full mx-auto">
-        <div className="animate-fade-up flex flex-col gap-1">
-          <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
-            Planificación de retiro
-          </p>
+        <div className="flex flex-col gap-1">
           <p className="text-sm text-muted-foreground max-w-lg leading-relaxed">
             Calculá cuánto capital necesitás acumular para jubilarte y proyectá
             si tu portfolio actual está en camino de alcanzar esa meta.
