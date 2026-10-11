@@ -10,7 +10,9 @@ export type RetirementInputs = {
 };
 
 export type RetirementGoal = {
+  // Nominal a la edad de retiro: el gasto de hoy ajustado por inflación.
   capitalNeeded: number;
+  monthlyExpensesAtRetirement: number;
   currentGap: number;
   yearsToGoal: number;
   yearsRemaining: number;
@@ -42,7 +44,7 @@ export function calculateRetirementGoal(inputs: RetirementInputs): RetirementGoa
 
   let capitalAtRetirement: number;
   if (monthlyRate === 0) {
-    capitalAtRetirement = currentPortfolioUsd * months + monthlyContribution * months;
+    capitalAtRetirement = currentPortfolioUsd + monthlyContribution * months;
   } else {
     capitalAtRetirement =
       currentPortfolioUsd * Math.pow(1 + monthlyRate, months) +
@@ -66,6 +68,7 @@ export function calculateRetirementGoal(inputs: RetirementInputs): RetirementGoa
 
   return {
     capitalNeeded,
+    monthlyExpensesAtRetirement: inflationAdjustedExpenses,
     currentGap,
     yearsToGoal,
     yearsRemaining,
@@ -78,7 +81,6 @@ export type ProjectionPoint = {
   year: number;
   age: number;
   projected: number;
-  goal?: number;
 };
 
 export function buildProjectionCurve(
@@ -93,12 +95,10 @@ export function buildProjectionCurve(
   const endAge = Math.max(retirementAge + 10, currentAge + 40);
 
   for (let age = currentAge; age <= endAge; age++) {
-    const cn = (inputs as RetirementInputs & { capitalNeeded?: number }).capitalNeeded;
     points.push({
       year: age - currentAge,
       age,
       projected: Math.round(balance),
-      goal: cn,
     });
 
     for (let m = 0; m < 12; m++) {
