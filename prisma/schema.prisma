@@ -231,6 +231,41 @@ model CedearRatioChange {
 }
 
 // ---------------------------------------------------------------------------
+// CedearListingVersion / CedearListing
+//
+// Listado oficial "CEDEARs Negociables en BYMA" (ADR-0024): fuente de los
+// ratios. Se reemplaza entero con cada versión nueva que pasa la validación.
+// Dato de mercado global, como Asset (ADR-0008).
+// ---------------------------------------------------------------------------
+
+model CedearListingVersion {
+  // Fecha del "Actualizado dd/mm/aaaa" del PDF.
+  version   DateTime        @id @db.Date
+  sourceUrl String
+  rowCount  Int
+  fetchedAt DateTime        @default(now())
+  listings  CedearListing[]
+
+  @@map("cedear_listing_versions")
+}
+
+model CedearListing {
+  // Código BYMA: el mismo ticker que usa Cocos (BRKB, no BRK-B).
+  ticker          String               @id
+  name            String
+  // Mercado donde cotiza el subyacente (NYSE, NASDAQ, NYSE Arca, B3…).
+  market          String
+  // Ratio "a:b" del PDF: a CEDEARs equivalen a b acciones del subyacente.
+  ratioCedear     Decimal              @db.Decimal(10, 4)
+  ratioUnderlying Decimal              @db.Decimal(10, 4)
+  version         DateTime             @db.Date
+  listingVersion  CedearListingVersion @relation(fields: [version], references: [version], onDelete: Cascade)
+
+  @@index([version])
+  @@map("cedear_listings")
+}
+
+// ---------------------------------------------------------------------------
 // ExchangeRate
 //
 // Almacena el historial de la tasa CCL (Contado con Liquidación) por fecha.

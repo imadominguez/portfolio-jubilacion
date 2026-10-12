@@ -4,11 +4,12 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { AssetsTableClient } from "@/components/assets/assets-table-client";
 import { AssetsQuickSetup } from "@/components/assets/assets-quick-setup";
 import { AssetsSkeleton } from "@/components/assets/assets-skeleton";
+import { CedearListingCard } from "@/components/assets/cedear-listing-card";
 import { ImportButton } from "@/components/snapshots/snapshots-client";
 import { CclUpdateButton } from "@/components/exchange-rate/ccl-update-button";
 import { MarketPricesButton } from "@/components/market/market-prices-button";
 import { getSetupStatus } from "@/app/actions/setup";
-import { getAssetCatalog } from "@/app/actions/assets";
+import { getAssetCatalog, getCedearListingInfo } from "@/app/actions/assets";
 
 export const metadata: Metadata = { title: "Activos" };
 
@@ -48,10 +49,18 @@ export default function AssetsPage() {
 
 async function AssetsCatalog() {
   const [assets, setup] = await Promise.all([getAssetCatalog(), getSetupStatus()]);
+  const listing = await getCedearListingInfo(setup.missingAssetTickers);
 
   return (
     <>
-      <AssetsQuickSetup missingTickers={setup.missingAssetTickers} />
+      <CedearListingCard version={listing.version} fetchedAt={listing.fetchedAt} rowCount={listing.rowCount} />
+      {/* key: con <Activity> el estado sobrevive a la navegación; con otros
+          tickers o un listado nuevo, los borradores arrancan de nuevo. */}
+      <AssetsQuickSetup
+        key={`${setup.missingAssetTickers.join(",")}:${listing.version?.getTime() ?? 0}`}
+        missingTickers={setup.missingAssetTickers}
+        listing={listing.entries}
+      />
       <AssetsTableClient assets={assets} />
     </>
   );

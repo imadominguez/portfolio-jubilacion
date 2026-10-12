@@ -122,6 +122,20 @@ Splits de CEDEAR (ADR-0023), un dato global. Las operaciones anteriores a `effec
 | `oldRatio` / `newRatio` | `Decimal(8,4)` | |
 | `createdAt` | `DateTime` | |
 
+### `CedearListingVersion` → `cedear_listing_versions` y `CedearListing` → `cedear_listings`
+
+Listado oficial "CEDEARs Negociables en BYMA" (ADR-0024), un dato global. Se reemplaza entero con cada versión nueva que pasa la validación (`lib/byma-listing.ts`); queda una sola versión guardada.
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `CedearListingVersion.version` | `DateTime @id @db.Date` | Fecha del "Actualizado dd/mm/aaaa" del PDF. |
+| `CedearListingVersion.sourceUrl` | `String` | URL del PDF (cambia con cada versión). |
+| `CedearListingVersion.rowCount` / `fetchedAt` | `Int` / `DateTime` | Filas guardadas y última revisión (el cron la repite cada 7 días). |
+| `CedearListing.ticker` | `String @id` | Código BYMA, el mismo que usa Cocos (`BRKB`). |
+| `CedearListing.name` / `market` | `String` | Nombre de la compañía y mercado del subyacente (NYSE, NASDAQ, B3…). |
+| `CedearListing.ratioCedear` / `ratioUnderlying` | `Decimal(10,4)` | Ratio `a:b` del PDF; `Asset.cedearRatio` = `a / b` (también `1:3`). |
+| `CedearListing.version` | `DateTime @db.Date` | FK a la versión (`onDelete: Cascade`). |
+
 ### `ExchangeRate` → `exchange_rates`
 
 Historial de CCL por fecha (global, sin `userId`).
@@ -314,7 +328,7 @@ BenchmarkPoint (independiente, por benchmarkId)
 InvestmentStrategy (independiente, versionada)
 ```
 
-Modelos **globales sin `userId`**: `Asset`, `CedearRatioChange`, `ExchangeRate`, `MarketPriceCache`, `HistoricalPriceCache`, `BenchmarkPoint`, `InvestmentStrategy`.
+Modelos **globales sin `userId`**: `Asset`, `CedearRatioChange`, `CedearListingVersion`, `CedearListing`, `ExchangeRate`, `MarketPriceCache`, `HistoricalPriceCache`, `BenchmarkPoint`, `InvestmentStrategy`.
 
 ---
 
@@ -340,6 +354,7 @@ Ubicación: `prisma/migrations/`.
 | `20261010140000_expense_budgets` | `AlertKind` suma `BUDGET`; tabla `expense_budgets`. |
 | `20261010160000_market_dividend_rate` | `market_price_cache.dividendRate`. |
 | `20261011160000_cedear_ratio_changes` | Tabla `cedear_ratio_changes` con el split de SPY (20:1 → 60:1, 01/06/2026), ADR-0023. |
+| `20261012160000_cedear_listing` | Tablas `cedear_listing_versions` y `cedear_listings` (listado de BYMA, ADR-0024). |
 | `20261009220000_drop_target_allocations` | Borra la tabla `target_allocations` (sin pesos objetivo, ADR-0022). |
 | `20261009200000_retirement_expected_return` | `retirement_settings.expectedReturnRate` (`Decimal(6,4)`, por defecto 0.07). |
 

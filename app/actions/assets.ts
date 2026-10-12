@@ -1,10 +1,12 @@
 "use server";
 
 import { cacheLife, cacheTag } from "next/cache";
-import { revalidateAssets } from "@/lib/revalidate";
+import { revalidateAssets, revalidateCedearListing } from "@/lib/revalidate";
 import { marketTags } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth-session";
+import { saveCedearListing } from "@/lib/market-refresh";
+import { ratioValue } from "@/lib/byma-listing";
 
 export type AssetFormData = {
   ticker: string;
@@ -189,5 +191,77 @@ export async function deleteAsset(id: string): Promise<AssetResult> {
       success: false,
       error: err instanceof Error ? err.message : "No se pudo eliminar el activo.",
     };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Listado oficial de BYMA (ADR-0024)
+// ---------------------------------------------------------------------------
+
+export type CedearListingEntry = { ticker: string; name: string; market: string; ratio: number; ratioText: string };
+
+export type CedearListingInfo = {
+  // null si todavía no se bajó ninguna versión.
+  version: Date | null;
+  fetchedAt: Date | null;
+  rowCount: number;
+  // Las entradas de los tickers pedidos que figuran en el listado.
+  entries: Record<string, CedearListingEntry>;
+};
+
+export async function getCedearListingInfo(tickers: string[]): Promise<CedearListingInfo> {
+  await requireAdmin();
+  return cachedCedearListingInfo([...new Set(tickers)].sort());
+}
+
+async function cachedCedearListingInfo(tickers: string[]): Promise<CedearListingInfo> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(marketTags.cedearListing);
+
+  const [latest, rows] = await Promise.all([
+    db.cedearListingVersion.findFirst({ orderBy: { version: "desc" } }),
+    tickers.length ? db.cedearListing.findMany({ where: { ticker: { in: tickers } } }) : Promise.resolve([]),
+  ]);
+  const fmt = (n: number) => n.toLocaleString("es-AR", { maximumFractionDigits: 4 });
+  return {
+    version: latest?.version ?? null,
+    fetchedAt: latest?.fetchedAt ?? null,
+    rowCount: latest?.rowCount ?? 0,
+    entries: Object.fromEntries(
+      rows.map((r) => {
+        const parts = { ratioCedear: Number(r.ratioCedear), ratioUnderlying: Number(r.ratioUnderlying) };
+        return [
+          r.ticker,
+          {
+            ticker: r.ticker,
+            name: r.name,
+            market: r.market,
+            ratio: ratioValue(parts),
+            ratioText: `${fmt(parts.ratioCedear)}:${fmt(parts.ratioUnderlying)}`,
+          },
+        ];
+      })
+    ),
+  };
+}
+
+export type RefreshListingResult =
+  | { success: true; message: string }
+  | { success: false; error: string };
+
+// Fuerza la descarga del listado aunque la versión guardada sea reciente.
+export async function refreshCedearListing(): Promise<RefreshListingResult> {
+  try {
+    await requireAdmin();
+    const r = await saveCedearListing({ force: true });
+    revalidateCedearListing();
+    const v = r.version.toISOString().slice(0, 10).split("-").reverse().join("/");
+    return {
+      success: true,
+      message: r.status === "updated" ? `Listado del ${v} guardado: ${r.rows} CEDEARs.` : `El listado del ${v} sigue vigente.`,
+    };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "No se pudo actualizar el listado de BYMA." };
   }
 }

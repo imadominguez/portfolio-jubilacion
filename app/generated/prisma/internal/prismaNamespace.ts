@@ -405,6 +405,8 @@ export const ModelName = {
   Position: 'Position',
   Asset: 'Asset',
   CedearRatioChange: 'CedearRatioChange',
+  CedearListingVersion: 'CedearListingVersion',
+  CedearListing: 'CedearListing',
   ExchangeRate: 'ExchangeRate',
   MarketPriceCache: 'MarketPriceCache',
   BenchmarkPoint: 'BenchmarkPoint',
@@ -436,7 +438,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "portfolioSnapshot" | "position" | "asset" | "cedearRatioChange" | "exchangeRate" | "marketPriceCache" | "benchmarkPoint" | "transaction" | "dividend" | "retirementSettings" | "historicalPriceCache" | "milestoneAlert" | "userSetup" | "investmentStrategy" | "portfolioReport" | "movement" | "alertSettings" | "alertLog" | "expenseTag" | "expenseBudget"
+    modelProps: "user" | "session" | "account" | "verification" | "portfolioSnapshot" | "position" | "asset" | "cedearRatioChange" | "cedearListingVersion" | "cedearListing" | "exchangeRate" | "marketPriceCache" | "benchmarkPoint" | "transaction" | "dividend" | "retirementSettings" | "historicalPriceCache" | "milestoneAlert" | "userSetup" | "investmentStrategy" | "portfolioReport" | "movement" | "alertSettings" | "alertLog" | "expenseTag" | "expenseBudget"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1029,6 +1031,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.CedearRatioChangeCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.CedearRatioChangeCountAggregateOutputType> | number
+        }
+      }
+    }
+    CedearListingVersion: {
+      payload: Prisma.$CedearListingVersionPayload<ExtArgs>
+      fields: Prisma.CedearListingVersionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CedearListingVersionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearListingVersionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CedearListingVersionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearListingVersionPayload>
+        }
+        findFirst: {
+          args: Prisma.CedearListingVersionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearListingVersionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CedearListingVersionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearListingVersionPayload>
+        }
+        findMany: {
+          args: Prisma.CedearListingVersionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearListingVersionPayload>[]
+        }
+        create: {
+          args: Prisma.CedearListingVersionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearListingVersionPayload>
+        }
+        createMany: {
+          args: Prisma.CedearListingVersionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CedearListingVersionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearListingVersionPayload>[]
+        }
+        delete: {
+          args: Prisma.CedearListingVersionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearListingVersionPayload>
+        }
+        update: {
+          args: Prisma.CedearListingVersionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearListingVersionPayload>
+        }
+        deleteMany: {
+          args: Prisma.CedearListingVersionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CedearListingVersionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CedearListingVersionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearListingVersionPayload>[]
+        }
+        upsert: {
+          args: Prisma.CedearListingVersionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearListingVersionPayload>
+        }
+        aggregate: {
+          args: Prisma.CedearListingVersionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCedearListingVersion>
+        }
+        groupBy: {
+          args: Prisma.CedearListingVersionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CedearListingVersionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CedearListingVersionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CedearListingVersionCountAggregateOutputType> | number
+        }
+      }
+    }
+    CedearListing: {
+      payload: Prisma.$CedearListingPayload<ExtArgs>
+      fields: Prisma.CedearListingFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CedearListingFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearListingPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CedearListingFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearListingPayload>
+        }
+        findFirst: {
+          args: Prisma.CedearListingFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearListingPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CedearListingFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearListingPayload>
+        }
+        findMany: {
+          args: Prisma.CedearListingFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearListingPayload>[]
+        }
+        create: {
+          args: Prisma.CedearListingCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearListingPayload>
+        }
+        createMany: {
+          args: Prisma.CedearListingCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CedearListingCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearListingPayload>[]
+        }
+        delete: {
+          args: Prisma.CedearListingDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearListingPayload>
+        }
+        update: {
+          args: Prisma.CedearListingUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearListingPayload>
+        }
+        deleteMany: {
+          args: Prisma.CedearListingDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CedearListingUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CedearListingUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearListingPayload>[]
+        }
+        upsert: {
+          args: Prisma.CedearListingUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CedearListingPayload>
+        }
+        aggregate: {
+          args: Prisma.CedearListingAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCedearListing>
+        }
+        groupBy: {
+          args: Prisma.CedearListingGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CedearListingGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CedearListingCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CedearListingCountAggregateOutputType> | number
         }
       }
     }
@@ -2374,6 +2524,28 @@ export const CedearRatioChangeScalarFieldEnum = {
 export type CedearRatioChangeScalarFieldEnum = (typeof CedearRatioChangeScalarFieldEnum)[keyof typeof CedearRatioChangeScalarFieldEnum]
 
 
+export const CedearListingVersionScalarFieldEnum = {
+  version: 'version',
+  sourceUrl: 'sourceUrl',
+  rowCount: 'rowCount',
+  fetchedAt: 'fetchedAt'
+} as const
+
+export type CedearListingVersionScalarFieldEnum = (typeof CedearListingVersionScalarFieldEnum)[keyof typeof CedearListingVersionScalarFieldEnum]
+
+
+export const CedearListingScalarFieldEnum = {
+  ticker: 'ticker',
+  name: 'name',
+  market: 'market',
+  ratioCedear: 'ratioCedear',
+  ratioUnderlying: 'ratioUnderlying',
+  version: 'version'
+} as const
+
+export type CedearListingScalarFieldEnum = (typeof CedearListingScalarFieldEnum)[keyof typeof CedearListingScalarFieldEnum]
+
+
 export const ExchangeRateScalarFieldEnum = {
   id: 'id',
   date: 'date',
@@ -2729,20 +2901,6 @@ export type ListEnumAssetKindFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
 
 
 /**
- * Reference to a field of type 'TransactionType'
- */
-export type EnumTransactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TransactionType'>
-    
-
-
-/**
- * Reference to a field of type 'TransactionType[]'
- */
-export type ListEnumTransactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TransactionType[]'>
-    
-
-
-/**
  * Reference to a field of type 'Int'
  */
 export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
@@ -2753,6 +2911,20 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'Int[]'
  */
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'TransactionType'
+ */
+export type EnumTransactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TransactionType'>
+    
+
+
+/**
+ * Reference to a field of type 'TransactionType[]'
+ */
+export type ListEnumTransactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TransactionType[]'>
     
 
 
@@ -2970,6 +3142,8 @@ export type GlobalOmitConfig = {
   position?: Prisma.PositionOmit
   asset?: Prisma.AssetOmit
   cedearRatioChange?: Prisma.CedearRatioChangeOmit
+  cedearListingVersion?: Prisma.CedearListingVersionOmit
+  cedearListing?: Prisma.CedearListingOmit
   exchangeRate?: Prisma.ExchangeRateOmit
   marketPriceCache?: Prisma.MarketPriceCacheOmit
   benchmarkPoint?: Prisma.BenchmarkPointOmit

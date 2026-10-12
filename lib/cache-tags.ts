@@ -27,5 +27,6 @@ export const marketTags = {
   marketPrices: "market-prices",
   historicalPrices: "historical-prices",
   benchmarks: "benchmarks",
+  cedearListing: "cedear-listing",
   strategy: "strategy",
 } as const;

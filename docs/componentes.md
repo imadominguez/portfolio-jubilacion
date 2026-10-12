@@ -164,7 +164,8 @@ El onboarding principal es un **wizard accionable** que guía la carga de datos 
 | `setup/setup-panel.tsx` | CC | Orquesta wizard + checklist + una única instancia de `ImportCsvSheet`. Se monta en el Dashboard. |
 | `setup/welcome-wizard.tsx` | CC | Wizard de bienvenida de 6 pasos. Se auto-abre si `onboarding.shouldShowWizard`. Permite omitir, reanudar y finalizar (`completeOnboarding`). |
 | `setup/setup-checklist.tsx` | CC | Checklist "Puesta en marcha" con progreso, estado por paso y CTA. Se usa en el Dashboard y en `/datos`. |
-| `assets/assets-quick-setup.tsx` | CC | Completa en lote los Assets detectados en el snapshot (ratio obligatorio + subyacente/sector/país/industria). Aparece en `/assets`. |
+| `assets/assets-quick-setup.tsx` | CC | Completa en lote los Assets detectados en el snapshot (ratio obligatorio + subyacente/sector/país/industria). Prop `listing`: precarga el ratio oficial de BYMA y muestra nombre, mercado y ratio del listado (o que no figura). Aparece en `/assets`, con `key` según tickers y versión del listado. |
+| `assets/cedear-listing-card.tsx` | CC | Estado del listado oficial de BYMA (versión, CEDEARs, última revisión) y botón "Actualizar listado" (`refreshCedearListing`). Aparece en `/assets`. |
 | `ui/empty-state.tsx` | SC | Estado vacío consistente (ícono + título + descripción + acción). |
 | `ui/info-tooltip.tsx` | CC | Ícono "?" con la definición del término del glosario (`lib/glossary.ts`). |
 

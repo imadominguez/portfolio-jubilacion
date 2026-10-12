@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
-import { createAsset } from "@/app/actions/assets";
+import { createAsset, type CedearListingEntry } from "@/app/actions/assets";
 
 type DraftRow = {
   ratio: string;
@@ -20,11 +20,14 @@ type DraftRow = {
 
 type AssetsQuickSetupProps = {
   missingTickers: string[];
+  // Entradas del listado oficial de BYMA para esos tickers (ADR-0024).
+  listing?: Record<string, CedearListingEntry>;
 };
 
-function emptyDraft(ticker: string): DraftRow {
+function emptyDraft(ticker: string, entry?: CedearListingEntry): DraftRow {
   return {
-    ratio: "",
+    // El ratio oficial de BYMA, si el ticker figura en el listado.
+    ratio: entry ? String(entry.ratio) : "",
     // La mayoría de los CEDEARs comparten ticker con el subyacente.
     underlyingTicker: ticker,
     sector: "",
@@ -33,11 +36,11 @@ function emptyDraft(ticker: string): DraftRow {
   };
 }
 
-export function AssetsQuickSetup({ missingTickers }: AssetsQuickSetupProps) {
+export function AssetsQuickSetup({ missingTickers, listing = {} }: AssetsQuickSetupProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [drafts, setDrafts] = useState<Record<string, DraftRow>>(() =>
-    Object.fromEntries(missingTickers.map((t) => [t, emptyDraft(t)]))
+    Object.fromEntries(missingTickers.map((t) => [t, emptyDraft(t, listing[t])]))
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -138,6 +141,11 @@ export function AssetsQuickSetup({ missingTickers }: AssetsQuickSetupProps) {
                 <Layers className="size-3.5 text-muted-foreground/50" />
                 <span className="text-sm font-bold font-mono text-foreground">
                   {ticker}
+                </span>
+                <span className="min-w-0 truncate text-[11px] text-muted-foreground">
+                  {listing[ticker]
+                    ? `BYMA: ${listing[ticker].name} · ${listing[ticker].market} · ratio ${listing[ticker].ratioText}`
+                    : "No figura en el listado de BYMA: completá el ratio a mano."}
                 </span>
                 {error && (
                   <Badge
