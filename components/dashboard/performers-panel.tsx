@@ -1,37 +1,21 @@
-import type { PositionRow } from "@/lib/portfolio-data";
+import type { PriceChange } from "@/lib/price-changes";
 import { formatARS, formatPct } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 interface PerformersPanelProps {
-  currentPositions: PositionRow[];
-  previousPositions: PositionRow[];
+  // Variaciones ya ajustadas por cambios de ratio (priceChangesBetween).
+  changes: PriceChange[];
   // "09 oct 2026": fecha del snapshot contra el que se compara.
   sinceLabel: string;
 }
 
-type TickerPerf = {
-  ticker: string;
-  pricePct: number;
-  currentPrice: number;
-};
-
 // Variación del precio del CEDEAR entre los dos últimos snapshots. Es precio, no
 // rendimiento: no descuenta aportes ni dividendos, y a corto plazo es ruido para
 // una estrategia DCA, por eso vive en Rendimiento y no en el Dashboard.
-export function PerformersPanel({ currentPositions, previousPositions, sinceLabel }: PerformersPanelProps) {
-  const prevMap = new Map<string, number>(previousPositions.map((p) => [p.ticker, p.price]));
+export function PerformersPanel({ changes, sinceLabel }: PerformersPanelProps) {
+  if (changes.length < 2) return null;
 
-  const performers: TickerPerf[] = currentPositions
-    .filter((p) => (prevMap.get(p.ticker) ?? 0) > 0 && p.price > 0)
-    .map((p) => ({
-      ticker: p.ticker,
-      pricePct: ((p.price - prevMap.get(p.ticker)!) / prevMap.get(p.ticker)!) * 100,
-      currentPrice: p.price,
-    }));
-
-  if (performers.length < 2) return null;
-
-  const sorted = [...performers].sort((a, b) => b.pricePct - a.pricePct);
+  const sorted = [...changes].sort((a, b) => b.pricePct - a.pricePct);
   const topN = Math.min(3, Math.floor(sorted.length / 2));
   const best = sorted.slice(0, topN);
   const worst = sorted.slice(-topN).reverse();
@@ -54,7 +38,7 @@ export function PerformersPanel({ currentPositions, previousPositions, sinceLabe
   );
 }
 
-function PerformerList({ title, items }: { title: string; items: TickerPerf[] }) {
+function PerformerList({ title, items }: { title: string; items: PriceChange[] }) {
   return (
     <div className="flex flex-col bg-card">
       <h3 className="px-5 pt-4 pb-2 text-sm text-muted-foreground">{title}</h3>

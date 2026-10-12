@@ -1,4 +1,5 @@
 import { cacheLife, cacheTag } from "next/cache";
+import { connection } from "next/server";
 import { db } from "@/lib/db";
 import { computePpm, type PpmRow } from "@/lib/ppm";
 import { adjustForRatioChanges, type RatioChange } from "@/lib/ratio-changes";
@@ -310,6 +311,21 @@ export async function loadRatioChanges(): Promise<RatioChange[]> {
     oldRatio: Number(r.oldRatio),
     newRatio: Number(r.newRatio),
   }));
+}
+
+// Para pantallas: los cambios de ratio son datos globales (los edita un admin
+// desde Assets). connection() primero, como las demás lecturas sin datos del
+// request, para que el build no consulte la base.
+export async function getRatioChanges(): Promise<RatioChange[]> {
+  await connection();
+  return cachedRatioChanges();
+}
+
+async function cachedRatioChanges(): Promise<RatioChange[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(marketTags.assets);
+  return loadRatioChanges();
 }
 
 // Recibe el userId ya resuelto: la acción calculatePPM (sesión) o el cron, que
