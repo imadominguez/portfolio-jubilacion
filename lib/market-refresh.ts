@@ -50,9 +50,10 @@ export async function saveCurrentCcl(): Promise<{ ccl: number; date: string; alr
 // Precios actuales de los subyacentes
 // ---------------------------------------------------------------------------
 
-export async function saveMarketPrices(): Promise<{ updated: number; failed: string[] }> {
+// `only`: subyacentes a bajar (un activo recién dado de alta); sin él, todos.
+export async function saveMarketPrices(only?: string[]): Promise<{ updated: number; failed: string[] }> {
   const assets = await db.asset.findMany({
-    where: { underlyingTicker: { not: null } },
+    where: { underlyingTicker: only ? { in: only } : { not: null } },
     select: { underlyingTicker: true },
   });
   const tickers = [...new Set(assets.map((a) => a.underlyingTicker!))];
@@ -84,11 +85,12 @@ export async function saveMarketPrices(): Promise<{ updated: number; failed: str
 
 // `incremental`: cada ticker desde su último cierre guardado (cron). Si no,
 // desde la primera compra registrada (botón y wizard de Ganancia real).
+// `only`: subyacentes a bajar, como en saveMarketPrices.
 export async function saveStockHistory(
-  options: { incremental?: boolean } = {}
+  options: { incremental?: boolean; only?: string[] } = {}
 ): Promise<{ ticker: string; saved: number; skipped: number }[]> {
   const assets = await db.asset.findMany({
-    where: { underlyingTicker: { not: null } },
+    where: { underlyingTicker: options.only ? { in: options.only } : { not: null } },
     select: { underlyingTicker: true },
   });
   const tickers = [...new Set(assets.map((a) => a.underlyingTicker!))];

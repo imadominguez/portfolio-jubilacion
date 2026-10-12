@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Pencil, Trash2, Plus, Globe } from "lucide-react";
+import { Pencil, Trash2, Plus, Globe, CheckCheck } from "lucide-react";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -22,7 +24,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { AssetDialog, type AssetRow } from "./asset-dialog";
-import { deleteAsset } from "@/app/actions/assets";
+import { deleteAsset, markAssetReviewed } from "@/app/actions/assets";
 
 interface AssetsTableClientProps {
   assets: AssetRow[];
@@ -109,6 +111,11 @@ export function AssetsTableClient({ assets }: AssetsTableClientProps) {
                     <span className="text-sm font-medium font-mono text-foreground">
                       {asset.ticker}
                     </span>
+                    {asset.needsReview && (
+                      <Badge variant="outline" className="ml-2 text-[10px] font-normal text-warning border-warning/30">
+                        Alta automática · revisar
+                      </Badge>
+                    )}
                   </TableCell>
                   <TableCell className="py-3.5">
                     <span className="text-sm text-muted-foreground">
@@ -150,6 +157,25 @@ export function AssetsTableClient({ assets }: AssetsTableClientProps) {
                   </TableCell>
                   <TableCell className="pr-5 py-3.5 text-right">
                     <div className="flex items-center justify-end gap-1">
+                      {asset.needsReview && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="size-7 p-0"
+                          disabled={isPending}
+                          onClick={() =>
+                            startTransition(async () => {
+                              const r = await markAssetReviewed(asset.id);
+                              if (r.success) toast.success(`${asset.ticker} revisado.`);
+                              else toast.error(r.error);
+                            })
+                          }
+                          title="Marcar revisado"
+                          aria-label={`Marcar ${asset.ticker} como revisado`}
+                        >
+                          <CheckCheck className="size-3.5 text-warning" />
+                        </Button>
+                      )}
                       <Button
                         size="sm"
                         variant="ghost"

@@ -108,7 +108,7 @@ Organizados por dominio. Los componentes de `components/ui/` son primitivas shad
 | `exchange-rate/ccl-update-button.tsx` | CC | Actualiza el CCL actual (`fetchAndSaveCCL`); toast indica si ya existía. En `/datos`, `/ccl` y `/assets` (ahí con `compact`: solo ícono por debajo de `2xl`). |
 | `market/market-prices-button.tsx` | CC | Actualiza precios de mercado (`fetchAndSaveMarketPrices`); reporta fallos. En `/datos` y `/assets` (ahí con `compact`). |
 | `assets/asset-dialog.tsx` | CC | Diálogo crear/editar CEDEAR (en edición no permite cambiar ticker). |
-| `assets/assets-table-client.tsx` | CC | Tabla del catálogo con alta/edición/eliminación y confirmación. |
+| `assets/assets-table-client.tsx` | CC | Tabla del catálogo con alta/edición/eliminación y confirmación. Las altas automáticas sin revisar muestran "Alta automática · revisar" y un botón para marcarlas revisadas (`markAssetReviewed`). |
 | `export/csv-export-button.tsx` | CC | Abre una ruta de exportación CSV. Prop `compact`: solo ícono por debajo de `2xl`. |
 | `guide/cocos-guide.tsx` | CC | Guía de descarga de CSV: mapa Portfolio→Snapshots / Actividad→Transacciones y una sección por archivo cuyos pasos (botones) eligen la pantalla del esquema. `RestartTourButton`. Secciones con ids `tour-guide-snapshots` y `tour-guide-transacciones`. |
 | `guide/cocos-mockup.tsx` | CC | `CocosMockup`: esquema de celular (menú, pantalla, panel de descarga) con el elemento a tocar resaltado; lo desconocido de Cocos va como bloque neutro. |

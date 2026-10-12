@@ -33,6 +33,8 @@ export type AssetCatalogRow = {
   industry: string | null;
   country: string | null;
   underlyingTicker: string | null;
+  // Alta automática que ningún admin revisó todavía (ADR-0026).
+  needsReview: boolean;
 };
 
 // El catálogo de assets es global (compartido). Sólo un ADMIN puede mutarlo.
@@ -61,9 +63,15 @@ async function cachedAssetCatalog(): Promise<AssetCatalogRow[]> {
       industry: true,
       country: true,
       underlyingTicker: true,
+      source: true,
+      reviewedAt: true,
     },
   });
-  return assets.map((a) => ({ ...a, cedearRatio: Number(a.cedearRatio) }));
+  return assets.map(({ source, reviewedAt, ...a }) => ({
+    ...a,
+    cedearRatio: Number(a.cedearRatio),
+    needsReview: source === "AUTO" && reviewedAt === null,
+  }));
 }
 
 export async function createAsset(data: AssetFormData): Promise<AssetResult> {
@@ -114,7 +122,7 @@ export async function updateAsset(
       return { success: false, error: "El ratio debe ser mayor a 0." };
     }
 
-    const current = await db.asset.findUnique({ where: { id }, select: { ticker: true, cedearRatio: true } });
+    const current = await db.asset.findUnique({ where: { id }, select: { ticker: true, cedearRatio: true, source: true } });
     if (!current) return { success: false, error: "El activo no existe." };
 
     const ratioChangeDate = data.ratioChangeDate?.trim();
@@ -144,6 +152,8 @@ export async function updateAsset(
       db.asset.update({
         where: { id },
         data: {
+          // Editar un alta automática cuenta como revisarla.
+          ...(current.source === "AUTO" && { reviewedAt: new Date() }),
           ...(data.instrumentName !== undefined && {
             instrumentName: data.instrumentName?.trim() || null,
           }),
@@ -177,6 +187,18 @@ export async function updateAsset(
       return { success: false, error: "Ya hay un cambio de ratio registrado para ese activo en esa fecha." };
     }
     return { success: false, error: msg };
+  }
+}
+
+// Confirma un alta automática sin cambiarle nada.
+export async function markAssetReviewed(id: string): Promise<AssetResult> {
+  try {
+    await requireAdmin();
+    await db.asset.update({ where: { id }, data: { reviewedAt: new Date() } });
+    revalidateAssets();
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "No se pudo marcar como revisado." };
   }
 }
 
