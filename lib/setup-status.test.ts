@@ -35,6 +35,18 @@ describe("findMissingAssetTickers", () => {
     expect(missing).toEqual(["MSFT", "KO"]);
   });
 
+  it("un FCI o un bono no necesita subyacente", () => {
+    const missing = findMissingAssetTickers(
+      ["FONDO", "BONO", "CEDE"],
+      [
+        { ticker: "FONDO", cedearRatio: 1, underlyingTicker: null, assetKind: "FCI" },
+        { ticker: "BONO", cedearRatio: 1, underlyingTicker: null, assetKind: "OTHER" },
+        { ticker: "CEDE", cedearRatio: 1, underlyingTicker: null, assetKind: "CEDEAR" },
+      ]
+    );
+    expect(missing).toEqual(["CEDE"]);
+  });
+
   it("considera completo un asset con ratio y subyacente", () => {
     const missing = findMissingAssetTickers(
       ["ko"],
