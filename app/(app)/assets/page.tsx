@@ -5,6 +5,8 @@ import { AssetsTableClient } from "@/components/assets/assets-table-client";
 import { AssetsQuickSetup } from "@/components/assets/assets-quick-setup";
 import { AssetsSkeleton } from "@/components/assets/assets-skeleton";
 import { CedearListingCard } from "@/components/assets/cedear-listing-card";
+import { AssetRequestsPanel } from "@/components/assets/asset-requests-panel";
+import { getAssetRequests } from "@/app/actions/asset-requests";
 import { ImportButton } from "@/components/snapshots/snapshots-client";
 import { CclUpdateButton } from "@/components/exchange-rate/ccl-update-button";
 import { MarketPricesButton } from "@/components/market/market-prices-button";
@@ -48,17 +50,21 @@ export default function AssetsPage() {
 }
 
 async function AssetsCatalog() {
-  const [assets, setup] = await Promise.all([getAssetCatalog(), getSetupStatus()]);
-  const listing = await getCedearListingInfo(setup.missingAssetTickers);
+  const [assets, setup, requests] = await Promise.all([getAssetCatalog(), getSetupStatus(), getAssetRequests()]);
+  // Los tickers con pedido abierto se revisan en el panel de pedidos.
+  const requested = new Set(requests.map((r) => r.ticker));
+  const missing = setup.missingAssetTickers.filter((t) => !requested.has(t));
+  const listing = await getCedearListingInfo(missing);
 
   return (
     <>
+      <AssetRequestsPanel requests={requests} />
       <CedearListingCard version={listing.version} fetchedAt={listing.fetchedAt} rowCount={listing.rowCount} />
       {/* key: con <Activity> el estado sobrevive a la navegación; con otros
           tickers o un listado nuevo, los borradores arrancan de nuevo. */}
       <AssetsQuickSetup
-        key={`${setup.missingAssetTickers.join(",")}:${listing.version?.getTime() ?? 0}`}
-        missingTickers={setup.missingAssetTickers}
+        key={`${missing.join(",")}:${listing.version?.getTime() ?? 0}`}
+        missingTickers={missing}
         listing={listing.entries}
       />
       <AssetsTableClient assets={assets} />

@@ -8,6 +8,8 @@ import { parseCocosNumber } from "@/lib/number-parsing";
 import { getSetupStatus } from "@/app/actions/setup";
 import { loadRatioChanges } from "@/lib/portfolio-data";
 import { reconcileHoldings, type HoldingMismatch } from "@/lib/holdings-reconciliation";
+import { enqueueAssetRequests, processAssetRequestsInBackground } from "@/lib/asset-requests-runner";
+import { revalidateAssetRequests } from "@/lib/revalidate";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -49,6 +51,8 @@ export type ImportResult =
       totalValueArs: number;
       /** Primer paso pendiente del checklist que el usuario puede resolver. */
       nextStep: NextSetupStep | null;
+      /** Tickers que no estaban en el catálogo: se buscan sus datos en segundo plano. */
+      newAssetTickers: string[];
     }
   | { success: false; error: string };
 
@@ -353,6 +357,29 @@ export async function importSnapshot(formData: FormData): Promise<ImportResult> 
 
     revalidatePortfolioData(userId);
 
+    // Los tickers sin activo se piden al sistema y se resuelven después de
+    // responder (ADR-0025). Un error acá no invalida el snapshot ya guardado.
+    let newAssetTickers: string[] = [];
+    try {
+      newAssetTickers = await enqueueAssetRequests({
+        userId,
+        snapshotDate,
+        ccl: validCcl,
+        positions: positions.map((p) => ({
+          ticker: p.ticker,
+          instrumentName: p.instrumentName || null,
+          price: p.price,
+          currency: p.currency,
+        })),
+      });
+      if (newAssetTickers.length > 0) {
+        revalidateAssetRequests();
+        processAssetRequestsInBackground(newAssetTickers);
+      }
+    } catch {
+      newAssetTickers = [];
+    }
+
     // Siempre, aunque el snapshot valga $0: el primero crea los hitos por defecto.
     const isFirstSnapshot = (await db.portfolioSnapshot.count({ where: { userId } })) === 1;
     await checkAndUpdateMilestones(snapshot.id, { isFirstSnapshot });
@@ -370,6 +397,7 @@ export async function importSnapshot(formData: FormData): Promise<ImportResult> 
       nextStep: pending
         ? { label: pending.label, href: pending.href, ctaLabel: pending.ctaLabel }
         : null,
+      newAssetTickers,
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error inesperado.";

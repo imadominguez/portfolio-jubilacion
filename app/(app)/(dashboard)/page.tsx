@@ -12,6 +12,8 @@ import { DashboardHero } from "@/components/dashboard/dashboard-hero";
 import { DashboardKpiStrip } from "@/components/dashboard/dashboard-kpi-strip";
 import { ThisMonth } from "@/components/dashboard/this-month";
 import { TopHoldings } from "@/components/dashboard/top-holdings";
+import { PendingAssetsBanner } from "@/components/dashboard/pending-assets-banner";
+import { getMyAssetStatus } from "@/app/actions/asset-requests";
 import { EmptyDashboard } from "@/components/dashboard/empty-dashboard";
 import { PortfolioChartWidget } from "@/components/dashboard/portfolio-chart-widget";
 import { SiteHeader } from "@/components/layout/site-header";
@@ -60,10 +62,11 @@ export default function HomePage() {
 }
 
 async function DashboardContent() {
-  const [snapshot, setupStatus, role] = await Promise.all([
+  const [snapshot, setupStatus, role, assetStatus] = await Promise.all([
     getLatestSnapshot(),
     getSetupStatus(),
     getViewerRole(),
+    getMyAssetStatus(),
   ]);
 
   // Sin snapshot inicial no tiene sentido consultar el resto de las métricas.
@@ -185,6 +188,7 @@ async function DashboardContent() {
   return (
     <main className="flex-1 px-6 py-10 flex flex-col gap-8 max-w-6xl w-full mx-auto">
       <SetupPanel status={setupStatus} collapsible />
+      <PendingAssetsBanner status={assetStatus} isAdmin={isAdmin} />
 
       <DashboardHero
         totalValueArs={snapshot.totalValueArs}

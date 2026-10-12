@@ -45,6 +45,8 @@ export type AssetMinAggregateOutputType = {
   country: string | null
   underlyingTicker: string | null
   assetKind: $Enums.AssetKind | null
+  source: $Enums.AssetSource | null
+  reviewedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -60,6 +62,8 @@ export type AssetMaxAggregateOutputType = {
   country: string | null
   underlyingTicker: string | null
   assetKind: $Enums.AssetKind | null
+  source: $Enums.AssetSource | null
+  reviewedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -75,6 +79,8 @@ export type AssetCountAggregateOutputType = {
   country: number
   underlyingTicker: number
   assetKind: number
+  source: number
+  reviewedAt: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -100,6 +106,8 @@ export type AssetMinAggregateInputType = {
   country?: true
   underlyingTicker?: true
   assetKind?: true
+  source?: true
+  reviewedAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -115,6 +123,8 @@ export type AssetMaxAggregateInputType = {
   country?: true
   underlyingTicker?: true
   assetKind?: true
+  source?: true
+  reviewedAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -130,6 +140,8 @@ export type AssetCountAggregateInputType = {
   country?: true
   underlyingTicker?: true
   assetKind?: true
+  source?: true
+  reviewedAt?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -232,6 +244,8 @@ export type AssetGroupByOutputType = {
   country: string | null
   underlyingTicker: string | null
   assetKind: $Enums.AssetKind
+  source: $Enums.AssetSource
+  reviewedAt: Date | null
   createdAt: Date
   updatedAt: Date
   _count: AssetCountAggregateOutputType | null
@@ -270,6 +284,8 @@ export type AssetWhereInput = {
   country?: Prisma.StringNullableFilter<"Asset"> | string | null
   underlyingTicker?: Prisma.StringNullableFilter<"Asset"> | string | null
   assetKind?: Prisma.EnumAssetKindFilter<"Asset"> | $Enums.AssetKind
+  source?: Prisma.EnumAssetSourceFilter<"Asset"> | $Enums.AssetSource
+  reviewedAt?: Prisma.DateTimeNullableFilter<"Asset"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Asset"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Asset"> | Date | string
 }
@@ -285,6 +301,8 @@ export type AssetOrderByWithRelationInput = {
   country?: Prisma.SortOrderInput | Prisma.SortOrder
   underlyingTicker?: Prisma.SortOrderInput | Prisma.SortOrder
   assetKind?: Prisma.SortOrder
+  source?: Prisma.SortOrder
+  reviewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -303,6 +321,8 @@ export type AssetWhereUniqueInput = Prisma.AtLeast<{
   country?: Prisma.StringNullableFilter<"Asset"> | string | null
   underlyingTicker?: Prisma.StringNullableFilter<"Asset"> | string | null
   assetKind?: Prisma.EnumAssetKindFilter<"Asset"> | $Enums.AssetKind
+  source?: Prisma.EnumAssetSourceFilter<"Asset"> | $Enums.AssetSource
+  reviewedAt?: Prisma.DateTimeNullableFilter<"Asset"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Asset"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Asset"> | Date | string
 }, "id" | "ticker">
@@ -318,6 +338,8 @@ export type AssetOrderByWithAggregationInput = {
   country?: Prisma.SortOrderInput | Prisma.SortOrder
   underlyingTicker?: Prisma.SortOrderInput | Prisma.SortOrder
   assetKind?: Prisma.SortOrder
+  source?: Prisma.SortOrder
+  reviewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.AssetCountOrderByAggregateInput
@@ -341,6 +363,8 @@ export type AssetScalarWhereWithAggregatesInput = {
   country?: Prisma.StringNullableWithAggregatesFilter<"Asset"> | string | null
   underlyingTicker?: Prisma.StringNullableWithAggregatesFilter<"Asset"> | string | null
   assetKind?: Prisma.EnumAssetKindWithAggregatesFilter<"Asset"> | $Enums.AssetKind
+  source?: Prisma.EnumAssetSourceWithAggregatesFilter<"Asset"> | $Enums.AssetSource
+  reviewedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Asset"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Asset"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Asset"> | Date | string
 }
@@ -356,6 +380,8 @@ export type AssetCreateInput = {
   country?: string | null
   underlyingTicker?: string | null
   assetKind?: $Enums.AssetKind
+  source?: $Enums.AssetSource
+  reviewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -371,6 +397,8 @@ export type AssetUncheckedCreateInput = {
   country?: string | null
   underlyingTicker?: string | null
   assetKind?: $Enums.AssetKind
+  source?: $Enums.AssetSource
+  reviewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -386,6 +414,8 @@ export type AssetUpdateInput = {
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   underlyingTicker?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetKind?: Prisma.EnumAssetKindFieldUpdateOperationsInput | $Enums.AssetKind
+  source?: Prisma.EnumAssetSourceFieldUpdateOperationsInput | $Enums.AssetSource
+  reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -401,6 +431,8 @@ export type AssetUncheckedUpdateInput = {
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   underlyingTicker?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetKind?: Prisma.EnumAssetKindFieldUpdateOperationsInput | $Enums.AssetKind
+  source?: Prisma.EnumAssetSourceFieldUpdateOperationsInput | $Enums.AssetSource
+  reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -416,6 +448,8 @@ export type AssetCreateManyInput = {
   country?: string | null
   underlyingTicker?: string | null
   assetKind?: $Enums.AssetKind
+  source?: $Enums.AssetSource
+  reviewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -431,6 +465,8 @@ export type AssetUpdateManyMutationInput = {
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   underlyingTicker?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetKind?: Prisma.EnumAssetKindFieldUpdateOperationsInput | $Enums.AssetKind
+  source?: Prisma.EnumAssetSourceFieldUpdateOperationsInput | $Enums.AssetSource
+  reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -446,6 +482,8 @@ export type AssetUncheckedUpdateManyInput = {
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   underlyingTicker?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetKind?: Prisma.EnumAssetKindFieldUpdateOperationsInput | $Enums.AssetKind
+  source?: Prisma.EnumAssetSourceFieldUpdateOperationsInput | $Enums.AssetSource
+  reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -461,6 +499,8 @@ export type AssetCountOrderByAggregateInput = {
   country?: Prisma.SortOrder
   underlyingTicker?: Prisma.SortOrder
   assetKind?: Prisma.SortOrder
+  source?: Prisma.SortOrder
+  reviewedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -480,6 +520,8 @@ export type AssetMaxOrderByAggregateInput = {
   country?: Prisma.SortOrder
   underlyingTicker?: Prisma.SortOrder
   assetKind?: Prisma.SortOrder
+  source?: Prisma.SortOrder
+  reviewedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -495,6 +537,8 @@ export type AssetMinOrderByAggregateInput = {
   country?: Prisma.SortOrder
   underlyingTicker?: Prisma.SortOrder
   assetKind?: Prisma.SortOrder
+  source?: Prisma.SortOrder
+  reviewedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -505,6 +549,10 @@ export type AssetSumOrderByAggregateInput = {
 
 export type EnumAssetKindFieldUpdateOperationsInput = {
   set?: $Enums.AssetKind
+}
+
+export type EnumAssetSourceFieldUpdateOperationsInput = {
+  set?: $Enums.AssetSource
 }
 
 
@@ -520,6 +568,8 @@ export type AssetSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   country?: boolean
   underlyingTicker?: boolean
   assetKind?: boolean
+  source?: boolean
+  reviewedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["asset"]>
@@ -535,6 +585,8 @@ export type AssetSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   country?: boolean
   underlyingTicker?: boolean
   assetKind?: boolean
+  source?: boolean
+  reviewedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["asset"]>
@@ -550,6 +602,8 @@ export type AssetSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   country?: boolean
   underlyingTicker?: boolean
   assetKind?: boolean
+  source?: boolean
+  reviewedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["asset"]>
@@ -565,11 +619,13 @@ export type AssetSelectScalar = {
   country?: boolean
   underlyingTicker?: boolean
   assetKind?: boolean
+  source?: boolean
+  reviewedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type AssetOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ticker" | "instrumentName" | "cedearRatio" | "description" | "sector" | "industry" | "country" | "underlyingTicker" | "assetKind" | "createdAt" | "updatedAt", ExtArgs["result"]["asset"]>
+export type AssetOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ticker" | "instrumentName" | "cedearRatio" | "description" | "sector" | "industry" | "country" | "underlyingTicker" | "assetKind" | "source" | "reviewedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["asset"]>
 
 export type $AssetPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Asset"
@@ -585,6 +641,8 @@ export type $AssetPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     country: string | null
     underlyingTicker: string | null
     assetKind: $Enums.AssetKind
+    source: $Enums.AssetSource
+    reviewedAt: Date | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["asset"]>
@@ -1020,6 +1078,8 @@ export interface AssetFieldRefs {
   readonly country: Prisma.FieldRef<"Asset", 'String'>
   readonly underlyingTicker: Prisma.FieldRef<"Asset", 'String'>
   readonly assetKind: Prisma.FieldRef<"Asset", 'AssetKind'>
+  readonly source: Prisma.FieldRef<"Asset", 'AssetSource'>
+  readonly reviewedAt: Prisma.FieldRef<"Asset", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Asset", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Asset", 'DateTime'>
 }

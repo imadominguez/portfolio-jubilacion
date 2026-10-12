@@ -11,6 +11,10 @@ import { getLatestSnapshot } from "@/lib/portfolio-data";
 import { calculatePPM } from "@/app/actions/transactions";
 import { getMarketPrices } from "@/app/actions/market-prices";
 import { formatDateMedium } from "@/lib/format";
+import { PendingAssetsBanner } from "@/components/dashboard/pending-assets-banner";
+import { getMyAssetStatus } from "@/app/actions/asset-requests";
+import { getViewerRole } from "@/lib/auth-session";
+import { isAdminRole } from "@/lib/user-role";
 
 export const metadata: Metadata = { title: "Cartera" };
 
@@ -34,10 +38,12 @@ export default function CarteraPage() {
 }
 
 async function CarteraContent() {
-  const [snapshot, ppmData, marketPrices] = await Promise.all([
+  const [snapshot, ppmData, marketPrices, assetStatus, role] = await Promise.all([
     getLatestSnapshot(),
     calculatePPM(),
     getMarketPrices(),
+    getMyAssetStatus(),
+    getViewerRole(),
   ]);
 
   if (!snapshot) return <EmptyDashboard />;
@@ -45,6 +51,7 @@ async function CarteraContent() {
   return (
     <>
       <p className="-mt-4 text-sm text-muted-foreground">Snapshot del {formatDateMedium(snapshot.snapshotDate)}</p>
+      <PendingAssetsBanner status={assetStatus} isAdmin={isAdminRole(role)} />
       <section className="grid gap-8 lg:grid-cols-5">
         <div className="min-w-0 lg:col-span-3">
           <HoldingsTable positions={snapshot.positions} ppmData={ppmData} marketPrices={marketPrices} />

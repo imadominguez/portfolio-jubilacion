@@ -28,5 +28,6 @@ export const marketTags = {
   historicalPrices: "historical-prices",
   benchmarks: "benchmarks",
   cedearListing: "cedear-listing",
+  assetRequests: "asset-requests",
   strategy: "strategy",
 } as const;

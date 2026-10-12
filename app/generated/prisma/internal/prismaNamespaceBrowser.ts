@@ -59,6 +59,7 @@ export const ModelName = {
   Position: 'Position',
   Asset: 'Asset',
   CedearRatioChange: 'CedearRatioChange',
+  AssetRequest: 'AssetRequest',
   CedearListingVersion: 'CedearListingVersion',
   CedearListing: 'CedearListing',
   ExchangeRate: 'ExchangeRate',
@@ -195,6 +196,8 @@ export const AssetScalarFieldEnum = {
   country: 'country',
   underlyingTicker: 'underlyingTicker',
   assetKind: 'assetKind',
+  source: 'source',
+  reviewedAt: 'reviewedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -212,6 +215,26 @@ export const CedearRatioChangeScalarFieldEnum = {
 } as const
 
 export type CedearRatioChangeScalarFieldEnum = (typeof CedearRatioChangeScalarFieldEnum)[keyof typeof CedearRatioChangeScalarFieldEnum]
+
+
+export const AssetRequestScalarFieldEnum = {
+  ticker: 'ticker',
+  instrumentName: 'instrumentName',
+  observedPrice: 'observedPrice',
+  observedCurrency: 'observedCurrency',
+  observedCcl: 'observedCcl',
+  observedAt: 'observedAt',
+  requestedBy: 'requestedBy',
+  status: 'status',
+  attempts: 'attempts',
+  lastError: 'lastError',
+  proposal: 'proposal',
+  requestedAt: 'requestedAt',
+  updatedAt: 'updatedAt',
+  resolvedAt: 'resolvedAt'
+} as const
+
+export type AssetRequestScalarFieldEnum = (typeof AssetRequestScalarFieldEnum)[keyof typeof AssetRequestScalarFieldEnum]
 
 
 export const CedearListingVersionScalarFieldEnum = {
@@ -459,6 +482,14 @@ export const SortOrder = {
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const JsonNullValueInput = {
