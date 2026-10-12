@@ -190,8 +190,8 @@ betterAuth({
 
 | Función | Comportamiento |
 |---|---|
-| `getSession()` | `auth.api.getSession({ headers })` con `'use cache: private'` + `cacheLife("minutes")`. Deduplica dentro del request (el dashboard dispara ~10 lecturas en paralelo) y le da a la lectura un lifetime para entrar al App Shell por sesión; nunca se guarda en el servidor. No se puede llamar desde un `'use cache'` plano. Devuelve `Session \| null`. |
-| `getViewerRole()` | Rol de la sesión para decidir qué UI mostrar (grupo admin del sidebar). No autoriza: para eso están el proxy y `requireAdmin()`. |
+| `getSession()` | `auth.api.getSession({ headers })` con `'use cache: private'` + `cacheLife("minutes")`. Deduplica dentro del request (el dashboard dispara ~10 lecturas en paralelo) y le da a la lectura un lifetime para entrar al App Shell por sesión; nunca se guarda en el servidor. No se puede llamar desde un `'use cache'` plano. Devuelve `Session \| null`. Si la base no responde, lanza un error propio ("No se pudo verificar la sesión…") con la causa original en `cause`, en lugar del genérico `APIError: Failed to get session` de Better Auth. |
+| `getViewerRole()` | Rol de la sesión para decidir qué UI mostrar (grupo admin del sidebar). No autoriza: para eso están el proxy y `requireAdmin()`. Si la sesión falla devuelve `null`: se lee desde el layout `(app)`, donde un error no lo atrapa `error.tsx` y terminaría en `global-error`. |
 | `requireAuth()` | Llama a `getSession()` y **lanza `Error("No autenticado")`** si no hay sesión. |
 | `requireUserId()` | `requireAuth()` y devuelve `session.user.id`. Es el helper a usar en toda lectura/escritura de datos de usuario. |
 | `requireAdmin()` | `requireAuth()` y lanza `"No autorizado…"` si el rol no es ADMIN. Para actions sobre datos administrados (catálogo, estrategia). |

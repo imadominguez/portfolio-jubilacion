@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { cacheLife } from "next/cache";
+import { unstable_rethrow } from "next/navigation";
 import { auth } from "./auth";
 import { isAdminRole } from "./user-role";
 
@@ -12,10 +13,21 @@ import { isAdminRole } from "./user-role";
 //   request deduplica las llamadas (el dashboard la invoca en paralelo).
 // - stale de 5 min ("minutes"): el mínimo para entrar al App Shell. El logout
 //   hace router.refresh(), que descarta el caché del cliente.
+// Si la base no responde, Better Auth lanza un genérico "Failed to get session"
+// que no dice qué pasó: se relanza con un mensaje propio y la causa original.
 export async function getSession() {
   "use cache: private";
   cacheLife("minutes");
-  return auth.api.getSession({ headers: await headers() });
+  const requestHeaders = await headers();
+  try {
+    return await auth.api.getSession({ headers: requestHeaders });
+  } catch (error) {
+    unstable_rethrow(error);
+    throw new Error(
+      "No se pudo verificar la sesión: la base de datos no respondió. Reintentá en unos segundos.",
+      { cause: error }
+    );
+  }
 }
 
 export async function requireAuth() {
@@ -35,9 +47,17 @@ export async function requireUserId(): Promise<string> {
 
 // Rol del usuario para decidir qué UI mostrar (p. ej. el grupo admin del
 // sidebar). No autoriza nada: el proxy y requireAdmin() lo vuelven a verificar.
+// Se lee desde el layout, donde un error no lo atrapa el error.tsx del segmento
+// y tiraría abajo toda la app: si la sesión falla, se oculta el grupo admin y
+// el error lo muestra la página, que también lee la sesión.
 export async function getViewerRole(): Promise<string | null> {
-  const session = await getSession();
-  return session?.user.role ?? null;
+  try {
+    const session = await getSession();
+    return session?.user.role ?? null;
+  } catch (error) {
+    unstable_rethrow(error);
+    return null;
+  }
 }
 
 // El proxy protege páginas, no Server Actions: una action se puede invocar
