@@ -406,6 +406,7 @@ export const ModelName = {
   Asset: 'Asset',
   CedearRatioChange: 'CedearRatioChange',
   AssetRequest: 'AssetRequest',
+  RatioChangeProposal: 'RatioChangeProposal',
   CedearListingVersion: 'CedearListingVersion',
   CedearListing: 'CedearListing',
   ExchangeRate: 'ExchangeRate',
@@ -439,7 +440,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "portfolioSnapshot" | "position" | "asset" | "cedearRatioChange" | "assetRequest" | "cedearListingVersion" | "cedearListing" | "exchangeRate" | "marketPriceCache" | "benchmarkPoint" | "transaction" | "dividend" | "retirementSettings" | "historicalPriceCache" | "milestoneAlert" | "userSetup" | "investmentStrategy" | "portfolioReport" | "movement" | "alertSettings" | "alertLog" | "expenseTag" | "expenseBudget"
+    modelProps: "user" | "session" | "account" | "verification" | "portfolioSnapshot" | "position" | "asset" | "cedearRatioChange" | "assetRequest" | "ratioChangeProposal" | "cedearListingVersion" | "cedearListing" | "exchangeRate" | "marketPriceCache" | "benchmarkPoint" | "transaction" | "dividend" | "retirementSettings" | "historicalPriceCache" | "milestoneAlert" | "userSetup" | "investmentStrategy" | "portfolioReport" | "movement" | "alertSettings" | "alertLog" | "expenseTag" | "expenseBudget"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1106,6 +1107,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.AssetRequestCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.AssetRequestCountAggregateOutputType> | number
+        }
+      }
+    }
+    RatioChangeProposal: {
+      payload: Prisma.$RatioChangeProposalPayload<ExtArgs>
+      fields: Prisma.RatioChangeProposalFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RatioChangeProposalFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RatioChangeProposalPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RatioChangeProposalFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RatioChangeProposalPayload>
+        }
+        findFirst: {
+          args: Prisma.RatioChangeProposalFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RatioChangeProposalPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RatioChangeProposalFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RatioChangeProposalPayload>
+        }
+        findMany: {
+          args: Prisma.RatioChangeProposalFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RatioChangeProposalPayload>[]
+        }
+        create: {
+          args: Prisma.RatioChangeProposalCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RatioChangeProposalPayload>
+        }
+        createMany: {
+          args: Prisma.RatioChangeProposalCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RatioChangeProposalCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RatioChangeProposalPayload>[]
+        }
+        delete: {
+          args: Prisma.RatioChangeProposalDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RatioChangeProposalPayload>
+        }
+        update: {
+          args: Prisma.RatioChangeProposalUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RatioChangeProposalPayload>
+        }
+        deleteMany: {
+          args: Prisma.RatioChangeProposalDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RatioChangeProposalUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RatioChangeProposalUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RatioChangeProposalPayload>[]
+        }
+        upsert: {
+          args: Prisma.RatioChangeProposalUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RatioChangeProposalPayload>
+        }
+        aggregate: {
+          args: Prisma.RatioChangeProposalAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRatioChangeProposal>
+        }
+        groupBy: {
+          args: Prisma.RatioChangeProposalGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RatioChangeProposalGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RatioChangeProposalCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RatioChangeProposalCountAggregateOutputType> | number
         }
       }
     }
@@ -2621,6 +2696,19 @@ export const AssetRequestScalarFieldEnum = {
 export type AssetRequestScalarFieldEnum = (typeof AssetRequestScalarFieldEnum)[keyof typeof AssetRequestScalarFieldEnum]
 
 
+export const RatioChangeProposalScalarFieldEnum = {
+  ticker: 'ticker',
+  newRatio: 'newRatio',
+  oldRatio: 'oldRatio',
+  listingVersion: 'listingVersion',
+  status: 'status',
+  detectedAt: 'detectedAt',
+  resolvedAt: 'resolvedAt'
+} as const
+
+export type RatioChangeProposalScalarFieldEnum = (typeof RatioChangeProposalScalarFieldEnum)[keyof typeof RatioChangeProposalScalarFieldEnum]
+
+
 export const CedearListingVersionScalarFieldEnum = {
   version: 'version',
   sourceUrl: 'sourceUrl',
@@ -3062,6 +3150,20 @@ export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prisma
 
 
 /**
+ * Reference to a field of type 'RatioProposalStatus'
+ */
+export type EnumRatioProposalStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RatioProposalStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'RatioProposalStatus[]'
+ */
+export type ListEnumRatioProposalStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RatioProposalStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'TransactionType'
  */
 export type EnumTransactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TransactionType'>
@@ -3276,6 +3378,7 @@ export type GlobalOmitConfig = {
   asset?: Prisma.AssetOmit
   cedearRatioChange?: Prisma.CedearRatioChangeOmit
   assetRequest?: Prisma.AssetRequestOmit
+  ratioChangeProposal?: Prisma.RatioChangeProposalOmit
   cedearListingVersion?: Prisma.CedearListingVersionOmit
   cedearListing?: Prisma.CedearListingOmit
   exchangeRate?: Prisma.ExchangeRateOmit

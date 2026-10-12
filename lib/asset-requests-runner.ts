@@ -3,7 +3,7 @@ import { revalidateTag } from "next/cache";
 import type { Currency } from "@/app/generated/prisma/client";
 import { marketTags } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
-import { ratioValue } from "@/lib/byma-listing";
+import { diffCatalogRatios, ratioValue } from "@/lib/byma-listing";
 import {
   buildProposal,
   classifyInstrument,
@@ -22,7 +22,7 @@ import {
 import { getAssetProfile, getHistorical, searchSymbols } from "@/lib/yahoo-finance-client";
 import { saveMarketPrices, saveStockHistory } from "@/lib/market-refresh";
 import { isMailerConfigured, sendMail } from "@/lib/mailer";
-import { buildAssetReviewEmail, type ReviewItem } from "@/lib/asset-review-email";
+import { buildAssetReviewEmail, buildRatioChangeEmail, type ReviewItem } from "@/lib/asset-review-email";
 
 // Cola de pedidos de alta de activos (ADR-0025). El import del snapshot los
 // registra y los procesa en segundo plano con after(); el admin los aprueba
@@ -184,9 +184,12 @@ async function createFromProposal(req: RequestRow, proposal: AssetProposal): Pro
 }
 
 async function notifyAdmins(items: ReviewItem[]): Promise<void> {
-  if (items.length === 0 || !isMailerConfigured()) return;
-  const email = buildAssetReviewEmail(items, process.env.NEXT_PUBLIC_APP_URL ?? "");
-  if (!email) return;
+  if (items.length === 0) return;
+  await mailAdmins(buildAssetReviewEmail(items, process.env.NEXT_PUBLIC_APP_URL ?? ""));
+}
+
+async function mailAdmins(email: { subject: string; text: string; html: string } | null): Promise<void> {
+  if (!email || !isMailerConfigured()) return;
   const admins = await db.user.findMany({ where: { role: "ADMIN" }, select: { email: true } });
   for (const admin of admins) {
     // Un mail que falla no frena al resto ni deja el pedido a medias.
@@ -289,4 +292,60 @@ export function processAssetRequestsInBackground(tickers?: string[]): void {
       for (const tag of tags) revalidateTag(tag, { expire: 0 });
     }
   });
+}
+
+// ---------------------------------------------------------------------------
+// Cambios de ratio desde el listado de BYMA (ADR-0027)
+// ---------------------------------------------------------------------------
+
+// Compara el catálogo con el listado vigente y propone los cambios nuevos. Las
+// propuestas pendientes que el catálogo ya refleja (un admin cargó el ratio a
+// mano) se cierran solas. Avisa por mail solo de las nuevas. Devuelve si hubo
+// cambios, para que el que llama invalide el tag `ratio-proposals`.
+export async function detectRatioChanges(): Promise<{ created: number; closed: number }> {
+  const latest = await db.cedearListingVersion.findFirst({ orderBy: { version: "desc" } });
+  if (!latest) return { created: 0, closed: 0 };
+
+  const [assets, listing, pending] = await Promise.all([
+    db.asset.findMany({ select: { ticker: true, cedearRatio: true, assetKind: true } }),
+    db.cedearListing.findMany({ select: { ticker: true, ratioCedear: true, ratioUnderlying: true } }),
+    db.ratioChangeProposal.findMany({ where: { status: "PENDING" } }),
+  ]);
+  const catalog = assets.map((a) => ({ ticker: a.ticker, ratio: Number(a.cedearRatio), kind: a.assetKind }));
+  const diffs = diffCatalogRatios(
+    catalog,
+    listing.map((l) => ({ ticker: l.ticker, ratioCedear: Number(l.ratioCedear), ratioUnderlying: Number(l.ratioUnderlying) }))
+  );
+
+  const current = new Map(catalog.map((a) => [a.ticker, a.ratio]));
+  let closed = 0;
+  for (const p of pending) {
+    const ratio = current.get(p.ticker);
+    if (ratio !== undefined && Math.abs(ratio - Number(p.newRatio)) <= 1e-3) {
+      await db.ratioChangeProposal.update({
+        where: { ticker_newRatio: { ticker: p.ticker, newRatio: p.newRatio } },
+        data: { status: "APPLIED", resolvedAt: new Date() },
+      });
+      closed++;
+    }
+  }
+
+  const created: { ticker: string; oldRatio: number; newRatio: number }[] = [];
+  for (const d of diffs) {
+    // Redondeado como lo guarda la columna: la clave tiene que coincidir.
+    const newRatio = Math.round(d.newRatio * 10_000) / 10_000;
+    const exists = await db.ratioChangeProposal.findUnique({
+      where: { ticker_newRatio: { ticker: d.ticker, newRatio } },
+      select: { status: true },
+    });
+    if (exists) continue;
+    await db.ratioChangeProposal.create({
+      data: { ticker: d.ticker, newRatio, oldRatio: d.oldRatio, listingVersion: latest.version },
+    });
+    created.push(d);
+  }
+
+  const label = latest.version.toISOString().slice(0, 10).split("-").reverse().join("/");
+  await mailAdmins(buildRatioChangeEmail(created, label, process.env.NEXT_PUBLIC_APP_URL ?? ""));
+  return { created: created.length, closed };
 }

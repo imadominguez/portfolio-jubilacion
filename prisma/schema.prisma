@@ -42,6 +42,12 @@ enum AssetSource {
   AUTO
 }
 
+enum RatioProposalStatus {
+  PENDING
+  APPLIED
+  DISMISSED
+}
+
 enum AssetRequestStatus {
   PENDING
   RUNNING
@@ -279,6 +285,30 @@ model AssetRequest {
 
   @@index([status])
   @@map("asset_requests")
+}
+
+// ---------------------------------------------------------------------------
+// RatioChangeProposal
+//
+// Un CEDEAR del catálogo cuyo ratio difiere del listado de BYMA: casi siempre
+// un split que BYMA ya publicó. El PDF no trae la fecha efectiva, así que el
+// admin la confirma y se crea la CedearRatioChange (ADR-0023, ADR-0027). La
+// clave incluye el ratio nuevo: uno descartado no se vuelve a proponer.
+// ---------------------------------------------------------------------------
+
+model RatioChangeProposal {
+  ticker         String
+  newRatio       Decimal             @db.Decimal(10, 4)
+  oldRatio       Decimal             @db.Decimal(10, 4)
+  // Versión del listado que lo mostró por primera vez.
+  listingVersion DateTime            @db.Date
+  status         RatioProposalStatus @default(PENDING)
+  detectedAt     DateTime            @default(now())
+  resolvedAt     DateTime?
+
+  @@id([ticker, newRatio])
+  @@index([status])
+  @@map("ratio_change_proposals")
 }
 
 // ---------------------------------------------------------------------------

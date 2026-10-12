@@ -44,6 +44,11 @@ export function revalidateAssetRequests(): void {
   updateTag(marketTags.assetRequests);
 }
 
+// Cambios de ratio detectados en el listado (RatioChangeProposal, ADR-0027).
+export function revalidateRatioProposals(): void {
+  updateTag(marketTags.ratioProposals);
+}
+
 // CCL (ExchangeRate).
 export function revalidateCcl(): void {
   updateTag(marketTags.ccl);

@@ -29,5 +29,6 @@ export const marketTags = {
   benchmarks: "benchmarks",
   cedearListing: "cedear-listing",
   assetRequests: "asset-requests",
+  ratioProposals: "ratio-proposals",
   strategy: "strategy",
 } as const;

@@ -60,6 +60,7 @@ export const ModelName = {
   Asset: 'Asset',
   CedearRatioChange: 'CedearRatioChange',
   AssetRequest: 'AssetRequest',
+  RatioChangeProposal: 'RatioChangeProposal',
   CedearListingVersion: 'CedearListingVersion',
   CedearListing: 'CedearListing',
   ExchangeRate: 'ExchangeRate',
@@ -235,6 +236,19 @@ export const AssetRequestScalarFieldEnum = {
 } as const
 
 export type AssetRequestScalarFieldEnum = (typeof AssetRequestScalarFieldEnum)[keyof typeof AssetRequestScalarFieldEnum]
+
+
+export const RatioChangeProposalScalarFieldEnum = {
+  ticker: 'ticker',
+  newRatio: 'newRatio',
+  oldRatio: 'oldRatio',
+  listingVersion: 'listingVersion',
+  status: 'status',
+  detectedAt: 'detectedAt',
+  resolvedAt: 'resolvedAt'
+} as const
+
+export type RatioChangeProposalScalarFieldEnum = (typeof RatioChangeProposalScalarFieldEnum)[keyof typeof RatioChangeProposalScalarFieldEnum]
 
 
 export const CedearListingVersionScalarFieldEnum = {

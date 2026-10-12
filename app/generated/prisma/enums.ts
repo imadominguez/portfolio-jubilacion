@@ -50,6 +50,15 @@ export const AssetSource = {
 export type AssetSource = (typeof AssetSource)[keyof typeof AssetSource]
 
 
+export const RatioProposalStatus = {
+  PENDING: 'PENDING',
+  APPLIED: 'APPLIED',
+  DISMISSED: 'DISMISSED'
+} as const
+
+export type RatioProposalStatus = (typeof RatioProposalStatus)[keyof typeof RatioProposalStatus]
+
+
 export const AssetRequestStatus = {
   PENDING: 'PENDING',
   RUNNING: 'RUNNING',

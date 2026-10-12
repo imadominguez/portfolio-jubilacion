@@ -6,7 +6,8 @@ import { AssetsQuickSetup } from "@/components/assets/assets-quick-setup";
 import { AssetsSkeleton } from "@/components/assets/assets-skeleton";
 import { CedearListingCard } from "@/components/assets/cedear-listing-card";
 import { AssetRequestsPanel } from "@/components/assets/asset-requests-panel";
-import { getAssetRequests } from "@/app/actions/asset-requests";
+import { getAssetRequests, getRatioProposals } from "@/app/actions/asset-requests";
+import { RatioProposalsPanel } from "@/components/assets/ratio-proposals-panel";
 import { ImportButton } from "@/components/snapshots/snapshots-client";
 import { CclUpdateButton } from "@/components/exchange-rate/ccl-update-button";
 import { MarketPricesButton } from "@/components/market/market-prices-button";
@@ -50,7 +51,12 @@ export default function AssetsPage() {
 }
 
 async function AssetsCatalog() {
-  const [assets, setup, requests] = await Promise.all([getAssetCatalog(), getSetupStatus(), getAssetRequests()]);
+  const [assets, setup, requests, ratioProposals] = await Promise.all([
+    getAssetCatalog(),
+    getSetupStatus(),
+    getAssetRequests(),
+    getRatioProposals(),
+  ]);
   // Los tickers con pedido abierto se revisan en el panel de pedidos.
   const requested = new Set(requests.map((r) => r.ticker));
   const missing = setup.missingAssetTickers.filter((t) => !requested.has(t));
@@ -59,6 +65,7 @@ async function AssetsCatalog() {
   return (
     <>
       <AssetRequestsPanel requests={requests} />
+      <RatioProposalsPanel proposals={ratioProposals} />
       <CedearListingCard version={listing.version} fetchedAt={listing.fetchedAt} rowCount={listing.rowCount} />
       {/* key: con <Activity> el estado sobrevive a la navegación; con otros
           tickers o un listado nuevo, los borradores arrancan de nuevo. */}

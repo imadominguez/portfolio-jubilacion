@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildAssetReviewEmail } from "./asset-review-email";
+import { buildAssetReviewEmail, buildRatioChangeEmail } from "./asset-review-email";
 
 describe("buildAssetReviewEmail", () => {
   it("no arma mail sin pedidos", () => {
@@ -26,5 +26,23 @@ describe("buildAssetReviewEmail", () => {
   it("con un solo pedido nombra el ticker en el asunto", () => {
     const mail = buildAssetReviewEmail([{ ticker: "EJM", instrumentName: null, status: "NEEDS_REVIEW", reasons: [] }], "")!;
     expect(mail.subject).toBe("Portfolio: EJM espera tu revisión para darse de alta");
+  });
+});
+
+describe("buildRatioChangeEmail", () => {
+  it("lista cada cambio con el ratio viejo y el nuevo", () => {
+    const mail = buildRatioChangeEmail(
+      [
+        { ticker: "AAA", oldRatio: 20, newRatio: 60 },
+        { ticker: "BBB", oldRatio: 1, newRatio: 1 / 3 },
+      ],
+      "16/09/2026",
+      "https://app.example"
+    )!;
+    expect(mail.subject).toBe("Portfolio: BYMA cambió el ratio de 2 CEDEARs");
+    expect(mail.text).toContain("AAA: 20 → 60");
+    expect(mail.text).toContain("BBB: 1 → 0,3333");
+    expect(mail.text).toContain("https://app.example/assets#cambios-de-ratio");
+    expect(buildRatioChangeEmail([], "16/09/2026", "")).toBeNull();
   });
 });

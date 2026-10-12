@@ -1,10 +1,11 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
+import { marketTags } from "@/lib/cache-tags";
 import { runAllAlerts } from "@/lib/alerts-runner";
 import { refreshMarketData } from "@/lib/market-refresh";
 import { runMonthlyTasks } from "@/lib/monthly-runner";
-import { processAssetRequests } from "@/lib/asset-requests-runner";
+import { detectRatioChanges, processAssetRequests } from "@/lib/asset-requests-runner";
 
 // Datos de mercado, alertas por acción (~16 por usuario contra Yahoo) y, una vez
 // por mes, el reporte de oportunidades (hasta 150 s) y el resumen.
@@ -34,6 +35,9 @@ export async function GET(req: NextRequest) {
     // (ADR-0025, ADR-0026). Después del listado de BYMA, que acaba de revisarse.
     const assetRequests = await processAssetRequests({ retryFailed: true }).catch(() => null);
     for (const tag of assetRequests?.tags ?? []) revalidateTag(tag, "max");
+    // Splits que BYMA ya publicó y el catálogo no tiene (ADR-0027).
+    const ratioChanges = await detectRatioChanges().catch(() => null);
+    if (ratioChanges && (ratioChanges.created || ratioChanges.closed)) revalidateTag(marketTags.ratioProposals, "max");
 
     const results = await runAllAlerts();
     // Reporte de oportunidades del mes y resumen mensual: después de las alertas,
@@ -49,6 +53,7 @@ export async function GET(req: NextRequest) {
             failed: assetRequests.results.filter((r) => r.status === "FAILED").length,
           }
         : "error",
+      ratioChanges: ratioChanges ?? "error",
       users: results.length,
       failed: results.filter((r) => !r.ok).length,
       mailsSent: results.filter((r) => r.sent).length,

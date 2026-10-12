@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  diffCatalogRatios,
   findListingPdfUrl,
   parseListingItems,
   parseRatio,
@@ -164,5 +165,39 @@ describe("validateListing", () => {
   it("rechaza un listado incompleto o sin fecha", () => {
     expect(validateListing({ version, rows: rows(2), skipped: [] }, 3).ok).toBe(false);
     expect(validateListing({ version: null, rows: rows(3), skipped: [] }, 3).ok).toBe(false);
+  });
+});
+
+describe("diffCatalogRatios", () => {
+  const listing = [
+    { ticker: "AAA", ratioCedear: 60, ratioUnderlying: 1 },
+    { ticker: "BBB", ratioCedear: 10, ratioUnderlying: 1 },
+    { ticker: "CCC", ratioCedear: 1, ratioUnderlying: 3 },
+  ];
+
+  it("detecta los CEDEARs con un ratio distinto del listado", () => {
+    expect(
+      diffCatalogRatios(
+        [
+          { ticker: "AAA", ratio: 20, kind: "CEDEAR" },
+          { ticker: "BBB", ratio: 10, kind: "CEDEAR" },
+          // 1:3 guardado con 4 decimales no es un cambio.
+          { ticker: "CCC", ratio: 0.3333, kind: "CEDEAR" },
+        ],
+        listing
+      )
+    ).toEqual([{ ticker: "AAA", oldRatio: 20, newRatio: 60 }]);
+  });
+
+  it("ignora lo que no está en el listado y lo que no es CEDEAR", () => {
+    expect(
+      diffCatalogRatios(
+        [
+          { ticker: "ZZZ", ratio: 5, kind: "CEDEAR" },
+          { ticker: "BBB", ratio: 1, kind: "FCI" },
+        ],
+        listing
+      )
+    ).toEqual([]);
   });
 });
