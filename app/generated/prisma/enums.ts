@@ -42,6 +42,25 @@ export const AssetKind = {
 export type AssetKind = (typeof AssetKind)[keyof typeof AssetKind]
 
 
+export const AssetSource = {
+  MANUAL: 'MANUAL',
+  AUTO: 'AUTO'
+} as const
+
+export type AssetSource = (typeof AssetSource)[keyof typeof AssetSource]
+
+
+export const AssetRequestStatus = {
+  PENDING: 'PENDING',
+  RUNNING: 'RUNNING',
+  DONE: 'DONE',
+  NEEDS_REVIEW: 'NEEDS_REVIEW',
+  FAILED: 'FAILED'
+} as const
+
+export type AssetRequestStatus = (typeof AssetRequestStatus)[keyof typeof AssetRequestStatus]
+
+
 export const MovementCategory = {
   TRADE_BUY: 'TRADE_BUY',
   TRADE_SELL: 'TRADE_SELL',

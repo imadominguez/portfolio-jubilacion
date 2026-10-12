@@ -108,6 +108,8 @@ Catálogo de referencia **mutable** de CEDEARs (sin FK desde `Position`).
 | `sector` / `industry` / `country` | `String?` | Metadatos para análisis de concentración. |
 | `underlyingTicker` | `String?` | Símbolo en NYSE/NASDAQ para Yahoo. |
 | `assetKind` | `AssetKind @default(CEDEAR)` | `CEDEAR`, `FCI` u `OTHER`. Los fondos de Cocos (COCORMA/COCOUSDPA) son `FCI`. |
+| `source` | `AssetSource @default(MANUAL)` | `MANUAL` (cargado por un admin) o `AUTO` (alta desde un `AssetRequest`, ADR-0025). |
+| `reviewedAt` | `DateTime?` | Cuándo un admin revisó un alta `AUTO`. |
 | `createdAt` / `updatedAt` | `DateTime` | |
 
 ### `CedearRatioChange` → `cedear_ratio_changes`
@@ -121,6 +123,21 @@ Splits de CEDEAR (ADR-0023), un dato global. Las operaciones anteriores a `effec
 | `effectiveDate` | `DateTime @db.Date` | Primer día con el ratio nuevo. `@@unique([ticker, effectiveDate])`. |
 | `oldRatio` / `newRatio` | `Decimal(8,4)` | |
 | `createdAt` | `DateTime` | |
+
+### `AssetRequest` → `asset_requests`
+
+Pedido de alta de un ticker que apareció en un snapshot y no está en el catálogo (ADR-0025). Global, con el ticker como clave: varios usuarios comparten el pedido.
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `ticker` | `String @id` | |
+| `instrumentName` | `String?` | Nombre del CSV de Cocos (de ahí sale el tipo). |
+| `observedPrice` / `observedCurrency` / `observedCcl` / `observedAt` | `Decimal?` / `Currency?` / `Decimal?` / `Date?` | Del snapshot que lo pidió: verifican el ratio. |
+| `requestedBy` | `String?` | userId del primero que lo pidió (sin FK). |
+| `status` | `AssetRequestStatus` | `PENDING`, `RUNNING`, `NEEDS_REVIEW`, `FAILED`, `DONE`. `@@index([status])`. |
+| `attempts` / `lastError` | `Int` / `String?` | |
+| `proposal` | `Json?` | `AssetProposal` (`lib/asset-resolution.ts`): datos propuestos y cada control. |
+| `requestedAt` / `updatedAt` / `resolvedAt` | `DateTime` | |
 
 ### `CedearListingVersion` → `cedear_listing_versions` y `CedearListing` → `cedear_listings`
 
@@ -328,7 +345,7 @@ BenchmarkPoint (independiente, por benchmarkId)
 InvestmentStrategy (independiente, versionada)
 ```
 
-Modelos **globales sin `userId`**: `Asset`, `CedearRatioChange`, `CedearListingVersion`, `CedearListing`, `ExchangeRate`, `MarketPriceCache`, `HistoricalPriceCache`, `BenchmarkPoint`, `InvestmentStrategy`.
+Modelos **globales sin `userId`**: `Asset`, `CedearRatioChange`, `CedearListingVersion`, `CedearListing`, `AssetRequest`, `ExchangeRate`, `MarketPriceCache`, `HistoricalPriceCache`, `BenchmarkPoint`, `InvestmentStrategy`.
 
 ---
 
@@ -355,6 +372,7 @@ Ubicación: `prisma/migrations/`.
 | `20261010160000_market_dividend_rate` | `market_price_cache.dividendRate`. |
 | `20261011160000_cedear_ratio_changes` | Tabla `cedear_ratio_changes` con el split de SPY (20:1 → 60:1, 01/06/2026), ADR-0023. |
 | `20261012160000_cedear_listing` | Tablas `cedear_listing_versions` y `cedear_listings` (listado de BYMA, ADR-0024). |
+| `20261012180000_asset_requests` | Tabla `asset_requests` y columnas `source` / `reviewedAt` en `assets` (ADR-0025). |
 | `20261009220000_drop_target_allocations` | Borra la tabla `target_allocations` (sin pesos objetivo, ADR-0022). |
 | `20261009200000_retirement_expected_return` | `retirement_settings.expectedReturnRate` (`Decimal(6,4)`, por defecto 0.07). |
 

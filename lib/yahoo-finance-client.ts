@@ -224,3 +224,78 @@ export async function getNews(
       : []
   );
 }
+
+// ---------------------------------------------------------------------------
+// searchSymbols — símbolos que Yahoo asocia a un texto (ticker o nombre). Sin
+// cookie ni crumb, como getNews. Lo usa el alta automática de activos para
+// encontrar el subyacente de un CEDEAR nuevo (BRKB → BRK-B).
+// ---------------------------------------------------------------------------
+
+export type SymbolCandidate = {
+  symbol: string;
+  // Código de bolsa de Yahoo: NMS/NGM/NCM (NASDAQ), NYQ (NYSE), PCX (NYSE Arca)…
+  exchange: string;
+  quoteType: string;
+  name: string;
+};
+
+export async function searchSymbols(query: string, count = 8): Promise<SymbolCandidate[]> {
+  const url = `${BASE2}/v1/finance/search?q=${encodeURIComponent(query)}&quotesCount=${count}&newsCount=0`;
+  const res = await fetchWithTimeout(url, {
+    service: SERVICE,
+    headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
+  });
+  if (!res.ok) throw new Error(`Yahoo Finance búsqueda "${query}" falló con status ${res.status}.`);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const data: any = await res.json();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (data?.quotes ?? []).flatMap((q: any) =>
+    typeof q?.symbol === "string"
+      ? [
+          {
+            symbol: q.symbol,
+            exchange: typeof q.exchange === "string" ? q.exchange : "",
+            quoteType: typeof q.quoteType === "string" ? q.quoteType : "",
+            name: String(q.longname ?? q.shortname ?? ""),
+          },
+        ]
+      : []
+  );
+}
+
+// ---------------------------------------------------------------------------
+// getAssetProfile — sector, industria y país de una empresa (quoteSummary).
+// Los ETF no traen perfil: devuelve el tipo para que el que llama lo marque.
+// ---------------------------------------------------------------------------
+
+export type AssetProfile = {
+  name: string | null;
+  quoteType: string | null;
+  sector: string | null;
+  industry: string | null;
+  country: string | null;
+};
+
+export async function getAssetProfile(symbol: string): Promise<AssetProfile | null> {
+  const encoded = encodeURIComponent(symbol);
+  const res = await authedGet(
+    (crumb) =>
+      `${BASE}/v10/finance/quoteSummary/${encoded}?modules=assetProfile,quoteType&crumb=${encodeURIComponent(crumb)}`
+  );
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`Yahoo Finance perfil/${symbol} falló con status ${res.status}.`);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const data: any = await res.json();
+  const result = data?.quoteSummary?.result?.[0];
+  if (!result) return null;
+  const text = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
+  return {
+    name: text(result.quoteType?.longName) ?? text(result.quoteType?.shortName),
+    quoteType: text(result.quoteType?.quoteType),
+    sector: text(result.assetProfile?.sector),
+    industry: text(result.assetProfile?.industry),
+    country: text(result.assetProfile?.country),
+  };
+}

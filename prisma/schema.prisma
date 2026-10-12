@@ -35,6 +35,21 @@ enum AssetKind {
   OTHER
 }
 
+// Quién dio de alta el activo: un admin a mano o el sistema a partir de un
+// pedido (AssetRequest, ADR-0025).
+enum AssetSource {
+  MANUAL
+  AUTO
+}
+
+enum AssetRequestStatus {
+  PENDING
+  RUNNING
+  DONE
+  NEEDS_REVIEW
+  FAILED
+}
+
 // Categoría normalizada de un movimiento del CSV de Cocos Capital.
 // El parser asigna una categoría a cada fila; sólo TRADE_BUY/TRADE_SELL generan
 // una Transaction (FCI, pagos, cobros, dividendos y conversiones quedan como
@@ -200,6 +215,9 @@ model Asset {
   country          String?
   underlyingTicker String?
   assetKind        AssetKind @default(CEDEAR)
+  source           AssetSource @default(MANUAL)
+  // Cuándo un admin revisó un alta automática; null en las manuales.
+  reviewedAt       DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
@@ -228,6 +246,39 @@ model CedearRatioChange {
 
   @@unique([ticker, effectiveDate])
   @@map("cedear_ratio_changes")
+}
+
+// ---------------------------------------------------------------------------
+// AssetRequest
+//
+// Pedido de alta de un ticker que apareció en un snapshot y no está en el
+// catálogo (ADR-0025). Lo crea el import de cualquier usuario; lo procesa el
+// sistema en segundo plano y, si no pasa los controles, lo aprueba un admin.
+// Dato global: el ticker es único y varios usuarios comparten el pedido.
+// ---------------------------------------------------------------------------
+
+model AssetRequest {
+  ticker           String             @id
+  instrumentName   String?
+  // Precio, moneda, CCL y fecha del snapshot que lo pidió: con ellos se
+  // verifica el ratio sin volver a leer datos del usuario.
+  observedPrice    Decimal?           @db.Decimal(18, 4)
+  observedCurrency Currency?
+  observedCcl      Decimal?           @db.Decimal(18, 4)
+  observedAt       DateTime?          @db.Date
+  // userId del primero que lo pidió (sin FK: el pedido sobrevive al usuario).
+  requestedBy      String?
+  status           AssetRequestStatus @default(PENDING)
+  attempts         Int                @default(0)
+  lastError        String?
+  // AssetProposal (lib/asset-resolution.ts): lo encontrado y cada control.
+  proposal         Json?
+  requestedAt      DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  resolvedAt       DateTime?
+
+  @@index([status])
+  @@map("asset_requests")
 }
 
 // ---------------------------------------------------------------------------

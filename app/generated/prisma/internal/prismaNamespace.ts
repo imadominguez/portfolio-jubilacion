@@ -405,6 +405,7 @@ export const ModelName = {
   Position: 'Position',
   Asset: 'Asset',
   CedearRatioChange: 'CedearRatioChange',
+  AssetRequest: 'AssetRequest',
   CedearListingVersion: 'CedearListingVersion',
   CedearListing: 'CedearListing',
   ExchangeRate: 'ExchangeRate',
@@ -438,7 +439,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "portfolioSnapshot" | "position" | "asset" | "cedearRatioChange" | "cedearListingVersion" | "cedearListing" | "exchangeRate" | "marketPriceCache" | "benchmarkPoint" | "transaction" | "dividend" | "retirementSettings" | "historicalPriceCache" | "milestoneAlert" | "userSetup" | "investmentStrategy" | "portfolioReport" | "movement" | "alertSettings" | "alertLog" | "expenseTag" | "expenseBudget"
+    modelProps: "user" | "session" | "account" | "verification" | "portfolioSnapshot" | "position" | "asset" | "cedearRatioChange" | "assetRequest" | "cedearListingVersion" | "cedearListing" | "exchangeRate" | "marketPriceCache" | "benchmarkPoint" | "transaction" | "dividend" | "retirementSettings" | "historicalPriceCache" | "milestoneAlert" | "userSetup" | "investmentStrategy" | "portfolioReport" | "movement" | "alertSettings" | "alertLog" | "expenseTag" | "expenseBudget"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1031,6 +1032,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.CedearRatioChangeCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.CedearRatioChangeCountAggregateOutputType> | number
+        }
+      }
+    }
+    AssetRequest: {
+      payload: Prisma.$AssetRequestPayload<ExtArgs>
+      fields: Prisma.AssetRequestFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AssetRequestFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetRequestPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AssetRequestFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetRequestPayload>
+        }
+        findFirst: {
+          args: Prisma.AssetRequestFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetRequestPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AssetRequestFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetRequestPayload>
+        }
+        findMany: {
+          args: Prisma.AssetRequestFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetRequestPayload>[]
+        }
+        create: {
+          args: Prisma.AssetRequestCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetRequestPayload>
+        }
+        createMany: {
+          args: Prisma.AssetRequestCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AssetRequestCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetRequestPayload>[]
+        }
+        delete: {
+          args: Prisma.AssetRequestDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetRequestPayload>
+        }
+        update: {
+          args: Prisma.AssetRequestUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetRequestPayload>
+        }
+        deleteMany: {
+          args: Prisma.AssetRequestDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AssetRequestUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AssetRequestUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetRequestPayload>[]
+        }
+        upsert: {
+          args: Prisma.AssetRequestUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetRequestPayload>
+        }
+        aggregate: {
+          args: Prisma.AssetRequestAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAssetRequest>
+        }
+        groupBy: {
+          args: Prisma.AssetRequestGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AssetRequestGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AssetRequestCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AssetRequestCountAggregateOutputType> | number
         }
       }
     }
@@ -2505,6 +2580,8 @@ export const AssetScalarFieldEnum = {
   country: 'country',
   underlyingTicker: 'underlyingTicker',
   assetKind: 'assetKind',
+  source: 'source',
+  reviewedAt: 'reviewedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -2522,6 +2599,26 @@ export const CedearRatioChangeScalarFieldEnum = {
 } as const
 
 export type CedearRatioChangeScalarFieldEnum = (typeof CedearRatioChangeScalarFieldEnum)[keyof typeof CedearRatioChangeScalarFieldEnum]
+
+
+export const AssetRequestScalarFieldEnum = {
+  ticker: 'ticker',
+  instrumentName: 'instrumentName',
+  observedPrice: 'observedPrice',
+  observedCurrency: 'observedCurrency',
+  observedCcl: 'observedCcl',
+  observedAt: 'observedAt',
+  requestedBy: 'requestedBy',
+  status: 'status',
+  attempts: 'attempts',
+  lastError: 'lastError',
+  proposal: 'proposal',
+  requestedAt: 'requestedAt',
+  updatedAt: 'updatedAt',
+  resolvedAt: 'resolvedAt'
+} as const
+
+export type AssetRequestScalarFieldEnum = (typeof AssetRequestScalarFieldEnum)[keyof typeof AssetRequestScalarFieldEnum]
 
 
 export const CedearListingVersionScalarFieldEnum = {
@@ -2771,6 +2868,14 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
 export const JsonNullValueInput = {
   JsonNull: JsonNull
 } as const
@@ -2901,6 +3006,34 @@ export type ListEnumAssetKindFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
 
 
 /**
+ * Reference to a field of type 'AssetSource'
+ */
+export type EnumAssetSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssetSource'>
+    
+
+
+/**
+ * Reference to a field of type 'AssetSource[]'
+ */
+export type ListEnumAssetSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssetSource[]'>
+    
+
+
+/**
+ * Reference to a field of type 'AssetRequestStatus'
+ */
+export type EnumAssetRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssetRequestStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'AssetRequestStatus[]'
+ */
+export type ListEnumAssetRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssetRequestStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'Int'
  */
 export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
@@ -2915,20 +3048,6 @@ export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
- * Reference to a field of type 'TransactionType'
- */
-export type EnumTransactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TransactionType'>
-    
-
-
-/**
- * Reference to a field of type 'TransactionType[]'
- */
-export type ListEnumTransactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TransactionType[]'>
-    
-
-
-/**
  * Reference to a field of type 'Json'
  */
 export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
@@ -2939,6 +3058,20 @@ export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'J
  * Reference to a field of type 'QueryMode'
  */
 export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+/**
+ * Reference to a field of type 'TransactionType'
+ */
+export type EnumTransactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TransactionType'>
+    
+
+
+/**
+ * Reference to a field of type 'TransactionType[]'
+ */
+export type ListEnumTransactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TransactionType[]'>
     
 
 
@@ -3142,6 +3275,7 @@ export type GlobalOmitConfig = {
   position?: Prisma.PositionOmit
   asset?: Prisma.AssetOmit
   cedearRatioChange?: Prisma.CedearRatioChangeOmit
+  assetRequest?: Prisma.AssetRequestOmit
   cedearListingVersion?: Prisma.CedearListingVersionOmit
   cedearListing?: Prisma.CedearListingOmit
   exchangeRate?: Prisma.ExchangeRateOmit

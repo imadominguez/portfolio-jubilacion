@@ -127,6 +127,7 @@ export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
     positionCount: number;
     totalValueArs: number;
     nextStep: NextSetupStep | null;
+    newAssetTickers: string[];
   } | null>(null);
 
   // Estado controlado del formulario para poder auto-rellenarlo desde el archivo.
@@ -284,6 +285,7 @@ export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
           positionCount: result.positionCount,
           totalValueArs: result.totalValueArs,
           nextStep: result.nextStep,
+          newAssetTickers: result.newAssetTickers,
         });
         setStep("done");
       } else {
@@ -609,6 +611,13 @@ export function ImportCsvSheet({ open, onOpenChange }: ImportCsvSheetProps) {
                 </>
               )}
             </div>
+            {imported && imported.newAssetTickers.length > 0 && (
+              <p className="w-full max-w-xs rounded-lg border border-border/60 bg-muted/20 px-4 py-3 text-left text-xs leading-relaxed text-muted-foreground">
+                {imported.newAssetTickers.length === 1 ? "Encontramos un activo nuevo" : `Encontramos ${imported.newAssetTickers.length} activos nuevos`}{" "}
+                (<span className="font-mono text-foreground">{imported.newAssetTickers.join(", ")}</span>). Estamos buscando
+                sus datos: hasta que estén, esas posiciones no tienen valor en dólares ni análisis.
+              </p>
+            )}
             {imported?.nextStep && (
               <div className="w-full max-w-xs rounded-lg border border-border/60 bg-muted/20 px-4 py-3 text-left flex flex-col gap-0.5">
                 <span className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">

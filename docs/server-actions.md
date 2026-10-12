@@ -38,6 +38,22 @@ Autorización: las actions que leen/escriben datos de usuario llaman a `requireA
 
 ---
 
+## `asset-requests.ts` — Pedidos de alta de activos
+
+ADR-0025. Los pedidos los crea `importSnapshot` (`enqueueAssetRequests`) y se resuelven después de responder (`processAssetRequestsInBackground`, en `lib/asset-requests-runner.ts`).
+
+| Función | Comportamiento |
+|---|---|
+| `getMyAssetStatus()` | Tickers del último snapshot del usuario sin activo: `searching` (PENDING/RUNNING) y `waiting` (NEEDS_REVIEW/FAILED). Cacheada con los tags `snapshots:<userId>`, `asset-requests` y `assets`. |
+| `getAssetRequests()` | Cola completa sin los `DONE`, con la propuesta. Exige ADMIN. |
+| `approveAssetRequest(ticker, data)` | Crea el `Asset` (tipo de la propuesta, `source: AUTO`, `reviewedAt`) con los datos que confirmó el admin y cierra el pedido. Exige ADMIN. |
+| `retryAssetRequest(ticker)` | Vuelve el pedido a `PENDING` y lo procesa en segundo plano. Exige ADMIN. |
+| `dismissAssetRequest(ticker)` | Borra el pedido; el próximo import con ese ticker lo vuelve a crear. Exige ADMIN. |
+
+`importSnapshot` devuelve además `newAssetTickers`: los tickers que no estaban en el catálogo.
+
+---
+
 ## `assets.ts` — Catálogo de CEDEARs
 
 El catálogo es **global (compartido)**: lectura para todos, **escritura sólo ADMIN**. Cada mutación llama a `requireAdmin()` (defensa en profundidad, además del proxy).

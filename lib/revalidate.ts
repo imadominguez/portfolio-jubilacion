@@ -39,6 +39,11 @@ export function revalidateCedearListing(): void {
   updateTag(marketTags.cedearListing);
 }
 
+// Pedidos de alta de activos (AssetRequest, ADR-0025).
+export function revalidateAssetRequests(): void {
+  updateTag(marketTags.assetRequests);
+}
+
 // CCL (ExchangeRate).
 export function revalidateCcl(): void {
   updateTag(marketTags.ccl);
