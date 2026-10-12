@@ -30,7 +30,7 @@ import type { MovementRow } from "@/app/actions/import-movements";
 import { deleteTransaction } from "@/app/actions/transactions";
 import { deleteDividend } from "@/app/actions/dividends";
 import { CATEGORY_LABELS, type MovementCategory } from "@/lib/cocos-movements";
-import { formatDateUTC, formatCurrency, formatARS, formatPct } from "@/lib/format";
+import { formatDateUTC, formatDateNumeric, formatCurrency, formatARS, formatPct } from "@/lib/format";
 
 interface TransactionsClientProps {
   transactions: TransactionRow[];
@@ -43,6 +43,41 @@ interface TransactionsClientProps {
 }
 
 type Tab = "transactions" | "ppm" | "pnl" | "dividends" | "movements";
+
+const HEAD = "text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9";
+// Columnas que en celular no entran: su dato va debajo de la primera columna.
+const WIDE = "hidden sm:table-cell";
+
+// "Venta" en secondary casi no se distinguía del fondo de la tabla.
+function TradeBadge({ type }: { type: string }) {
+  const buy = type === "BUY";
+  return (
+    <Badge variant={buy ? "default" : "outline"} className="text-[10px] gap-1">
+      {buy ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}
+      {buy ? "Compra" : "Venta"}
+    </Badge>
+  );
+}
+
+// La fecha larga ("20 de jul de 2026") hacía desbordar las tablas en celular.
+function DateText({ date }: { date: Date | string }) {
+  return (
+    <>
+      <span className="sm:hidden">{formatDateNumeric(date)}</span>
+      <span className="hidden sm:inline">{formatDateUTC(date)}</span>
+    </>
+  );
+}
+
+function sumByCurrency(rows: RealizedPnlRow[]): [string, number][] {
+  const totals = new Map<string, number>();
+  for (const r of rows) totals.set(r.currency, (totals.get(r.currency) ?? 0) + r.pnl);
+  return [...totals];
+}
+
+function signedCurrency(value: number, currency: string): string {
+  return `${value >= 0 ? "+" : ""}${formatCurrency(value, currency)}`;
+}
 
 export function TransactionsClient({
   transactions,
@@ -59,7 +94,7 @@ export function TransactionsClient({
   const [deleteDivTarget, setDeleteDivTarget] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const totalRealizedPnl = realizedPnl.reduce((sum, r) => sum + r.pnl, 0);
+  const realizedByCurrency = sumByCurrency(realizedPnl);
 
   const fciMovements = movements.filter(
     (m) => m.category === "FCI_SUBSCRIPTION" || m.category === "FCI_REDEMPTION"
@@ -176,57 +211,47 @@ export function TransactionsClient({
             <Table>
               <TableHeader>
                 <TableRow className="border-border hover:bg-transparent bg-muted/40">
-                  <TableHead className="pl-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
+                  <TableHead className="pl-4 sm:pl-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
                     Fecha
                   </TableHead>
-                  <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
-                    Tipo
+                  <TableHead className={`${HEAD} ${WIDE}`}>Tipo</TableHead>
+                  <TableHead className={HEAD}>Ticker</TableHead>
+                  <TableHead className={`${HEAD} ${WIDE} text-right`}>Cantidad</TableHead>
+                  <TableHead className={`${HEAD} ${WIDE} text-right`}>Precio</TableHead>
+                  <TableHead className={`${HEAD} text-right`}>Total</TableHead>
+                  <TableHead className="pr-4 sm:pr-5 text-[11px] h-9">
+                    <span className="sr-only">Acciones</span>
                   </TableHead>
-                  <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
-                    Ticker
-                  </TableHead>
-                  <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
-                    Cantidad
-                  </TableHead>
-                  <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
-                    Precio
-                  </TableHead>
-                  <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
-                    Total
-                  </TableHead>
-                  <TableHead className="pr-5 text-[11px] h-9" />
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {transactions.map((tx) => (
                   <TableRow key={tx.id} className="border-border hover:bg-muted/30">
-                    <TableCell className="pl-5 py-3 text-xs text-muted-foreground">
-                      {formatDateUTC(tx.date)}
+                    <TableCell className="pl-4 sm:pl-5 py-3 text-xs text-muted-foreground">
+                      <DateText date={tx.date} />
                     </TableCell>
-                    <TableCell className="py-3">
-                      <Badge
-                        variant={tx.type === "BUY" ? "default" : "secondary"}
-                        className="text-[10px] gap-1"
-                      >
-                        {tx.type === "BUY" ? (
-                          <ArrowUpRight className="size-3" />
-                        ) : (
-                          <ArrowDownRight className="size-3" />
-                        )}
-                        {tx.type === "BUY" ? "Compra" : "Venta"}
-                      </Badge>
+                    <TableCell className={`py-3 ${WIDE}`}>
+                      <TradeBadge type={tx.type} />
                     </TableCell>
                     <TableCell className="py-3">
                       <span className="text-sm font-mono font-medium text-foreground">
                         {tx.ticker}
                       </span>
+                      {/* En celular las columnas de tipo, cantidad y precio no entran:
+                          van debajo del ticker. */}
+                      <span className="mt-0.5 block whitespace-normal text-[11px] text-muted-foreground sm:hidden">
+                        <span className="block">{tx.type === "BUY" ? "Compra" : "Venta"}</span>
+                        <span className="block whitespace-nowrap">
+                          {tx.quantity.toLocaleString("es-AR")} × {formatCurrency(tx.price, tx.currency)}
+                        </span>
+                      </span>
                     </TableCell>
-                    <TableCell className="py-3 text-right">
+                    <TableCell className={`py-3 text-right ${WIDE}`}>
                       <span className="text-sm font-mono tabular-nums text-foreground">
                         {tx.quantity.toLocaleString("es-AR")}
                       </span>
                     </TableCell>
-                    <TableCell className="py-3 text-right">
+                    <TableCell className={`py-3 text-right ${WIDE}`}>
                       <span className="text-sm font-mono tabular-nums text-muted-foreground">
                         {formatCurrency(tx.price, tx.currency)}
                       </span>
@@ -236,11 +261,12 @@ export function TransactionsClient({
                         {formatCurrency(tx.amount, tx.currency)}
                       </span>
                     </TableCell>
-                    <TableCell className="pr-5 py-3">
+                    <TableCell className="pr-4 sm:pr-5 py-3">
                       <Button
                         size="sm"
                         variant="ghost"
                         className="size-7 p-0"
+                        aria-label={`Eliminar la ${tx.type === "BUY" ? "compra" : "venta"} de ${tx.ticker} del ${formatDateUTC(tx.date)}`}
                         onClick={() => setDeleteTarget(tx.id)}
                       >
                         <Trash2 className="size-3.5 text-muted-foreground" />
@@ -264,16 +290,14 @@ export function TransactionsClient({
             <Table>
               <TableHeader>
                 <TableRow className="border-border hover:bg-transparent bg-muted/40">
-                  <TableHead className="pl-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
+                  <TableHead className="pl-4 sm:pl-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
                     Ticker
                   </TableHead>
                   <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
                     Precio promedio
                   </TableHead>
-                  <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
-                    Cantidad total
-                  </TableHead>
-                  <TableHead className="pr-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
+                  <TableHead className={`${HEAD} ${WIDE} text-right`}>Cantidad total</TableHead>
+                  <TableHead className="pr-4 sm:pr-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
                     Costo total
                   </TableHead>
                 </TableRow>
@@ -281,7 +305,7 @@ export function TransactionsClient({
               <TableBody>
                 {ppmData.map((row) => (
                   <TableRow key={row.ticker} className="border-border hover:bg-muted/30">
-                    <TableCell className="pl-5 py-3.5">
+                    <TableCell className="pl-4 sm:pl-5 py-3.5">
                       <span className="text-sm font-mono font-medium text-foreground">
                         {row.ticker}
                       </span>
@@ -291,12 +315,12 @@ export function TransactionsClient({
                         {formatARS(row.avgPrice)}
                       </span>
                     </TableCell>
-                    <TableCell className="py-3.5 text-right">
+                    <TableCell className={`py-3.5 text-right ${WIDE}`}>
                       <span className="text-sm font-mono tabular-nums text-muted-foreground">
                         {row.totalQuantity.toLocaleString("es-AR")}
                       </span>
                     </TableCell>
-                    <TableCell className="pr-5 py-3.5 text-right">
+                    <TableCell className="pr-4 sm:pr-5 py-3.5 text-right">
                       <span className="text-sm font-mono tabular-nums text-foreground">
                         {formatARS(row.totalCost)}
                       </span>
@@ -313,16 +337,18 @@ export function TransactionsClient({
         <>
           {realizedPnl.length > 0 && (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              <div className="rounded-xl border border-border bg-card shadow-sm px-5 py-4">
-                <p className="text-xs text-muted-foreground mb-1">P&L Total Realizado</p>
-                <p
-                  className={`text-lg font-bold font-mono ${
-                    totalRealizedPnl >= 0 ? "text-success" : "text-destructive"
-                  }`}
-                >
-                  {totalRealizedPnl >= 0 ? "+" : ""}
-                  {totalRealizedPnl.toLocaleString("es-AR")}
-                </p>
+              <div className="col-span-2 rounded-xl border border-border bg-card shadow-sm px-5 py-4 sm:col-span-1">
+                <p className="text-xs text-muted-foreground mb-1">P&L total realizado</p>
+                {realizedByCurrency.map(([currency, total]) => (
+                  <p
+                    key={currency}
+                    className={`text-lg font-bold font-mono tabular-nums ${
+                      total >= 0 ? "text-success" : "text-destructive"
+                    }`}
+                  >
+                    {signedCurrency(total, currency)}
+                  </p>
+                ))}
               </div>
               <div className="rounded-xl border border-border bg-card shadow-sm px-5 py-4">
                 <p className="text-xs text-muted-foreground mb-1">Operaciones cerradas</p>
@@ -353,22 +379,16 @@ export function TransactionsClient({
               <Table>
                 <TableHeader>
                   <TableRow className="border-border hover:bg-transparent bg-muted/40">
-                    <TableHead className="pl-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
+                    <TableHead className="pl-4 sm:pl-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
                       Ticker
                     </TableHead>
-                    <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
-                      Cantidad
-                    </TableHead>
-                    <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
-                      PPM
-                    </TableHead>
-                    <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
-                      Precio venta
-                    </TableHead>
+                    <TableHead className={`${HEAD} ${WIDE} text-right`}>Cantidad</TableHead>
+                    <TableHead className={`${HEAD} ${WIDE} text-right`}>PPM</TableHead>
+                    <TableHead className={`${HEAD} ${WIDE} text-right`}>Precio venta</TableHead>
                     <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
                       P&L
                     </TableHead>
-                    <TableHead className="pr-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
+                    <TableHead className="pr-4 sm:pr-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
                       P&L %
                     </TableHead>
                   </TableRow>
@@ -376,24 +396,27 @@ export function TransactionsClient({
                 <TableBody>
                   {realizedPnl.map((row, i) => (
                     <TableRow key={i} className="border-border hover:bg-muted/30">
-                      <TableCell className="pl-5 py-3.5">
+                      <TableCell className="pl-4 sm:pl-5 py-3.5">
                         <span className="text-sm font-mono font-medium text-foreground">
                           {row.ticker}
                         </span>
+                        <span className="mt-0.5 block whitespace-normal text-[11px] text-muted-foreground sm:hidden">
+                          {row.quantity.toLocaleString("es-AR")} × {formatCurrency(row.sellPrice, row.currency)}
+                        </span>
                       </TableCell>
-                      <TableCell className="py-3.5 text-right">
+                      <TableCell className={`py-3.5 text-right ${WIDE}`}>
                         <span className="text-sm font-mono tabular-nums text-muted-foreground">
                           {row.quantity.toLocaleString("es-AR")}
                         </span>
                       </TableCell>
-                      <TableCell className="py-3.5 text-right">
+                      <TableCell className={`py-3.5 text-right ${WIDE}`}>
                         <span className="text-sm font-mono tabular-nums text-muted-foreground">
-                          {row.buyPrice.toFixed(2)}
+                          {formatCurrency(row.buyPrice, row.currency)}
                         </span>
                       </TableCell>
-                      <TableCell className="py-3.5 text-right">
+                      <TableCell className={`py-3.5 text-right ${WIDE}`}>
                         <span className="text-sm font-mono tabular-nums text-foreground">
-                          {row.sellPrice.toFixed(2)}
+                          {formatCurrency(row.sellPrice, row.currency)}
                         </span>
                       </TableCell>
                       <TableCell className="py-3.5 text-right">
@@ -402,18 +425,16 @@ export function TransactionsClient({
                             row.pnl >= 0 ? "text-success" : "text-destructive"
                           }`}
                         >
-                          {row.pnl >= 0 ? "+" : ""}
-                          {row.pnl.toFixed(2)}
+                          {signedCurrency(row.pnl, row.currency)}
                         </span>
                       </TableCell>
-                      <TableCell className="pr-5 py-3.5 text-right">
+                      <TableCell className="pr-4 sm:pr-5 py-3.5 text-right">
                         <span
                           className={`text-sm font-mono tabular-nums ${
                             row.pnlPct >= 0 ? "text-success" : "text-destructive"
                           }`}
                         >
-                          {row.pnlPct >= 0 ? "+" : ""}
-                          {formatPct(row.pnlPct, { decimals: 2 })}
+                          {formatPct(row.pnlPct, { signed: true, decimals: 2 })}
                         </span>
                       </TableCell>
                     </TableRow>
@@ -450,7 +471,7 @@ export function TransactionsClient({
               <Table>
                 <TableHeader>
                   <TableRow className="border-border hover:bg-transparent bg-muted/40">
-                    <TableHead className="pl-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
+                    <TableHead className="pl-4 sm:pl-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
                       Fecha
                     </TableHead>
                     <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
@@ -462,17 +483,17 @@ export function TransactionsClient({
                     <TableHead className="hidden md:table-cell text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
                       Notas
                     </TableHead>
-                    <TableHead className="pr-5 text-[11px] h-9" />
+                    <TableHead className="pr-4 sm:pr-5 text-[11px] h-9" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {dividends.map((div) => (
                     <TableRow key={`${div.manual ? "m" : "c"}-${div.id}`} className="border-border hover:bg-muted/30">
-                      <TableCell className="pl-5 py-3 text-xs text-muted-foreground">
-                        {formatDateUTC(div.date)}
+                      <TableCell className="pl-4 sm:pl-5 py-3 text-xs text-muted-foreground">
+                        <DateText date={div.date} />
                       </TableCell>
                       <TableCell className="py-3">
-                        <span className="text-sm font-mono font-medium text-foreground">
+                        <span className="block max-w-[7.5rem] truncate text-sm font-mono font-medium text-foreground sm:max-w-none" title={div.ticker}>
                           {div.ticker}
                         </span>
                       </TableCell>
@@ -484,12 +505,13 @@ export function TransactionsClient({
                       <TableCell className="py-3 hidden md:table-cell">
                         <span className="text-xs text-muted-foreground">{div.notes ?? "—"}</span>
                       </TableCell>
-                      <TableCell className="pr-5 py-3">
+                      <TableCell className="pr-4 sm:pr-5 py-3">
                         {div.manual && (
                           <Button
                             size="sm"
                             variant="ghost"
                             className="size-7 p-0"
+                            aria-label={`Eliminar el dividendo de ${div.ticker} del ${formatDateUTC(div.date)}`}
                             onClick={() => setDeleteDivTarget(div.id)}
                           >
                             <Trash2 className="size-3.5 text-muted-foreground" />
@@ -540,22 +562,14 @@ export function TransactionsClient({
                 <Table>
                   <TableHeader>
                     <TableRow className="border-border hover:bg-transparent bg-muted/40">
-                      <TableHead className="pl-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
+                      <TableHead className="pl-4 sm:pl-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
                         Fecha
                       </TableHead>
-                      <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
-                        Categoría
-                      </TableHead>
-                      <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
-                        Instrumento
-                      </TableHead>
-                      <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
-                        Cantidad
-                      </TableHead>
-                      <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
-                        Precio
-                      </TableHead>
-                      <TableHead className="pr-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
+                      <TableHead className={`${HEAD} ${WIDE}`}>Categoría</TableHead>
+                      <TableHead className={HEAD}>Instrumento</TableHead>
+                      <TableHead className={`${HEAD} ${WIDE} text-right`}>Cantidad</TableHead>
+                      <TableHead className={`${HEAD} ${WIDE} text-right`}>Precio</TableHead>
+                      <TableHead className="pr-4 sm:pr-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
                         Total
                       </TableHead>
                     </TableRow>
@@ -563,15 +577,15 @@ export function TransactionsClient({
                   <TableBody>
                     {movements.map((m) => (
                       <TableRow key={m.id} className="border-border hover:bg-muted/30">
-                        <TableCell className="pl-5 py-2.5 text-xs text-muted-foreground whitespace-nowrap">
-                          {formatDateUTC(m.date)}
+                        <TableCell className="pl-4 sm:pl-5 py-2.5 text-xs text-muted-foreground whitespace-nowrap">
+                          <DateText date={m.date} />
                         </TableCell>
-                        <TableCell className="py-2.5">
+                        <TableCell className={`py-2.5 ${WIDE}`}>
                           <Badge variant="secondary" className="text-[10px] whitespace-nowrap">
                             {CATEGORY_LABELS[m.category as MovementCategory] ?? m.category}
                           </Badge>
                         </TableCell>
-                        <TableCell className="py-2.5 max-w-[260px]">
+                        <TableCell className="py-2.5 max-w-[104px] sm:max-w-[260px]">
                           {m.ticker ? (
                             <span
                               className="text-sm font-mono font-medium text-foreground"
@@ -587,18 +601,21 @@ export function TransactionsClient({
                               {m.instrument ?? m.rawType}
                             </span>
                           )}
+                          <span className="mt-0.5 block whitespace-normal text-[11px] text-muted-foreground sm:hidden">
+                            {CATEGORY_LABELS[m.category as MovementCategory] ?? m.category}
+                          </span>
                         </TableCell>
-                        <TableCell className="py-2.5 text-right">
+                        <TableCell className={`py-2.5 text-right ${WIDE}`}>
                           <span className="text-sm font-mono tabular-nums text-muted-foreground">
                             {m.quantity !== null ? m.quantity.toLocaleString("es-AR") : "—"}
                           </span>
                         </TableCell>
-                        <TableCell className="py-2.5 text-right">
+                        <TableCell className={`py-2.5 text-right ${WIDE}`}>
                           <span className="text-sm font-mono tabular-nums text-muted-foreground">
                             {m.price !== null ? formatCurrency(m.price, m.currency) : "—"}
                           </span>
                         </TableCell>
-                        <TableCell className="pr-5 py-2.5 text-right">
+                        <TableCell className="pr-4 sm:pr-5 py-2.5 text-right">
                           <span
                             className={`text-sm font-mono tabular-nums ${
                               m.total >= 0 ? "text-success" : "text-foreground"
@@ -665,7 +682,7 @@ export function TransactionsClient({
                   <Table>
                     <TableHeader>
                       <TableRow className="border-border hover:bg-transparent bg-muted/40">
-                        <TableHead className="pl-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
+                        <TableHead className="pl-4 sm:pl-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
                           Fecha
                         </TableHead>
                         <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9">
@@ -674,10 +691,8 @@ export function TransactionsClient({
                         <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
                           Cuotapartes
                         </TableHead>
-                        <TableHead className="text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
-                          Valor cuotaparte
-                        </TableHead>
-                        <TableHead className="pr-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
+                        <TableHead className={`${HEAD} ${WIDE} text-right`}>Valor cuotaparte</TableHead>
+                        <TableHead className="pr-4 sm:pr-5 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 text-right h-9">
                           Total
                         </TableHead>
                       </TableRow>
@@ -685,8 +700,8 @@ export function TransactionsClient({
                     <TableBody>
                       {fciMovements.map((m) => (
                         <TableRow key={m.id} className="border-border hover:bg-muted/30">
-                          <TableCell className="pl-5 py-2.5 text-xs text-muted-foreground whitespace-nowrap">
-                            {formatDateUTC(m.date)}
+                          <TableCell className="pl-4 sm:pl-5 py-2.5 text-xs text-muted-foreground whitespace-nowrap">
+                            <DateText date={m.date} />
                           </TableCell>
                           <TableCell className="py-2.5">
                             <Badge
@@ -703,12 +718,12 @@ export function TransactionsClient({
                                 : "—"}
                             </span>
                           </TableCell>
-                          <TableCell className="py-2.5 text-right">
+                          <TableCell className={`py-2.5 text-right ${WIDE}`}>
                             <span className="text-sm font-mono tabular-nums text-muted-foreground">
                               {m.price !== null ? formatCurrency(m.price, m.currency) : "—"}
                             </span>
                           </TableCell>
-                          <TableCell className="pr-5 py-2.5 text-right">
+                          <TableCell className="pr-4 sm:pr-5 py-2.5 text-right">
                             <span
                               className={`text-sm font-mono tabular-nums ${
                                 m.total >= 0 ? "text-success" : "text-foreground"

@@ -56,8 +56,13 @@ type ParsedState = {
 
 // compact: para headers con varias acciones. Solo el ícono por debajo de 2xl, sin
 // el link a la guía (la página ya lo tiene) y con el aviso de error flotando para
-// no agrandar el header.
-export function ImportMovimientosButton({ compact = false }: { compact?: boolean } = {}) {
+// no agrandar el header. guideLink y tourTarget: la fila de acciones de celular de
+// /transactions repite el botón del header (oculto ahí) sin el link ni el id del tour.
+export function ImportMovimientosButton({
+  compact = false,
+  guideLink = !compact,
+  tourTarget = true,
+}: { compact?: boolean; guideLink?: boolean; tourTarget?: boolean } = {}) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
@@ -193,7 +198,7 @@ export function ImportMovimientosButton({ compact = false }: { compact?: boolean
 
       <div className={cn("flex flex-col items-end gap-1", compact && "relative")}>
         <Button
-          id="tour-import-movimientos"
+          id={tourTarget ? "tour-import-movimientos" : undefined}
           size="sm"
           variant="outline"
           className="gap-1.5 text-xs"
@@ -205,7 +210,7 @@ export function ImportMovimientosButton({ compact = false }: { compact?: boolean
           {isParsing ? <Spinner className="size-3" /> : <Upload className="size-3" />}
           <span className={compact ? "hidden 2xl:inline" : undefined}>Importar CSV Cocos</span>
         </Button>
-        {!compact && (
+        {guideLink && (
           <Link
             href="/guia#transacciones"
             className="text-[11px] text-primary underline-offset-4 hover:underline"

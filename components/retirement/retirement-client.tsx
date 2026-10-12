@@ -383,9 +383,9 @@ export function RetirementClient({
               ) : (
                 <p className="text-sm text-foreground">
                   Con {usd0.format(settings.monthlyContribution)}/mes llegás al{" "}
-                  <span className="font-mono font-semibold tabular-nums">{formatPct(reachedPct, { decimals: 0 })}</span> de la
+                  <span className="font-semibold tabular-nums">{formatPct(reachedPct, { decimals: 0 })}</span> de la
                   meta. Para llegar a los {settings.retirementAge} necesitás aportar{" "}
-                  <span className="font-mono font-semibold tabular-nums">{usd0.format(neededContribution)}</span>/mes
+                  <span className="font-semibold tabular-nums">{usd0.format(neededContribution)}</span>/mes
                   {settings.monthlyContribution > 0 && (
                     <> ({usd0.format(neededContribution - settings.monthlyContribution)} más)</>
                   )}

@@ -93,8 +93,17 @@ export function formatARSCompact(value: number): string {
   return ARS_COMPACT.format(value);
 }
 
+// El separador decimal sigue a la moneda (punto en dólares), pero el sufijo es el
+// de es-AR, igual que en pesos: "US$ 582.3 k" junto a "$1,8 M". Antes convivían
+// "1.8M"/"582K" con "1,8 M"/"950 k" en la misma pantalla.
 export function formatUSDCompact(value: number): string {
-  return usdPrefix(USD_COMPACT.format(value));
+  return USD_COMPACT.formatToParts(value)
+    .map((p) => {
+      if (p.type === "currency") return "US$ ";
+      if (p.type === "compact") return ` ${p.value === "K" ? "k" : p.value}`;
+      return p.value;
+    })
+    .join("");
 }
 
 // Monto con decimales y locale según la moneda (USD → en-US, resto → es-AR).
@@ -118,6 +127,19 @@ export function formatDateMedium(value: Date | string): string {
 
 export function formatDateShort(value: Date | string): string {
   return DATE_SHORT.format(new Date(value));
+}
+
+const DATE_NUMERIC = new Intl.DateTimeFormat("es-AR", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "2-digit",
+  timeZone: "UTC",
+});
+
+// "20/07/26": para columnas angostas (tablas en celular), donde "20 de jul de 2026"
+// no entra. En UTC, como el resto de las fechas @db.Date.
+export function formatDateNumeric(value: Date | string): string {
+  return DATE_NUMERIC.format(new Date(value));
 }
 
 // Acepta Date (UTC midnight) o "YYYY-MM-DD" puro y lo muestra en UTC.

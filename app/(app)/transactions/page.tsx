@@ -36,16 +36,20 @@ export default function TransactionsPage({ searchParams }: { searchParams: Trans
         description="Operaciones, PPM y dividendos"
         actions={
           <div className="flex items-center gap-1.5">
-            <CsvExportButton href="/api/export/transactions" label="Exportar CSV" compact />
-            <ImportMovimientosButton compact />
-            <DividendForm compact />
+            {/* En celular el título y siete íconos sin texto no entraban: estas tres
+                acciones bajan a una fila con su nombre, debajo de la bajada. */}
+            <div className="hidden items-center gap-1.5 sm:flex">
+              <CsvExportButton href="/api/export/transactions" label="Exportar CSV" compact />
+              <ImportMovimientosButton compact />
+              <DividendForm compact />
+            </div>
             <TransactionForm />
           </div>
         }
       />
 
       <main className="flex-1 px-6 py-10 flex flex-col gap-6 max-w-6xl w-full mx-auto">
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-4">
           <p className="text-sm text-muted-foreground max-w-lg leading-relaxed">
             Registrá manualmente tus compras, ventas y dividendos para calcular
             el precio promedio de compra y el P&amp;L realizado de tu portfolio.
@@ -56,6 +60,11 @@ export default function TransactionsPage({ searchParams }: { searchParams: Trans
             </Link>
             .
           </p>
+          <div className="flex flex-wrap items-center gap-2 sm:hidden">
+            <ImportMovimientosButton guideLink={false} tourTarget={false} />
+            <DividendForm />
+            <CsvExportButton href="/api/export/transactions" label="Exportar CSV" />
+          </div>
         </div>
 
         <Suspense fallback={<ExpensesSkeleton />}>

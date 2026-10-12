@@ -99,13 +99,16 @@ export function DcaPlannerClient({
           <Label htmlFor="dca-amount" className="text-xs font-medium text-muted-foreground">
             Aporte mensual (ARS)
           </Label>
+          {/* Texto con separador de miles: en un type="number", 500000 y 5000000
+              se confundían a simple vista. Solo se aceptan dígitos (pesos enteros). */}
           <Input
             id="dca-amount"
-            type="number"
-            min={0}
-            step={10_000}
-            value={amount}
-            onChange={(e) => setAmount(Number(e.target.value))}
+            type="text"
+            inputMode="numeric"
+            autoComplete="off"
+            value={amount > 0 ? amount.toLocaleString("es-AR") : ""}
+            placeholder="0"
+            onChange={(e) => setAmount(Number(e.target.value.replace(/\D/g, "")))}
             className="w-full sm:w-56 font-mono tabular-nums"
           />
         </div>
