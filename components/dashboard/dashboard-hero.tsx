@@ -170,9 +170,9 @@ export function DashboardHero({
               <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
             </div>
             <p className="text-sm text-foreground">
-              <span className="font-mono font-semibold tabular-nums">{formatUSDCompact(retirement.projectedUsd)}</span>{" "}
+              <span className="font-semibold tabular-nums">{formatUSDCompact(retirement.projectedUsd)}</span>{" "}
               proyectados de{" "}
-              <span className="font-mono tabular-nums">{formatUSDCompact(retirement.neededUsd)}</span>
+              <span className="tabular-nums">{formatUSDCompact(retirement.neededUsd)}</span>
             </p>
             <div
               className="h-1.5 w-full overflow-hidden rounded-full bg-muted"

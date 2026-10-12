@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatCurrency, formatDateMedium, formatDateShort, formatDateUTC, formatPct, formatUSD, formatUSDCompact } from "./format";
+import { formatCurrency, formatDateMedium, formatDateNumeric, formatDateShort, formatDateUTC, formatPct, formatUSD, formatUSDCompact } from "./format";
 
 // Las columnas @db.Date llegan como medianoche UTC. En hora de Argentina
 // (UTC−3) eso es todavía el día anterior: los formatos tienen que mostrar UTC.
@@ -9,7 +9,9 @@ describe("montos en dólares", () => {
   it("llevan US$ para no confundirse con pesos", () => {
     expect(formatUSD(1764)).toBe("US$ 1,764");
     expect(formatUSD(-20)).toBe("-US$ 20");
-    expect(formatUSDCompact(582300)).toBe("US$ 582.3K");
+    expect(formatUSDCompact(582300)).toBe("US$ 582.3 k");
+    expect(formatUSDCompact(1_800_000)).toBe("US$ 1.8 M");
+    expect(formatUSDCompact(-20_000)).toBe("-US$ 20 k");
     expect(formatCurrency(55.17, "USD")).toBe("US$ 55.17");
   });
 });
@@ -25,6 +27,10 @@ describe("formatPct", () => {
 describe("formatos de fecha de columnas @db.Date", () => {
   it("formatDateMedium no corre el día", () => {
     expect(formatDateMedium(snapshotDate)).toMatch(/^09 .*oct.* 2026$/);
+  });
+
+  it("formatDateNumeric no corre el día", () => {
+    expect(formatDateNumeric(snapshotDate)).toBe("09/10/26");
   });
 
   it("formatDateShort no corre el día", () => {

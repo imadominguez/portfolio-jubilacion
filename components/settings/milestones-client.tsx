@@ -17,7 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import type { MilestoneRow } from "@/app/actions/milestones";
 import { createMilestone, deleteMilestone } from "@/app/actions/milestones";
-import { formatPct } from "@/lib/format";
+import { formatPct, formatUSDCompact } from "@/lib/format";
 
 interface MilestonesClientProps {
   initialMilestones: MilestoneRow[];
@@ -25,16 +25,6 @@ interface MilestonesClientProps {
 }
 
 const UNDO_WINDOW_MS = 8000;
-
-function formatUSD(v: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    notation: "compact",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(v);
-}
 
 export function MilestonesClient({
   initialMilestones,
@@ -127,7 +117,7 @@ export function MilestonesClient({
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-semibold text-foreground">{nextMilestone.label}</span>
             <span className="text-sm font-mono text-muted-foreground">
-              {formatUSD(currentPortfolioUsd)} / {formatUSD(nextMilestone.targetValueUsd)}
+              {formatUSDCompact(currentPortfolioUsd)} / {formatUSDCompact(nextMilestone.targetValueUsd)}
             </span>
           </div>
           <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -180,7 +170,7 @@ export function MilestonesClient({
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-mono tabular-nums text-muted-foreground">
-                    {formatUSD(m.targetValueUsd)}
+                    {formatUSDCompact(m.targetValueUsd)}
                   </span>
                   {m.id && (
                     <Button

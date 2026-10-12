@@ -133,6 +133,8 @@ export type RealizedPnlRow = {
   buyPrice: number;
   pnl: number;
   pnlPct: number;
+  // La del cobro de la venta: los resultados en pesos y en dólares no se suman.
+  currency: string;
   date: Date;
 };
 
@@ -188,6 +190,7 @@ async function cachedRealizedPnl(userId: string): Promise<RealizedPnlRow[]> {
       buyPrice: sale.cost / sale.quantity,
       pnl: sale.result,
       pnlPct: sale.cost > 0 ? (sale.result / sale.cost) * 100 : 0,
+      currency: sale.currency,
       date: sale.date,
     });
   }
