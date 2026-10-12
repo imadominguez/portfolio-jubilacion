@@ -230,7 +230,8 @@ Flujo:
 
 | Variable | Obligatoria | Uso |
 |---|---|---|
-| `DATABASE_URL` | Sí | Conexión PostgreSQL en `lib/db.ts`, `prisma.config.ts`, `prisma/seed.ts` y scripts. |
+| `DATABASE_URL` | Sí | Conexión PostgreSQL de la app (`lib/db.ts`), `prisma/seed.ts` y scripts. En Prisma Postgres, la **pooled** (`pooled.db.prisma.io`). |
+| `DIRECT_URL` | Recomendada | Conexión directa (`db.prisma.io`) para la CLI de Prisma (`migrate`, `db execute`, `studio`) en `prisma.config.ts`. Sin definir, la CLI usa `DATABASE_URL`. |
 | `NEXT_PUBLIC_APP_URL` | Recomendada | `baseURL` de Better Auth client. Sin definir, usa el origen de la página. |
 | `BETTER_AUTH_SECRET` / `BETTER_AUTH_URL` | Producción | Convención de Better Auth (no referenciadas explícitamente en el código). |
 | `ANTHROPIC_API_KEY` | Para `/portfolio` | Header `x-api-key` del análisis con Claude. |
@@ -248,18 +249,16 @@ Flujo:
 ## Inicialización de Prisma (`lib/db.ts`)
 
 ```ts
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL!,
-  ssl: { rejectUnauthorized: false },
-});
-export const db = globalForPrisma.prisma ?? new PrismaClient({ adapter });
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
+const pool = new Pool({ connectionString: process.env.DATABASE_URL!, ssl: { rejectUnauthorized: false }, max: 5, idleTimeoutMillis: 5_000 });
+attachDatabasePool(pool); // @vercel/functions
+export const db = globalForPrisma.prisma ?? new PrismaClient({ adapter: new PrismaPg(pool) });
 ```
 
 - Usa **driver adapter** nativo `pg` (no el engine binario clásico).
 - Cliente generado en `app/generated/prisma` (configurado en `schema.prisma` con `output`).
 - Patrón singleton para sobrevivir hot-reload en desarrollo.
-- `prisma.config.ts` (Prisma 7) resuelve la URL con `env("DATABASE_URL")` y define `migrations.path` y `migrations.seed`.
+- **Pool acotado por instancia.** En Vercel cada instancia de función tiene su pool y queda congelada entre pedidos, así que el temporizador que cierra las conexiones ociosas no corre. Con los valores de `pg` (10 por instancia) las conexiones quedaban abiertas minutos y llenaban el tope de la base (el proxy de Prisma Postgres responde "Failed to connect to upstream database"). `max: 5` limita cada instancia y `attachDatabasePool` la mantiene viva hasta que el pool suelta las ociosas (fuera de Vercel no hace nada).
+- `prisma.config.ts` (Prisma 7) resuelve la URL con `DIRECT_URL` o, si no está, `env("DATABASE_URL")`, y define `migrations.path` y `migrations.seed`.
 
 ---
 
