@@ -93,7 +93,8 @@ o con Prisma Studio. Alternativas de bootstrap:
 
 | Variable | Requerida | Descripción |
 |---|---|---|
-| `DATABASE_URL` | Sí | Conexión PostgreSQL. |
+| `DATABASE_URL` | Sí | Conexión PostgreSQL de la app (en Prisma Postgres, la pooled). |
+| `DIRECT_URL` | Recomendada | Conexión directa para `prisma migrate`; sin ella se usa `DATABASE_URL`. |
 | `NEXT_PUBLIC_APP_URL` | Recomendada | Base URL del cliente Better Auth (sin definir, usa el origen de la página). |
 | `BETTER_AUTH_SECRET` | Producción | Secreto de firma de sesiones (convención Better Auth). |
 | `BETTER_AUTH_URL` | Producción | URL base del server de auth. |
