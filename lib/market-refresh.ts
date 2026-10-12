@@ -4,6 +4,7 @@ import { getHistorical, getQuoteDetails } from "@/lib/yahoo-finance-client";
 import { BENCHMARKS, INDEX_BENCHMARKS, type BenchmarkId } from "@/lib/benchmarks-config";
 import { buildCumulativeIndex } from "@/lib/inflation";
 import { marketTags } from "@/lib/cache-tags";
+import { findListingPdfUrl, parseListingItems, validateListing, type PdfTextItem } from "@/lib/byma-listing";
 
 // Bajar y guardar los datos de mercado globales (CCL, precios, históricos,
 // benchmarks, IPC y CER). Lo usan las Server Actions de los botones, que
@@ -210,6 +211,81 @@ export async function saveCer(fromDate: Date): Promise<number> {
 }
 
 // ---------------------------------------------------------------------------
+// Listado de CEDEARs de BYMA (ADR-0024)
+// ---------------------------------------------------------------------------
+
+const BYMA_CEDEARS_PAGE = "https://www.byma.com.ar/en/products/financial-products/cedears";
+// La versión guardada se considera vigente esta cantidad de días: BYMA publica
+// cuando cambian los ratios, no a diario.
+const LISTING_MAX_AGE_DAYS = 7;
+
+async function extractPdfItems(data: Uint8Array): Promise<PdfTextItem[]> {
+  // El worker se importa explícito: en Node pdf.js lo busca en globalThis y así
+  // queda incluido en el bundle de la función (sin él intenta cargarlo por ruta).
+  await import("pdfjs-dist/legacy/build/pdf.worker.mjs");
+  const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  const doc = await getDocument({ data, isEvalSupported: false, useSystemFonts: false }).promise;
+  const items: PdfTextItem[] = [];
+  try {
+    for (let page = 1; page <= doc.numPages; page++) {
+      const { items: pageItems } = await (await doc.getPage(page)).getTextContent();
+      for (const it of pageItems) {
+        if ("str" in it) items.push({ page, x: it.transform[4], y: it.transform[5], str: it.str });
+      }
+    }
+  } finally {
+    await doc.destroy();
+  }
+  return items;
+}
+
+export type CedearListingResult =
+  | { status: "fresh"; version: Date }
+  | { status: "unchanged"; version: Date; rows: number }
+  | { status: "updated"; version: Date; rows: number };
+
+// Baja el PDF vigente y reemplaza el listado si es una versión nueva y válida.
+// Sin `force`, no hace nada mientras la versión guardada sea reciente. Lanza si
+// no encuentra el PDF o si no pasa la validación: el listado anterior queda.
+export async function saveCedearListing(options: { force?: boolean } = {}): Promise<CedearListingResult> {
+  const latest = await db.cedearListingVersion.findFirst({ orderBy: { version: "desc" } });
+  if (!options.force && latest && Date.now() - latest.fetchedAt.getTime() < LISTING_MAX_AGE_DAYS * DAY_MS) {
+    return { status: "fresh", version: latest.version };
+  }
+
+  const pageRes = await fetchWithTimeout(BYMA_CEDEARS_PAGE, { service: "BYMA", cache: "no-store" });
+  if (!pageRes.ok) throw new Error(`No se pudo leer la página de CEDEARs de BYMA (HTTP ${pageRes.status}).`);
+  const pdfUrl = findListingPdfUrl(await pageRes.text());
+  if (!pdfUrl) throw new Error("La página de BYMA no enlaza el listado de CEDEARs: puede haber cambiado de diseño.");
+
+  const pdfRes = await fetchWithTimeout(pdfUrl, { service: "BYMA", cache: "no-store", timeoutMs: 30_000 });
+  if (!pdfRes.ok) throw new Error(`No se pudo bajar el listado de BYMA (HTTP ${pdfRes.status}).`);
+  const listing = parseListingItems(await extractPdfItems(new Uint8Array(await pdfRes.arrayBuffer())));
+  const check = validateListing(listing);
+  if (!check.ok) throw new Error(check.error);
+  const version = listing.version!;
+
+  if (latest && latest.version.getTime() === version.getTime()) {
+    // Misma versión: solo se registra que se revisó, para no volver a bajarla mañana.
+    await db.cedearListingVersion.update({ where: { version }, data: { fetchedAt: new Date(), sourceUrl: pdfUrl } });
+    return { status: "unchanged", version, rows: latest.rowCount };
+  }
+
+  // Reemplazo entero: o queda la versión nueva completa o queda la anterior.
+  await db.$transaction([
+    db.cedearListing.deleteMany({}),
+    db.cedearListingVersion.deleteMany({ where: { version: { not: version } } }),
+    db.cedearListingVersion.upsert({
+      where: { version },
+      create: { version, sourceUrl: pdfUrl, rowCount: listing.rows.length },
+      update: { sourceUrl: pdfUrl, rowCount: listing.rows.length, fetchedAt: new Date() },
+    }),
+    db.cedearListing.createMany({ data: listing.rows.map((r) => ({ ...r, version })) }),
+  ]);
+  return { status: "updated", version, rows: listing.rows.length };
+}
+
+// ---------------------------------------------------------------------------
 // Corrida diaria (cron)
 // ---------------------------------------------------------------------------
 
@@ -257,6 +333,11 @@ export async function refreshMarketData(): Promise<{ steps: RefreshStep[]; tags:
   // saveInflation reconstruye desde el primer mes guardado (misma base).
   await run("inflacion", marketTags.benchmarks, async () => `${await saveInflation(defaultFrom)} meses`);
   await run("cer", marketTags.benchmarks, async () => `${await saveCer(since(await lastPoint("cer")))} días`);
+  await run("listado BYMA", marketTags.cedearListing, async () => {
+    const r = await saveCedearListing();
+    const v = r.version.toISOString().slice(0, 10);
+    return r.status === "fresh" ? `vigente (${v})` : r.status === "unchanged" ? `sin cambios (${v})` : `${r.rows} CEDEARs (${v})`;
+  });
 
   return { steps, tags: [...tags] };
 }

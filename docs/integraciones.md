@@ -126,7 +126,17 @@ Detalle completo en [api-y-exportacion.md](./api-y-exportacion.md#post-apianalyz
 
 ---
 
-## 6. Gmail (SMTP) — alertas por mail
+## 6. BYMA — listado oficial de CEDEARs
+
+Decisión y motivos: [ADR-0024](./adr/0024-listado-oficial-de-byma-como-fuente-de-ratios.md).
+
+- `saveCedearListing()` (`lib/market-refresh.ts`) lee la página `https://www.byma.com.ar/en/products/financial-products/cedears`, busca el link al PDF vigente (`…BYMA-CEDEARs.pdf`, el nombre cambia con cada versión) y lo baja con `fetchWithTimeout` (30 s).
+- El texto se extrae con `pdfjs-dist` (texto y coordenadas; el worker se importa explícito para que funcione en Node) y `lib/byma-listing.ts` arma las filas por posición: nombre, código BYMA, mercado y ratio. Los nombres y mercados partidos en dos líneas se pegan a su fila.
+- Se guarda solo si pasa `validateListing` (fecha de versión y más de 300 filas). Si no, queda la versión anterior.
+- Lo corre el cron diario (solo si la versión guardada tiene más de 7 días) y el botón "Actualizar listado" de Activos (`refreshCedearListing`, admin, fuerza la descarga).
+- Consumidores: el alta rápida de Activos precarga el ratio oficial. Errores conocidos de la fuente: algún código distinto del de Cocos (Nu Holdings figura como `UN`).
+
+## 7. Gmail (SMTP) — alertas por mail
 
 Decisión y motivos: [ADR-0020](./adr/0020-alertas-por-mail-con-cron-y-gmail-smtp.md).
 
@@ -147,6 +157,7 @@ Decisión y motivos: [ADR-0020](./adr/0020-alertas-por-mail-con-cron-y-gmail-smt
 | argentinadatos.com | Inflación (IPC) y CER/UVA | Diaria (cron) y manual (botón en `/datos` o carga on-demand en `/performance`) | `benchmark_points` |
 | Yahoo Finance | Precios actuales e históricos, benchmarks | Diaria (cron) y manual (botones) | `market_price_cache`, `historical_price_cache`, `benchmark_points` |
 | Yahoo Finance | Titulares de noticias por acción | Al generar el reporte | No se guardan (solo en el reporte) |
+| BYMA | Listado de CEDEARs con ratios | Diaria si tiene más de 7 días (cron) y manual (botón en Activos) | `cedear_listing_versions`, `cedear_listings` |
 | Anthropic | Reporte de oportunidades | Manual (botón en `/portfolio`) y automático el 1° de cada mes (cron, ADMIN que lo eligió) | `portfolio_reports` |
 | Yahoo Finance | Cierres y titulares para las alertas | Automático (cron diario) | No se guardan; lo enviado queda en `alert_logs` |
 | Gmail (SMTP) | Envío de las alertas | Automático (cron diario) o manual en `/alertas` | — |

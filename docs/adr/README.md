@@ -52,3 +52,4 @@ Se escribieron **retrospectivamente** el 2026-10-04 para documentar decisiones y
 | [0021](./0021-actualizacion-diaria-automatica-de-datos-de-mercado.md) | Actualización diaria automática de los datos de mercado | Aceptado |
 | [0022](./0022-plan-dca-segun-las-senales-del-reporte-sin-pesos-objetivo.md) | Plan DCA según las señales del reporte, sin pesos objetivo | Aceptado |
 | [0023](./0023-cambios-de-ratio-de-cedear-ajustados-al-leer.md) | Los cambios de ratio de CEDEAR se registran aparte y se aplican al leer | Aceptado |
+| [0024](./0024-listado-oficial-de-byma-como-fuente-de-ratios.md) | El listado oficial de BYMA es la fuente de los ratios de CEDEAR | Aceptado |

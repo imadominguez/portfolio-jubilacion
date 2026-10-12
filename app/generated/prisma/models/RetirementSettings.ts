@@ -571,14 +571,6 @@ export type RetirementSettingsUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.RetirementSettingsScalarWhereInput | Prisma.RetirementSettingsScalarWhereInput[]
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type RetirementSettingsCreateWithoutUserInput = {
   id?: string
   currentAge: number

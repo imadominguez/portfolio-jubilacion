@@ -55,6 +55,8 @@ export type SetupAssetInput = {
   ticker: string;
   cedearRatio: number;
   underlyingTicker: string | null;
+  // Sin dato se trata como CEDEAR, que es el caso que necesita subyacente.
+  assetKind?: "CEDEAR" | "FCI" | "OTHER";
 };
 
 export type SetupInput = {
@@ -85,7 +87,10 @@ export function findMissingAssetTickers(
 ): string[] {
   const ready = new Set(
     assets
-      .filter((a) => a.cedearRatio > 0 && !!a.underlyingTicker?.trim())
+      // Un FCI o un bono no cotiza en Yahoo: con estar en el catálogo alcanza.
+      // Antes se pedía subyacente a todos y el alta rápida los ofrecía como
+      // faltantes, aunque guardarlos fallaba porque ya existían.
+      .filter((a) => a.cedearRatio > 0 && (a.assetKind === "FCI" || a.assetKind === "OTHER" || !!a.underlyingTicker?.trim()))
       .map((a) => normalizeTicker(a.ticker))
   );
 

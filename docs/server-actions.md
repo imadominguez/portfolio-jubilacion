@@ -48,6 +48,8 @@ El catálogo es **global (compartido)**: lectura para todos, **escritura sólo A
 | `createAsset(data)` | Valida ticker no vacío y `cedearRatio > 0`; normaliza ticker/subyacente a mayúsculas. Error amigable si el ticker ya existe. `revalidateAssets()`. |
 | `updateAsset(id, data)` | Actualiza solo campos definidos; **no permite cambiar `ticker`**. |
 | `deleteAsset(id)` | Elimina por id (el catálogo es global; la protección es el rol ADMIN). |
+| `getCedearListingInfo(tickers)` | Versión vigente del listado de BYMA (fecha, filas, última revisión) y las entradas de los tickers pedidos con su ratio (`a:b` y valor). Exige ADMIN; cacheada con el tag `cedear-listing` (ADR-0024). |
+| `refreshCedearListing()` | Fuerza `saveCedearListing` aunque la versión sea reciente y `revalidateCedearListing()`. Exige ADMIN. |
 
 `AssetFormData`: `ticker`, `instrumentName?`, `cedearRatio`, `description?`, `sector?`, `industry?`, `country?`, `underlyingTicker?`.
 

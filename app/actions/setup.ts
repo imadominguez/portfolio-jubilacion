@@ -58,7 +58,7 @@ async function cachedSetupStatus(
       select: { positions: { select: { ticker: true } } },
     }),
     db.asset.findMany({
-      select: { ticker: true, cedearRatio: true, underlyingTicker: true },
+      select: { ticker: true, cedearRatio: true, underlyingTicker: true, assetKind: true },
     }),
     db.transaction.count({ where: { userId } }),
     db.exchangeRate.count(),
@@ -80,6 +80,7 @@ async function cachedSetupStatus(
       ticker: a.ticker,
       cedearRatio: Number(a.cedearRatio),
       underlyingTicker: a.underlyingTicker,
+      assetKind: a.assetKind,
     })),
     transactionCount,
     cclHistoryCount,

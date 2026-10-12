@@ -59,6 +59,8 @@ export const ModelName = {
   Position: 'Position',
   Asset: 'Asset',
   CedearRatioChange: 'CedearRatioChange',
+  CedearListingVersion: 'CedearListingVersion',
+  CedearListing: 'CedearListing',
   ExchangeRate: 'ExchangeRate',
   MarketPriceCache: 'MarketPriceCache',
   BenchmarkPoint: 'BenchmarkPoint',
@@ -210,6 +212,28 @@ export const CedearRatioChangeScalarFieldEnum = {
 } as const
 
 export type CedearRatioChangeScalarFieldEnum = (typeof CedearRatioChangeScalarFieldEnum)[keyof typeof CedearRatioChangeScalarFieldEnum]
+
+
+export const CedearListingVersionScalarFieldEnum = {
+  version: 'version',
+  sourceUrl: 'sourceUrl',
+  rowCount: 'rowCount',
+  fetchedAt: 'fetchedAt'
+} as const
+
+export type CedearListingVersionScalarFieldEnum = (typeof CedearListingVersionScalarFieldEnum)[keyof typeof CedearListingVersionScalarFieldEnum]
+
+
+export const CedearListingScalarFieldEnum = {
+  ticker: 'ticker',
+  name: 'name',
+  market: 'market',
+  ratioCedear: 'ratioCedear',
+  ratioUnderlying: 'ratioUnderlying',
+  version: 'version'
+} as const
+
+export type CedearListingScalarFieldEnum = (typeof CedearListingScalarFieldEnum)[keyof typeof CedearListingScalarFieldEnum]
 
 
 export const ExchangeRateScalarFieldEnum = {

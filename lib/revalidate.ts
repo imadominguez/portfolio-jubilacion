@@ -34,6 +34,11 @@ export function revalidateAssets(): void {
   updateTag(marketTags.assets);
 }
 
+// Listado de CEDEARs de BYMA (CedearListing, ADR-0024).
+export function revalidateCedearListing(): void {
+  updateTag(marketTags.cedearListing);
+}
+
 // CCL (ExchangeRate).
 export function revalidateCcl(): void {
   updateTag(marketTags.ccl);
