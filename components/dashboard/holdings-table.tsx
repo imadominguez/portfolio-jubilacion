@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -10,6 +14,52 @@ import type { PositionRow } from "@/lib/portfolio-data";
 import type { PpmRow } from "@/app/actions/transactions";
 import type { MarketPriceRow } from "@/app/actions/market-prices";
 import { formatARS, formatUSD, formatPct } from "@/lib/format";
+import { cn } from "@/lib/utils";
+
+type SortKey = "ticker" | "pnl" | "value";
+type Sort = { key: SortKey; dir: "asc" | "desc" };
+
+const HEAD = "text-[11px] font-semibold tracking-wider uppercase text-muted-foreground h-9";
+
+// Encabezado que ordena: un botón dentro del <th> con aria-sort en la celda.
+// El primer clic ordena en la dirección natural (A→Z, mayor a menor) y el
+// segundo la invierte.
+function SortHead({
+  label,
+  sortKey,
+  sort,
+  onSort,
+  className,
+  align = "right",
+}: {
+  label: string;
+  sortKey: SortKey;
+  sort: Sort;
+  onSort: (key: SortKey) => void;
+  className?: string;
+  align?: "left" | "right";
+}) {
+  const active = sort.key === sortKey;
+  const Icon = sort.dir === "asc" ? ArrowUp : ArrowDown;
+  return (
+    <TableHead
+      aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
+      className={cn(HEAD, align === "right" && "text-right", className)}
+    >
+      <button
+        type="button"
+        onClick={() => onSort(sortKey)}
+        className={cn(
+          "inline-flex items-center gap-1 rounded-sm uppercase tracking-wider outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50",
+          active && "text-foreground"
+        )}
+      >
+        {label}
+        <Icon aria-hidden className={cn("size-3", !active && "invisible")} />
+      </button>
+    </TableHead>
+  );
+}
 
 interface HoldingsTableProps {
   positions: PositionRow[];
@@ -21,6 +71,28 @@ export function HoldingsTable({ positions, ppmData = [], marketPrices = [] }: Ho
   const ppmMap = new Map(ppmData.map((p) => [p.ticker, p]));
   const marketMap = new Map(marketPrices.map((m) => [m.ticker, m]));
   const hasPpm = ppmData.length > 0;
+  const [sort, setSort] = useState<Sort>({ key: "value", dir: "desc" });
+
+  const pnlOf = (p: PositionRow) => {
+    const avg = ppmMap.get(p.ticker)?.avgPrice;
+    return avg && avg > 0 ? ((p.price - avg) / avg) * 100 : null;
+  };
+  const sorted = [...positions].sort((a, b) => {
+    const sign = sort.dir === "asc" ? 1 : -1;
+    if (sort.key === "ticker") return sign * a.ticker.localeCompare(b.ticker);
+    if (sort.key === "value") return sign * (a.positionValue - b.positionValue);
+    // Sin PPM van al final en cualquier dirección.
+    const pa = pnlOf(a);
+    const pb = pnlOf(b);
+    if (pa === null || pb === null) return pa === pb ? 0 : pa === null ? 1 : -1;
+    return sign * (pa - pb);
+  });
+  const onSort = (key: SortKey) =>
+    setSort((prev) =>
+      prev.key === key
+        ? { key, dir: prev.dir === "asc" ? "desc" : "asc" }
+        : { key, dir: key === "ticker" ? "asc" : "desc" }
+    );
 
   const totalLiveUsd = marketPrices.length > 0
     ? positions.reduce((sum, pos) => {
@@ -41,9 +113,7 @@ export function HoldingsTable({ positions, ppmData = [], marketPrices = [] }: Ho
         <Table>
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent bg-muted/40">
-              <TableHead className="pl-4 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground h-9">
-                Activo
-              </TableHead>
+              <SortHead label="Activo" sortKey="ticker" sort={sort} onSort={onSort} align="left" className="pl-4" />
               <TableHead className="hidden sm:table-cell text-[11px] font-semibold tracking-wider uppercase text-muted-foreground text-right h-9">
                 Cantidad
               </TableHead>
@@ -51,23 +121,16 @@ export function HoldingsTable({ positions, ppmData = [], marketPrices = [] }: Ho
                 Precio
               </TableHead>
               {hasPpm && (
-                <TableHead className="hidden md:table-cell text-[11px] font-semibold tracking-wider uppercase text-muted-foreground text-right h-9">
-                  PPM / P&L
-                </TableHead>
+                <SortHead label="PPM / P&L" sortKey="pnl" sort={sort} onSort={onSort} className="hidden md:table-cell" />
               )}
-              <TableHead className="pr-4 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground text-right h-9">
-                Valor
-              </TableHead>
+              <SortHead label="Valor" sortKey="value" sort={sort} onSort={onSort} className="pr-4" />
             </TableRow>
           </TableHeader>
           <TableBody>
-            {positions.map((position) => {
+            {sorted.map((position) => {
               const ppm = ppmMap.get(position.ticker);
               const market = marketMap.get(position.ticker);
-              const unrealizedPnlPct =
-                ppm && ppm.avgPrice > 0
-                  ? ((position.price - ppm.avgPrice) / ppm.avgPrice) * 100
-                  : null;
+              const unrealizedPnlPct = pnlOf(position);
               const usdPositionValue =
                 market && market.cedearRatio > 0
                   ? (position.quantity / market.cedearRatio) * market.priceUsd

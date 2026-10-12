@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, MotionConfig } from "motion/react";
 import { toast } from "sonner";
 import { Trash2, ArrowUpRight, ArrowDownRight } from "lucide-react";
@@ -42,7 +43,9 @@ interface TransactionsClientProps {
   movements: MovementRow[];
 }
 
-type Tab = "transactions" | "ppm" | "pnl" | "dividends" | "movements";
+const TABS = ["transactions", "ppm", "pnl", "dividends", "movements"] as const;
+type Tab = (typeof TABS)[number];
+const isTab = (v: string | null): v is Tab => TABS.includes(v as Tab);
 
 const HEAD = "text-[11px] font-semibold tracking-wider uppercase text-muted-foreground/70 h-9";
 // Columnas que en celular no entran: su dato va debajo de la primera columna.
@@ -87,7 +90,19 @@ export function TransactionsClient({
   totalDividendsUsd,
   movements,
 }: TransactionsClientProps) {
-  const [tab, setTab] = useState<Tab>("transactions");
+  // La pestaña vive en ?tab= para poder recargar, volver o compartir el link sin
+  // caer siempre en la primera. replaceState (sin pushState): cambiar de pestaña
+  // no debería llenar el historial del botón "atrás".
+  const searchParams = useSearchParams();
+  const requested = searchParams.get("tab");
+  const tab: Tab = isTab(requested) ? requested : "transactions";
+  const setTab = (next: Tab) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (next === "transactions") params.delete("tab");
+    else params.set("tab", next);
+    const query = params.toString();
+    window.history.replaceState(null, "", query ? `?${query}` : window.location.pathname);
+  };
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [movementView, setMovementView] = useState<"all" | "fci">("all");
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
