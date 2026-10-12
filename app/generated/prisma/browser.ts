@@ -63,6 +63,11 @@ export type CedearRatioChange = Prisma.CedearRatioChangeModel
  */
 export type AssetRequest = Prisma.AssetRequestModel
 /**
+ * Model RatioChangeProposal
+ * 
+ */
+export type RatioChangeProposal = Prisma.RatioChangeProposalModel
+/**
  * Model CedearListingVersion
  * 
  */

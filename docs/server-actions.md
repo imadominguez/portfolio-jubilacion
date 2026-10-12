@@ -52,6 +52,12 @@ ADR-0025. Los pedidos los crea `importSnapshot` (`enqueueAssetRequests`) y se re
 
 Las propuestas que pasan todos los controles se dan de alta solas (ADR-0026): `Asset` con `source: AUTO` y `reviewedAt: null`, precio e históricos del subyacente nuevo. Lo demás queda en revisión y se avisa a los admins por mail. El cron diario reprocesa los pendientes, los colgados y los fallidos con intentos disponibles (5).
 
+| `getRatioProposals()` | Cambios de ratio pendientes detectados en el listado de BYMA (ADR-0027). Exige ADMIN; tag `ratio-proposals`. |
+| `applyRatioProposal(ticker, newRatio, effectiveDate)` | Aplica el ratio por `updateAsset`: con fecha registra el split (`CedearRatioChange`), sin fecha es una corrección. Exige ADMIN. |
+| `dismissRatioProposal(ticker, newRatio)` | Mantiene el ratio del catálogo; ese ratio no se vuelve a proponer. Exige ADMIN. |
+
+`refreshCedearListing` (en `assets.ts`) también corre `detectRatioChanges` con el listado al día.
+
 `importSnapshot` devuelve además `newAssetTickers`: los tickers que no estaban en el catálogo.
 
 ---

@@ -4,7 +4,8 @@ import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db";
 import { requireAdmin, requireUserId } from "@/lib/auth-session";
 import { marketTags, userTags } from "@/lib/cache-tags";
-import { revalidateAssetRequests, revalidateAssets } from "@/lib/revalidate";
+import { revalidateAssetRequests, revalidateAssets, revalidateRatioProposals } from "@/lib/revalidate";
+import { updateAsset } from "@/app/actions/assets";
 import { processAssetRequestsInBackground } from "@/lib/asset-requests-runner";
 import type { AssetProposal } from "@/lib/asset-resolution";
 import type { AssetRequestStatus } from "@/app/generated/prisma/client";
@@ -163,5 +164,77 @@ export async function dismissAssetRequest(ticker: string): Promise<AssetRequestR
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : "No se pudo descartar el pedido." };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Cambios de ratio detectados en el listado de BYMA (ADR-0027)
+// ---------------------------------------------------------------------------
+
+export type RatioProposalRow = {
+  ticker: string;
+  oldRatio: number;
+  newRatio: number;
+  // Versión del listado que lo mostró (fecha sugerida para el split).
+  listingVersion: Date;
+};
+
+export async function getRatioProposals(): Promise<RatioProposalRow[]> {
+  await requireAdmin();
+  return cachedRatioProposals();
+}
+
+async function cachedRatioProposals(): Promise<RatioProposalRow[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(marketTags.ratioProposals);
+
+  const rows = await db.ratioChangeProposal.findMany({ where: { status: "PENDING" }, orderBy: { ticker: "asc" } });
+  return rows.map((r) => ({
+    ticker: r.ticker,
+    oldRatio: Number(r.oldRatio),
+    newRatio: Number(r.newRatio),
+    listingVersion: r.listingVersion,
+  }));
+}
+
+// Aplica el ratio nuevo. Con fecha es un split: se registra la
+// CedearRatioChange y las operaciones anteriores se ajustan (ADR-0023). Sin
+// fecha es una corrección del catálogo.
+export async function applyRatioProposal(
+  ticker: string,
+  newRatio: number,
+  effectiveDate: string | null
+): Promise<AssetRequestResult> {
+  try {
+    await requireAdmin();
+    const asset = await db.asset.findUnique({ where: { ticker }, select: { id: true } });
+    if (!asset) return { success: false, error: `${ticker} ya no está en el catálogo.` };
+    const result = await updateAsset(asset.id, { cedearRatio: newRatio, ratioChangeDate: effectiveDate ?? undefined });
+    if (!result.success) return result;
+    await db.ratioChangeProposal.update({
+      where: { ticker_newRatio: { ticker, newRatio } },
+      data: { status: "APPLIED", resolvedAt: new Date() },
+    });
+    revalidateRatioProposals();
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "No se pudo aplicar el cambio de ratio." };
+  }
+}
+
+// El catálogo está bien (por ejemplo, un error del listado). No se vuelve a
+// proponer el mismo ratio.
+export async function dismissRatioProposal(ticker: string, newRatio: number): Promise<AssetRequestResult> {
+  try {
+    await requireAdmin();
+    await db.ratioChangeProposal.update({
+      where: { ticker_newRatio: { ticker, newRatio } },
+      data: { status: "DISMISSED", resolvedAt: new Date() },
+    });
+    revalidateRatioProposals();
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "No se pudo descartar el cambio." };
   }
 }

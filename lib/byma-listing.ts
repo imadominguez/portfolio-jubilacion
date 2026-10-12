@@ -191,3 +191,23 @@ export function validateListing(listing: ParsedListing, minRows = MIN_LISTING_RO
   }
   return { ok: true };
 }
+
+export type CatalogRatio = { ticker: string; ratio: number; kind: "CEDEAR" | "FCI" | "OTHER" };
+export type RatioDiff = { ticker: string; oldRatio: number; newRatio: number };
+
+// CEDEARs del catálogo cuyo ratio no coincide con el del listado vigente: un
+// split que BYMA ya publicó y el catálogo todavía no tiene (ADR-0024). Los que
+// no figuran por código no se comparan (BYMA tiene algún código distinto del de
+// Cocos) y los FCI o bonos no tienen ratio de mercado.
+export function diffCatalogRatios(
+  catalog: CatalogRatio[],
+  listing: Pick<ListingRow, "ticker" | "ratioCedear" | "ratioUnderlying">[]
+): RatioDiff[] {
+  const byTicker = new Map(listing.map((l) => [l.ticker, ratioValue(l)]));
+  return catalog.flatMap((a) => {
+    const official = byTicker.get(a.ticker);
+    if (a.kind !== "CEDEAR" || official === undefined) return [];
+    // Los ratios se guardan con 4 decimales (1:3 → 0,3333).
+    return Math.abs(official - a.ratio) > 1e-3 ? [{ ticker: a.ticker, oldRatio: a.ratio, newRatio: official }] : [];
+  });
+}

@@ -139,6 +139,18 @@ Pedido de alta de un ticker que apareció en un snapshot y no está en el catál
 | `proposal` | `Json?` | `AssetProposal` (`lib/asset-resolution.ts`): datos propuestos y cada control. |
 | `requestedAt` / `updatedAt` / `resolvedAt` | `DateTime` | |
 
+### `RatioChangeProposal` → `ratio_change_proposals`
+
+Un CEDEAR del catálogo cuyo ratio difiere del listado de BYMA (ADR-0027). Global.
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `ticker` / `newRatio` | `String` / `Decimal(10,4)` | Clave compuesta: un ratio descartado no se vuelve a proponer. |
+| `oldRatio` | `Decimal(10,4)` | El del catálogo al detectarlo. |
+| `listingVersion` | `DateTime @db.Date` | Versión del listado que lo mostró (fecha sugerida del split). |
+| `status` | `RatioProposalStatus` | `PENDING`, `APPLIED`, `DISMISSED`. `@@index([status])`. |
+| `detectedAt` / `resolvedAt` | `DateTime` | |
+
 ### `CedearListingVersion` → `cedear_listing_versions` y `CedearListing` → `cedear_listings`
 
 Listado oficial "CEDEARs Negociables en BYMA" (ADR-0024), un dato global. Se reemplaza entero con cada versión nueva que pasa la validación (`lib/byma-listing.ts`); queda una sola versión guardada.
@@ -345,7 +357,7 @@ BenchmarkPoint (independiente, por benchmarkId)
 InvestmentStrategy (independiente, versionada)
 ```
 
-Modelos **globales sin `userId`**: `Asset`, `CedearRatioChange`, `CedearListingVersion`, `CedearListing`, `AssetRequest`, `ExchangeRate`, `MarketPriceCache`, `HistoricalPriceCache`, `BenchmarkPoint`, `InvestmentStrategy`.
+Modelos **globales sin `userId`**: `Asset`, `CedearRatioChange`, `CedearListingVersion`, `CedearListing`, `AssetRequest`, `RatioChangeProposal`, `ExchangeRate`, `MarketPriceCache`, `HistoricalPriceCache`, `BenchmarkPoint`, `InvestmentStrategy`.
 
 ---
 
@@ -373,6 +385,7 @@ Ubicación: `prisma/migrations/`.
 | `20261011160000_cedear_ratio_changes` | Tabla `cedear_ratio_changes` con el split de SPY (20:1 → 60:1, 01/06/2026), ADR-0023. |
 | `20261012160000_cedear_listing` | Tablas `cedear_listing_versions` y `cedear_listings` (listado de BYMA, ADR-0024). |
 | `20261012180000_asset_requests` | Tabla `asset_requests` y columnas `source` / `reviewedAt` en `assets` (ADR-0025). |
+| `20261012200000_ratio_change_proposals` | Tabla `ratio_change_proposals` (ADR-0027). |
 | `20261009220000_drop_target_allocations` | Borra la tabla `target_allocations` (sin pesos objetivo, ADR-0022). |
 | `20261009200000_retirement_expected_return` | `retirement_settings.expectedReturnRate` (`Decimal(6,4)`, por defecto 0.07). |
 

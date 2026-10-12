@@ -382,6 +382,23 @@ export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
   _max?: Prisma.NestedJsonNullableFilter<$PrismaModel>
 }
 
+export type EnumRatioProposalStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.RatioProposalStatus | Prisma.EnumRatioProposalStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.RatioProposalStatus[] | Prisma.ListEnumRatioProposalStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RatioProposalStatus[] | Prisma.ListEnumRatioProposalStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRatioProposalStatusFilter<$PrismaModel> | $Enums.RatioProposalStatus
+}
+
+export type EnumRatioProposalStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RatioProposalStatus | Prisma.EnumRatioProposalStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.RatioProposalStatus[] | Prisma.ListEnumRatioProposalStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RatioProposalStatus[] | Prisma.ListEnumRatioProposalStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRatioProposalStatusWithAggregatesFilter<$PrismaModel> | $Enums.RatioProposalStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRatioProposalStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRatioProposalStatusFilter<$PrismaModel>
+}
+
 export type EnumTransactionTypeFilter<$PrismaModel = never> = {
   equals?: $Enums.TransactionType | Prisma.EnumTransactionTypeFieldRefInput<$PrismaModel>
   in?: $Enums.TransactionType[] | Prisma.ListEnumTransactionTypeFieldRefInput<$PrismaModel>
@@ -836,6 +853,23 @@ export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
   gt?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
   gte?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
   not?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
+}
+
+export type NestedEnumRatioProposalStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.RatioProposalStatus | Prisma.EnumRatioProposalStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.RatioProposalStatus[] | Prisma.ListEnumRatioProposalStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RatioProposalStatus[] | Prisma.ListEnumRatioProposalStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRatioProposalStatusFilter<$PrismaModel> | $Enums.RatioProposalStatus
+}
+
+export type NestedEnumRatioProposalStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RatioProposalStatus | Prisma.EnumRatioProposalStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.RatioProposalStatus[] | Prisma.ListEnumRatioProposalStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RatioProposalStatus[] | Prisma.ListEnumRatioProposalStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRatioProposalStatusWithAggregatesFilter<$PrismaModel> | $Enums.RatioProposalStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRatioProposalStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRatioProposalStatusFilter<$PrismaModel>
 }
 
 export type NestedEnumTransactionTypeFilter<$PrismaModel = never> = {

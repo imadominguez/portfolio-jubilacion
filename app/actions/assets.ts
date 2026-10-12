@@ -1,7 +1,8 @@
 "use server";
 
 import { cacheLife, cacheTag } from "next/cache";
-import { revalidateAssets, revalidateCedearListing } from "@/lib/revalidate";
+import { revalidateAssets, revalidateCedearListing, revalidateRatioProposals } from "@/lib/revalidate";
+import { detectRatioChanges } from "@/lib/asset-requests-runner";
 import { marketTags } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth-session";
@@ -278,6 +279,9 @@ export async function refreshCedearListing(): Promise<RefreshListingResult> {
     await requireAdmin();
     const r = await saveCedearListing({ force: true });
     revalidateCedearListing();
+    // Con el listado al día, se comparan los ratios del catálogo (ADR-0027).
+    const changes = await detectRatioChanges().catch(() => null);
+    if (changes && (changes.created || changes.closed)) revalidateRatioProposals();
     const v = r.version.toISOString().slice(0, 10).split("-").reverse().join("/");
     return {
       success: true,

@@ -1,6 +1,6 @@
 # Plan: alta automática de activos con el listado de BYMA
 
-Estado: en curso. PR 1 (listado de BYMA) y PR 2 (pedidos y revisión, [ADR-0025](./adr/0025-pedidos-de-alta-de-activos-desde-el-import.md)) hechos; PR 3 (alta automática, [ADR-0026](./adr/0026-alta-automatica-de-activos-con-controles-en-verde.md)) hecho; PR 4 pendiente.
+Estado: en curso. PR 1 (listado de BYMA) y PR 2 (pedidos y revisión, [ADR-0025](./adr/0025-pedidos-de-alta-de-activos-desde-el-import.md)) hechos; PR 3 (alta automática, [ADR-0026](./adr/0026-alta-automatica-de-activos-con-controles-en-verde.md)) hecho; PR 4 (splits desde el listado, [ADR-0027](./adr/0027-splits-detectados-con-el-listado-de-byma.md)) hecho. Plan completo.
 Decisión de arquitectura: [ADR-0024](./adr/0024-listado-oficial-de-byma-como-fuente-de-ratios.md).
 
 ## Problema
