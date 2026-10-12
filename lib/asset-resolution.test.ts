@@ -8,7 +8,10 @@ import {
   isUsMarket,
   nameSimilarity,
   pickUnderlying,
+  MAX_ATTEMPTS,
   ratioMatches,
+  requestOutcome,
+  shouldNotifyAdmin,
   statusOnRequest,
   translateCountry,
   translateSector,
@@ -40,6 +43,8 @@ describe("nameSimilarity y findListingByName", () => {
     expect(nameSimilarity("EJEMPLO HOLDINGS LTD", "Ejemplo Holdings Ltd/Cayman Islands")).toBe(1);
     expect(nameSimilarity("Compañía Ñandú S.A.", "COMPANIA NANDU SA")).toBe(1);
     expect(nameSimilarity("Alfa Inc.", "Beta Corp.")).toBe(0);
+    // Mismas letras, con o sin espacio entre palabras.
+    expect(nameSimilarity("AlfaBeta Holdings Corporation", "Alfa Beta Corporation")).toBe(1);
   });
 
   it("encuentra la fila por nombre cuando el código del listado difiere", () => {
@@ -159,5 +164,19 @@ describe("statusOnRequest", () => {
     expect(statusOnRequest("RUNNING")).toBe("keep");
     expect(statusOnRequest("NEEDS_REVIEW")).toBe("keep");
     expect(statusOnRequest("PENDING")).toBe("keep");
+  });
+});
+
+describe("requestOutcome y shouldNotifyAdmin", () => {
+  it("da de alta solo lo que pasó todos los controles", () => {
+    expect(requestOutcome({ autoEligible: true })).toBe("DONE");
+    expect(requestOutcome({ autoEligible: false })).toBe("NEEDS_REVIEW");
+  });
+
+  it("avisa al admin al quedar en revisión o al agotar los reintentos", () => {
+    expect(shouldNotifyAdmin("NEEDS_REVIEW", 1)).toBe(true);
+    expect(shouldNotifyAdmin("DONE", 1)).toBe(false);
+    expect(shouldNotifyAdmin("FAILED", 1)).toBe(false);
+    expect(shouldNotifyAdmin("FAILED", MAX_ATTEMPTS)).toBe(true);
   });
 });

@@ -4,6 +4,7 @@ import { revalidateTag } from "next/cache";
 import { runAllAlerts } from "@/lib/alerts-runner";
 import { refreshMarketData } from "@/lib/market-refresh";
 import { runMonthlyTasks } from "@/lib/monthly-runner";
+import { processAssetRequests } from "@/lib/asset-requests-runner";
 
 // Datos de mercado, alertas por acción (~16 por usuario contra Yahoo) y, una vez
 // por mes, el reporte de oportunidades (hasta 150 s) y el resumen.
@@ -29,6 +30,11 @@ export async function GET(req: NextRequest) {
     const market = await refreshMarketData();
     for (const tag of market.tags) revalidateTag(tag, "max");
 
+    // Pedidos de activos que quedaron colgados o fallaron por un error pasajero
+    // (ADR-0025, ADR-0026). Después del listado de BYMA, que acaba de revisarse.
+    const assetRequests = await processAssetRequests({ retryFailed: true }).catch(() => null);
+    for (const tag of assetRequests?.tags ?? []) revalidateTag(tag, "max");
+
     const results = await runAllAlerts();
     // Reporte de oportunidades del mes y resumen mensual: después de las alertas,
     // con los datos de mercado del día.
@@ -36,6 +42,13 @@ export async function GET(req: NextRequest) {
     // Solo conteos y estado de los datos globales: nada de mails ni datos de usuarios.
     return NextResponse.json({
       market: market.steps,
+      assetRequests: assetRequests
+        ? {
+            done: assetRequests.results.filter((r) => r.status === "DONE").length,
+            review: assetRequests.results.filter((r) => r.status === "NEEDS_REVIEW").length,
+            failed: assetRequests.results.filter((r) => r.status === "FAILED").length,
+          }
+        : "error",
       users: results.length,
       failed: results.filter((r) => !r.ok).length,
       mailsSent: results.filter((r) => r.sent).length,

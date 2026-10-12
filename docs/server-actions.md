@@ -50,6 +50,8 @@ ADR-0025. Los pedidos los crea `importSnapshot` (`enqueueAssetRequests`) y se re
 | `retryAssetRequest(ticker)` | Vuelve el pedido a `PENDING` y lo procesa en segundo plano. Exige ADMIN. |
 | `dismissAssetRequest(ticker)` | Borra el pedido; el próximo import con ese ticker lo vuelve a crear. Exige ADMIN. |
 
+Las propuestas que pasan todos los controles se dan de alta solas (ADR-0026): `Asset` con `source: AUTO` y `reviewedAt: null`, precio e históricos del subyacente nuevo. Lo demás queda en revisión y se avisa a los admins por mail. El cron diario reprocesa los pendientes, los colgados y los fallidos con intentos disponibles (5).
+
 `importSnapshot` devuelve además `newAssetTickers`: los tickers que no estaban en el catálogo.
 
 ---
@@ -64,6 +66,7 @@ El catálogo es **global (compartido)**: lectura para todos, **escritura sólo A
 | `createAsset(data)` | Valida ticker no vacío y `cedearRatio > 0`; normaliza ticker/subyacente a mayúsculas. Error amigable si el ticker ya existe. `revalidateAssets()`. |
 | `updateAsset(id, data)` | Actualiza solo campos definidos; **no permite cambiar `ticker`**. |
 | `deleteAsset(id)` | Elimina por id (el catálogo es global; la protección es el rol ADMIN). |
+| `markAssetReviewed(id)` | Da por revisada un alta automática (`reviewedAt`). Editar el activo con `updateAsset` también la marca. Exige ADMIN. |
 | `getCedearListingInfo(tickers)` | Versión vigente del listado de BYMA (fecha, filas, última revisión) y las entradas de los tickers pedidos con su ratio (`a:b` y valor). Exige ADMIN; cacheada con el tag `cedear-listing` (ADR-0024). |
 | `refreshCedearListing()` | Fuerza `saveCedearListing` aunque la versión sea reciente y `revalidateCedearListing()`. Exige ADMIN. |
 

@@ -27,6 +27,7 @@ export type AssetRow = {
   industry: string | null;
   country: string | null;
   underlyingTicker: string | null;
+  needsReview?: boolean;
 };
 
 interface AssetDialogProps {

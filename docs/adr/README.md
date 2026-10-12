@@ -54,3 +54,4 @@ Se escribieron **retrospectivamente** el 2026-10-04 para documentar decisiones y
 | [0023](./0023-cambios-de-ratio-de-cedear-ajustados-al-leer.md) | Los cambios de ratio de CEDEAR se registran aparte y se aplican al leer | Aceptado |
 | [0024](./0024-listado-oficial-de-byma-como-fuente-de-ratios.md) | El listado oficial de BYMA es la fuente de los ratios de CEDEAR | Aceptado |
 | [0025](./0025-pedidos-de-alta-de-activos-desde-el-import.md) | Los tickers nuevos de un snapshot generan un pedido de alta que el sistema resuelve en segundo plano | Aceptado |
+| [0026](./0026-alta-automatica-de-activos-con-controles-en-verde.md) | El sistema da de alta solo un activo cuando su propuesta pasa todos los controles | Aceptado |

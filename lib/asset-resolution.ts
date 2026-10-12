@@ -26,7 +26,8 @@ export function cleanInstrumentName(instrumentName: string | null): string {
 const NAME_NOISE = new Set([
   "INC", "CORP", "CORPORATION", "CO", "COMPANY", "LTD", "LIMITED", "PLC", "SA", "S", "A", "NV", "AG", "SE",
   "HOLDING", "HOLDINGS", "GROUP", "THE", "DE", "CL", "CLASS", "ADR", "SPONSORED", "TR", "TRUST", "ETF",
-  "CAYMAN", "ISLANDS",
+  // "BP PCL" en BYMA y "BP p.l.c." en Yahoo.
+  "CAYMAN", "ISLANDS", "PCL", "P", "L", "C",
 ]);
 
 function nameTokens(name: string): Set<string> {
@@ -46,6 +47,10 @@ export function nameSimilarity(a: string, b: string): number {
   const ta = nameTokens(a);
   const tb = nameTokens(b);
   if (ta.size === 0 || tb.size === 0) return 0;
+  // "ExxonMobil" y "Exxon Mobil": las mismas letras con o sin espacio.
+  const ca = [...ta].join("");
+  const cb = [...tb].join("");
+  if (ca === cb || (Math.min(ca.length, cb.length) >= 6 && (ca.includes(cb) || cb.includes(ca)))) return 1;
   const [small, big] = ta.size <= tb.size ? [ta, tb] : [tb, ta];
   let hits = 0;
   for (const t of small) if (big.has(t)) hits++;
@@ -300,4 +305,20 @@ export type RequestStatus = "PENDING" | "RUNNING" | "DONE" | "NEEDS_REVIEW" | "F
 export function statusOnRequest(existing: RequestStatus | null): RequestStatus | "keep" {
   if (existing === null) return "PENDING";
   return existing === "FAILED" || existing === "DONE" ? "PENDING" : "keep";
+}
+
+// Intentos antes de dejar de reintentar un pedido que falla (Yahoo caído, etc.).
+export const MAX_ATTEMPTS = 5;
+
+// Con todos los controles en verde el sistema da de alta el activo solo
+// (ADR-0026); si no, lo deja para el admin.
+export function requestOutcome(proposal: Pick<AssetProposal, "autoEligible">): "DONE" | "NEEDS_REVIEW" {
+  return proposal.autoEligible ? "DONE" : "NEEDS_REVIEW";
+}
+
+// Al admin se le avisa una vez por pedido: cuando queda para revisar o cuando
+// agotó los reintentos. Un fallo pasajero lo reintenta el cron sin mail.
+export function shouldNotifyAdmin(status: "DONE" | "NEEDS_REVIEW" | "FAILED", attempts: number): boolean {
+  if (status === "NEEDS_REVIEW") return true;
+  return status === "FAILED" && attempts >= MAX_ATTEMPTS;
 }
