@@ -92,13 +92,14 @@ export function OpportunityAnalyzer() {
     <div className="space-y-6">
       <PageIntro>
         Revisa el precio y las últimas noticias de cada acción de tu último snapshot y dice si es momento de comprar,
-        mantener o vender. Cada reporte usa la API de Anthropic y tiene un costo.
+        mantener o vender.
       </PageIntro>
 
       <Card>
         <CardContent className="space-y-4">
-          <div className="flex gap-2">
-            <Button onClick={handleAnalyze} disabled={loading} className="flex-1" size="lg">
+          {/* El aviso de costo va junto al botón, que es donde se decide gastar. */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <Button onClick={handleAnalyze} disabled={loading} size="lg">
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -115,6 +116,11 @@ export function OpportunityAnalyzer() {
               <Button onClick={() => abortRef.current?.abort()} variant="outline" size="lg">
                 Cancelar
               </Button>
+            )}
+            {!loading && (
+              <p className="text-xs text-muted-foreground">
+                Cada reporte usa la API de Anthropic y tiene un costo. Suele tardar menos de un minuto.
+              </p>
             )}
           </div>
           {loading && (

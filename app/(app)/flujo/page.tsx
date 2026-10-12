@@ -88,7 +88,7 @@ async function CashFlowContent() {
       </section>
 
       <section className="rounded-xl border border-border bg-card shadow-sm p-5 flex flex-col gap-2">
-        <p className="text-xs text-muted-foreground">Depósitos y gastos por mes, con la tasa de ahorro</p>
+        <p className="text-xs text-muted-foreground">Depósitos y gastos por mes. La tasa de ahorro de cada mes está en el detalle al pasar el mouse y en la tabla.</p>
         <CashFlowChart months={months} />
       </section>
 

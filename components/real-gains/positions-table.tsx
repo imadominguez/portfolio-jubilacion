@@ -68,7 +68,9 @@ export function PositionsTable({
                   <span className="text-sm font-bold font-mono text-foreground">
                     {pos.ticker}
                   </span>
-                  {pos.underlyingTicker && (
+                  {/* Casi siempre el subyacente es el mismo ticker (AAPL → AAPL):
+                      solo se muestra cuando difiere (BRKB → BRK-B). */}
+                  {pos.underlyingTicker && pos.underlyingTicker !== pos.ticker && (
                     <span className="text-[11px] text-muted-foreground">
                       {pos.underlyingTicker}
                     </span>
