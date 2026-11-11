@@ -44,6 +44,7 @@ app/
     real-gains/                 Ganancia real USD vs impacto CCL
     flujo/                      Flujo de caja: depósitos, gastos, ahorro e inversión por mes
     impuestos/                  Tenencia al cierre, ventas y dividendos del año
+    resultados/                 Resultado del año por ticker (ARS/USD), con compras y ventas (?anio=)
     alertas/                    Configuración e historial de alertas por mail
     assets/                     Catálogo de CEDEARs           (ADMIN)
     strategy/                   System prompt versionado       (ADMIN)
@@ -72,6 +73,7 @@ components/
   snapshots/                    ImportCsvSheet, ImportButton
   transactions/                 ExpensesSection (gastos del mes), ExpensesTable, ExpensesDailyChart, TransactionsClient, TransactionForm, DividendForm, ImportMovimientosButton
   taxes/                        TaxReportView, TaxReportSkeleton (/impuestos)
+  results/                      ResultsView, TickerDetail y gráficos (/resultados)
   cash-flow/                    CashFlowChart, CashFlowSkeleton (/flujo)
   alerts/                       AlertSettingsForm, AlertsSkeleton (/alertas)
   retirement/                   RetirementClient
@@ -94,6 +96,8 @@ lib/
   analysis-data.ts              Concentración (Prisma, read-only)
   real-gains-data.ts            Ganancia real USD (Prisma, read-only)
   tax-report-data.ts            Datos del reporte para impuestos (Prisma, read-only)
+  ticker-results-data.ts        Datos de /resultados (Prisma, read-only)
+  ticker-results.ts             Resultado del año por ticker: realizado, no realizado, dividendos (puro)
   tax-report.ts                 Tenencia al cierre, resultado de ventas, dividendos y CSV (puro)
   alerts.ts                     Reglas de las alertas por mail y contenido del mail (puro)
   expenses.ts                   Gastos del mes: categorías, totales por día y por categoría (puro)
@@ -158,7 +162,7 @@ Anthropic ──┘   (app/actions/)   └── API routes (PDF/CSV/IA)
 Reglas de la arquitectura (ver `.cursor/rules.md`):
 
 - **RSC pages** (`app/(app)/**/page.tsx`) son síncronas: header y contenido estático van al static shell, y las lecturas van en un componente async dentro de `<Suspense>` que pasa los datos como props a componentes cliente. Las lecturas se cachean con `'use cache'` y un tag por dominio (ver [server-actions.md](./server-actions.md) y [ADR-0017](./adr/0017-cache-components-partial-prerendering-y-prefetching.md)).
-- **`lib/` sin Prisma** salvo los helpers de lectura permitidos: `portfolio-data.ts`, `analysis-data.ts`, `real-gains-data.ts`, `tax-report-data.ts`, `alerts-runner.ts` y `monthly-runner.ts` (escriben `AlertLog`), `opportunity-runner.ts` (guarda `PortfolioReport`) y `market-refresh.ts` (descarga y guarda los datos de mercado globales).
+- **`lib/` sin Prisma** salvo los helpers de lectura permitidos: `portfolio-data.ts`, `analysis-data.ts`, `real-gains-data.ts`, `tax-report-data.ts`, `ticker-results-data.ts`, `alerts-runner.ts` y `monthly-runner.ts` (escriben `AlertLog`), `opportunity-runner.ts` (guarda `PortfolioReport`) y `market-refresh.ts` (descarga y guarda los datos de mercado globales).
 - **Toda mutación** pasa por Server Actions que devuelven uniones discriminadas `{ success: true, ... } | { success: false, error }`.
 - **API routes** solo para binarios (PDF/CSV/HTML) y la integración con IA. Además del proxy, cada ruta valida la sesión (`401` si falta) y filtra por `userId` (un snapshot ajeno responde `404`).
 - **Aislamiento por usuario:** los datos del portafolio se leen y borran siempre con `where: { ..., userId }` (`requireUserId()`); los datos de mercado son globales. Ver [ADR-0008](./adr/0008-aislamiento-por-usuario-y-datos-de-mercado-globales.md).
