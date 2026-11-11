@@ -17,6 +17,7 @@ import {
   Database,
   HelpCircle,
   Receipt,
+  ChartColumn,
   Wallet,
   Upload,
   RefreshCw,
@@ -64,6 +65,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "Transacciones", href: "/transactions", icon: ArrowLeftRight },
       { label: "Flujo de caja", href: "/flujo", icon: Coins },
+      { label: "Resultados", href: "/resultados", icon: ChartColumn },
       { label: "Impuestos", href: "/impuestos", icon: Receipt },
     ],
   },

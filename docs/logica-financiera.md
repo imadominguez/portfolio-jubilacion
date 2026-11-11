@@ -481,6 +481,25 @@ Con los precios (USD por millón de tokens) del **modelo que respondió**, de la
 
 ---
 
+## Resultado del año por ticker (`lib/ticker-results.ts`)
+
+Pantalla `/resultados` (`?anio=`; por defecto el año en curso). El período va del último snapshot del año anterior (o el 1/1 si no hay) al último snapshot del año, así el valor inicial y el final son los que informó Cocos:
+
+```
+resultado    = valor final − valor inicial − compras + ventas + dividendos
+realizado    = Σ (ingreso neto de cada venta − costo promedio de lo vendido)
+no realizado = resultado − realizado − dividendos
+%            = resultado / (valor inicial + compras)
+```
+
+- Compras = bruto + comisión; ventas = bruto − comisión (bonos y ONs usan `grossAmount`). El costo promedio recorre todo el historial (incluye compras de años anteriores) y se lleva en las dos monedas.
+- En USD cada operación y dividendo usa el CCL de su fecha (`cclLookup`) y cada snapshot su CCL guardado: la diferencia con el resultado en pesos es el efecto del tipo de cambio.
+- Dividendos netos: el monto de `dividendRows` menos los gastos en pesos.
+- Solo entran tickers con operaciones en `Transaction` (FCI y saldos no se pueden separar de los aportes). Cantidades en CEDEARs del ratio actual (ADR-0023), también las de los snapshots.
+- Avisos: la tenencia final no cierra con inicial + compras − ventas (faltan movimientos o un split sin registrar), tenencia previa sin snapshot que la valúe, y operaciones posteriores al último snapshot (entran con el próximo).
+
+---
+
 ## Reporte para impuestos (`lib/tax-report.ts`)
 
 Junta los datos para la declaración anual; no aplica reglas impositivas (exenciones, tipo de cambio BNA, fuente). Las fechas son medianoche UTC, así que el año sale de `getUTCFullYear()`.
